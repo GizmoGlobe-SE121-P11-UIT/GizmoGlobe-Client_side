@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "413433346211",
+    "project_id": "se121p11-gizmoglobe",
+    "storage_bucket": "se121p11-gizmoglobe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:413433346211:android:b0d022c6183f1e6c73a716",
+        "android_client_info": {
+          "package_name": "com.example.gizmoglobe_client"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD19PvPONLG89r_mW99GZJmSSt4JfWTa_E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
