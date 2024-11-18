@@ -18,7 +18,7 @@ class UserScreenCubit extends Cubit<UserScreenState> {
     if (user != null) {
       final DocumentSnapshot userDoc =
       await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      setUserInfo(userDoc['name']);
+      setUserInfo(userDoc['username']);
     }
   }
 

@@ -44,6 +44,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
       // Send verification email
       await userCredential.user!.sendEmailVerification();
 
+      // Check if the 'users' collection exists
+      final CollectionReference usersCollection = _firestore.collection('users');
+      final DocumentSnapshot doc = await usersCollection.doc('dummyDoc').get();
+
+      if (!doc.exists) {
+        // Create the 'users' collection by adding a dummy document and then deleting it
+        await usersCollection.doc('dummyDoc').set({'exists': true});
+        await usersCollection.doc('dummyDoc').delete();
+      }
+
+      // Add user data to Firestore
+      await usersCollection.doc(userCredential.user!.uid).set({
+        'username': name,
+        'email': email,
+        'userid': userCredential.user!.uid,
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('A verification email has been sent to your email address. Please verify your email to continue.')),
       );
