@@ -4,36 +4,29 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_view.dart';
 import 'data/database/database.dart';
+import 'firebase_options.dart';
 import 'screens/login/login_screen.dart';
 import 'screens/login/signup_screen.dart';
 import 'screens/main/main_screen/main_screen_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // try {
-  //   await Firebase.initializeApp(
-  //     name: 'money-tracking',
-  //     options: const FirebaseOptions(
-  //       apiKey: 'AIzaSyDVcTj2WN5ZcDrSXb-hQztCM1EzdEnmLZM',
-  //       projectId: 'money-tracking-se346',
-  //       appId: '1:363617900262:android:526d6402b059bd51020d27',
-  //       messagingSenderId: '363617900262',
-  //       // Add other Firebase options as needed
-  //     ),
-  //   );
-  //
-     runApp(const MyApp());
-  // } catch (e) {
-  //   if (kDebugMode) {
-  //     runApp(MaterialApp(
-  //       home: Scaffold(
-  //         body: Center(
-  //           child: Text('Error initializing Firebase: $e'),
-  //         ),
-  //       ),
-  //     ));
-  //   }
-  // }
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.android,
+    );
+    runApp(const MyApp());
+  } catch (e) {
+    if (kDebugMode) {
+      runApp(MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text('Error initializing Firebase: $e'),
+          ),
+        ),
+      ));
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -71,18 +64,17 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // return StreamBuilder<User?>(
-    //   stream: FirebaseAuth.instance.authStateChanges(),
-    //   builder: (context, snapshot) {
-    //     if (snapshot.connectionState == ConnectionState.waiting) {
-    //       return const Center(child: CircularProgressIndicator());
-    //     }
-    //     if (snapshot.hasData) {
-    //       return const MainScreen(); // User is logged in, go to MainScreen
-    //     }
-    //     return LoginScreen(); // User is not logged in, go to HomeScreen
-    //   },
-    // );
-    return const MainScreen();
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasData) {
+          return const MainScreen(); // User is logged in, go to MainScreen
+        }
+        return LoginScreen(); // User is not logged in, go to LoginScreen
+      },
+    );
   }
 }
