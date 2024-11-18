@@ -18,8 +18,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
-  // final FirebaseAuth _auth = FirebaseAuth.instance;
-  // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> _signUp(BuildContext context) async {
     try {
@@ -36,13 +36,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
 
       // Create user with email and password
-      // final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-      //   email: email,
-      //   password: password,
-      // );
+      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
       // Send verification email
-      //await userCredential.user!.sendEmailVerification();
+      await userCredential.user!.sendEmailVerification();
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('A verification email has been sent to your email address. Please verify your email to continue.')),
