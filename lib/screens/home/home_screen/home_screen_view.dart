@@ -23,10 +23,10 @@ class HomeScreen extends StatefulWidget {
       );
 
   @override
-  State<HomeScreen> createState() => _ModifyTransactionScreen();
+  State<HomeScreen> createState() => _HomeScreen();
 }
 
-class _ModifyTransactionScreen extends State<HomeScreen> {
+class _HomeScreen extends State<HomeScreen> {
   HomeScreenCubit get cubit => context.read<HomeScreenCubit>();
 
   @override

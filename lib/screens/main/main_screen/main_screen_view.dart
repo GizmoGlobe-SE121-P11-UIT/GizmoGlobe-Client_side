@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../home/home_screen/home_screen_view.dart';
+import '../../user/user_screen/user_screen_view.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,7 +14,8 @@ class _MainScreenState extends State<MainScreen> {
   int index = 0;
 
   final List<Widget Function()> widgetList = [
-        () => const HomeScreen(),
+        () => HomeScreen.newInstance(),
+        () => UserScreen.newInstance(),
   ];
 
   @override
@@ -44,16 +46,8 @@ class _MainScreenState extends State<MainScreen> {
                     label: "Home"
                 ),
                 BottomNavigationBarItem(
-                    icon: Icon(Icons.currency_exchange),
-                    label: "Transaction"
-                ),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.bar_chart),
-                    label: "Stats"
-                ),
-                BottomNavigationBarItem(
                     icon: Icon(Icons.person),
-                    label: "Profile"
+                    label: "User"
                 ),
               ]
           ),
