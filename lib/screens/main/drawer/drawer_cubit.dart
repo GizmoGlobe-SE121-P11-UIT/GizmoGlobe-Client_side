@@ -1,20 +1,25 @@
 import 'package:bloc/bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../../data/database/database.dart';
 import '../../login/sign_in_screen.dart';
-import 'user_screen_state.dart';
+import 'drawer_state.dart';
 
-class UserScreenCubit extends Cubit<UserScreenState> {
-  UserScreenCubit() : super(const UserScreenState(username: ''));
+class DrawerCubit extends Cubit<DrawerState> {
+  DrawerCubit() : super(DrawerState());
 
-  void getUserName() {
-    emit(state.copyWith(username: Database().username));
+  void toggleDrawer() => emit(state.copyWith(isOpen: !state.isOpen));
+  void openDrawer() => emit(state.copyWith(isOpen: true));
+  void closeDrawer() => emit(state.copyWith(isOpen: false));
+
+  void fetchCategories() {
+    // Fetch the categories from your data source
+    emit(state.copyWith(categories: ['Category 1', 'Category 2', 'Category 3']));
   }
+
   Future<void> logOut(BuildContext context) async {
     try {
+      closeDrawer();
       await FirebaseAuth.instance.signOut();
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(

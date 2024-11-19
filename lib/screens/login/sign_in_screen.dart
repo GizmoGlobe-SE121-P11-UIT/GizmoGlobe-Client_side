@@ -8,12 +8,12 @@ import '../../widgets/app_logo.dart';
 import '../../widgets/field_with_icon.dart';
 import '../../widgets/standard_button.dart';
 
-class LoginScreen extends StatelessWidget {
+class SignInScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  LoginScreen.SignInScreen({super.key});
+  SignInScreen({super.key});
 
   Future<void> _signInWithEmailPassword(BuildContext context) async {
     try {

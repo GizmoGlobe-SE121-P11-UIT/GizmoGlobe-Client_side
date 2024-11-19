@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gizmoglobe_client/widgets/gradient_text.dart';
 
-import '../../widgets/bordered_icon_button.dart';
+import '../../widgets/gradient_icon_button.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   final User user;
@@ -48,26 +49,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.only(top: 12.0),
-          child: ShaderMask(
-            shaderCallback: (bounds) => LinearGradient(
-              colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ).createShader(bounds),
-            child: const Text(
-              'Email Verification',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
+        title: const Padding(
+          padding: EdgeInsets.only(top: 16.0),
+          child: GradientText(text: 'Email Verification')
         ),
-        leading: BorderedIconButton(
+        leading: GradientIconButton(
             icon: Icons.chevron_left,
             onPressed: () {
               Navigator.pushReplacementNamed(context, '/sign-in');
