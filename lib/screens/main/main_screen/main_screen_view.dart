@@ -1,5 +1,5 @@
+// lib/screens/main/main_screen/main_screen_view.dart
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
@@ -11,6 +11,7 @@ import '../../home/home_screen/home_screen_view.dart';
 import '../../user/user_screen/user_screen_view.dart';
 import '../drawer/drawer_cubit.dart';
 import '../drawer/drawer_state.dart';
+import '../drawer/drawer_view.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -109,68 +110,7 @@ class _MainScreenState extends State<MainScreen> {
             return const SizedBox.shrink();
           },
         ),
-        BlocBuilder<DrawerCubit, DrawerState>(
-          builder: (context, state) {
-            if (state.isOpen) {
-              return Align(
-                alignment: Alignment.centerLeft,
-                child: Material(
-                  child: Container(
-                    width: 280,
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: <Widget>[
-                        DrawerHeader(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primaryContainer,
-                          ),
-                          child: Row(
-                            children: [
-                              const AppLogo(height: 32),
-                              const SizedBox(width: 8),
-                              BlocBuilder<MainScreenCubit, MainScreenState>(
-                                builder: (context, state) {
-                                  return Text(
-                                    'Hello! ${state.username}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        ...state.categories.map((category) {
-                          return ListTile(
-                            title: Text(category),
-                            onTap: () {
-                            },
-                          );
-                        }),
-                        const Divider(),
-                        ListTile(
-                          title: const Text('Contact Us'),
-                          onTap: () {
-                          },
-                        ),
-                        InvisibleGradientButton(
-                          onPress: () {
-                          },
-                          suffixIcon: Icons.logout,
-                          text: 'Log out',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
+        const DrawerView(),
       ],
     );
   }
