@@ -5,8 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_view.dart';
 import 'data/database/database.dart';
 import 'firebase_options.dart';
-import 'screens/login/login_screen.dart';
-import 'screens/login/signup_screen.dart';
+import 'screens/login/sign_in_screen.dart';
+import 'screens/login/sign_up_screen.dart';
 import 'screens/main/main_screen/main_screen_view.dart';
 
 void main() async {
@@ -37,20 +37,27 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'GizmoGlobe',
       theme: ThemeData(
-          primarySwatch: Colors.blue,
-          colorScheme: const ColorScheme.light(
-            surface: Color(0xFFF6F6F6),
-            onSurface: Colors.black,
-            primary: Color(0xFF0A98FF),
-            secondary: Color(0xFFC15BFF),
-            tertiary: Color(0xFFFBFF2B),
-          )
+        primarySwatch: Colors.blue,
+        colorScheme: const ColorScheme(
+          primary: Color(0xFF6CC4F4),
+          onPrimary: Color(0x666BBFF4),
+          secondary: Color(0xFF6465F1),
+          onSecondary: Color(0xFF292B5C),
+          primaryContainer: Color(0xFF323F73),
+          secondaryContainer: Color(0xFF608BC1),
+          surface: Color(0xFF202046),
+          onSurface: Color(0xFFF3F3E0),
+          onSurfaceVariant: Color(0xFF202046),
+          error: Colors.red,
+          onError: Colors.white,
+          brightness: Brightness.light,
+        ),
       ),
       // Define named routes for navigation
       routes: {
-        '/login': (context) => LoginScreen(),
+        '/sign-in': (context) => LoginScreen.SignInScreen(),
         '/sign-up': (context) => const SignUpScreen(),
-        '/main': (context) => const MainScreen(), // Add the MainScreen route
+        '/main': (context) => const MainScreen(),
         '/home': (context) => const HomeScreen(),
         // Add more routes for other screens
       },
@@ -73,7 +80,7 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.hasData) {
           return const MainScreen(); // User is logged in, go to MainScreen
         }
-        return LoginScreen(); // User is not logged in, go to LoginScreen
+        return LoginScreen.SignInScreen(); // User is not logged in, go to LoginScreen
       },
     );
   }

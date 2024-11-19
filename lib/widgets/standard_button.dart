@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class StandardButton extends StatelessWidget {
   final VoidCallback onPress;
-  final Color? backgroundColor;
+  final Gradient? gradient;
   final double height;
   final double width;
   final double borderRadius;
@@ -14,14 +14,14 @@ class StandardButton extends StatelessWidget {
   const StandardButton({
     super.key,
     required this.onPress,
-    this.backgroundColor,
-    this.height = 50.0,
+    this.gradient,
+    this.height = 48.0,
     this.width = double.infinity,
-    this.borderRadius = 12.0,
+    this.borderRadius = 10.0,
     this.text = '',
-    this.fontSize = 22.0,
+    this.fontSize = 16.0,
     this.fontColor = Colors.white,
-    this.fontWeight = FontWeight.normal,
+    this.fontWeight = FontWeight.bold,
   });
 
   @override
@@ -29,23 +29,30 @@ class StandardButton extends StatelessWidget {
     return SizedBox(
       width: width,
       height: height,
-      child: TextButton(
-        onPressed: onPress,
-        style: TextButton.styleFrom(
-          backgroundColor: backgroundColor ?? Theme
-              .of(context)
-              .colorScheme
-              .primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: gradient ?? LinearGradient(
+            colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
+          borderRadius: BorderRadius.circular(borderRadius),
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: fontSize,
-            color: fontColor,
-            fontWeight: fontWeight,
+        child: TextButton(
+          onPressed: onPress,
+          style: TextButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: fontSize,
+              color: fontColor,
+              fontWeight: fontWeight,
+            ),
           ),
         ),
       ),

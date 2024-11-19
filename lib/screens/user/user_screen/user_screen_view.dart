@@ -4,18 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/user/user_screen/user_screen_state.dart';
 
+import '../../../widgets/gradient_text.dart';
 import 'user_screen_cubit.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
 
   static Widget newInstance() =>
-      BlocProvider(
-        create: (context) => UserScreenCubit(),
-        child: const UserScreen(),
-      );
-
-  static Widget newInstanceWithTransaction() =>
       BlocProvider(
         create: (context) => UserScreenCubit(),
         child: const UserScreen(),
@@ -35,12 +30,6 @@ class _UserScreen extends State<UserScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    cubit.getUserName();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -50,7 +39,9 @@ class _UserScreen extends State<UserScreen> {
         appBar: AppBar(
           title: BlocBuilder<UserScreenCubit, UserScreenState>(
             builder: (context, state) {
-              return Text('Welcome, ${state.username}');
+              return GradientText(
+                text: 'Welcome, ${state.username}',
+              );
             },
           ),
           actions: [
@@ -62,8 +53,14 @@ class _UserScreen extends State<UserScreen> {
             ),
           ],
         ),
-        body: const Center(
-          child: Text('User Screen Content'),
+        body: Center(
+          child: Text(
+            'User Screen Content',
+            style: TextStyle(
+              fontSize: 24.0,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
         ),
       ),
     );
