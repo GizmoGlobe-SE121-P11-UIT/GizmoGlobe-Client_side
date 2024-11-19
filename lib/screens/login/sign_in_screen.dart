@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../widgets/app_logo.dart';
 import '../../widgets/field_with_icon.dart';
@@ -56,7 +58,42 @@ class LoginScreen extends StatelessWidget {
   }
 
   Future<void> _signInWithGoogle(BuildContext context) async {
-    // Implement Google Sign-In logic here
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        return; // The user canceled the sign-in
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+
+      if (userCredential.user != null) {
+        final user = userCredential.user!;
+        final usersCollection = FirebaseFirestore.instance.collection('users');
+
+        // Add user data to Firestore
+        await usersCollection.doc(user.uid).set({
+          'userid': user.uid,
+          'email': user.email,
+          'username': user.displayName,
+        });
+
+        // Navigate to the main screen after successful login
+        Navigator.pushReplacementNamed(context, '/main');
+      }
+    } catch (error) {
+      if (kDebugMode) {
+        print('Google sign-in failed: $error');
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in failed: $error')),
+      );
+    }
   }
 
   @override
