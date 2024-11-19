@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_view.dart';
+import 'package:gizmoglobe_client/screens/authentication/sign_up_screen/sign_up_view.dart';
+import 'package:gizmoglobe_client/screens/authentication/email_verify_screen/email_verify_cubit.dart';
+import 'package:gizmoglobe_client/screens/authentication/email_verify_screen/email_verify_view.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_view.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
 import 'package:gizmoglobe_client/screens/main/drawer/drawer_cubit.dart';
 import 'data/database/database.dart';
 import 'firebase_options.dart';
-import 'screens/login/sign_in_screen.dart';
-import 'screens/login/sign_up_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +43,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => MainScreenCubit()),
         BlocProvider(create: (context) => DrawerCubit()),
+        BlocProvider(create: (context) => EmailVerificationCubit()),
       ],
       child: MaterialApp(
         title: 'GizmoGlobe',
@@ -62,10 +65,14 @@ class MyApp extends StatelessWidget {
           ),
         ),
         routes: {
-          '/sign-in': (context) => SignInScreen(),
-          '/sign-up': (context) => const SignUpScreen(),
+          '/sign-in': (context) => SignInScreen.newInstance(),
+          '/sign-up': (context) => SignUpScreen.newInstance(),
           '/main': (context) => const MainScreen(),
           '/home': (context) => HomeScreen.newInstance(),
+          '/email-verify': (context) => EmailVerificationScreen.newInstance(
+            ModalRoute.of(context)!.settings.arguments as User,
+            ModalRoute.of(context)!.settings.arguments as String,
+          ),
         },
         home: const AuthWrapper(),
       ),
@@ -87,7 +94,7 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.hasData) {
           return const MainScreen();
         }
-        return SignInScreen();
+        return SignInScreen.newInstance();
       },
     );
   }
