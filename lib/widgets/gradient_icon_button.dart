@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 
-class BorderedIconButton extends StatelessWidget {
+class GradientIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
   final BorderRadius borderRadius;
-  final EdgeInsets padding;
   final Color fillColor;
   final double iconSize;
 
-  const BorderedIconButton({
+  const GradientIconButton({
     super.key,
     required this.icon,
     required this.onPressed,
     this.borderRadius = const BorderRadius.all(Radius.circular(15)),
-    this.padding = const EdgeInsets.all(8),
     this.fillColor = Colors.white,
     this.iconSize = 40,
   });
@@ -21,7 +19,6 @@ class BorderedIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: padding,
       decoration: BoxDecoration(
         color: fillColor,
         borderRadius: borderRadius,
@@ -42,7 +39,6 @@ class BorderedIconButton extends StatelessWidget {
             size: iconSize,
           ),
           onPressed: onPressed,
-          padding: padding,
         ),
       ),
     );

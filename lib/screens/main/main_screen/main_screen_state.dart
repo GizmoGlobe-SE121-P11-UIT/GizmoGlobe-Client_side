@@ -1,12 +1,16 @@
-import 'package:equatable/equatable.dart';
+part of 'main_screen_cubit.dart';
 
-class MainScreenState with EquatableMixin {
+class MainScreenState extends Equatable {
+  final String username;
 
-  const MainScreenState();
+  const MainScreenState({this.username = ''});
+
+  MainScreenState copyWith({String? username}) {
+    return MainScreenState(
+      username: username ?? this.username,
+    );
+  }
 
   @override
-  List<Object?> get props =>
-      [
-
-      ];
+  List<Object?> get props => [username];
 }

@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/screens/user/user_screen/user_screen_state.dart';
-
-import '../../../widgets/gradient_text.dart';
+import 'package:gizmoglobe_client/data/database/database.dart';
+import 'package:gizmoglobe_client/widgets/gradient_text.dart';
+import 'package:gizmoglobe_client/widgets/invisible_gradient_button.dart';
 import 'user_screen_cubit.dart';
+import 'user_screen_state.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -44,22 +43,26 @@ class _UserScreen extends State<UserScreen> {
               );
             },
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                cubit.logOut(context);
-              },
-            ),
-          ],
         ),
         body: Center(
-          child: Text(
-            'User Screen Content',
-            style: TextStyle(
-              fontSize: 24.0,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          child: Column(
+            children: [
+              Text(
+                '[User Screen Content]',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 20.0),
+              InvisibleGradientButton(
+                onPress: () {
+                  cubit.logOut(context);
+                },
+                suffixIcon: Icons.logout,
+                text: 'Log out',
+              ),
+            ],
           ),
         ),
       ),

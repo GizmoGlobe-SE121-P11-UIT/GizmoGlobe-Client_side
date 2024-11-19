@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../widgets/app_logo.dart';
-import '../../widgets/bordered_icon_button.dart';
+import '../../widgets/gradient_icon_button.dart';
 import '../../widgets/field_with_icon.dart';
 import '../../widgets/standard_button.dart';
 import 'email_verify_screen.dart';
@@ -96,7 +96,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: BorderedIconButton(
+        leading: GradientIconButton(
           icon: Icons.chevron_left,
           onPressed: () {
             Navigator.pushReplacementNamed(context, '/sign-in');

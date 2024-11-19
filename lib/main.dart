@@ -2,12 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_view.dart';
+import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
+import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
+import 'package:gizmoglobe_client/screens/main/drawer/drawer_cubit.dart';
 import 'data/database/database.dart';
 import 'firebase_options.dart';
 import 'screens/login/sign_in_screen.dart';
 import 'screens/login/sign_up_screen.dart';
-import 'screens/main/main_screen/main_screen_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,34 +37,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'GizmoGlobe',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        colorScheme: const ColorScheme(
-          primary: Color(0xFF6CC4F4),
-          onPrimary: Color(0x666BBFF4),
-          secondary: Color(0xFF6465F1),
-          onSecondary: Color(0xFF292B5C),
-          primaryContainer: Color(0xFF323F73),
-          secondaryContainer: Color(0xFF608BC1),
-          surface: Color(0xFF202046),
-          onSurface: Color(0xFFF3F3E0),
-          onSurfaceVariant: Color(0xFF202046),
-          error: Colors.red,
-          onError: Colors.white,
-          brightness: Brightness.light,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => MainScreenCubit()),
+        BlocProvider(create: (context) => DrawerCubit()),
+      ],
+      child: MaterialApp(
+        title: 'GizmoGlobe',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          colorScheme: const ColorScheme(
+            primary: Color(0xFF6CC4F4),
+            onPrimary: Color(0x666BBFF4),
+            secondary: Color(0xFF6465F1),
+            onSecondary: Color(0xFF292B5C),
+            primaryContainer: Color(0xFF323F73),
+            secondaryContainer: Color(0xFF608BC1),
+            surface: Color(0xFF202046),
+            onSurface: Color(0xFFF3F3E0),
+            onSurfaceVariant: Color(0xFF202046),
+            error: Colors.red,
+            onError: Colors.white,
+            brightness: Brightness.light,
+          ),
         ),
+        routes: {
+          '/sign-in': (context) => SignInScreen(),
+          '/sign-up': (context) => const SignUpScreen(),
+          '/main': (context) => const MainScreen(),
+          '/home': (context) => HomeScreen.newInstance(),
+        },
+        home: const AuthWrapper(),
       ),
-      // Define named routes for navigation
-      routes: {
-        '/sign-in': (context) => LoginScreen.SignInScreen(),
-        '/sign-up': (context) => const SignUpScreen(),
-        '/main': (context) => const MainScreen(),
-        '/home': (context) => const HomeScreen(),
-        // Add more routes for other screens
-      },
-      home: const AuthWrapper(), // Use AuthWrapper as the home screen
     );
   }
 }
@@ -78,9 +85,9 @@ class AuthWrapper extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasData) {
-          return const MainScreen(); // User is logged in, go to MainScreen
+          return const MainScreen();
         }
-        return LoginScreen.SignInScreen(); // User is not logged in, go to LoginScreen
+        return SignInScreen();
       },
     );
   }
