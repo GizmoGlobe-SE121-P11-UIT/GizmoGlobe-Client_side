@@ -10,14 +10,18 @@ class FieldWithIcon extends StatelessWidget {
   final VoidCallback? onPrefixIconPressed;
   final Icon? suffixIcon;
   final VoidCallback? onSuffixIconPressed;
-  final OutlineInputBorder? border;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final double fontSize;
   final FontWeight fontWeight;
+  final BorderRadius borderRadius;
+  final EdgeInsets padding;
+  final bool obscureText;
   final Function(String)? onSubmitted;
   final Function(String)? onChange;
   final TextEditingController controller;
+  final Color hintTextColor;
+  final Color textColor;
 
   const FieldWithIcon({
     super.key,
@@ -29,14 +33,18 @@ class FieldWithIcon extends StatelessWidget {
     this.onPrefixIconPressed,
     this.suffixIcon,
     this.onSuffixIconPressed,
-    this.border,
     this.keyboardType,
     this.inputFormatters,
-    this.fontSize = 20,
+    this.fontSize = 14,
     this.fontWeight = FontWeight.normal,
+    this.borderRadius = const BorderRadius.all(Radius.circular(10)),
+    this.padding = const EdgeInsets.all(1.5),
+    this.obscureText = false,
     this.onSubmitted,
     this.onChange,
     required this.controller,
+    this.hintTextColor = Colors.grey,
+    this.textColor = Colors.white,
   });
 
   String? getText() {
@@ -45,48 +53,64 @@ class FieldWithIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
-      child: TextFormField(
-        readOnly: readOnly,
-        textAlignVertical: TextAlignVertical.center,
-        onTap: onTap,
-        onFieldSubmitted: onSubmitted,
-        onChanged: onChange,
-        controller: controller,
-        textInputAction: TextInputAction.done,
-        decoration: InputDecoration(
-          filled: true,
-          isDense: true,
-          fillColor: fillColor,
-          hintText: hintText,
-          hintStyle: const TextStyle(
-            color: Colors.grey,
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: borderRadius,
           ),
-          prefixIcon: prefixIcon != null ? InkWell(
-            onTap: onPrefixIconPressed,
-            child: prefixIcon,
-          )
-              : null,
-          suffixIcon: suffixIcon != null ? InkWell(
-            onTap: onSuffixIconPressed,
-            child: suffixIcon,
-          )
-              : null,
-          border: border ?? OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+          padding: padding, // Adjust the width of the gradient border
+          child: Container(
+            decoration: BoxDecoration(
+              color: fillColor,
+              borderRadius: borderRadius,
+            ),
+            child: TextFormField(
+              readOnly: readOnly,
+              textAlignVertical: TextAlignVertical.center,
+              onTap: onTap,
+              onFieldSubmitted: onSubmitted,
+              onChanged: onChange,
+              controller: controller,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                filled: true,
+                isDense: true,
+                fillColor: Colors.transparent,
+                hintText: hintText,
+                hintStyle: TextStyle(
+                  color: hintTextColor,
+                ),
+                prefixIcon: prefixIcon != null ? InkWell(
+                  onTap: onPrefixIconPressed,
+                  child: prefixIcon,
+                ) : null,
+                suffixIcon: suffixIcon != null ? InkWell(
+                  onTap: onSuffixIconPressed,
+                  child: suffixIcon,
+                ) : null,
+                border: OutlineInputBorder(
+                  borderRadius: borderRadius,
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              keyboardType: keyboardType,
+              inputFormatters: inputFormatters,
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: fontWeight,
+                color: textColor,
+              ),
+              obscureText: obscureText,
+            ),
           ),
         ),
-        keyboardType: keyboardType,
-        inputFormatters: inputFormatters,
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-        ),
-      ),
+      ],
     );
   }
 }

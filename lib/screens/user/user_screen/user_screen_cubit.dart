@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../login/login_screen.dart';
+import '../../login/sign_in_screen.dart';
 import 'user_screen_state.dart';
 
 class UserScreenCubit extends Cubit<UserScreenState> {
@@ -28,7 +28,7 @@ class UserScreenCubit extends Cubit<UserScreenState> {
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
+          MaterialPageRoute(builder: (context) => LoginScreen.SignInScreen()),
               (Route<dynamic> route) => false,
         );
       }
