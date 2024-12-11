@@ -3,13 +3,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:gizmoglobe_client/widgets/app_logo.dart';
+import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import '../../../../functions/custom_dialog.dart';
 import 'package:intl/intl.dart';
 
-import '../../../widgets/gradient_icon_button.dart';
-import '../../../widgets/field_with_icon.dart';
-import '../../../widgets/invisible_gradient_button.dart';
+import '../../../widgets/general/gradient_icon_button.dart';
+import '../../../widgets/general/field_with_icon.dart';
 import '../../main/drawer/drawer_cubit.dart';
 import 'home_screen_cubit.dart';
 import 'home_screen_state.dart';

@@ -14,7 +14,7 @@ class DrawerCubit extends Cubit<DrawerState> {
 
   void fetchCategories() {
     // Fetch the categories from your data source
-    emit(state.copyWith(categories: ['Category 1', 'Category 2', 'Category 3']));
+    emit(state.copyWith(categories: ['Category 1', 'Category 2', 'Category 3', 'Category 4']));
   }
 
   Future<void> logOut(BuildContext context) async {

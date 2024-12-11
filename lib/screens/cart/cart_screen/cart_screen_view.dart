@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/widgets/gradient_text.dart';
+import '../../../widgets/general/gradient_text.dart';
 
-import '../../../widgets/gradient_icon_button.dart';
+import '../../../widgets/general/gradient_icon_button.dart';
 import 'cart_screen_cubit.dart';
 import 'cart_screen_state.dart';
 

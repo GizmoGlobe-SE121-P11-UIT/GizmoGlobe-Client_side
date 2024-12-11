@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/widgets/app_logo.dart';
-import 'package:gizmoglobe_client/widgets/invisible_gradient_button.dart';
+import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
+import '../../../widgets/general/invisible_gradient_button.dart';
 import '../main_screen/main_screen_cubit.dart';
 import 'drawer_cubit.dart';
 import 'drawer_state.dart';
@@ -21,19 +21,18 @@ class DrawerView extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Material(
               child: Container(
-                width: 280,
+                width: 240,
                 color: Theme.of(context).colorScheme.primaryContainer,
                 child: Column(
                   children: <Widget>[
-                    DrawerHeader(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                      ),
-                      child: Row(
-                        children: [
-                          const AppLogo(height: 32),
-                          const SizedBox(width: 8),
-                          BlocBuilder<MainScreenCubit, MainScreenState>(
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        const SizedBox(width: 24),
+                        const AppLogo(height: 32),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: BlocBuilder<MainScreenCubit, MainScreenState>(
                             builder: (context, state) {
                               return Text(
                                 'Hello! ${state.username}',
@@ -41,11 +40,12 @@ class DrawerView extends StatelessWidget {
                                   color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 16,
                                 ),
+                                overflow: TextOverflow.ellipsis,
                               );
                             },
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                     Expanded(
                       child: ListView(

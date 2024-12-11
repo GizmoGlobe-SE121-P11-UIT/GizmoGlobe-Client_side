@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           colorScheme: const ColorScheme(
             primary: Color(0xFF6CC4F4),
-            onPrimary: Color(0x666BBFF4),
+            onPrimary: Color(0xFF4A94F1),
             secondary: Color(0xFF6465F1),
             onSecondary: Color(0xFF292B5C),
             primaryContainer: Color(0xFF323F73),

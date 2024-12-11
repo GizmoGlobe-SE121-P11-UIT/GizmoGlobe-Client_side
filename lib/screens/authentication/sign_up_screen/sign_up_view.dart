@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../widgets/app_logo.dart';
-import '../../../widgets/field_with_icon.dart';
-import '../../../widgets/gradient_icon_button.dart';
-import '../../../widgets/standard_button.dart';
+import '../../../widgets/general/app_logo.dart';
+import '../../../widgets/general/field_with_icon.dart';
+import '../../../widgets/general/gradient_icon_button.dart';
+import '../../../widgets/general/standard_button.dart';
 import '../email_verify_screen/email_verify_view.dart';
 import 'sign_up_cubit.dart';
 import 'sign_up_state.dart';

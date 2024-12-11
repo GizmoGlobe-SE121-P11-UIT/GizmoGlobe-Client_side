@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../../../widgets/gradient_icon_button.dart';
-import '../../../widgets/gradient_text.dart';
+import '../../../widgets/general/gradient_icon_button.dart';
+import '../../../widgets/general/gradient_text.dart';
 import 'email_verify_cubit.dart';
 import 'email_verify_state.dart';
 

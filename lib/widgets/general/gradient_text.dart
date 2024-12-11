@@ -27,6 +27,7 @@ class GradientText extends StatelessWidget {
           fontSize: fontSize,
           fontWeight: FontWeight.bold,
           color: Colors.white,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );

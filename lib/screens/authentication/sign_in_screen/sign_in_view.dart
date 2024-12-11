@@ -4,11 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../widgets/general/standard_button.dart';
 import 'sign_in_cubit.dart';
 import 'sign_in_state.dart';
-import '../../../widgets/app_logo.dart';
-import '../../../widgets/field_with_icon.dart';
-import '../../../widgets/standard_button.dart';
+import '../../../widgets/general/app_logo.dart';
+import '../../../widgets/general/field_with_icon.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
