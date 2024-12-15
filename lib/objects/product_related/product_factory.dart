@@ -14,7 +14,7 @@ class ProductFactory {
         return RAM(
           productName: properties['productName'],
           price: properties['price'],
-          vendorID: properties['vendorID'],
+          manufacturerID: properties['manufacturerID'],
           bus: properties['bus'],
           capacity: properties['capacity'],
           ramType: properties['ramType'],
@@ -23,7 +23,7 @@ class ProductFactory {
         return CPU(
           productName: properties['productName'],
           price: properties['price'],
-          vendorID: properties['vendorID'],
+          manufacturerID: properties['manufacturerID'],
           family: properties['family'],
           core: properties['core'],
           thread: properties['thread'],
@@ -33,7 +33,7 @@ class ProductFactory {
         return PSU(
           productName: properties['productName'],
           price: properties['price'],
-          vendorID: properties['vendorID'],
+          manufacturerID: properties['manufacturerID'],
           wattage: properties['wattage'],
           efficiency: properties['efficiency'],
           modular: properties['modular'],
@@ -42,7 +42,7 @@ class ProductFactory {
         return GPU(
           productName: properties['productName'],
           price: properties['price'],
-          vendorID: properties['vendorID'],
+          manufacturerID: properties['manufacturerID'],
           series: properties['series'],
           capacity: properties['capacity'],
           bus: properties['busWidth'],
@@ -52,7 +52,7 @@ class ProductFactory {
         return Mainboard(
           productName: properties['productName'],
           price: properties['price'],
-          vendorID: properties['vendorID'],
+          manufacturerID: properties['manufacturerID'],
           formFactor: properties['formFactor'],
           series: properties['series'],
           compatibility: properties['compatibility'],
@@ -61,7 +61,7 @@ class ProductFactory {
         return Drive(
           productName: properties['productName'],
           price: properties['price'],
-          vendorID: properties['vendorID'],
+          manufacturerID: properties['manufacturerID'],
           type: properties['type'],
           capacity: properties['capacity'],
         )..productID = properties['productID'];

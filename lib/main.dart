@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/screens/authentication/forget_password_screen/forget_password_view.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_view.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_up_screen/sign_up_view.dart';
-import 'package:gizmoglobe_client/screens/authentication/email_verify_screen/email_verify_cubit.dart';
-import 'package:gizmoglobe_client/screens/authentication/email_verify_screen/email_verify_view.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_view.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
@@ -43,7 +42,6 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => MainScreenCubit()),
         BlocProvider(create: (context) => DrawerCubit()),
-        BlocProvider(create: (context) => EmailVerificationCubit()),
       ],
       child: MaterialApp(
         title: 'GizmoGlobe',
@@ -67,12 +65,9 @@ class MyApp extends StatelessWidget {
         routes: {
           '/sign-in': (context) => SignInScreen.newInstance(),
           '/sign-up': (context) => SignUpScreen.newInstance(),
+          '/forget-password': (context) => ForgetPasswordScreen.newInstance(),
           '/main': (context) => const MainScreen(),
           '/home': (context) => HomeScreen.newInstance(),
-          '/email-verify': (context) => EmailVerificationScreen.newInstance(
-            ModalRoute.of(context)!.settings.arguments as User,
-            ModalRoute.of(context)!.settings.arguments as String,
-          ),
         },
         home: const AuthWrapper(),
       ),

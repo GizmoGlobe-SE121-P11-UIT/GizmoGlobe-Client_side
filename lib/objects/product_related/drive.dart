@@ -7,7 +7,7 @@ class Drive extends Product {
   Drive({
     required super.productName,
     required super.price,
-    required super.vendorID,
+    required super.manufacturerID,
     required this.type,
     required this.capacity,
   });

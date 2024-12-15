@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../widgets/general/invisible_gradient_button.dart';
 import '../../../widgets/general/vertical_icon_button.dart';

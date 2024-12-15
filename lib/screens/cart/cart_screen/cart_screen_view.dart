@@ -4,7 +4,6 @@ import '../../../widgets/general/gradient_text.dart';
 
 import '../../../widgets/general/gradient_icon_button.dart';
 import 'cart_screen_cubit.dart';
-import 'cart_screen_state.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});

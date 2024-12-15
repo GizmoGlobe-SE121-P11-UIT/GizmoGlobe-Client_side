@@ -8,7 +8,7 @@ class Mainboard extends Product {
   Mainboard({
     required super.productName,
     required super.price,
-    required super.vendorID,
+    required super.manufacturerID,
     required this.formFactor,
     required this.series,
     required this.compatibility,
