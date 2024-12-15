@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
-import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import '../../../widgets/general/selectable_gradient_icon.dart';
 import '../../cart/cart_screen/cart_screen_view.dart';
 import '../../home/home_screen/home_screen_view.dart';

@@ -9,7 +9,7 @@ class GPU extends Product {
   GPU({
     required super.productName,
     required super.price,
-    required super.vendorID,
+    required super.manufacturerID,
     required this.series,
     required this.capacity,
     required this.bus,

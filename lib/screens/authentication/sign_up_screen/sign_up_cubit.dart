@@ -1,24 +1,43 @@
 import 'package:bloc/bloc.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
+import 'package:gizmoglobe_client/enums/processing/notify_message_enum.dart';
 import 'sign_up_state.dart';
+import '../../../enums/processing/process_state_enum.dart';
 
 class SignUpCubit extends Cubit<SignUpState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  SignUpCubit() : super(SignUpInitial());
+  SignUpCubit() : super(const SignUpState());
 
-  Future<void> signUp(String name, String email, String password, String confirmPassword, BuildContext context) async {
-    if (password != confirmPassword) {
-      emit(SignUpFailure('Passwords do not match'));
+  void updateUsername(String username) {
+    emit(state.copyWith(username: username));
+  }
+
+  void updateEmail(String email) {
+    emit(state.copyWith(email: email));
+  }
+
+  void updatePassword(String password) {
+    emit(state.copyWith(password: password));
+  }
+
+  void updateConfirmPassword(String confirmPassword) {
+    emit(state.copyWith(confirmPassword: confirmPassword));
+  }
+
+  Future<void> signUp() async {
+    if (state.password != state.confirmPassword) {
+      emit(const SignUpState(processState: ProcessState.failure, message: NotifyMessage.msg5));
       return;
     }
 
     try {
-      emit(SignUpLoading());
-      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      emit(const SignUpState(processState: ProcessState.loading));
+
+      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(email: state.email, password: state.password);
       await userCredential.user!.sendEmailVerification();
 
       final CollectionReference usersCollection = _firestore.collection('users');
@@ -30,14 +49,14 @@ class SignUpCubit extends Cubit<SignUpState> {
       }
 
       await usersCollection.doc(userCredential.user!.uid).set({
-        'username': name,
-        'email': email,
+        'username': state.username,
+        'email': state.email,
         'userid': userCredential.user!.uid,
       });
 
-      emit(SignUpSuccess(userCredential.user!));
+      emit(const SignUpState(processState: ProcessState.success, dialogName: DialogName.success, message: NotifyMessage.msg6));
     } catch (error) {
-      emit(SignUpFailure(error.toString()));
+      emit(const SignUpState(processState: ProcessState.failure, dialogName: DialogName.failure, message: NotifyMessage.msg7));
     }
   }
 }

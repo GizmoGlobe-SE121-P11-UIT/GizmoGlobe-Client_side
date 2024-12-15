@@ -24,6 +24,7 @@ class GradientText extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
+          fontFamily: 'Montserrat',
           fontSize: fontSize,
           fontWeight: FontWeight.bold,
           color: Colors.white,

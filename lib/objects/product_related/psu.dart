@@ -8,7 +8,7 @@ class PSU extends Product {
   PSU({
     required super.productName,
     required super.price,
-    required super.vendorID,
+    required super.manufacturerID,
     required this.wattage,
     required this.efficiency,
     required this.modular,

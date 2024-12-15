@@ -1,5 +1,3 @@
-import 'package:bloc/bloc.dart';
-
 class DrawerState {
   final bool isOpen;
   final List<String> categories;

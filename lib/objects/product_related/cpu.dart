@@ -9,7 +9,7 @@ class CPU extends Product {
   CPU({
     required super.productName,
     required super.price,
-    required super.vendorID,
+    required super.manufacturerID,
     required this.family,
     required this.core,
     required this.thread,

@@ -5,13 +5,13 @@ abstract class Product {
   String? productID;
   final String productName;
   final double price;
-  final String vendorID;
+  final String manufacturerID;
 
   Product({
     this.productID,
     required this.productName,
     required this.price,
-    required this.vendorID,
+    required this.manufacturerID,
   });
 
   Product changeCategory(Category newCategory, Map<String, dynamic> properties) {

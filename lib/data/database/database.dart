@@ -1,8 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import '../../functions/getdata.dart';
 
 class Database {
   static final Database _database = Database._internal();
@@ -19,7 +16,7 @@ class Database {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      this.username = userDoc['username'];
+      username = userDoc['username'];
     }
   }
 
@@ -27,8 +24,8 @@ class Database {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      this.username = userDoc['username'];
-      this.email = userDoc['email'];
+      username = userDoc['username'];
+      email = userDoc['email'];
     }
   }
 }
