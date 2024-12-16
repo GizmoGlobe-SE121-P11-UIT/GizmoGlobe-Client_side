@@ -9,8 +9,18 @@ enum DriveCapacity {
 
   const DriveCapacity(this.description);
 
+  String getName() {
+    return name;
+  }
+
   @override
   String toString() {
     return description;
+  }
+}
+
+extension DriveCapacityExtension on DriveCapacity {
+  static DriveCapacity fromName(String name) {
+    return DriveCapacity.values.firstWhere((e) => e.getName() == name);
   }
 }

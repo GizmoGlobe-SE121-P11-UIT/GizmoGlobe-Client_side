@@ -12,8 +12,18 @@ enum CPUFamily {
 
   const CPUFamily(this.description);
 
+  String getName() {
+    return name;
+  }
+
   @override
   String toString() {
     return description;
+  }
+}
+
+extension CPUFamilyExtension on CPUFamily {
+  static CPUFamily fromName(String name) {
+    return CPUFamily.values.firstWhere((e) => e.getName() == name);
   }
 }

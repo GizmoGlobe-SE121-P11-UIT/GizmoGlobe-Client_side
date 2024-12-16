@@ -9,8 +9,18 @@ enum PSUEfficiency {
 
   const PSUEfficiency(this.description);
 
+  String getName() {
+    return name;
+  }
+
   @override
   String toString() {
     return description;
+  }
+}
+
+extension PSUEfficiencyExtension on PSUEfficiency {
+  static PSUEfficiency fromName(String name) {
+    return PSUEfficiency.values.firstWhere((e) => e.getName() == name);
   }
 }

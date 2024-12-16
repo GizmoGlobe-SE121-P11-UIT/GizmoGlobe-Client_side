@@ -12,7 +12,7 @@ class GradientIconButton extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     this.borderRadius = const BorderRadius.all(Radius.circular(15)),
-    this.fillColor = Colors.white,
+    this.fillColor = Colors.transparent,
     this.iconSize = 40,
   });
 

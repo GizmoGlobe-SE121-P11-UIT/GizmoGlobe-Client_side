@@ -9,8 +9,18 @@ enum RAMCapacity {
 
   const RAMCapacity(this.description);
 
+  String getName() {
+    return name;
+  }
+
   @override
   String toString() {
     return description;
+  }
+}
+
+extension RAMCapacityExtension on RAMCapacity {
+  static RAMCapacity fromName(String name) {
+    return RAMCapacity.values.firstWhere((e) => e.getName() == name);
   }
 }

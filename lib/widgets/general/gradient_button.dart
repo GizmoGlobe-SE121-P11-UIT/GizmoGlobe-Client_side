@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class StandardButton extends StatelessWidget {
+class GradientButton extends StatelessWidget {
   final VoidCallback onPress;
   final Gradient? gradient;
   final double height;
@@ -11,7 +11,7 @@ class StandardButton extends StatelessWidget {
   final Color fontColor;
   final FontWeight fontWeight;
 
-  const StandardButton({
+  const GradientButton({
     super.key,
     required this.onPress,
     this.gradient,

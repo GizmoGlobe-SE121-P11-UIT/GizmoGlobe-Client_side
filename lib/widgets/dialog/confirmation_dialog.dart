@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../general/app_text_style.dart';
-import '../general/standard_button.dart';
+import '../general/gradient_button.dart';
 
 class ConfirmationDialog extends StatelessWidget {
   final String title;
@@ -52,7 +52,7 @@ class ConfirmationDialog extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  StandardButton(
+                  GradientButton(
                     onPress: () {
                       Navigator.of(context).pop();
                       onConfirm?.call();

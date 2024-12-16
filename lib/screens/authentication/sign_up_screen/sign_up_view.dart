@@ -6,7 +6,7 @@ import '../../../enums/processing/process_state_enum.dart';
 import '../../../widgets/general/app_logo.dart';
 import '../../../widgets/general/field_with_icon.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
-import '../../../widgets/general/standard_button.dart';
+import '../../../widgets/general/gradient_button.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import 'sign_up_cubit.dart';
 import 'sign_up_state.dart';
@@ -174,7 +174,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                   if (state.processState == ProcessState.loading) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  return StandardButton(
+                  return GradientButton(
                     onPress: () {
                       cubit.signUp();
                     },

@@ -10,8 +10,18 @@ enum GPUCapacity {
 
   const GPUCapacity(this.description);
 
+  String getName() {
+    return name;
+  }
+
   @override
   String toString() {
     return description;
+  }
+}
+
+extension GPUCapacityExtension on GPUCapacity {
+  static GPUCapacity fromName(String name) {
+    return GPUCapacity.values.firstWhere((e) => e.getName() == name);
   }
 }

@@ -9,8 +9,18 @@ enum RAMBus {
 
   const RAMBus(this.description);
 
+  String getName() {
+    return name;
+  }
+
   @override
   String toString() {
     return description;
+  }
+}
+
+extension RAMBusExtension on RAMBus {
+  static RAMBus fromName(String name) {
+    return RAMBus.values.firstWhere((e) => e.getName() == name);
   }
 }

@@ -37,6 +37,12 @@ class AppTextStyle {
     fontFamily: 'Montserrat',
   );
 
+  static const TextStyle subtitleText = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+    fontFamily: 'Montserrat',
+  );
+
   static const TextStyle buttonTextBold = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.bold,

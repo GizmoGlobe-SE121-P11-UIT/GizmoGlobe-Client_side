@@ -8,60 +8,60 @@ import 'gpu.dart';
 import 'mainboard.dart';
 
 class ProductFactory {
-  static Product createProduct(Category category, Map<String, dynamic> properties) {
+  static Product createProduct(CategoryEnum category, Map<String, dynamic> properties) {
     switch (category) {
-      case Category.ram:
+      case CategoryEnum.ram:
         return RAM(
           productName: properties['productName'],
           price: properties['price'],
-          manufacturerID: properties['manufacturerID'],
+          manufacturer: properties['manufacturer'],
           bus: properties['bus'],
           capacity: properties['capacity'],
           ramType: properties['ramType'],
         )..productID = properties['productID'];
-      case Category.cpu:
+      case CategoryEnum.cpu:
         return CPU(
           productName: properties['productName'],
           price: properties['price'],
-          manufacturerID: properties['manufacturerID'],
+          manufacturer: properties['manufacturer'],
           family: properties['family'],
           core: properties['core'],
           thread: properties['thread'],
           clockSpeed: properties['clockSpeed'],
         )..productID = properties['productID'];
-      case Category.psu:
+      case CategoryEnum.psu:
         return PSU(
           productName: properties['productName'],
           price: properties['price'],
-          manufacturerID: properties['manufacturerID'],
+          manufacturer: properties['manufacturer'],
           wattage: properties['wattage'],
           efficiency: properties['efficiency'],
           modular: properties['modular'],
         )..productID = properties['productID'];
-      case Category.gpu:
+      case CategoryEnum.gpu:
         return GPU(
           productName: properties['productName'],
           price: properties['price'],
-          manufacturerID: properties['manufacturerID'],
+          manufacturer: properties['manufacturer'],
           series: properties['series'],
           capacity: properties['capacity'],
           bus: properties['busWidth'],
           clockSpeed: properties['clockSpeed'],
         )..productID = properties['productID'];
-      case Category.mainboard:
+      case CategoryEnum.mainboard:
         return Mainboard(
           productName: properties['productName'],
           price: properties['price'],
-          manufacturerID: properties['manufacturerID'],
+          manufacturer: properties['manufacturer'],
           formFactor: properties['formFactor'],
           series: properties['series'],
           compatibility: properties['compatibility'],
         )..productID = properties['productID'];
-      case Category.drive:
+      case CategoryEnum.drive:
         return Drive(
           productName: properties['productName'],
           price: properties['price'],
-          manufacturerID: properties['manufacturerID'],
+          manufacturer: properties['manufacturer'],
           type: properties['type'],
           capacity: properties['capacity'],
         )..productID = properties['productID'];
