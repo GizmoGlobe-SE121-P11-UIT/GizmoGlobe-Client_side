@@ -25,7 +25,7 @@ class Database {
 
   Database._internal();
 
-  Database._initialize() {
+  initialize() {
     manufacturerList = [
       Manufacturer(
         manufacturerID: 'Corsair',

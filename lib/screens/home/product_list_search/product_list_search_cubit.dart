@@ -11,6 +11,13 @@ class ProductListSearchCubit extends Cubit<ProductListSearchState> {
   void initialize(String? initialSearchText) {
     emit(state.copyWith(searchText: initialSearchText));
     searchProducts(initialSearchText);
+
+    emit(state.copyWith(
+      productList: Database().productList,
+      manufacturerList: Database().manufacturerList,
+      selectedManufacturerList: Database().manufacturerList,
+      selectedCategoryList: CategoryEnum.values.toList(),
+    ));
   }
 
   void changeSearchText(String? searchText) {
@@ -26,13 +33,32 @@ class ProductListSearchCubit extends Cubit<ProductListSearchState> {
     emit(state.copyWith(productList: filteredProducts, searchText: searchText));
   }
 
-  void applyFilters(CategoryEnum? category, Manufacturer? manufacturer, double? minPrice, double? maxPrice) {
+  void updateFilter({
+    List<CategoryEnum>? selectedCategoryList,
+    List<Manufacturer>? selectedManufacturerList,
+    String? minPrice,
+    String? maxPrice,
+  }) {
+    emit(state.copyWith(
+      selectedCategoryList: selectedCategoryList,
+      selectedManufacturerList: selectedManufacturerList,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+    ));
+    applyFilters();
+  }
+
+  void applyFilters() {
+    final double min = double.tryParse(state.minPrice) ?? 0;
+    final double max = double.tryParse(state.maxPrice) ?? double.infinity;
+
     final filteredProducts = Database().productList.where((product) {
-      final matchesCategory = category == null || product.category == category;
-      final matchesManufacturer = manufacturer == null || product.manufacturer == manufacturer;
-      final matchesPrice = (minPrice == null || product.price >= minPrice) && (maxPrice == null || product.price <= maxPrice);
+      final matchesCategory = state.selectedCategoryList.contains(product.category);
+      final matchesManufacturer = state.selectedManufacturerList.contains(product.manufacturer);
+      final matchesPrice = (product.price >= min) && (product.price <= max);
       return matchesCategory && matchesManufacturer && matchesPrice;
     }).toList();
+
     emit(state.copyWith(productList: filteredProducts));
   }
 }

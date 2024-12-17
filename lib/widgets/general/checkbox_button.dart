@@ -35,7 +35,7 @@ class CheckboxButton extends StatelessWidget {
         child: Text(
           text,
           style: AppTextStyle.buttonTextBold.copyWith(
-            color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+            color: isSelected ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ),

@@ -64,7 +64,7 @@ class FieldWithIcon extends StatelessWidget {
             ),
             borderRadius: borderRadius,
           ),
-          padding: padding, // Adjust the width of the gradient border
+          padding: padding,
           child: Container(
             decoration: BoxDecoration(
               color: fillColor,

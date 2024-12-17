@@ -5,7 +5,7 @@ import 'package:gizmoglobe_client/screens/home/product_list_search/product_list_
 import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
-import '../../../widgets/filter/filter/product_filter.dart';
+import '../../../widgets/filter/advanced_filter_search/advanced_filter_search_view.dart';
 import 'product_list_search_cubit.dart';
 
 class ProductListSearchScreen extends StatefulWidget {
@@ -32,6 +32,7 @@ class _ProductListSearchScreenState extends State<ProductListSearchScreen> {
     super.initState();
     searchController = TextEditingController(text: widget.initialSearchText);
     cubit.initialize(widget.initialSearchText);
+    cubit.applyFilters();
   }
 
   @override
@@ -40,93 +41,98 @@ class _ProductListSearchScreenState extends State<ProductListSearchScreen> {
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Stack(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: GradientIconButton(
+            icon: Icons.arrow_back,
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            fillColor: Theme.of(context).colorScheme.surface,
+          ),
+        ),
+        body: Column(
           children: [
-            Scaffold(
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                leading: GradientIconButton(
-                  icon: Icons.arrow_back,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  fillColor: Theme.of(context).colorScheme.surface,
-                ),
-              ),
-              body: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    GradientIconButton(
-                      icon: Icons.filter_list,
-                      iconSize: 20,
-
-                      onPressed: () async {
-                        final result = await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const ProductFilterScreen(),
-                          ),
-                        );
-                        if (result != null) {
-                          cubit.applyFilters(
-                            result['category'],
-                            result['manufacturer'],
-                            result['minPrice'],
-                            result['maxPrice'],
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FieldWithIcon(
-                            controller: searchController,
-                            hintText: 'What do you need?',
-                            fillColor: Theme.of(context).colorScheme.surface,
-                            onChange: (value) => {
-                              cubit.changeSearchText(value)
-                            },
-                          ),
+            BlocBuilder<ProductListSearchCubit, ProductListSearchState>(
+              builder: (context, state) {
+                return GradientIconButton(
+                  icon: Icons.filter_list,
+                  iconSize: 20,
+                  onPressed: () async {
+                    final FilterSearchArguments arguments = FilterSearchArguments(
+                      selectedCategories: state.selectedCategoryList,
+                      selectedManufacturers: state.selectedManufacturerList,
+                      minPrice: state.minPrice,
+                      maxPrice: state.maxPrice,
+                    );
+        
+                    final result = await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                        AdvancedFilterSearchScreen.newInstance(
+                          arguments: arguments,
                         ),
-                        const SizedBox(width: 8),
-                        GradientIconButton(
-                          icon: FontAwesomeIcons.magnifyingGlass,
-                          onPressed: () {
-                            cubit.searchProducts(searchController.text);
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: BlocBuilder<ProductListSearchCubit, ProductListSearchState>(
-                        builder: (context, state) {
-                          if (state.productList.isEmpty) {
-                            return const Center(
-                              child: Text('No products match that filter'),
-                            );
-                          }
-                          return ListView.builder(
-                            itemCount: state.productList.length,
-                            itemBuilder: (context, index) {
-                              final product = state.productList[index];
-                              return ListTile(
-                                title: Text(product.productName),
-                                subtitle: Text('đ${product.price}'),
-                              );
-                            },
-                          );
-                        },
                       ),
-                    ),
-                  ],
+                    );
+        
+                    if (result is FilterSearchArguments) {
+                      cubit.updateFilter(
+                        selectedCategoryList: result.selectedCategories,
+                        selectedManufacturerList: result.selectedManufacturers,
+                        minPrice: result.minPrice,
+                        maxPrice: result.maxPrice,
+                      );
+                    }
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            
+            Row(
+              children: [
+                Expanded(
+                  child: FieldWithIcon(
+                    controller: searchController,
+                    hintText: 'What do you need?',
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    onChange: (value) => {
+                      cubit.changeSearchText(value)
+                    },
+                  ),
                 ),
+                const SizedBox(width: 8),
+                GradientIconButton(
+                  icon: FontAwesomeIcons.magnifyingGlass,
+                  onPressed: () {
+                    cubit.searchProducts(searchController.text);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            Expanded(
+              child: BlocBuilder<ProductListSearchCubit, ProductListSearchState>(
+                builder: (context, state) {
+                  if (state.productList.isEmpty) {
+                    return const Center(
+                      child: Text('No products found'),
+                    );
+                  }
+                  return ListView.builder(
+                    itemCount: state.productList.length,
+                    itemBuilder: (context, index) {
+                      final product = state.productList[index];
+                      return ListTile(
+                        title: Text(product.productName),
+                        subtitle: Text('đ${product.price}'),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -135,3 +141,4 @@ class _ProductListSearchScreenState extends State<ProductListSearchScreen> {
     );
   }
 }
+
