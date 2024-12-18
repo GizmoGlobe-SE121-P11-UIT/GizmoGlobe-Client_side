@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:gizmoglobe_client/enums/product_related/mainboard_enums/mainboard_compatibility.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 
@@ -65,7 +66,7 @@ class Database {
         manufacturerName: 'AMD',
       ),      
       
-      // Nhà sản xuất GPU
+      // Nhà sản xuất GPU-Mainboard
       Manufacturer(
         manufacturerID: 'ASUS',
         manufacturerName: 'ASUS',
@@ -181,7 +182,7 @@ class Database {
         'manufacturer': manufacturerList[5],
         'formFactor': MainboardFormFactor.atx,
         'series': MainboardSeries.b,
-        'compatibility': 'AM4',
+        'compatibility': MainboardCompatibility.amd,
       }),
       ProductFactory.createProduct(CategoryEnum.mainboard, {
         'productName': 'MSI MPG B560I GAMING EDGE',
@@ -189,7 +190,7 @@ class Database {
         'manufacturer': manufacturerList[6],
         'formFactor': MainboardFormFactor.miniITX,
         'series': MainboardSeries.b,
-        'compatibility': 'LGA1200',
+        'compatibility': MainboardCompatibility.intel,
       }),
       ProductFactory.createProduct(CategoryEnum.mainboard, {
         'productName': 'ASUS ROG MAXIMUS Z690 HERO',
@@ -197,7 +198,7 @@ class Database {
         'manufacturer': manufacturerList[5],
         'formFactor': MainboardFormFactor.atx,
         'series': MainboardSeries.z,
-        'compatibility': 'LGA1700',
+        'compatibility': MainboardCompatibility.intel,
       }),
       ProductFactory.createProduct(CategoryEnum.mainboard, {
         'productName': 'MSI MAG X570S TOMAHAWK',
@@ -205,7 +206,7 @@ class Database {
         'manufacturer': manufacturerList[6],
         'formFactor': MainboardFormFactor.atx,
         'series': MainboardSeries.x,
-        'compatibility': 'AM4',
+        'compatibility': MainboardCompatibility.amd,
       }),
 
       // Drive samples - thêm các loại ổ cứng khác nhau
