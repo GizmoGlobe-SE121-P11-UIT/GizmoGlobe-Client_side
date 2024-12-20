@@ -22,6 +22,7 @@ class FieldWithIcon extends StatelessWidget {
   final TextEditingController controller;
   final Color hintTextColor;
   final Color textColor;
+  final FocusNode? focusNode;
 
   const FieldWithIcon({
     super.key,
@@ -45,6 +46,7 @@ class FieldWithIcon extends StatelessWidget {
     required this.controller,
     this.hintTextColor = Colors.grey,
     this.textColor = Colors.white,
+    this.focusNode,
   });
 
   String? getText() {
@@ -64,7 +66,7 @@ class FieldWithIcon extends StatelessWidget {
             ),
             borderRadius: borderRadius,
           ),
-          padding: padding, // Adjust the width of the gradient border
+          padding: padding,
           child: Container(
             decoration: BoxDecoration(
               color: fillColor,
@@ -78,6 +80,7 @@ class FieldWithIcon extends StatelessWidget {
               onChanged: onChange,
               controller: controller,
               textInputAction: TextInputAction.done,
+              focusNode: focusNode,
               decoration: InputDecoration(
                 filled: true,
                 isDense: true,
@@ -100,7 +103,9 @@ class FieldWithIcon extends StatelessWidget {
                 ),
               ),
               keyboardType: keyboardType,
-              inputFormatters: inputFormatters,
+              inputFormatters: inputFormatters ?? [
+                FilteringTextInputFormatter.allow(RegExp(r'.*'))
+              ],
               style: TextStyle(
                 fontSize: fontSize,
                 fontWeight: fontWeight,

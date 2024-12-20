@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gizmoglobe_client/widgets/general/standard_button.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_button.dart';
 import 'package:intl/intl.dart';
 
 
@@ -171,7 +171,7 @@ class _MonthPickerState extends State<MonthPicker> {
                 ),
               ),
               actions: <Widget>[
-                StandardButton(
+                GradientButton(
                   text: 'OK',
                   onPress: () {
                     Navigator.of(context).pop(tempPickedDate);

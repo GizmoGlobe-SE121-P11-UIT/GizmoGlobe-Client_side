@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
-import 'package:gizmoglobe_client/widgets/general/standard_button.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_button.dart';
 
 class InformationDialog extends StatelessWidget {
   final String title;
@@ -43,7 +43,7 @@ class InformationDialog extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              StandardButton(
+              GradientButton(
                 onPress: () {
                   Navigator.of(context).pop();
                   onPressed?.call();

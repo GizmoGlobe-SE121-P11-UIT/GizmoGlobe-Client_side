@@ -5,7 +5,7 @@ import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/gradient_text.dart';
-import '../../../widgets/general/standard_button.dart';
+import '../../../widgets/general/gradient_button.dart';
 import 'sign_in_cubit.dart';
 import 'sign_in_state.dart';
 import '../../../widgets/general/app_logo.dart';
@@ -138,7 +138,7 @@ class _SignInScreen extends State<SignInScreen> {
                       }
                       return Column(
                         children: [
-                          StandardButton(
+                          GradientButton(
                             onPress: () {
                               cubit.signInWithEmailPassword();
                             },
@@ -164,7 +164,7 @@ class _SignInScreen extends State<SignInScreen> {
                             ],
                           ),
                           const SizedBox(height: 20),
-                          StandardButton(
+                          GradientButton(
                             onPress: () {
                               cubit.signInWithGoogle();
                             },

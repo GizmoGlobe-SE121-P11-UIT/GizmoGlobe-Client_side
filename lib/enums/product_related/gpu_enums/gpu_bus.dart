@@ -8,8 +8,18 @@ enum GPUBus {
 
   const GPUBus(this.description);
 
+  String getName() {
+    return name;
+  }
+
   @override
   String toString() {
     return description;
+  }
+}
+
+extension GPUBusExtension on GPUBus {
+  static GPUBus fromName(String name) {
+    return GPUBus.values.firstWhere((e) => e.getName() == name);
   }
 }

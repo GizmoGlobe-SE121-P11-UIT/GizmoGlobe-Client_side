@@ -6,6 +6,7 @@ import '../../../widgets/general/invisible_gradient_button.dart';
 import '../../../widgets/general/vertical_icon_button.dart';
 import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
+import '../../../data/firebase/firebase.dart'; // Import the Firebase file
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -217,7 +218,7 @@ class _UserScreen extends State<UserScreen> {
                           // Handle Account action
                         },
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.fromLTRB(8, 0, 0, 0)
+                            padding: const EdgeInsets.fromLTRB(8, 0, 0, 0)
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -284,6 +285,12 @@ class _UserScreen extends State<UserScreen> {
               ),
             ],
           ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            await pushProductSamplesToFirebase();
+          },
+          child: const Icon(Icons.cloud_upload),
         ),
       ),
     );

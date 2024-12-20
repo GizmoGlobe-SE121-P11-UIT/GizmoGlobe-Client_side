@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
-import 'package:gizmoglobe_client/widgets/general/standard_button.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_button.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import 'forget_password_cubit.dart';
 import '../../../widgets/general/app_logo.dart';
@@ -127,7 +127,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                     );
                   }
                 },
-                child: StandardButton(
+                child: GradientButton(
                   text: 'Send Verification Link',
                   onPress: () {
                     cubit.sendVerificationLink(_emailController.text.trim());

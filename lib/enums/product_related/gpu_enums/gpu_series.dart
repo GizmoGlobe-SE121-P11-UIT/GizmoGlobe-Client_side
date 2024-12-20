@@ -10,8 +10,18 @@ enum GPUSeries {
 
   const GPUSeries(this.description);
 
+  String getName() {
+    return name;
+  }
+
   @override
   String toString() {
     return description;
+  }
+}
+
+extension GPUSeriesExtension on GPUSeries {
+  static GPUSeries fromName(String name) {
+    return GPUSeries.values.firstWhere((e) => e.getName() == name);
   }
 }

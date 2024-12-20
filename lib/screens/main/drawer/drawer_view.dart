@@ -52,7 +52,7 @@ class DrawerView extends StatelessWidget {
                         children: state.categories.map((category) {
                           return ListTile(
                             title: Text(
-                              category,
+                              category.getName(),
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
