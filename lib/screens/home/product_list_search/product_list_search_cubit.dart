@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
 import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
@@ -10,7 +11,6 @@ class ProductListSearchCubit extends Cubit<ProductListSearchState> {
 
   void initialize(String? initialSearchText) {
     emit(state.copyWith(searchText: initialSearchText));
-    searchProducts(initialSearchText);
 
     emit(state.copyWith(
       productList: Database().productList,
@@ -18,19 +18,9 @@ class ProductListSearchCubit extends Cubit<ProductListSearchState> {
       selectedManufacturerList: Database().manufacturerList,
       selectedCategoryList: CategoryEnum.values.toList(),
     ));
-  }
 
-  void changeSearchText(String? searchText) {
-    emit(state.copyWith(searchText: searchText));
-    searchProducts(searchText);
-  }
-
-  void searchProducts(String? searchText) {
-    final filteredProducts = Database().productList.where((product) {
-      return searchText == null || product.productName.toLowerCase().contains(searchText.toLowerCase());
-    }).toList();
-
-    emit(state.copyWith(productList: filteredProducts, searchText: searchText));
+    updateSearchText(state.searchText);
+    applyFilters();
   }
 
   void updateFilter({
@@ -45,7 +35,14 @@ class ProductListSearchCubit extends Cubit<ProductListSearchState> {
       minPrice: minPrice,
       maxPrice: maxPrice,
     ));
-    applyFilters();
+  }
+
+  void updateSearchText(String? searchText) {
+    emit(state.copyWith(searchText: searchText));
+  }
+
+  void updateSortOption(SortEnum selectedOption) {
+    emit(state.copyWith(selectedOption: selectedOption));
   }
 
   void applyFilters() {
@@ -53,11 +50,20 @@ class ProductListSearchCubit extends Cubit<ProductListSearchState> {
     final double max = double.tryParse(state.maxPrice) ?? double.infinity;
 
     final filteredProducts = Database().productList.where((product) {
+      final matchesSearchText = state.searchText == null || product.productName.toLowerCase().contains(state.searchText!.toLowerCase());
       final matchesCategory = state.selectedCategoryList.contains(product.category);
       final matchesManufacturer = state.selectedManufacturerList.contains(product.manufacturer);
       final matchesPrice = (product.price >= min) && (product.price <= max);
-      return matchesCategory && matchesManufacturer && matchesPrice;
+      return matchesSearchText & matchesCategory && matchesManufacturer && matchesPrice;
     }).toList();
+
+    if (state.selectedOption == SortEnum.bestSeller) {
+
+    } else if (state.selectedOption == SortEnum.lowestPrice) {
+      filteredProducts.sort((a, b) => a.price.compareTo(b.price));
+    } else if (state.selectedOption == SortEnum.highestPrice) {
+      filteredProducts.sort((a, b) => b.price.compareTo(a.price));
+    }
 
     emit(state.copyWith(productList: filteredProducts));
   }

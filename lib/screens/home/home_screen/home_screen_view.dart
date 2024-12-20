@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
@@ -40,7 +41,7 @@ class _HomeScreen extends State<HomeScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         child: Stack(
           children: [
             Scaffold(
@@ -73,17 +74,15 @@ class _HomeScreen extends State<HomeScreen> {
                             controller: searchController,
                             hintText: 'What do you need?',
                             fillColor: Theme.of(context).colorScheme.surface,
-                            onChange: (value) {
-                              cubit.changeSearchText(value);
-                            },
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4),
 
                         GradientIconButton(
                           icon: FontAwesomeIcons.magnifyingGlass,
-                          iconSize: 32,
+                          iconSize: 28,
                           onPressed: () {
+                            cubit.changeSearchText(searchController.text);
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => ProductListSearchScreen.newInstance(

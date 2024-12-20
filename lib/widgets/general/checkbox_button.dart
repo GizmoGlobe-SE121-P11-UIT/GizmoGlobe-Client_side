@@ -5,12 +5,16 @@ class CheckboxButton extends StatelessWidget {
   final String text;
   final bool isSelected;
   final VoidCallback? onSelected;
+  final EdgeInsets padding;
+  final TextStyle textStyle;
 
   const CheckboxButton({
     super.key,
     required this.text,
     required this.isSelected,
     this.onSelected,
+    this.padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+    this.textStyle = AppTextStyle.buttonTextBold,
   });
 
   @override
@@ -25,17 +29,19 @@ class CheckboxButton extends StatelessWidget {
     return GestureDetector(
       onTap: onSelected,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+        padding: padding,
         decoration: BoxDecoration(
           gradient: isSelected ? gradient : null,
           color: isSelected ? Colors.white : theme.colorScheme.primaryContainer,
           border: isSelected ? null : Border.all(color: theme.colorScheme.primary),
           borderRadius: BorderRadius.circular(10.0),
         ),
-        child: Text(
-          text,
-          style: AppTextStyle.buttonTextBold.copyWith(
-            color: isSelected ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
+        child: Center(
+          child: Text(
+            text,
+            style: textStyle.copyWith(
+              color: isSelected ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ),
