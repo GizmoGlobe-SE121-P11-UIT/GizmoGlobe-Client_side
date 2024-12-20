@@ -56,14 +56,13 @@ class _ProductListSearchScreenState extends State<ProductListSearchScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
           elevation: 0,
           leading: GradientIconButton(
             icon: Icons.arrow_back,
             onPressed: () {
               Navigator.of(context).pop();
             },
-            fillColor: Theme.of(context).colorScheme.surface,
+            fillColor: Colors.transparent,
           ),
 
           title: FieldWithIcon(
@@ -81,12 +80,13 @@ class _ProductListSearchScreenState extends State<ProductListSearchScreen> {
                 cubit.updateFilter();
                 cubit.applyFilters();
               },
+              fillColor: Colors.transparent,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 16),
           ],
         ),
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Column(
             children: [
               BlocBuilder<ProductListSearchCubit, ProductListSearchState>(

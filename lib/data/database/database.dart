@@ -38,7 +38,6 @@ class Database {
 
   initialize() {
     manufacturerList = [
-      // Nhà sản xuất RAM
       Manufacturer(
         manufacturerID: 'Corsair',
         manufacturerName: 'Corsair',
@@ -55,8 +54,6 @@ class Database {
         manufacturerID: 'Kingston',
         manufacturerName: 'Kingston',
       ),
-      
-      // Nhà sản xuất CPU
       Manufacturer(
         manufacturerID: 'Intel',
         manufacturerName: 'Intel',
@@ -64,9 +61,7 @@ class Database {
       Manufacturer(
         manufacturerID: 'AMD',
         manufacturerName: 'AMD',
-      ),      
-      
-      // Nhà sản xuất GPU-Mainboard
+      ),
       Manufacturer(
         manufacturerID: 'ASUS',
         manufacturerName: 'ASUS',
@@ -78,9 +73,7 @@ class Database {
       Manufacturer(
         manufacturerID: 'Gigabyte',
         manufacturerName: 'Gigabyte',
-      ),          
-            
-      // Nhà sản xuất Storage
+      ),
       Manufacturer(
         manufacturerID: 'Samsung',
         manufacturerName: 'Samsung',
@@ -92,8 +85,7 @@ class Database {
       Manufacturer(
         manufacturerID: 'Seagate',
         manufacturerName: 'Seagate',
-      ),           
-      // Nhà sản xuất PSU
+      ),
       Manufacturer(
         manufacturerID: 'Seasonic',
         manufacturerName: 'Seasonic',
