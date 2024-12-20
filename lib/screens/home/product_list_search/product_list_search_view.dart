@@ -7,11 +7,14 @@ import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/general/checkbox_button.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
+import '../../../data/database/database.dart';
 import '../../../enums/processing/sort_enum.dart';
 import '../../../widgets/filter/advanced_filter_search/advanced_filter_search_view.dart';
 import '../../../widgets/general/app_text_style.dart';
 import '../../../widgets/general/gradient_radio_button.dart';
+import '../../../widgets/product/product_card.dart';
 import 'product_list_search_cubit.dart';
+
 
 class ProductListSearchScreen extends StatefulWidget {
   final String initialSearchText;
@@ -38,7 +41,11 @@ class _ProductListSearchScreenState extends State<ProductListSearchScreen> {
     super.initState();
     searchController = TextEditingController(text: widget.initialSearchText);
     searchFocusNode = FocusNode();
-    cubit.initialize(widget.initialSearchText);
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await cubit.initialize(widget.initialSearchText);
   }
 
   @override
@@ -172,18 +179,38 @@ class _ProductListSearchScreenState extends State<ProductListSearchScreen> {
               Expanded(
                 child: BlocBuilder<ProductListSearchCubit, ProductListSearchState>(
                   builder: (context, state) {
-                    if (state.productList.isEmpty) {
+                    if (Database().productList.isEmpty) {
                       return const Center(
-                        child: Text('No products found'),
+                        child: CircularProgressIndicator(),
                       );
                     }
-                    return ListView.builder(
+                    
+                    if (state.productList.isEmpty) {
+                      return const Center(
+                        child: Text('Không tìm thấy sản phẩm nào'),
+                      );
+                    }
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(8),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
                       itemCount: state.productList.length,
                       itemBuilder: (context, index) {
                         final product = state.productList[index];
-                        return ListTile(
-                          title: Text(product.productName),
-                          subtitle: Text('đ${product.price}'),
+                        return ProductCard(
+                          product: product,
+                          isFavorite: false,
+                          onTap: () {
+                            // Xử lý khi tap vào sản phẩm
+                          },
+                          onFavoritePressed: () {
+                            // Xử lý khi tap vào nút favorite
+                          },
                         );
                       },
                     );

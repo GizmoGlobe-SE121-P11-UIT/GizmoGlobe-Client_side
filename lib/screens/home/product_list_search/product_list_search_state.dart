@@ -13,7 +13,7 @@ class ProductListSearchState extends Equatable {
   final String minPrice;
   final String maxPrice;
   final SortEnum selectedOption;
-
+  final Set<String> favoriteProductIds;
 
   const ProductListSearchState({
     this.searchText,
@@ -24,6 +24,7 @@ class ProductListSearchState extends Equatable {
     this.minPrice = '',
     this.maxPrice = '',
     this.selectedOption = SortEnum.bestSeller,
+    this.favoriteProductIds = const {},
   });
 
   @override
@@ -36,6 +37,7 @@ class ProductListSearchState extends Equatable {
     minPrice,
     maxPrice,
     selectedOption,
+    favoriteProductIds,
   ];
 
   ProductListSearchState copyWith({
@@ -47,6 +49,7 @@ class ProductListSearchState extends Equatable {
     String? minPrice,
     String? maxPrice,
     SortEnum? selectedOption,
+    Set<String>? favoriteProductIds,
   }) {
     return ProductListSearchState(
       searchText: searchText ?? this.searchText,
@@ -57,6 +60,7 @@ class ProductListSearchState extends Equatable {
       minPrice: minPrice ?? this.minPrice,
       maxPrice: maxPrice ?? this.maxPrice,
       selectedOption: selectedOption ?? this.selectedOption,
+      favoriteProductIds: favoriteProductIds ?? this.favoriteProductIds,
     );
   }
 }

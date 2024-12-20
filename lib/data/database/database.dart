@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:gizmoglobe_client/enums/product_related/mainboard_enums/mainboard_compatibility.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
@@ -20,8 +19,6 @@ import '../../enums/product_related/ram_enums/ram_bus.dart';
 import '../../enums/product_related/ram_enums/ram_capacity_enum.dart';
 import '../../enums/product_related/ram_enums/ram_type.dart';
 import '../../objects/product_related/product_factory.dart';
-import '../../objects/product_related/psu.dart';
-import '../../objects/product_related/ram.dart';
 
 class Database {
   static final Database _database = Database._internal();
@@ -36,7 +33,120 @@ class Database {
 
   Database._internal();
 
-  initialize() {
+  Future<void> fetchDataFromFirestore() async {
+    try {
+      print('Bắt đầu lấy dữ liệu từ Firestore');
+      
+      final manufacturerSnapshot = await FirebaseFirestore.instance
+          .collection('manufacturers')
+          .get();
+      
+      print('Số lượng manufacturers: ${manufacturerSnapshot.docs.length}');
+      
+      manufacturerList = manufacturerSnapshot.docs.map((doc) {
+        return Manufacturer(
+          manufacturerID: doc.id,
+          manufacturerName: doc['manufacturerName'] as String,
+        );
+      }).toList();
+
+      // Lấy danh sách products từ Firestore
+      final productSnapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .get();
+      
+      productList = await Future.wait(productSnapshot.docs.map((doc) async {
+        final data = doc.data();
+        // Tìm manufacturer tương ứng
+        final manufacturer = manufacturerList.firstWhere(
+          (m) => m.manufacturerID == data['manufacturerID'],
+          orElse: () => manufacturerList[0], // manufacturer mặc định nếu không tìm thấy
+        );
+        
+        // Chuyển đổi dữ liệu từ Firestore sang enum
+        return ProductFactory.createProduct(
+          CategoryEnum.values.firstWhere(
+            (c) => c.toString() == data['category'],
+          ), 
+          {
+            'productID': doc.id,
+            'productName': data['productName'],
+            'price': data['price'].toDouble(),
+            'manufacturer': manufacturer,
+            // Thêm các trường dữ liệu đặc thù cho từng loại sản ph��m
+            ...await _getSpecificProductData(data),
+          },
+        );
+      }));
+
+      print('Số lượng products: ${productList.length}');
+
+    } catch (e) {
+      print('Lỗi chi tiết khi lấy dữ liệu: $e');
+      _initializeSampleData();
+    }
+  }
+
+  Map<String, dynamic> _getSpecificProductData(Map<String, dynamic> data) {
+    final category = CategoryEnum.values.firstWhere(
+      (c) => c.toString() == data['category'],
+    );
+
+    switch (category) {
+      case CategoryEnum.ram:
+        return {
+          'bus': RAMBus.values.firstWhere((b) => b.toString() == data['bus']),
+          'capacity': RAMCapacity.values.firstWhere((c) => c.toString() == data['capacity']),
+          'ramType': RAMType.values.firstWhere((t) => t.toString() == data['ramType']),
+        };
+      case CategoryEnum.cpu:
+        return {
+          'family': CPUFamily.values.firstWhere((f) => f.toString() == data['family']),
+          'core': data['core'],
+          'thread': data['thread'],
+          'clockSpeed': data['clockSpeed'].toDouble(),
+        };
+      case CategoryEnum.gpu:
+        return {
+          'series': GPUSeries.values.firstWhere((s) => s.toString() == data['series']),
+          'capacity': GPUCapacity.values.firstWhere((c) => c.toString() == data['capacity']),
+          'busWidth': GPUBus.values.firstWhere((b) => b.toString() == data['busWidth']),
+          'clockSpeed': data['clockSpeed'].toDouble(),
+        };
+      case CategoryEnum.mainboard:
+        return {
+          'formFactor': MainboardFormFactor.values.firstWhere((f) => f.toString() == data['formFactor']),
+          'series': MainboardSeries.values.firstWhere((s) => s.toString() == data['series']),
+          'compatibility': MainboardCompatibility.values.firstWhere((c) => c.toString() == data['compatibility']),
+        };
+      case CategoryEnum.drive:
+        return {
+          'type': DriveType.values.firstWhere((t) => t.toString() == data['type']),
+          'capacity': DriveCapacity.values.firstWhere((c) => c.toString() == data['capacity']),
+        };
+      case CategoryEnum.psu:
+        return {
+          'wattage': data['wattage'],
+          'efficiency': PSUEfficiency.values.firstWhere((e) => e.toString() == data['efficiency']),
+          'modular': PSUModular.values.firstWhere((m) => m.toString() == data['modular']),
+        };
+      default:
+        return {};
+    }
+  }
+
+  Future<void> initialize() async {
+    try {
+      await fetchDataFromFirestore();
+    } catch (e) {
+      print('Lỗi khi khởi tạo database: $e');
+      // Nếu không lấy được dữ liệu từ Firestore, sử dụng dữ liệu mẫu
+      _initializeSampleData();
+    }
+  }
+
+  void _initializeSampleData() {
+    // Di chuyển code khởi tạo dữ liệu mẫu hiện tại vào đây
     manufacturerList = [
       Manufacturer(
         manufacturerID: 'Corsair',
@@ -99,9 +209,8 @@ class Database {
         manufacturerName: 'Thermaltake',
       ),
     ];
-
-     productList = [
-      // RAM samples - sử dụng các nhà sản xuất RAM (index 0-3)
+    
+    productList = [
       ProductFactory.createProduct(CategoryEnum.ram, {
         'productName': 'Corsair Vengeance LPX DDR5',
         'price': 79.99,
