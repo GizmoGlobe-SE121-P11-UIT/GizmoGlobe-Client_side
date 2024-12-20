@@ -7,6 +7,7 @@ enum DialogName {
 
   final String description;
   const DialogName(this.description);
+
   @override
   String toString() {
     return description;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import '../../general/app_text_style.dart';
 
@@ -51,6 +52,9 @@ class RangeFilter extends StatelessWidget {
                     hintText: 'Min',
                     onChange: onFromValueChanged,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                    ],
                   ),
                 ],
               ),
@@ -72,6 +76,9 @@ class RangeFilter extends StatelessWidget {
                     hintText: 'Max',
                     onChange: onToValueChanged,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                    ],
                   ),
                 ],
               ),
