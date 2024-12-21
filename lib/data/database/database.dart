@@ -41,8 +41,7 @@ class Database {
           .collection('manufacturers')
           .get();
       
-      print('Số lượng manufacturers: ${manufacturerSnapshot.docs.length}');
-      
+
       manufacturerList = manufacturerSnapshot.docs.map((doc) {
         return Manufacturer(
           manufacturerID: doc.id,
@@ -50,40 +49,66 @@ class Database {
         );
       }).toList();
 
+      print('Số lượng manufacturers: ${manufacturerList.length}');
+
       // Lấy danh sách products từ Firestore
       final productSnapshot = await FirebaseFirestore.instance
           .collection('products')
           .get();
-      
+
+      print('Số lượng products trong snapshot: ${productSnapshot.docs.length}');
+
       productList = await Future.wait(productSnapshot.docs.map((doc) async {
-        final data = doc.data();
-        // Tìm manufacturer tương ứng
-        final manufacturer = manufacturerList.firstWhere(
-          (m) => m.manufacturerID == data['manufacturerID'],
-          orElse: () => manufacturerList[0], // manufacturer mặc định nếu không tìm thấy
-        );
-        
-        // Chuyển đổi dữ liệu từ Firestore sang enum
-        return ProductFactory.createProduct(
-          CategoryEnum.values.firstWhere(
-            (c) => c.toString() == data['category'],
-          ), 
-          {
-            'productID': doc.id,
-            'productName': data['productName'],
-            'price': data['price'].toDouble(),
-            'manufacturer': manufacturer,
-            // Thêm các trường dữ liệu đặc thù cho từng loại sản ph��m
-            ...await _getSpecificProductData(data),
-          },
-        );
+        try {
+          final data = doc.data();
+
+          // Tìm manufacturer tương ứng
+          final manufacturer = manufacturerList.firstWhere(
+                (m) => m.manufacturerID == data['manufacturerID'],
+            orElse: () {
+              print('Manufacturer not found for product ${doc.id}');
+              throw Exception('Manufacturer not found for product ${doc.id}');
+            },
+          );
+
+          // Chuyển đổi dữ liệu từ Firestore sang enum
+          final category = CategoryEnum.values.firstWhere(
+                (c) => c.getName() == data['category'],
+            orElse: () {
+              print('Invalid category for product ${doc.id}');
+              throw Exception('Invalid category for product ${doc.id}');
+            },
+          );
+
+          final specificData = await _getSpecificProductData(data);
+          if (specificData.isEmpty) {
+            print('Cannot get specific data for product ${doc.id}');
+            throw Exception('Cannot get specific data for product ${doc.id}');
+          }
+
+          return ProductFactory.createProduct(
+            category,
+            {
+              'productID': doc.id,
+              'productName': data['productName'],
+              'price': data['price'].toDouble(),
+              'manufacturer': manufacturer,
+              ...specificData,
+            },
+          );
+        } catch (e) {
+          print('Error processing product ${doc.id}: $e');
+          return Future.error('Error processing product ${doc.id}: $e');
+        }
       }));
 
-      print('Số lượng products: ${productList.length}');
+
+      print('Số lượng products trong list: ${productList.length}');
+
 
     } catch (e) {
       print('Lỗi chi tiết khi lấy dữ liệu: $e');
-      _initializeSampleData();
+      // _initializeSampleData();
     }
   }
 
@@ -95,7 +120,7 @@ class Database {
     switch (category) {
       case CategoryEnum.ram:
         return {
-          'bus': RAMBus.values.firstWhere((b) => b.toString() == data['bus']),
+          'bus': RAMBus.values.firstWhere((b) => b.getName() == data['bus']),
           'capacity': RAMCapacity.values.firstWhere((c) => c.toString() == data['capacity']),
           'ramType': RAMType.values.firstWhere((t) => t.toString() == data['ramType']),
         };
@@ -141,7 +166,7 @@ class Database {
     } catch (e) {
       print('Lỗi khi khởi tạo database: $e');
       // Nếu không lấy được dữ liệu từ Firestore, sử dụng dữ liệu mẫu
-      _initializeSampleData();
+      // _initializeSampleData();
     }
   }
 
