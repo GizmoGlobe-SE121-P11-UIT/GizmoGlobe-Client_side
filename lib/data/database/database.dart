@@ -36,11 +36,10 @@ class Database {
   Future<void> fetchDataFromFirestore() async {
     try {
       print('Bắt đầu lấy dữ liệu từ Firestore');
-      
+
       final manufacturerSnapshot = await FirebaseFirestore.instance
           .collection('manufacturers')
           .get();
-      
 
       manufacturerList = manufacturerSnapshot.docs.map((doc) {
         return Manufacturer(
@@ -80,7 +79,7 @@ class Database {
             },
           );
 
-          final specificData = await _getSpecificProductData(data);
+          final specificData = _getSpecificProductData(data, category);
           if (specificData.isEmpty) {
             print('Cannot get specific data for product ${doc.id}');
             throw Exception('Cannot get specific data for product ${doc.id}');
@@ -102,9 +101,7 @@ class Database {
         }
       }));
 
-
       print('Số lượng products trong list: ${productList.length}');
-
 
     } catch (e) {
       print('Lỗi chi tiết khi lấy dữ liệu: $e');
@@ -112,48 +109,45 @@ class Database {
     }
   }
 
-  Map<String, dynamic> _getSpecificProductData(Map<String, dynamic> data) {
-    final category = CategoryEnum.values.firstWhere(
-      (c) => c.toString() == data['category'],
-    );
-
+  Map<String, dynamic> _getSpecificProductData(Map<String, dynamic> data, CategoryEnum category) {
     switch (category) {
       case CategoryEnum.ram:
         return {
           'bus': RAMBus.values.firstWhere((b) => b.getName() == data['bus']),
-          'capacity': RAMCapacity.values.firstWhere((c) => c.toString() == data['capacity']),
-          'ramType': RAMType.values.firstWhere((t) => t.toString() == data['ramType']),
+          'capacity': RAMCapacity.values.firstWhere((c) => c.getName() == data['capacity']),
+          'ramType': RAMType.values.firstWhere((t) => t.getName() == data['ramType']),
         };
+
       case CategoryEnum.cpu:
         return {
-          'family': CPUFamily.values.firstWhere((f) => f.toString() == data['family']),
+          'family': CPUFamily.values.firstWhere((f) => f.getName() == data['family']),
           'core': data['core'],
           'thread': data['thread'],
           'clockSpeed': data['clockSpeed'].toDouble(),
         };
       case CategoryEnum.gpu:
         return {
-          'series': GPUSeries.values.firstWhere((s) => s.toString() == data['series']),
-          'capacity': GPUCapacity.values.firstWhere((c) => c.toString() == data['capacity']),
-          'busWidth': GPUBus.values.firstWhere((b) => b.toString() == data['busWidth']),
+          'series': GPUSeries.values.firstWhere((s) => s.getName() == data['series']),
+          'capacity': GPUCapacity.values.firstWhere((c) => c.getName() == data['capacity']),
+          'busWidth': GPUBus.values.firstWhere((b) => b.getName() == data['busWidth']),
           'clockSpeed': data['clockSpeed'].toDouble(),
         };
       case CategoryEnum.mainboard:
         return {
-          'formFactor': MainboardFormFactor.values.firstWhere((f) => f.toString() == data['formFactor']),
-          'series': MainboardSeries.values.firstWhere((s) => s.toString() == data['series']),
-          'compatibility': MainboardCompatibility.values.firstWhere((c) => c.toString() == data['compatibility']),
+          'formFactor': MainboardFormFactor.values.firstWhere((f) => f.getName() == data['formFactor']),
+          'series': MainboardSeries.values.firstWhere((s) => s.getName() == data['series']),
+          'compatibility': MainboardCompatibility.values.firstWhere((c) => c.getName() == data['compatibility']),
         };
       case CategoryEnum.drive:
         return {
-          'type': DriveType.values.firstWhere((t) => t.toString() == data['type']),
-          'capacity': DriveCapacity.values.firstWhere((c) => c.toString() == data['capacity']),
+          'type': DriveType.values.firstWhere((t) => t.getName() == data['type']),
+          'capacity': DriveCapacity.values.firstWhere((c) => c.getName() == data['capacity']),
         };
       case CategoryEnum.psu:
         return {
           'wattage': data['wattage'],
-          'efficiency': PSUEfficiency.values.firstWhere((e) => e.toString() == data['efficiency']),
-          'modular': PSUModular.values.firstWhere((m) => m.toString() == data['modular']),
+          'efficiency': PSUEfficiency.values.firstWhere((e) => e.getName() == data['efficiency']),
+          'modular': PSUModular.values.firstWhere((m) => m.getName() == data['modular']),
         };
       default:
         return {};
