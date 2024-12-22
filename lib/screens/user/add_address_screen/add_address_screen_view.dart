@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import '../../../objects/address_related/address.dart';
+import '../../../widgets/general/gradient_checkbox.dart';
 import 'add_address_screen_cubit.dart';
-import 'address_picker.dart';
+import '../../../widgets/general/address_picker.dart';
 
 class AddAddressScreen extends StatefulWidget {
   const AddAddressScreen({super.key});
@@ -58,55 +61,71 @@ class _AddAddressScreen extends State<AddAddressScreen> {
             ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextField(
-                controller: _receiverNameController,
-                decoration: const InputDecoration(labelText: 'Receiver Name'),
-                onChanged: (value) {
-                  cubit.updateAddress(receiverName: value);
-                },
-              ),
-              TextField(
-                controller: _receiverPhoneController,
-                decoration: const InputDecoration(labelText: 'Receiver Phone'),
-                onChanged: (value) {
-                  cubit.updateAddress(receiverPhone: value);
-                },
-              ),
-              AddressPicker(
-                onAddressChanged: (province, district, ward) {
-                  cubit.updateAddress(
-                    province: province,
-                    district: district,
-                    ward: ward,
-                  );
-                },
-              ),
-              TextField(
-                controller: _streetController,
-                decoration: const InputDecoration(labelText: 'Street'),
-                onChanged: (value) {
-                  cubit.updateAddress(street: value);
-                },
-              ),
-              Row(
-                children: [
-                  Checkbox(
-                    value: _isDefault,
-                    onChanged: (value) {
-                      setState(() {
-                        _isDefault = value ?? false;
-                      });
-                      cubit.updateAddress(isDefault: _isDefault);
-                    },
-                  ),
-                  const Text('Set as default address'),
-                ],
-              ),
-            ],
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                FieldWithIcon(
+                  controller: _receiverNameController,
+                  hintText: 'Receiver Name',
+                  onChanged: (value) {
+                    cubit.updateAddress(receiverName: value);
+                  },
+                  fillColor: Theme.of(context).colorScheme.surface,
+                ),
+                const SizedBox(height: 8),
+
+                FieldWithIcon(
+                  controller: _receiverPhoneController,
+                  hintText: 'Receiver Phone',
+                  onChanged: (value) {
+                    cubit.updateAddress(receiverPhone: value);
+                  },
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  keyboardType: TextInputType.phone,
+                  fillColor: Theme.of(context).colorScheme.surface,
+                ),
+                const SizedBox(height: 8),
+
+                AddressPicker(
+                  onAddressChanged: (province, district, ward) {
+                    cubit.updateAddress(
+                      province: province,
+                      district: district,
+                      ward: ward,
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+
+                FieldWithIcon(
+                  controller: _streetController,
+                  hintText: 'Street name, building, house no.',
+                  onChanged: (value) {
+                    cubit.updateAddress(street: value);
+                  },
+                  fillColor: Theme.of(context).colorScheme.surface,
+                ),
+                const SizedBox(height: 16),
+
+                Row(
+                  children: [
+                    GradientCheckbox(
+                      value: _isDefault,
+                      onChanged: (value) {
+                        setState(() {
+                          _isDefault = value ?? false;
+                        });
+                        cubit.updateAddress(isDefault: _isDefault);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    const Text('Set as default address'),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

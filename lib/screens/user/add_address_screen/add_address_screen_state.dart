@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:gizmoglobe_client/objects/address_related/province.dart';
 
 class AddAddressScreenState with EquatableMixin {
   final String receiverName;

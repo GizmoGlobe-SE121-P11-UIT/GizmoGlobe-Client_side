@@ -40,4 +40,9 @@ class Ward {
       administrativeUnitFullNameEn: json['AdministrativeUnitFullNameEn'],
     );
   }
+
+  @override
+  String toString() {
+    return fullNameEn;
+  }
 }

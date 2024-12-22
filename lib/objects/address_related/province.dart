@@ -15,7 +15,7 @@ class Province {
   final String administrativeUnitFullName;
   final String administrativeUnitShortNameEn;
   final String administrativeUnitFullNameEn;
-  final List<District> districts;
+  final List<District>? districts;
 
   Province({
     required this.code,
@@ -32,7 +32,7 @@ class Province {
     required this.administrativeUnitFullName,
     required this.administrativeUnitShortNameEn,
     required this.administrativeUnitFullNameEn,
-    required this.districts,
+    this.districts,
   });
 
   factory Province.fromJson(Map<String, dynamic> json) {
@@ -51,9 +51,14 @@ class Province {
       administrativeUnitFullName: json['AdministrativeUnitFullName'],
       administrativeUnitShortNameEn: json['AdministrativeUnitShortNameEn'],
       administrativeUnitFullNameEn: json['AdministrativeUnitFullNameEn'],
-      districts: (json['District'] as List<dynamic>)
-          .map((d) => District.fromJson(d))
-          .toList(),
+      districts: json['District'] == null ? <District>[] : (json['District'] as List<dynamic>)
+              .map((d) => District.fromJson(d))
+              .toList(),
     );
+  }
+
+  @override
+  String toString() {
+    return fullNameEn;
   }
 }

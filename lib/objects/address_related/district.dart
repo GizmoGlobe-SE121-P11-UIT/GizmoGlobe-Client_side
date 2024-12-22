@@ -12,7 +12,7 @@ class District {
   final String administrativeUnitFullName;
   final String administrativeUnitShortNameEn;
   final String administrativeUnitFullNameEn;
-  final List<Ward> wards;
+  final List<Ward>? wards;
 
   District({
     required this.code,
@@ -26,7 +26,7 @@ class District {
     required this.administrativeUnitFullName,
     required this.administrativeUnitShortNameEn,
     required this.administrativeUnitFullNameEn,
-    required this.wards,
+    this.wards,
   });
 
   factory District.fromJson(Map<String, dynamic> json) {
@@ -42,7 +42,14 @@ class District {
       administrativeUnitFullName: json['AdministrativeUnitFullName'],
       administrativeUnitShortNameEn: json['AdministrativeUnitShortNameEn'],
       administrativeUnitFullNameEn: json['AdministrativeUnitFullNameEn'],
-      wards: (json['Ward'] as List<dynamic>).map((w) => Ward.fromJson(w)).toList(),
+      wards: json['Ward'] == null ? <Ward>[] : (json['Ward'] as List<dynamic>)
+              .map((w) => Ward.fromJson(w))
+              .toList(),
     );
+  }
+
+  @override
+  String toString() {
+    return fullNameEn;
   }
 }
