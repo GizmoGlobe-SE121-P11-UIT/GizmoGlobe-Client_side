@@ -69,6 +69,7 @@ flutter:
   uses-material-design: true
   assets:
     - lib/GizmoGlobeLogo.png
+    - lib/data/database/full_json_generated_data_vn_units.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

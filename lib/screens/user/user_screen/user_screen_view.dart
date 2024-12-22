@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../widgets/general/invisible_gradient_button.dart';
 import '../../../widgets/general/vertical_icon_button.dart';
+import '../add_address_screen/add_address_screen_view.dart';
 import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
 import '../../../data/firebase/firebase.dart'; // Import the Firebase file
@@ -215,7 +216,10 @@ class _UserScreen extends State<UserScreen> {
                       height: 24.0,
                       child: TextButton(
                         onPressed: () {
-                          // Handle Account action
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AddAddressScreen.newInstance()),
+                          );
                         },
                         style: TextButton.styleFrom(
                             padding: const EdgeInsets.fromLTRB(8, 0, 0, 0)
