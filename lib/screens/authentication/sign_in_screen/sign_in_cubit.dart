@@ -11,11 +11,19 @@ class SignInCubit extends Cubit<SignInState> {
   SignInCubit() : super(const SignInState());
 
   void emailChanged(String email) {
-    emit(state.copyWith(email: email));
+    emit(state.copyWith(
+      email: email,
+      processState: ProcessState.idle, // Reset state
+      message: NotifyMessage.empty,   // Reset message
+    ));
   }
 
   void passwordChanged(String password) {
-    emit(state.copyWith(password: password));
+    emit(state.copyWith(
+      password: password,
+      processState: ProcessState.idle, // Reset state
+      message: NotifyMessage.empty,    // Reset message
+    ));
   }
 
   Future<void> signInWithEmailPassword() async {
