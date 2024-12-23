@@ -10,9 +10,8 @@ import 'package:gizmoglobe_client/objects/product_related/ram.dart';
 Future<void> pushProductSamplesToFirebase() async {
   try {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    // final Database database = Database();
 
-    // Push manufacturers to Firestore
+    Database().generateSampleData();
     for (var manufacturer in Database().manufacturerList) {
       await firestore.collection('manufacturers').doc(manufacturer.manufacturerID).set({
         'manufacturerID': manufacturer.manufacturerID,

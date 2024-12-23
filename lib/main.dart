@@ -13,6 +13,7 @@ import 'package:gizmoglobe_client/screens/main/drawer/drawer_cubit.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
 import 'package:gizmoglobe_client/widgets/filter/advanced_filter_search/advanced_filter_search_state.dart';
+import 'package:gizmoglobe_client/providers/cart_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,33 +46,35 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => MainScreenCubit()),
         BlocProvider(create: (context) => DrawerCubit()),
       ],
-      child: MaterialApp(
-        title: 'GizmoGlobe',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          colorScheme: const ColorScheme(
-            primary: Color(0xFF6CC4F4),
-            onPrimary: Color(0xFF4A94F1),
-            secondary: Color(0xFF6465F1),
-            onSecondary: Color(0xFF292B5C),
-            primaryContainer: Color(0xFF323F73),
-            secondaryContainer: Color(0xFF608BC1),
-            surface: Color(0xFF202046),
-            onSurface: Color(0xFFF3F3E0),
-            onSurfaceVariant: Color(0xFF202046),
-            error: Colors.red,
-            onError: Colors.white,
-            brightness: Brightness.light,
+      child: CartProvider(
+        child: MaterialApp(
+          title: 'GizmoGlobe',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            colorScheme: const ColorScheme(
+              primary: Color(0xFF6CC4F4),
+              onPrimary: Color(0xFF4A94F1),
+              secondary: Color(0xFF6465F1),
+              onSecondary: Color(0xFF292B5C),
+              primaryContainer: Color(0xFF323F73),
+              secondaryContainer: Color(0xFF608BC1),
+              surface: Color(0xFF202046),
+              onSurface: Color(0xFFF3F3E0),
+              onSurfaceVariant: Color(0xFF202046),
+              error: Colors.red,
+              onError: Colors.white,
+              brightness: Brightness.light,
+            ),
           ),
+          routes: {
+            '/sign-in': (context) => SignInScreen.newInstance(),
+            '/sign-up': (context) => SignUpScreen.newInstance(),
+            '/forget-password': (context) => ForgetPasswordScreen.newInstance(),
+            '/main': (context) => const MainScreen(),
+            '/home': (context) => HomeScreen.newInstance(),
+          },
+          home: const AuthWrapper(),
         ),
-        routes: {
-          '/sign-in': (context) => SignInScreen.newInstance(),
-          '/sign-up': (context) => SignUpScreen.newInstance(),
-          '/forget-password': (context) => ForgetPasswordScreen.newInstance(),
-          '/main': (context) => const MainScreen(),
-          '/home': (context) => HomeScreen.newInstance(),
-        },
-        home: const AuthWrapper(),
       ),
     );
   }

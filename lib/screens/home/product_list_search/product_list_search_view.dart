@@ -13,6 +13,7 @@ import '../../../widgets/filter/advanced_filter_search/advanced_filter_search_vi
 import '../../../widgets/general/app_text_style.dart';
 import '../../../widgets/general/gradient_radio_button.dart';
 import '../../../widgets/product/product_card.dart';
+import '../../../widgets/product/product_detail_screen.dart';
 import 'product_list_search_cubit.dart';
 
 
@@ -98,79 +99,75 @@ class _ProductListSearchScreenState extends State<ProductListSearchScreen> {
             children: [
               BlocBuilder<ProductListSearchCubit, ProductListSearchState>(
                 builder: (context, state) {
-                  return Row(
-                    children: [
-                      CheckboxButton(
-                        text: SortEnum.bestSeller.toString(),
-                        onSelected: () {
-                          cubit.updateSortOption(SortEnum.bestSeller);
-                          cubit.applyFilters();
-                        },
-                        padding: const EdgeInsets.all(8),
-                        textStyle: AppTextStyle.smallText,
-                        isSelected: state.selectedOption == SortEnum.bestSeller,
-                      ),
-                      const SizedBox(width: 8),
-
-                      CheckboxButton(
-                        text: SortEnum.lowestPrice.toString(),
-                        onSelected: () {
-                          cubit.updateSortOption(SortEnum.lowestPrice);
-                          cubit.applyFilters();
-                        },
-                        padding: const EdgeInsets.all(8),
-                        textStyle: AppTextStyle.smallText,
-                        isSelected: state.selectedOption == SortEnum.lowestPrice,
-                      ),
-                      const SizedBox(width: 8),
-
-                      CheckboxButton(
-                        text: SortEnum.highestPrice.toString(),
-                        onSelected: () {
-                          cubit.updateSortOption(SortEnum.highestPrice);
-                          cubit.applyFilters();
-                        },
-                        padding: const EdgeInsets.all(8),
-                        textStyle: AppTextStyle.smallText,
-                        isSelected: state.selectedOption == SortEnum.highestPrice,
-                      ),
-
-                      Expanded(
-                        child: Center(
-                          child: GradientIconButton(
-                            icon: Icons.filter_list_alt,
-                            iconSize: 28,
-                            onPressed: () async {
-                              final FilterSearchArguments arguments = FilterSearchArguments(
-                                selectedCategories: state.selectedCategoryList,
-                                selectedManufacturers: state.selectedManufacturerList,
-                                minPrice: state.minPrice,
-                                maxPrice: state.maxPrice,
-                              );
-
-                              final result = await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      AdvancedFilterSearchScreen.newInstance(
-                                        arguments: arguments,
-                                      ),
-                                ),
-                              );
-
-                              if (result is FilterSearchArguments) {
-                                cubit.updateFilter(
-                                  selectedCategoryList: result.selectedCategories,
-                                  selectedManufacturerList: result.selectedManufacturers,
-                                  minPrice: result.minPrice,
-                                  maxPrice: result.maxPrice,
-                                );
-                                cubit.applyFilters();
-                              }
-                            },
-                          ),
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        CheckboxButton(
+                          text: SortEnum.bestSeller.toString(),
+                          onSelected: () {
+                            cubit.updateSortOption(SortEnum.bestSeller);
+                            cubit.applyFilters();
+                          },
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          textStyle: AppTextStyle.smallText,
+                          isSelected: state.selectedOption == SortEnum.bestSeller,
                         ),
-                      )
-                    ],
+                        const SizedBox(width: 8),
+                        CheckboxButton(
+                          text: SortEnum.lowestPrice.toString(),
+                          onSelected: () {
+                            cubit.updateSortOption(SortEnum.lowestPrice);
+                            cubit.applyFilters();
+                          },
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          textStyle: AppTextStyle.smallText,
+                          isSelected: state.selectedOption == SortEnum.lowestPrice,
+                        ),
+                        const SizedBox(width: 8),
+                        CheckboxButton(
+                          text: SortEnum.highestPrice.toString(),
+                          onSelected: () {
+                            cubit.updateSortOption(SortEnum.highestPrice);
+                            cubit.applyFilters();
+                          },
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          textStyle: AppTextStyle.smallText,
+                          isSelected: state.selectedOption == SortEnum.highestPrice,
+                        ),
+                        const SizedBox(width: 16),
+                        GradientIconButton(
+                          icon: Icons.filter_list_alt,
+                          iconSize: 28,
+                          onPressed: () async {
+                            final FilterSearchArguments arguments = FilterSearchArguments(
+                              selectedCategories: state.selectedCategoryList,
+                              selectedManufacturers: state.selectedManufacturerList,
+                              minPrice: state.minPrice,
+                              maxPrice: state.maxPrice,
+                            );
+
+                            final result = await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => AdvancedFilterSearchScreen.newInstance(
+                                  arguments: arguments,
+                                ),
+                              ),
+                            );
+
+                            if (result is FilterSearchArguments) {
+                              cubit.updateFilter(
+                                selectedCategoryList: result.selectedCategories,
+                                selectedManufacturerList: result.selectedManufacturers,
+                                minPrice: result.minPrice,
+                                maxPrice: result.maxPrice,
+                              );
+                              cubit.applyFilters();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -204,12 +201,13 @@ class _ProductListSearchScreenState extends State<ProductListSearchScreen> {
                         final product = state.productList[index];
                         return ProductCard(
                           product: product,
-                          isFavorite: false,
                           onTap: () {
-                            // Xử lý khi tap vào sản phẩm
-                          },
-                          onFavoritePressed: () {
-                            // Xử lý khi tap vào nút favorite
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProductDetailScreen(product: product),
+                              ),
+                            );
                           },
                         );
                       },

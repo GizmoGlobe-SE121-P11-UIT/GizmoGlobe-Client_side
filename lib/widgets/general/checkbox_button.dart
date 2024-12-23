@@ -29,19 +29,27 @@ class CheckboxButton extends StatelessWidget {
     return GestureDetector(
       onTap: onSelected,
       child: Container(
-        padding: padding,
+        padding: padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          gradient: isSelected ? gradient : null,
-          color: isSelected ? Colors.white : theme.colorScheme.primaryContainer,
-          border: isSelected ? null : Border.all(color: theme.colorScheme.primary),
-          borderRadius: BorderRadius.circular(10.0),
+          gradient: isSelected ? 
+            LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.secondary,
+              ],
+            ) : null,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : Colors.grey[400]!,
+          ),
         ),
-        child: Center(
-          child: Text(
-            text,
-            style: textStyle.copyWith(
-              color: isSelected ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
-            ),
+        child: Text(
+          text,
+          style: textStyle?.copyWith(
+            color: isSelected ? Colors.white : Colors.grey[600],
+          ) ?? TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[600],
+            fontSize: 12,
           ),
         ),
       ),
