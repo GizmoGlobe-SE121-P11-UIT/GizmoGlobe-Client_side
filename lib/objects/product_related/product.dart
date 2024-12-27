@@ -9,6 +9,10 @@ abstract class Product {
   final double price;
   final Manufacturer manufacturer;
   final CategoryEnum category;
+  final double? discount;
+
+  double get discountedPrice => 
+    discount != null ? price * (1 - discount! / 100) : price;
 
   Product({
     this.productID,
@@ -16,6 +20,7 @@ abstract class Product {
     required this.price,
     required this.manufacturer,
     required this.category,
+    this.discount,
   });
 
   Product changeCategory(CategoryEnum newCategory, Map<String, dynamic> properties) {

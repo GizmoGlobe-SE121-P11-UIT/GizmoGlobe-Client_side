@@ -9,8 +9,12 @@ import 'product_list_search_state.dart';
 class ProductListSearchCubit extends Cubit<ProductListSearchState> {
   ProductListSearchCubit() : super(const ProductListSearchState());
 
-  void initialize(String? initialSearchText) {
+  Future<void> initialize(String? initialSearchText) async {
     emit(state.copyWith(searchText: initialSearchText));
+
+    if (Database().productList.isEmpty) {
+      await Database().initialize();
+    }
 
     emit(state.copyWith(
       productList: Database().productList,
@@ -66,5 +70,15 @@ class ProductListSearchCubit extends Cubit<ProductListSearchState> {
     }
 
     emit(state.copyWith(productList: filteredProducts));
+  }
+
+  void toggleFavorite(String productId) {
+    final updatedFavorites = Set<String>.from(state.favoriteProductIds);
+    if (updatedFavorites.contains(productId)) {
+      updatedFavorites.remove(productId);
+    } else {
+      updatedFavorites.add(productId);
+    }
+    emit(state.copyWith(favoriteProductIds: updatedFavorites));
   }
 }

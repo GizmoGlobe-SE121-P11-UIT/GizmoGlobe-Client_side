@@ -30,6 +30,7 @@ class _SignUpScreen extends State<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   SignUpCubit get cubit => context.read<SignUpCubit>();
 
   @override
@@ -46,6 +47,9 @@ class _SignUpScreen extends State<SignUpScreen> {
     });
     _confirmPasswordController.addListener(() {
       cubit.updateConfirmPassword(_confirmPasswordController.text);
+    });
+    _phoneController.addListener(() {
+      cubit.updatePhoneNumber(_phoneController.text);
     });
   }
 
@@ -113,6 +117,23 @@ class _SignUpScreen extends State<SignUpScreen> {
                   cubit.updateEmail(value);
                 },
               ),
+
+              const SizedBox(height: 16.0),
+
+              FieldWithIcon(
+                controller: _phoneController,
+                hintText: 'Phone number',
+                fillColor: Theme.of(context).colorScheme.surface,
+                fontSize: 16,
+                fontWeight: FontWeight.normal,
+                textColor: Theme.of(context).colorScheme.primary,
+                hintTextColor: Theme.of(context).colorScheme.onPrimary,
+                keyboardType: TextInputType.phone,
+                onChange: (value) {
+                  cubit.updatePhoneNumber(value);
+                },
+              ),
+
               const SizedBox(height: 16.0),
 
               FieldWithIcon(
@@ -144,7 +165,6 @@ class _SignUpScreen extends State<SignUpScreen> {
                 },
               ),
               const SizedBox(height: 30),
-
               BlocConsumer<SignUpCubit, SignUpState>(
                 listener: (context, state) {
                   if (state.processState == ProcessState.success) {
