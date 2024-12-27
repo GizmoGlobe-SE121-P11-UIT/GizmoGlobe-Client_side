@@ -8,6 +8,7 @@ import 'package:gizmoglobe_client/objects/product_related/psu.dart';
 import 'package:gizmoglobe_client/objects/product_related/ram.dart';
 
 import '../../objects/address_related/address.dart';
+import '../../objects/product_related/product.dart';
 
 Future<void> pushProductSamplesToFirebase() async {
   try {
@@ -368,6 +369,97 @@ class Firebase {
       await Database().fetchAddress();
     } catch (e) {
       print('Error creating new address: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addFavorite(String customerID, String productID) async {
+    try {
+      final favoriteRef = _firestore
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .doc(productID);
+
+      await favoriteRef.set({
+        'productID': productID,
+        'addedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error adding favorite: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> removeFavorite(String customerID, String productID) async {
+    try {
+      final favoriteRef = _firestore
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .doc(productID);
+
+      await favoriteRef.delete();
+    } catch (e) {
+      print('Error removing favorite: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<String>> getFavorites(String customerID) async {
+    try {
+      final favoriteSnapshot = await _firestore
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .get();
+
+      return favoriteSnapshot.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      print('Error getting favorites: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Product>> fetchBestSellerProducts() async {
+    try {
+      final productSnapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .orderBy('sales', descending: true)
+          .limit(5)
+          .get();
+
+      return productSnapshot.docs.map((doc) {
+        final data = doc.data();
+        return Product.fromMap(data);
+      }).toList();
+    } catch (e) {
+      print('Error fetching best seller products: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Product>> fetchFavoriteProducts(String customerID) async {
+    try {
+      final favoriteSnapshot = await FirebaseFirestore.instance
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .get();
+
+      final favoriteProductIDs = favoriteSnapshot.docs.map((doc) => doc.id).toList();
+
+      final productSnapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .where(FieldPath.documentId, whereIn: favoriteProductIDs)
+          .get();
+
+      return productSnapshot.docs.map((doc) {
+        final data = doc.data();
+        return Product.fromMap(data);
+      }).toList();
+    } catch (e) {
+      print('Error fetching favorite products: $e');
       rethrow;
     }
   }

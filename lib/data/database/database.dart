@@ -106,6 +106,7 @@ class Database {
               'price': (data['sellingPrice'] as num).toDouble(),
               'discount': (data['discount'] as num?)?.toDouble() ?? 0.0,
               'release': (data['release'] as Timestamp).toDate(),
+              'sales': data['sales'] as int,
               'stock': data['stock'] as int,
               'status': ProductStatusEnum.values.firstWhere(
                 (s) => s.getName() == data['status'],
