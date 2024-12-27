@@ -848,4 +848,8 @@ class Database {
       rethrow;
     }
   }
+
+  void updateProductList (List<Product> productList) {
+    this.productList = productList;
+  }
 }
