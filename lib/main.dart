@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:gizmoglobe_client/screens/authentication/forget_password_screen/forget_password_view.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_view.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_up_screen/sign_up_view.dart';
@@ -13,8 +14,10 @@ import 'package:gizmoglobe_client/firebase_options.dart';
 import 'package:gizmoglobe_client/widgets/filter/advanced_filter_search/advanced_filter_search_state.dart';
 import 'package:gizmoglobe_client/providers/cart_provider.dart';
 
+import 'consts.dart';
+
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  await _setup();
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.android,
@@ -32,6 +35,11 @@ void main() async {
       ));
     }
   }
+}
+
+Future<void> _setup () async {
+  WidgetsFlutterBinding.ensureInitialized();
+  Stripe.publishableKey = stripePublishableKey;
 }
 
 class MyApp extends StatelessWidget {

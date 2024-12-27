@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
+import '../../../objects/product_related/product.dart';
 import 'cart_screen_state.dart';
 import '../../../enums/processing/process_state_enum.dart';
 
@@ -164,5 +166,20 @@ class CartScreenCubit extends Cubit<CartScreenState> {
         error: e.toString()
       ));
     }
+  }
+
+  List<Map<Product, int>> convertItemsToProductQuantityList() {
+    final result = <Map<Product, int>>[];
+
+    for (var item in state.items) {
+      final productID = item['productID'] as String;
+      final quantity = item['quantity'] as int;
+
+      if (state.selectedItems.contains(productID)) {
+        final product = Database().productList.firstWhere((product) => product.productID == productID);
+        result.add({product: quantity});
+      }
+    }
+    return result;
   }
 }
