@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class FieldWithIcon extends StatelessWidget {
+  final double height;
   final bool readOnly;
   final String hintText;
   final Color fillColor;
@@ -26,6 +27,7 @@ class FieldWithIcon extends StatelessWidget {
 
   const FieldWithIcon({
     super.key,
+    this.height = 45,
     this.readOnly = false,
     this.hintText = '',
     this.fillColor = Colors.white,
@@ -104,6 +106,7 @@ class FieldWithIcon extends StatelessWidget {
                   borderRadius: borderRadius,
                   borderSide: BorderSide.none,
                 ),
+                contentPadding: EdgeInsets.symmetric(vertical: (height - fontSize) / 2, horizontal: 16),
               ),
               keyboardType: keyboardType,
               inputFormatters: inputFormatters ?? [
