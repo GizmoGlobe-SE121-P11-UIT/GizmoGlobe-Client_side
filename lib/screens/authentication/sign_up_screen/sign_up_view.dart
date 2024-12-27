@@ -195,8 +195,8 @@ class _SignUpScreen extends State<SignUpScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   return GradientButton(
-                    onPress: () {
-                      cubit.signUp();
+                    onPress: () async {
+                      await cubit.signUp();
                     },
                     text: 'Create account',
                     gradient: LinearGradient(
