@@ -1,7 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import 'sign_in_state.dart';
 import '../../../enums/processing/notify_message_enum.dart';
@@ -33,22 +32,31 @@ class SignInCubit extends Cubit<SignInState> {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
 
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(email: state.email, password: state.password);
-      if (userCredential.user != null) {
-        if (!userCredential.user!.emailVerified) {
-          emit(state.copyWith(
-              processState: ProcessState.failure,
-              message: NotifyMessage.msg1,
-              dialogName: DialogName.failure
-          ));
-          await _auth.signOut();
-        } else {
-          emit(state.copyWith(
-              processState: ProcessState.success,
-              message: NotifyMessage.msg1,
-              dialogName: DialogName.success
-          ));
-        }
+      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: state.email, 
+        password: state.password
+      );
+      
+      // Kiểm tra xác thực email
+      if (userCredential.user != null && !userCredential.user!.emailVerified) {
+        // Gửi lại email xác thực nếu cần
+        await userCredential.user!.sendEmailVerification();
+        
+        emit(state.copyWith(
+          processState: ProcessState.failure,
+          message: NotifyMessage.msg10, // Cần thêm message: "Please verify your email before logging in"
+        ));
+        
+        // Đăng xuất user vì chưa xác thực
+        await _auth.signOut();
+        return;
+      }
+
+      if (userCredential.user != null && userCredential.user!.emailVerified) {
+        emit(state.copyWith(
+          processState: ProcessState.success,
+          message: NotifyMessage.msg1
+        ));
       }
     } catch (error) {
       emit(state.copyWith(
@@ -74,41 +82,28 @@ class SignInCubit extends Cubit<SignInState> {
 
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
       if (userCredential.user != null) {
-        // Google đã xác thực email nên không cần kiểm tra emailVerified
+        // Thêm thông tin vào bảng users
+        final CollectionReference usersCollection = _firestore.collection('users');
+        await usersCollection.doc(userCredential.user!.uid).set({
+          'username': userCredential.user!.displayName,
+          'email': userCredential.user!.email,
+          'userid': userCredential.user!.uid,
+          'role': 'customer',
+        });
 
-        // Kiểm tra xem user đã tồn tại chưa
-        final DocumentSnapshot userDoc = await _firestore
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .get();
+        // Thêm thông tin vào bảng customers
+        final CollectionReference customersCollection = _firestore.collection('customers');
+        await customersCollection.doc(userCredential.user!.uid).set({
+          'customerID': userCredential.user!.uid,
+          'customerName': userCredential.user!.displayName,
+          'email': userCredential.user!.email,
+          'phoneNumber': userCredential.user!.phoneNumber ?? '', // Nếu có số điện thoại từ Google
+        });
 
-        if (!userDoc.exists) {
-          // Nếu user chưa tồn tại, tạo mới trong cả 2 bảng
-          await _firestore.collection('users').doc(userCredential.user!.uid).set({
-            'username': userCredential.user!.displayName,
-            'email': userCredential.user!.email,
-            'userid': userCredential.user!.uid,
-            'role': 'customer',
-          });
-
-          await _firestore.collection('customers').doc(userCredential.user!.uid).set({
-            'customerID': userCredential.user!.uid,
-            'customerName': userCredential.user!.displayName,
-            'email': userCredential.user!.email,
-            'phoneNumber': userCredential.user!.phoneNumber ?? '',
-          });
-        }
-
-        emit(state.copyWith(
-          processState: ProcessState.success,
-          message: NotifyMessage.msg1
-        ));
+        emit(state.copyWith(processState: ProcessState.success, message: NotifyMessage.msg1));
       }
     } catch (error) {
-      emit(state.copyWith(
-        processState: ProcessState.failure,
-        message: NotifyMessage.msg2
-      ));
+      emit(state.copyWith(processState: ProcessState.failure, message: NotifyMessage.msg2));
     }
   }
 }

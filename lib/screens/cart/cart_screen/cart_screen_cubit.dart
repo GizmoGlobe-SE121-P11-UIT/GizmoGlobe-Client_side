@@ -1,73 +1,168 @@
 import 'package:bloc/bloc.dart';
-import '../../../objects/product_related/product.dart';
-import '../../../objects/product_related/cart_item.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../data/firebase/firebase.dart';
 import 'cart_screen_state.dart';
+import '../../../enums/processing/process_state_enum.dart';
 
 class CartScreenCubit extends Cubit<CartScreenState> {
-  CartScreenCubit() : super(CartScreenState());
+  final Firebase _firebase = Firebase();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void addToCart(Product product, int quantity) {
-    final currentItems = Map<String, CartItem>.from(state.items);
-    final productId = product.productID;
-    
-    if (productId == null) return;
+  CartScreenCubit() : super(const CartScreenState()) {
+    // Load cart items when cubit is created
+    loadCartItems();
+  }
 
-    if (currentItems.containsKey(productId)) {
-      currentItems[productId] = CartItem(
-        product: product,
-        quantity: currentItems[productId]!.quantity + quantity,
-      );
-    } else {
-      currentItems[productId] = CartItem(
-        product: product,
-        quantity: quantity,
-      );
+  Future<void> loadCartItems() async {
+    try {
+      emit(state.copyWith(processState: ProcessState.loading));
+      
+      final user = _auth.currentUser;
+      if (user == null) {
+        emit(state.copyWith(
+          processState: ProcessState.failure,
+          error: 'User not logged in'
+        ));
+        return;
+      }
+
+      final items = await _firebase.getCartItems(user.uid);
+      
+      // Tính subtotal cho mỗi item
+      final updatedItems = items.map((item) {
+        final product = item['product'] as Map<String, dynamic>;
+        final quantity = (item['quantity'] as num?)?.toDouble() ?? 0;
+        final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
+        final discount = (product['discount'] as num?)?.toDouble() ?? 0;
+        
+        // Tính giá sau giảm giá
+        final discountedPrice = price * (1 - discount / 100);
+        final subtotal = discountedPrice * quantity;
+
+        return {
+          ...item,
+          'subtotal': subtotal,
+        };
+      }).toList();
+
+      emit(state.copyWith(
+        items: updatedItems,
+        processState: ProcessState.success,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        error: e.toString()
+      ));
     }
-
-    emit(state.copyWith(items: currentItems));
   }
 
-  void removeFromCart(String productId) {
-    final currentItems = Map<String, CartItem>.from(state.items);
-    currentItems.remove(productId);
-    emit(state.copyWith(items: currentItems));
-  }
+  Future<void> updateQuantity(String productID, int newQuantity) async {
+    try {
+      // Optimistically update the state
+      final updatedItems = state.items.map((item) {
+        if (item['productID'] == productID) {
+          final product = item['product'] as Map<String, dynamic>;
+          final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
+          final discount = (product['discount'] as num?)?.toDouble() ?? 0;
+          final discountedPrice = price * (1 - discount / 100);
+          final subtotal = discountedPrice * newQuantity;
 
-  void updateQuantity(String productId, int quantity) {
-    final currentItems = Map<String, CartItem>.from(state.items);
-    
-    if (quantity <= 0) {
-      currentItems.remove(productId);
-    } else if (currentItems.containsKey(productId)) {
-      currentItems[productId] = CartItem(
-        product: currentItems[productId]!.product,
-        quantity: quantity,
-      );
+          return {
+            ...item,
+            'quantity': newQuantity,
+            'subtotal': subtotal,
+          };
+        }
+        return item;
+      }).toList();
+
+      emit(state.copyWith(items: updatedItems));
+
+      // Make the actual update call
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      await _firebase.updateCartItemQuantity(user.uid, productID, newQuantity);
+    } catch (e) {
+      // Revert the state if the update call fails
+      await loadCartItems();
+      emit(state.copyWith(
+          processState: ProcessState.failure,
+          error: e.toString()
+      ));
     }
-
-    emit(state.copyWith(items: currentItems));
   }
 
-  void clearCart() {
-    emit(state.copyWith(items: {}));
+  Future<void> removeFromCart(String productID) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      await _firebase.removeFromCart(user.uid, productID);
+      await loadCartItems();
+    } catch (e) {
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        error: e.toString()
+      ));
+    }
   }
 
-  void toggleItemSelection(String productId) {
+  void toggleItemSelection(String productID) {
     final currentSelected = Set<String>.from(state.selectedItems);
-    if (currentSelected.contains(productId)) {
-      currentSelected.remove(productId);
+    if (currentSelected.contains(productID)) {
+      currentSelected.remove(productID);
     } else {
-      currentSelected.add(productId);
+      currentSelected.add(productID);
     }
     emit(state.copyWith(selectedItems: currentSelected));
   }
 
   void toggleSelectAll() {
-    final allProductIds = state.items.keys.toSet();
     if (state.isAllSelected) {
       emit(state.copyWith(selectedItems: {}));
     } else {
+      final allProductIds = state.items
+          .map((item) => item['productID'] as String)
+          .toSet();
       emit(state.copyWith(selectedItems: allProductIds));
+    }
+  }
+
+  Future<void> clearCart() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      await _firebase.clearCart(user.uid);
+      await loadCartItems();
+    } catch (e) {
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        error: e.toString()
+      ));
+    }
+  }
+
+  Future<void> addToCart(String productID, int quantity) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        emit(state.copyWith(
+          processState: ProcessState.failure,
+          error: 'User not logged in'
+        ));
+        return;
+      }
+
+      await _firebase.addToCart(user.uid, productID, quantity);
+      await loadCartItems(); // Reload cart items to get updated data
+    } catch (e) {
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        error: e.toString()
+      ));
     }
   }
 }
