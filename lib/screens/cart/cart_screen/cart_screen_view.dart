@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import 'package:gizmoglobe_client/services/stripe_services.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
@@ -335,7 +336,14 @@ class _CartScreen extends State<CartScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          final result = await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => CheckoutScreen.newInstance(
+                                cartItems: cubit.convertItemsToProductQuantityList(),
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,

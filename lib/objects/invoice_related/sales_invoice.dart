@@ -4,12 +4,13 @@ import 'package:gizmoglobe_client/enums/invoice_related/sales_status.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
 
 import '../../enums/invoice_related/payment_method.dart';
+import '../address_related/address.dart';
 
 class SalesInvoice {
   String? salesInvoiceID;
   String customerID;
   String? customerName;
-  String address;
+  Address? address;
   DateTime date;
   SalesStatus salesStatus;
   double totalPrice;
@@ -23,7 +24,7 @@ class SalesInvoice {
     this.salesInvoiceID = '',
     required this.customerID,
     this.customerName = '',
-    required this.address,
+    this.address,
     required this.date,
     required this.salesStatus,
     required this.totalPrice,
@@ -38,7 +39,7 @@ class SalesInvoice {
     String? salesInvoiceID,
     String? customerID,
     String? customerName,
-    String? address,
+    Address? address,
     DateTime? date,
     SalesStatus? salesStatus,
     double? totalPrice,
@@ -85,7 +86,7 @@ class SalesInvoice {
       salesInvoiceID: id,
       customerID: map['customerID'] ?? '',
       customerName: map['customerName'],
-      address: map['address'] ?? '',
+      address: map['address'] != null ? Address.fromMap(map['address']) : Address.nullAddress,
       date: (map['date'] as Timestamp).toDate(),
       paymentStatus: PaymentStatus.values.firstWhere(
         (e) => e.getName() == map['paymentStatus'],

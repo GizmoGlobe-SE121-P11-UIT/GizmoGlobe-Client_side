@@ -10,7 +10,7 @@ class CartScreenState extends Equatable {
   const CartScreenState({
     this.items = const [],
     this.selectedItems = const {},
-    this.processState = ProcessState.initial,
+    this.processState = ProcessState.idle,
     this.error,
   });
 

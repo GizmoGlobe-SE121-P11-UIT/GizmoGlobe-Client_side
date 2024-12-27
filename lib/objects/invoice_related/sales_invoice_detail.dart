@@ -1,51 +1,48 @@
+import 'package:gizmoglobe_client/data/database/database.dart';
+import 'package:gizmoglobe_client/objects/product_related/product.dart';
+
 class SalesInvoiceDetail {
   final String? salesInvoiceDetailID;
-  final String salesInvoiceID;
-  final String productID;
-  final String? productName;
-  final String? category;
+  final String? salesInvoiceID;
+  final Product product;
   final double sellingPrice;
   final int quantity;
   final double subtotal;
 
   SalesInvoiceDetail({
     this.salesInvoiceDetailID,
-    required this.salesInvoiceID,
-    required this.productID,
-    this.productName,
-    this.category,
+    this.salesInvoiceID,
+    required this.product,
     required this.sellingPrice,
     required this.quantity,
     required this.subtotal,
   });
 
-  factory SalesInvoiceDetail.withQuantity({
-    String? salesInvoiceDetailID,
-    required String salesInvoiceID,
-    required String productID,
-    String? productName,
-    String? category,
-    required double sellingPrice,
-    required int quantity,
-  }) {
-    return SalesInvoiceDetail(
-      salesInvoiceDetailID: salesInvoiceDetailID,
-      salesInvoiceID: salesInvoiceID,
-      productID: productID,
-      productName: productName,
-      category: category,
-      sellingPrice: sellingPrice,
-      quantity: quantity,
-      subtotal: sellingPrice * quantity,
-    );
-  }
+  // factory SalesInvoiceDetail.withQuantity({
+  //   String? salesInvoiceDetailID,
+  //   required String salesInvoiceID,
+  //   required String productID,
+  //   String? productName,
+  //   String? category,
+  //   required double sellingPrice,
+  //   required int quantity,
+  // }) {
+  //   return SalesInvoiceDetail(
+  //     salesInvoiceDetailID: salesInvoiceDetailID,
+  //     salesInvoiceID: salesInvoiceID,
+  //     productID: productID,
+  //     productName: productName,
+  //     category: category,
+  //     sellingPrice: sellingPrice,
+  //     quantity: quantity,
+  //     subtotal: sellingPrice * quantity,
+  //   );
+  // }
 
   SalesInvoiceDetail copyWith({
     String? salesInvoiceDetailID,
     String? salesInvoiceID,
-    String? productID,
-    String? productName,
-    String? category,
+    Product? product,
     double? sellingPrice,
     int? quantity,
     double? subtotal,
@@ -53,9 +50,7 @@ class SalesInvoiceDetail {
     return SalesInvoiceDetail(
       salesInvoiceDetailID: salesInvoiceDetailID ?? this.salesInvoiceDetailID,
       salesInvoiceID: salesInvoiceID ?? this.salesInvoiceID,
-      productID: productID ?? this.productID,
-      productName: productName ?? this.productName,
-      category: category ?? this.category,
+      product: product ?? this.product,
       sellingPrice: sellingPrice ?? this.sellingPrice,
       quantity: quantity ?? this.quantity,
       subtotal: subtotal ?? (quantity != null ? (sellingPrice ?? this.sellingPrice) * quantity : this.subtotal),
@@ -66,7 +61,7 @@ class SalesInvoiceDetail {
     return {
       'salesInvoiceDetailID': salesInvoiceDetailID,
       'salesInvoiceID': salesInvoiceID,
-      'productID': productID,
+      'productID': product.productID,
       'sellingPrice': sellingPrice,
       'quantity': quantity,
       'subtotal': subtotal,
@@ -77,11 +72,9 @@ class SalesInvoiceDetail {
     return SalesInvoiceDetail(
       salesInvoiceDetailID: id,
       salesInvoiceID: map['salesInvoiceID'] ?? '',
-      productID: map['productID'] ?? '',
-      productName: map['productName'],
-      category: map['category'],
+      product: Database().productList.firstWhere((product) => product.productID == map['productID']),
       sellingPrice: (map['sellingPrice'] ?? 0).toDouble(),
-      quantity: map['quantity'] ?? 0,
+      quantity: (map['quantity'] ?? 0).toInt(),
       subtotal: (map['subtotal'] ?? 0).toDouble(),
     );
   }
