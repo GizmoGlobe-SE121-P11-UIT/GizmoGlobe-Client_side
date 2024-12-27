@@ -2,5 +2,5 @@ enum ProcessState {
   idle,
   success,
   failure,
-  loading,
+  loading, initial,
 }

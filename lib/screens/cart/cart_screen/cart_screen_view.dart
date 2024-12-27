@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
@@ -35,10 +36,16 @@ class _CartScreen extends State<CartScreen> {
       ),
       body: BlocBuilder<CartScreenCubit, CartScreenState>(
         builder: (context, state) {
+          if (state.processState == ProcessState.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state.processState == ProcessState.failure) {
+            return Center(child: Text(state.error ?? 'Error loading cart'));
+          }
+
           if (state.items.isEmpty) {
-            return const Center(
-              child: Text('Your cart is empty'),
-            );
+            return const Center(child: Text('Your cart is empty'));
           }
 
           return Column(
@@ -48,7 +55,9 @@ class _CartScreen extends State<CartScreen> {
                   padding: const EdgeInsets.all(16),
                   itemCount: state.items.length,
                   itemBuilder: (context, index) {
-                    final item = state.items.values.elementAt(index);
+                    final item = state.items[index];
+                    final product = item['product'] as Map<String, dynamic>;
+                    
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Row(
@@ -58,12 +67,12 @@ class _CartScreen extends State<CartScreen> {
                           Padding(
                             padding: const EdgeInsets.only(right: 12),
                             child: Checkbox(
-                              value: state.selectedItems.contains(item.product.productID),
+                              value: state.selectedItems.contains(item['productID']),
                               onChanged: (value) {
-                                if (item.product.productID != null) {
-                                  cubit.toggleItemSelection(item.product.productID!);
-                                }
+                                cubit.toggleItemSelection(item['productID']);
                               },
+                              activeColor: Colors.blue[200],
+                              checkColor: Colors.black,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(4),
                               ),
@@ -88,7 +97,7 @@ class _CartScreen extends State<CartScreen> {
                               ),
                               child: Center(
                                 child: Icon(
-                                  _getCategoryIcon(item.product.category),
+                                  _getCategoryIcon(product['category']),
                                   size: 36,
                                   color: Colors.grey[600],
                                 ),
@@ -101,18 +110,21 @@ class _CartScreen extends State<CartScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  item.product.productName,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                Container(
+                                  // constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.3),
+                                  child: Text(
+                                    product['productName'],
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                if (item.product.discount != null) ...[
+                                if (product['discount'] != null && (product['discount'] as num) > 0) ...[
                                   Text(
-                                    '\$${item.product.price.toStringAsFixed(2)}',
+                                    '\$${(product['sellingPrice'] as num?)?.toStringAsFixed(2) ?? '0.00'}',
                                     style: TextStyle(
                                       decoration: TextDecoration.lineThrough,
                                       color: Colors.grey[400],
@@ -122,66 +134,127 @@ class _CartScreen extends State<CartScreen> {
                                   const SizedBox(height: 2),
                                 ],
                                 Text(
-                                  '\$${item.product.discountedPrice.toStringAsFixed(2)}',
-                                  style: const TextStyle(
+                                  '\$${((item['subtotal'] as num?) ?? 0.0 / (item['quantity'] as int? ?? 1)).toStringAsFixed(2)}',
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: Colors.blue[200],
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           // Quantity Controls
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[700]!),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.remove, color: Colors.white),
-                                  onPressed: () {
-                                    if (item.product.productID != null) {
-                                      cubit.updateQuantity(
-                                        item.product.productID!,
-                                        item.quantity - 1,
-                                      );
-                                    }
-                                  },
-                                  padding: const EdgeInsets.all(4),
-                                  constraints: const BoxConstraints(),
-                                  iconSize: 20,
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Quantity Controls
+                              Container(
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey[700]!),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                SizedBox(
-                                  width: 32,
-                                  child: Text(
-                                    item.quantity.toString(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.remove,
+                                        size: 16,
+                                      ),
+                                      onPressed: (item['quantity'] as int? ?? 0) > 1
+                                          ? () {
+                                              cubit.updateQuantity(
+                                                item['productID'] as String,
+                                                (item['quantity'] as int? ?? 0) - 1,
+                                              );
+                                            }
+                                          : null,
+                                      padding: const EdgeInsets.all(2),
+                                      constraints: const BoxConstraints(),
+                                      style: IconButton.styleFrom(
+                                        foregroundColor: (item['quantity'] as int? ?? 0) > 1 
+                                            ? Colors.white 
+                                            : Colors.grey,
+                                      ),
                                     ),
-                                  ),
+                                    Container(
+                                      constraints: const BoxConstraints(minWidth: 16),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        (item['quantity'] as int? ?? 0).toString(),
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.add,
+                                        size: 16,
+                                      ),
+                                      onPressed: () {
+                                        cubit.updateQuantity(
+                                          item['productID'] as String,
+                                          (item['quantity'] as int? ?? 0) + 1,
+                                        );
+                                      },
+                                      padding: const EdgeInsets.all(4),
+                                      constraints: const BoxConstraints(),
+                                      style: IconButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.add, color: Colors.white),
-                                  onPressed: () {
-                                    if (item.product.productID != null) {
-                                      cubit.updateQuantity(
-                                        item.product.productID!,
-                                        item.quantity + 1,
-                                      );
-                                    }
-                                  },
-                                  padding: const EdgeInsets.all(4),
-                                  constraints: const BoxConstraints(),
-                                  iconSize: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              // Delete Button
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  size: 20,
                                 ),
-                              ],
-                            ),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      backgroundColor: Theme.of(context).colorScheme.surface,
+                                      title: const Text(
+                                        'Remove Item',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      content: const Text(
+                                        'Are you sure you want to remove this item from your cart?',
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            cubit.removeFromCart(item['productID'] as String);
+                                          },
+                                          child: const Text(
+                                            'Remove',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                style: IconButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -291,19 +364,19 @@ class _CartScreen extends State<CartScreen> {
     );
   }
 
-  IconData _getCategoryIcon(CategoryEnum category) {
+  IconData _getCategoryIcon(String category) {
     switch (category) {
-      case CategoryEnum.ram:
+      case 'RAM':
         return Icons.memory;
-      case CategoryEnum.cpu:
+      case 'CPU':
         return Icons.developer_board;
-      case CategoryEnum.gpu:
+      case 'GPU':
         return Icons.videocam;
-      case CategoryEnum.psu:
+      case 'PSU':
         return Icons.power;
-      case CategoryEnum.drive:
+      case 'DRIVE':
         return Icons.storage;
-      case CategoryEnum.mainboard:
+      case 'MAINBOARD':
         return Icons.dashboard;
       default:
         return Icons.devices_other;

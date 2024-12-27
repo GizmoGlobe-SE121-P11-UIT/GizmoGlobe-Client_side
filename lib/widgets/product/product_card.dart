@@ -93,7 +93,7 @@ class ProductCard extends StatelessWidget {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      if (product.discount != null) ...[
+                                      if (product.discount > 0) ...[
                                         Text(
                                           '\$${product.price.toStringAsFixed(2)}',
                                           style: TextStyle(

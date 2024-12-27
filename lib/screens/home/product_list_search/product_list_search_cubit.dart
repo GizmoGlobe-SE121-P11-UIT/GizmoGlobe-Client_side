@@ -54,19 +54,23 @@ class ProductListSearchCubit extends Cubit<ProductListSearchState> {
     final double max = double.tryParse(state.maxPrice) ?? double.infinity;
 
     final filteredProducts = Database().productList.where((product) {
-      final matchesSearchText = state.searchText == null || product.productName.toLowerCase().contains(state.searchText!.toLowerCase());
+      if (product.price == null) return false;
+      
+      final matchesSearchText = state.searchText == null || 
+          product.productName.toLowerCase().contains(state.searchText!.toLowerCase());
       final matchesCategory = state.selectedCategoryList.contains(product.category);
       final matchesManufacturer = state.selectedManufacturerList.contains(product.manufacturer);
-      final matchesPrice = (product.price >= min) && (product.price <= max);
-      return matchesSearchText & matchesCategory && matchesManufacturer && matchesPrice;
+      final matchesPrice = (product.price! >= min) && (product.price! <= max);
+      
+      return matchesSearchText && matchesCategory && matchesManufacturer && matchesPrice;
     }).toList();
 
     if (state.selectedOption == SortEnum.bestSeller) {
 
     } else if (state.selectedOption == SortEnum.lowestPrice) {
-      filteredProducts.sort((a, b) => a.price.compareTo(b.price));
+      filteredProducts.sort((a, b) => (a.price ?? 0).compareTo(b.price ?? 0));
     } else if (state.selectedOption == SortEnum.highestPrice) {
-      filteredProducts.sort((a, b) => b.price.compareTo(a.price));
+      filteredProducts.sort((a, b) => (b.price ?? 0).compareTo(a.price ?? 0));
     }
 
     emit(state.copyWith(productList: filteredProducts));
