@@ -13,7 +13,7 @@ class ProductFactory {
       case CategoryEnum.ram:
         return RAM(
           productName: properties['productName'],
-          price: properties['price'],
+          price: properties['sellingPrice'],
           manufacturer: properties['manufacturer'],
           bus: properties['bus'],
           capacity: properties['capacity'],
@@ -22,7 +22,7 @@ class ProductFactory {
       case CategoryEnum.cpu:
         return CPU(
           productName: properties['productName'],
-          price: properties['price'],
+          price: properties['sellingPrice'],
           manufacturer: properties['manufacturer'],
           family: properties['family'],
           core: properties['core'],
@@ -32,7 +32,7 @@ class ProductFactory {
       case CategoryEnum.psu:
         return PSU(
           productName: properties['productName'],
-          price: properties['price'],
+          price: properties['sellingPrice'],
           manufacturer: properties['manufacturer'],
           wattage: properties['wattage'],
           efficiency: properties['efficiency'],
@@ -41,7 +41,7 @@ class ProductFactory {
       case CategoryEnum.gpu:
         return GPU(
           productName: properties['productName'],
-          price: properties['price'],
+          price: properties['sellingPrice'],
           manufacturer: properties['manufacturer'],
           series: properties['series'],
           capacity: properties['capacity'],
@@ -51,7 +51,7 @@ class ProductFactory {
       case CategoryEnum.mainboard:
         return Mainboard(
           productName: properties['productName'],
-          price: properties['price'],
+          price: properties['sellingPrice'],
           manufacturer: properties['manufacturer'],
           formFactor: properties['formFactor'],
           series: properties['series'],
@@ -60,7 +60,7 @@ class ProductFactory {
       case CategoryEnum.drive:
         return Drive(
           productName: properties['productName'],
-          price: properties['price'],
+          price: properties['sellingPrice'],
           manufacturer: properties['manufacturer'],
           type: properties['type'],
           capacity: properties['capacity'],
