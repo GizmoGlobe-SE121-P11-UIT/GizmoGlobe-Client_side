@@ -420,47 +420,4 @@ class Firebase {
       rethrow;
     }
   }
-
-  Future<List<Product>> fetchBestSellerProducts() async {
-    try {
-      final productSnapshot = await FirebaseFirestore.instance
-          .collection('products')
-          .orderBy('sales', descending: true)
-          .limit(5)
-          .get();
-
-      return productSnapshot.docs.map((doc) {
-        final data = doc.data();
-        return Product.fromMap(data);
-      }).toList();
-    } catch (e) {
-      print('Error fetching best seller products: $e');
-      rethrow;
-    }
-  }
-
-  Future<List<Product>> fetchFavoriteProducts(String customerID) async {
-    try {
-      final favoriteSnapshot = await FirebaseFirestore.instance
-          .collection('customers')
-          .doc(customerID)
-          .collection('favorites')
-          .get();
-
-      final favoriteProductIDs = favoriteSnapshot.docs.map((doc) => doc.id).toList();
-
-      final productSnapshot = await FirebaseFirestore.instance
-          .collection('products')
-          .where(FieldPath.documentId, whereIn: favoriteProductIDs)
-          .get();
-
-      return productSnapshot.docs.map((doc) {
-        final data = doc.data();
-        return Product.fromMap(data);
-      }).toList();
-    } catch (e) {
-      print('Error fetching favorite products: $e');
-      rethrow;
-    }
-  }
 }

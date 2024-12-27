@@ -6,10 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/authentication/forget_password_screen/forget_password_view.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_view.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_up_screen/sign_up_view.dart';
-import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_view.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
-import 'package:gizmoglobe_client/screens/main/drawer/drawer_cubit.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
 import 'package:gizmoglobe_client/widgets/filter/advanced_filter_search/advanced_filter_search_state.dart';
@@ -21,7 +19,7 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.android,
     );
-    Database().initialize();
+    await Database().initialize();
     runApp(const MyApp());
   } catch (e) {
     if (kDebugMode) {
@@ -44,7 +42,6 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => MainScreenCubit()),
-        BlocProvider(create: (context) => DrawerCubit()),
       ],
       child: CartProvider(
         child: MaterialApp(
@@ -71,7 +68,6 @@ class MyApp extends StatelessWidget {
             '/sign-up': (context) => SignUpScreen.newInstance(),
             '/forget-password': (context) => ForgetPasswordScreen.newInstance(),
             '/main': (context) => const MainScreen(),
-            '/home': (context) => HomeScreen.newInstance(),
           },
           home: const AuthWrapper(),
         ),

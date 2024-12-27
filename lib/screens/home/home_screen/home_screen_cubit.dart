@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
 import '../../../objects/product_related/product.dart';
 import 'home_screen_state.dart';
@@ -7,23 +8,26 @@ import 'home_screen_state.dart';
 class HomeScreenCubit extends Cubit<HomeScreenState> {
   HomeScreenCubit() : super(const HomeScreenState());
 
-  Future<void> initialize() async {
-    await fetchProducts();
+  void initialize() {
+    emit(state.copyWith(
+      favoriteProducts: Database().favoriteProducts,
+      bestSellerProducts: Database().bestSellerProducts,
+    ));
   }
 
-  Future<void> fetchProducts() async {
-    try {
-      final bestSellerProducts = await Firebase().fetchBestSellerProducts();
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final favoriteProducts = await Firebase().fetchFavoriteProducts(user.uid);
-        fetchBestSellerProducts(bestSellerProducts);
-        fetchFavoriteProducts(favoriteProducts);
-      }
-    } catch (e) {
-      print('Error fetching products: $e');
-    }
-  }
+  // Future<void> fetchProducts() async {
+  //   try {
+  //     final bestSellerProducts = await Database().fetchBestSellerProducts();
+  //     final user = FirebaseAuth.instance.currentUser;
+  //     if (user != null) {
+  //       final favoriteProducts = await Database().fetchFavoriteProducts(user.uid);
+  //       fetchBestSellerProducts(bestSellerProducts);
+  //       fetchFavoriteProducts(favoriteProducts);
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching products: $e');
+  //   }
+  // }
 
   void changeSearchText(String? searchText) {
     emit(state.copyWith(searchText: searchText));

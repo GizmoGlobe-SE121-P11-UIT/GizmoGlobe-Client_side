@@ -14,7 +14,6 @@ import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/general/field_with_icon.dart';
-import '../../main/drawer/drawer_cubit.dart';
 import '../product_list_search/product_list_search_view.dart';
 import 'home_screen_cubit.dart';
 
@@ -37,6 +36,12 @@ class _HomeScreen extends State<HomeScreen> {
   TextEditingController searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    cubit.initialize();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -51,19 +56,9 @@ class _HomeScreen extends State<HomeScreen> {
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                leading: GradientIconButton(
-                  icon: Icons.menu_outlined,
-                  onPressed: () {
-                    context.read<DrawerCubit>().toggleDrawer();
-                  },
-                  fillColor: Theme.of(context).colorScheme.surface,
-                ),
                 title: const Center(
                     child: AppLogo(height: 60,)
                 ),
-                actions: const [
-                  SizedBox(width: 48),
-                ],
               ),
               body: Padding(
                 padding: const EdgeInsets.all(16.0),
