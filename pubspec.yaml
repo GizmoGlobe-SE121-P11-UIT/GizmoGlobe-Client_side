@@ -45,6 +45,7 @@ dependencies:
   flutter_colorpicker: ^1.1.0
   equatable: ^2.0.5
   bloc: ^8.1.4
+  dropdown_search: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +70,7 @@ flutter:
   uses-material-design: true
   assets:
     - lib/GizmoGlobeLogo.png
+    - lib/data/database/full_json_generated_data_vn_units.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

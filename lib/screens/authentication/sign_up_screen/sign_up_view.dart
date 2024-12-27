@@ -99,7 +99,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                 fontWeight: FontWeight.normal,
                 textColor: Theme.of(context).colorScheme.primary,
                 hintTextColor: Theme.of(context).colorScheme.onPrimary,
-                onChange: (value) {
+                onChanged: (value) {
                   cubit.updateUsername(value);
                 },
               ),
@@ -113,7 +113,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                 fontWeight: FontWeight.normal,
                 textColor: Theme.of(context).colorScheme.primary,
                 hintTextColor: Theme.of(context).colorScheme.onPrimary,
-                onChange: (value) {
+                onChanged: (value) {
                   cubit.updateEmail(value);
                 },
               ),
@@ -145,7 +145,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                 obscureText: true,
                 textColor: Theme.of(context).colorScheme.primary,
                 hintTextColor: Theme.of(context).colorScheme.onPrimary,
-                onChange: (value) {
+                onChanged: (value) {
                   cubit.updatePassword(value);
                 },
               ),
@@ -160,7 +160,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                 obscureText: true,
                 textColor: Theme.of(context).colorScheme.primary,
                 hintTextColor: Theme.of(context).colorScheme.onPrimary,
-                onChange: (value) {
+                onChanged: (value) {
                   cubit.updateConfirmPassword(value);
                 },
               ),

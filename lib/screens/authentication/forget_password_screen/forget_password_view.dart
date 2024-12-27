@@ -98,7 +98,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                 obscureText: false,
                 textColor: Theme.of(context).colorScheme.primary,
                 hintTextColor: Theme.of(context).colorScheme.onPrimary,
-                onChange: (value) {
+                onChanged: (value) {
                   cubit.emailChanged(value);
                 },
               ),
