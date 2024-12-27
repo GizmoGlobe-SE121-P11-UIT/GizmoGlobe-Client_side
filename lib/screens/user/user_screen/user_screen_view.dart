@@ -5,6 +5,7 @@ import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../widgets/general/invisible_gradient_button.dart';
 import '../../../widgets/general/vertical_icon_button.dart';
 import '../add_address_screen/add_address_screen_view.dart';
+import '../address_screen/address_screen_view.dart';
 import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
 import '../../../data/firebase/firebase.dart'; // Import the Firebase file
@@ -155,7 +156,7 @@ class _UserScreen extends State<UserScreen> {
                           fontSize: 24.0,
                         ),
                         InvisibleGradientButton(
-                          onPress: () {
+                          onPressed: () {
                             // Handle see all action
                           },
                           suffixIcon: Icons.chevron_right,
@@ -184,7 +185,7 @@ class _UserScreen extends State<UserScreen> {
                           fontSize: 24.0,
                         ),
                         InvisibleGradientButton(
-                          onPress: () {
+                          onPressed: () {
                             // Handle see all action
                           },
                           suffixIcon: Icons.chevron_right,
@@ -218,7 +219,7 @@ class _UserScreen extends State<UserScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => AddAddressScreen.newInstance()),
+                            MaterialPageRoute(builder: (context) => AddressScreen.newInstance()),
                           );
                         },
                         style: TextButton.styleFrom(
@@ -281,7 +282,7 @@ class _UserScreen extends State<UserScreen> {
               InvisibleGradientButton(
                 fontSize: 20.0,
                 fontWeight: FontWeight.bold,
-                onPress: () {
+                onPressed: () {
                   cubit.logOut(context);
                 },
                 suffixIcon: Icons.logout,

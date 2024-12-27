@@ -27,10 +27,21 @@ class Address {
   @override
   String toString() {
     return '$receiverName - $receiverPhone'
-        '${street != null ? ', $street' : ''}'
-        '${ward != null ? ', $ward' : ''}'
-        '${district != null ? ', $district' : ''}'
-        '${province != null ? ', $province' : ''}';
+        '${street != null && street!.isNotEmpty ? ', $street' : ''}'
+        '${ward != null &&  ward!.fullNameEn.isNotEmpty ? ', ${ward!.fullNameEn}' : ''}'
+        '${district != null && district!.fullNameEn.isNotEmpty ? ', ${district!.fullNameEn}' : ''}'
+        '${province != null && province!.fullNameEn.isNotEmpty ? ', ${province!.fullNameEn}' : ''}';
+  }
+
+  String firstLine() {
+    return '$receiverName - $receiverPhone';
+  }
+
+  String secondLine() {
+    return '${street != null && street!.isNotEmpty ? '$street, ' : ''}'
+        '${ward != null && ward!.fullNameEn.isNotEmpty ? '${ward!.fullNameEn}, ' : ''}'
+        '${district != null && district!.fullNameEn.isNotEmpty ? '${district!.fullNameEn}, ' : ''}'
+        '${province != null && province!.fullNameEn.isNotEmpty ? province!.fullNameEn : ''}';
   }
 
   static Address nullAddress = Address(

@@ -6,7 +6,7 @@ class GradientText extends StatelessWidget {
 
   const GradientText({
     required this.text,
-    this.fontSize = 28.0,
+    this.fontSize = 24.0,
     super.key,
   });
 

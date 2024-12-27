@@ -25,6 +25,12 @@ class AppTextStyle {
     fontFamily: 'Montserrat',
   );
 
+  static const TextStyle boldText = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    fontFamily: 'Montserrat',
+  );
+
   static const TextStyle regularText = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.normal,

@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:gizmoglobe_client/enums/product_related/mainboard_enums/mainboard_compatibility.dart';
+import 'package:gizmoglobe_client/objects/address_related/address.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 
@@ -36,6 +37,7 @@ class Database {
   List<Manufacturer> manufacturerList = [];
   List<Product> productList = [];
   List<Province> provinceList = [];
+  List<Address> addressList = [];
 
   factory Database() {
     return _database;
@@ -46,10 +48,12 @@ class Database {
   Future<void> fetchDataFromFirestore() async {
     try {
       print('Bắt đầu lấy dữ liệu từ Firestore');
-
+      provinceList = await fetchProvinces();
       final manufacturerSnapshot = await FirebaseFirestore.instance
           .collection('manufacturers')
           .get();
+
+      fetchAddress();
 
       manufacturerList = manufacturerSnapshot.docs.map((doc) {
         return Manufacturer(
@@ -120,7 +124,6 @@ class Database {
           return Future.error('Error processing product ${doc.id}: $e');
         }
       }));
-
       print('Số lượng products trong list: ${productList.length}');
 
     } catch (e) {
@@ -185,6 +188,7 @@ class Database {
   }
 
   Future<void> _initializeSampleData() async {
+    provinceList = await fetchProvinces();
     manufacturerList = [
       Manufacturer(
         manufacturerID: 'Corsair',
@@ -684,7 +688,6 @@ class Database {
         'modular': PSUModular.fullModular,
       }),
     ];
-    provinceList = await fetchProvinces();
   }
 
   void generateSampleData() {
@@ -727,6 +730,20 @@ class Database {
       userID = user.uid;
       username = userDoc['username'];
       email = userDoc['email'];
+    }
+  }
+
+  Future<void> fetchAddress() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final addressSnapshot = await FirebaseFirestore.instance
+          .collection('addresses')
+          .where('customerID', isEqualTo: user.uid)
+          .get();
+
+      addressList = addressSnapshot.docs.map((doc) {
+        return Address.fromMap(doc.data());
+      }).toList();
     }
   }
 }

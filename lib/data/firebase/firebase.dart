@@ -7,6 +7,8 @@ import 'package:gizmoglobe_client/objects/product_related/mainboard.dart';
 import 'package:gizmoglobe_client/objects/product_related/psu.dart';
 import 'package:gizmoglobe_client/objects/product_related/ram.dart';
 
+import '../../objects/address_related/address.dart';
+
 Future<void> pushProductSamplesToFirebase() async {
   try {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -102,4 +104,36 @@ class Firebase {
   }
 
   Firebase._internal();
+
+  Future<void> createAddress(Address address) async {
+    try {
+      // Add address to collection addresses
+      DocumentReference addressRef = await FirebaseFirestore.instance
+          .collection('addresses')
+          .add(address.toMap());
+
+      String addressId = addressRef.id;
+      address.addressID = addressId;
+
+      await addressRef.update({'addressID': addressId});
+      await FirebaseFirestore.instance
+          .collection('addresses')
+          .doc(addressId)
+          .set({
+        'addressID': addressId,
+        'customerID': address.customerID,
+        'receiverName': address.receiverName,
+        'receiverPhone': address.receiverPhone,
+        'provinceCode': address.province?.code,
+        'districtCode': address.district?.code,
+        'wardCode': address.ward?.code,
+        'street': address.street ?? '',
+      });
+
+      await Database().fetchAddress();
+    } catch (e) {
+      print('Error creating new address: $e');
+      rethrow;
+    }
+  }
 }

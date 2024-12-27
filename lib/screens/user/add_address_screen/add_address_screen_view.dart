@@ -28,6 +28,14 @@ class _AddAddressScreen extends State<AddAddressScreen> {
   final TextEditingController _streetController = TextEditingController();
 
   @override
+  void dispose() {
+    _receiverNameController.dispose();
+    _receiverPhoneController.dispose();
+    _streetController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -95,6 +103,7 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                       district: district,
                       ward: ward,
                     );
+                    FocusScope.of(context).unfocus();
                   },
                 ),
                 const SizedBox(height: 8),

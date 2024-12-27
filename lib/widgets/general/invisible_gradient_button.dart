@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class InvisibleGradientButton extends StatelessWidget {
-  final VoidCallback onPress;
+  final VoidCallback onPressed;
   final IconData? prefixIcon;
   final IconData? suffixIcon;
   final String text;
@@ -10,7 +10,7 @@ class InvisibleGradientButton extends StatelessWidget {
 
   const InvisibleGradientButton({
     super.key,
-    required this.onPress,
+    required this.onPressed,
     this.prefixIcon,
     this.suffixIcon,
     this.text = '',
@@ -21,7 +21,7 @@ class InvisibleGradientButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: onPress,
+      onPressed: onPressed,
       style: TextButton.styleFrom(
         backgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(

@@ -97,7 +97,7 @@ class DrawerView extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     InvisibleGradientButton(
-                      onPress: () {
+                      onPressed: () {
                         cubit.logOut(context);
                       },
                       suffixIcon: Icons.logout,
