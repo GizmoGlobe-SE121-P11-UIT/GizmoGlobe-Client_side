@@ -52,6 +52,7 @@ class SignInCubit extends Cubit<SignInState> {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
       if (userCredential.user != null) {
         emit(state.copyWith(processState: ProcessState.success, message: NotifyMessage.msg1));

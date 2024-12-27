@@ -28,6 +28,10 @@ class SignUpCubit extends Cubit<SignUpState> {
     emit(state.copyWith(confirmPassword: confirmPassword));
   }
 
+  void updatePhoneNumber(String phoneNumber) {
+    emit(state.copyWith(phoneNumber: phoneNumber));
+  }
+
   Future<void> signUp() async {
     if (state.password != state.confirmPassword) {
       emit(const SignUpState(processState: ProcessState.failure, message: NotifyMessage.msg5));
@@ -52,6 +56,15 @@ class SignUpCubit extends Cubit<SignUpState> {
         'username': state.username,
         'email': state.email,
         'userid': userCredential.user!.uid,
+        'role' : 'customer',
+      });
+
+      final CollectionReference customersCollection = _firestore.collection('customers');
+      await customersCollection.doc(userCredential.user!.uid).set({
+        'customerID': userCredential.user!.uid,
+        'customerName': state.username,
+        'email': state.email,
+        'phoneNumber': state.phoneNumber,
       });
 
       emit(const SignUpState(processState: ProcessState.success, dialogName: DialogName.success, message: NotifyMessage.msg6));
