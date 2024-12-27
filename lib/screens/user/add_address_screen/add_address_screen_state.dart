@@ -1,36 +1,35 @@
 import 'package:equatable/equatable.dart';
+import 'package:gizmoglobe_client/objects/address_related/district.dart';
 import 'package:gizmoglobe_client/objects/address_related/province.dart';
+import 'package:gizmoglobe_client/objects/address_related/ward.dart';
 
 class AddAddressScreenState with EquatableMixin {
   final String receiverName;
   final String receiverPhone;
-  final String province;
-  final String district;
-  final String ward;
-  final String street;
-  final bool isDefault;
+  final Province? province;
+  final District? district;
+  final Ward? ward;
+  final String? street;
 
   const AddAddressScreenState({
     this.receiverName = '',
     this.receiverPhone = '',
-    this.province = '',
-    this.district = '',
-    this.ward = '',
+    this.province,
+    this.district,
+    this.ward,
     this.street = '',
-    this.isDefault = false,
   });
 
   @override
-  List<Object?> get props => [receiverName, receiverPhone, province, district, ward, street, isDefault];
+  List<Object?> get props => [receiverName, receiverPhone, province, district, ward, street];
 
   AddAddressScreenState copyWith({
     String? receiverName,
     String? receiverPhone,
-    String? province,
-    String? district,
-    String? ward,
+    Province? province,
+    District? district,
+    Ward? ward,
     String? street,
-    bool? isDefault,
   }) {
     return AddAddressScreenState(
       receiverName: receiverName ?? this.receiverName,
@@ -39,7 +38,6 @@ class AddAddressScreenState with EquatableMixin {
       district: district ?? this.district,
       ward: ward ?? this.ward,
       street: street ?? this.street,
-      isDefault: isDefault ?? this.isDefault,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
+import '../../../data/database/database.dart';
 import '../../../objects/address_related/address.dart';
 import '../../../widgets/general/gradient_checkbox.dart';
 import 'add_address_screen_cubit.dart';
@@ -25,7 +26,6 @@ class _AddAddressScreen extends State<AddAddressScreen> {
   final TextEditingController _receiverNameController = TextEditingController();
   final TextEditingController _receiverPhoneController = TextEditingController();
   final TextEditingController _streetController = TextEditingController();
-  bool _isDefault = false;
 
   @override
   Widget build(BuildContext context) {
@@ -47,13 +47,13 @@ class _AddAddressScreen extends State<AddAddressScreen> {
               onPressed: () {
                 Navigator.of(context).pop(
                   Address(
+                    customerID: Database().userID,
                     receiverName: cubit.state.receiverName,
                     receiverPhone: cubit.state.receiverPhone,
                     province: cubit.state.province,
                     district: cubit.state.district,
                     ward: cubit.state.ward,
                     street: cubit.state.street,
-                    isDefault: cubit.state.isDefault,
                   ),
                 );
               },
@@ -106,23 +106,6 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                     cubit.updateAddress(street: value);
                   },
                   fillColor: Theme.of(context).colorScheme.surface,
-                ),
-                const SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    GradientCheckbox(
-                      value: _isDefault,
-                      onChanged: (value) {
-                        setState(() {
-                          _isDefault = value ?? false;
-                        });
-                        cubit.updateAddress(isDefault: _isDefault);
-                      },
-                    ),
-                    const SizedBox(width: 12),
-                    const Text('Set as default address'),
-                  ],
                 ),
               ],
             ),

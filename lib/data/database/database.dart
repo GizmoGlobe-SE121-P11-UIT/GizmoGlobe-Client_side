@@ -28,6 +28,7 @@ import '../../objects/product_related/product_factory.dart';
 class Database {
   static final Database _database = Database._internal();
 
+  String userID = '';
   String username = '';
   String email = '';
 
@@ -712,6 +713,7 @@ class Database {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      userID = user.uid;
       username = userDoc['username'];
       email = userDoc['email'];
     }
