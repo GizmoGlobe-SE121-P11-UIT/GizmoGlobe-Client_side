@@ -9,6 +9,7 @@ enum NotifyMessage {
   msg7('Failed to sign up. Please try again.'),
   msg8('A verification link has been sent to your email address. Please verify your email to reset your password.'),
   msg9('Failed to sign out. Please try again.'),
+  msg10('Email not verified. Please verify your email.'),
   ;
 
   final String description;

@@ -41,6 +41,20 @@ class Ward {
     );
   }
 
+  static Ward nullWard = Ward(
+    code: '',
+    name: '',
+    nameEn: '',
+    fullName: '',
+    fullNameEn: '',
+    codeName: '',
+    administrativeUnitId: 0,
+    administrativeUnitShortName: '',
+    administrativeUnitFullName: '',
+    administrativeUnitShortNameEn: '',
+    administrativeUnitFullNameEn: '',
+  );
+
   @override
   String toString() {
     return fullNameEn;

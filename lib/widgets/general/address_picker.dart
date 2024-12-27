@@ -1,4 +1,3 @@
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/database/database.dart';
@@ -12,7 +11,7 @@ class AddressPicker extends StatefulWidget {
   final Widget? underline;
   final EdgeInsets? insidePadding;
   final TextStyle? placeHolderTextStyle;
-  final Function(String? province, String? district, String? ward)? onAddressChanged;
+  final Function(Province? province, District? district, Ward? ward)? onAddressChanged;
 
   const AddressPicker({
     super.key,
@@ -30,7 +29,7 @@ class AddressPicker extends StatefulWidget {
 class _AddressPickerState extends State<AddressPicker> {
   Province? _provinceSelected;
   District? _districtSelected;
-  Ward? _wardsSelected;
+  Ward? _wardSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -47,14 +46,15 @@ class _AddressPickerState extends State<AddressPicker> {
               setState(() {
                 _provinceSelected = province;
                 _districtSelected = null;
-                _wardsSelected = null;
+                _wardSelected = null;
               });
-              widget.onAddressChanged?.call(_provinceSelected?.fullNameEn, null, null);
+              widget.onAddressChanged?.call(_provinceSelected, null, null);
             },
             selectedItem: _provinceSelected,
             hintText: 'Choose Province',
           ),
           const SizedBox(height: 8),
+
           GradientDropdown<District>(
             items: (filter, infiniteScrollProps) => _provinceSelected?.districts ?? [],
             compareFn: (District? d1, District? d2) => d1?.code == d2?.code,
@@ -62,25 +62,26 @@ class _AddressPickerState extends State<AddressPicker> {
             onChanged: (district) {
               setState(() {
                 _districtSelected = district;
-                _wardsSelected = null;
+                _wardSelected = null;
               });
-              widget.onAddressChanged?.call(_provinceSelected?.fullNameEn, _districtSelected?.fullNameEn, null);
+              widget.onAddressChanged?.call(_provinceSelected, _districtSelected, null);
             },
             selectedItem: _districtSelected,
             hintText: 'Choose District',
           ),
           const SizedBox(height: 8),
+
           GradientDropdown<Ward>(
             items: (filter, infiniteScrollProps) => _districtSelected?.wards ?? [],
             compareFn: (Ward? w1, Ward? w2) => w1?.code == w2?.code,
             itemAsString: (Ward w) => w.fullNameEn,
             onChanged: (ward) {
               setState(() {
-                _wardsSelected = ward;
+                _wardSelected = ward;
               });
-              widget.onAddressChanged?.call(_provinceSelected?.fullNameEn, _districtSelected?.fullNameEn, _wardsSelected?.fullNameEn);
+              widget.onAddressChanged?.call(_provinceSelected, _districtSelected, _wardSelected);
             },
-            selectedItem: _wardsSelected,
+            selectedItem: _wardSelected,
             hintText: 'Choose Ward',
           ),
         ],

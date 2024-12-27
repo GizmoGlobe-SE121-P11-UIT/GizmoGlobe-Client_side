@@ -43,10 +43,25 @@ class District {
       administrativeUnitShortNameEn: json['AdministrativeUnitShortNameEn'],
       administrativeUnitFullNameEn: json['AdministrativeUnitFullNameEn'],
       wards: json['Ward'] == null ? <Ward>[] : (json['Ward'] as List<dynamic>)
-              .map((w) => Ward.fromJson(w))
-              .toList(),
+          .map((w) => Ward.fromJson(w))
+          .toList(),
     );
   }
+
+  static District nullDistrict = District(
+    code: '',
+    name: '',
+    nameEn: '',
+    fullName: '',
+    fullNameEn: '',
+    codeName: '',
+    administrativeUnitId: 0,
+    administrativeUnitShortName: '',
+    administrativeUnitFullName: '',
+    administrativeUnitShortNameEn: '',
+    administrativeUnitFullNameEn: '',
+    wards: <Ward>[],
+  );
 
   @override
   String toString() {

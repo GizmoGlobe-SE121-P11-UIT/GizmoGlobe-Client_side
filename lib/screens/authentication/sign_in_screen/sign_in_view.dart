@@ -139,8 +139,8 @@ class _SignInScreen extends State<SignInScreen> {
                       return Column(
                         children: [
                           GradientButton(
-                            onPress: () {
-                              cubit.signInWithEmailPassword();
+                            onPress: () async {
+                              await cubit.signInWithEmailPassword();
                             },
                             text: 'Sign in',
                             gradient: LinearGradient(
@@ -165,8 +165,8 @@ class _SignInScreen extends State<SignInScreen> {
                           ),
                           const SizedBox(height: 20),
                           GradientButton(
-                            onPress: () {
-                              cubit.signInWithGoogle();
+                            onPress: () async {
+                              await cubit.signInWithGoogle();
                             },
                             text: 'Continue with Google',
                             gradient: LinearGradient(

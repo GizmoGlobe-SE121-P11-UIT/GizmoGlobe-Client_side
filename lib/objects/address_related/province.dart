@@ -1,4 +1,4 @@
-import 'package:gizmoglobe_client/objects/address_related/district.dart';
+import 'district.dart';
 
 class Province {
   final String code;
@@ -52,10 +52,28 @@ class Province {
       administrativeUnitShortNameEn: json['AdministrativeUnitShortNameEn'],
       administrativeUnitFullNameEn: json['AdministrativeUnitFullNameEn'],
       districts: json['District'] == null ? <District>[] : (json['District'] as List<dynamic>)
-              .map((d) => District.fromJson(d))
-              .toList(),
+          .map((d) => District.fromJson(d))
+          .toList(),
     );
   }
+
+  static Province nullProvince = Province(
+    code: '',
+    name: '',
+    nameEn: '',
+    fullName: '',
+    fullNameEn: '',
+    codeName: '',
+    administrativeRegionId: 0,
+    administrativeRegionName: '',
+    administrativeRegionNameEn: '',
+    administrativeUnitId: 0,
+    administrativeUnitShortName: '',
+    administrativeUnitFullName: '',
+    administrativeUnitShortNameEn: '',
+    administrativeUnitFullNameEn: '',
+    districts: null,
+  );
 
   @override
   String toString() {

@@ -12,6 +12,7 @@ class SignUpState with EquatableMixin {
   final String email;
   final String password;
   final String confirmPassword;
+  final String phoneNumber;
 
   const SignUpState({
     this.processState = ProcessState.idle,
@@ -21,10 +22,11 @@ class SignUpState with EquatableMixin {
     this.email = '',
     this.password = '',
     this.confirmPassword = '',
+    this.phoneNumber = '',
   });
 
   @override
-  List<Object?> get props => [processState, dialogName, message, username, email, password, confirmPassword];
+  List<Object?> get props => [processState, dialogName, message, username, email, password, confirmPassword, phoneNumber];
 
   SignUpState copyWith({
     ProcessState? processState,
@@ -34,6 +36,7 @@ class SignUpState with EquatableMixin {
     String? email,
     String? password,
     String? confirmPassword,
+    String? phoneNumber,
   }) {
     return SignUpState(
       processState: processState ?? this.processState,
@@ -43,6 +46,7 @@ class SignUpState with EquatableMixin {
       email: email ?? this.email,
       password: password ?? this.password,
       confirmPassword: confirmPassword ?? this.confirmPassword,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
     );
   }
 }

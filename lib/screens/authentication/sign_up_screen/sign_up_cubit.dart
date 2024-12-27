@@ -28,35 +28,81 @@ class SignUpCubit extends Cubit<SignUpState> {
     emit(state.copyWith(confirmPassword: confirmPassword));
   }
 
+  void updatePhoneNumber(String phoneNumber) {
+    emit(state.copyWith(phoneNumber: phoneNumber));
+  }
+
   Future<void> signUp() async {
     if (state.password != state.confirmPassword) {
-      emit(const SignUpState(processState: ProcessState.failure, message: NotifyMessage.msg5));
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        message: NotifyMessage.msg5,
+        dialogName: DialogName.failure
+      ));
       return;
     }
 
     try {
-      emit(const SignUpState(processState: ProcessState.loading));
+      emit(state.copyWith(processState: ProcessState.loading));
 
-      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(email: state.email, password: state.password);
+      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: state.email,
+        password: state.password
+      );
+      
       await userCredential.user!.sendEmailVerification();
 
+      // Lưu thông tin vào users collection
       final CollectionReference usersCollection = _firestore.collection('users');
-      final DocumentSnapshot doc = await usersCollection.doc('dummyDoc').get();
-
-      if (!doc.exists) {
-        await usersCollection.doc('dummyDoc').set({'exists': true});
-        await usersCollection.doc('dummyDoc').delete();
-      }
-
       await usersCollection.doc(userCredential.user!.uid).set({
         'username': state.username,
         'email': state.email,
         'userid': userCredential.user!.uid,
+        'role': 'customer',
       });
 
-      emit(const SignUpState(processState: ProcessState.success, dialogName: DialogName.success, message: NotifyMessage.msg6));
+      // Lưu thông tin vào customers collection
+      final CollectionReference customersCollection = _firestore.collection('customers');
+      await customersCollection.doc(userCredential.user!.uid).set({
+        'customerID': userCredential.user!.uid,
+        'customerName': state.username,
+        'email': state.email,
+        'phoneNumber': state.phoneNumber,
+      });
+
+      emit(state.copyWith(
+        processState: ProcessState.success,
+        dialogName: DialogName.success,
+        message: NotifyMessage.msg6
+      ));
+      
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage = 'The password provided is too weak.';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'An account already exists for that email.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'The email address is not valid.';
+          break;
+        default:
+          errorMessage = 'An error occurred during registration.';
+      }
+      
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        dialogName: DialogName.failure,
+        message: NotifyMessage.msg7,
+      ));
     } catch (error) {
-      emit(const SignUpState(processState: ProcessState.failure, dialogName: DialogName.failure, message: NotifyMessage.msg7));
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        dialogName: DialogName.failure,
+        message: NotifyMessage.msg7,
+      ));
     }
   }
 }
