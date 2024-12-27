@@ -16,6 +16,7 @@ class RAM extends Product {
     required super.manufacturer,
     required super.discount,
     required super.release,
+    required super.sales,
     required super.stock,
     required super.status,
     super.category = CategoryEnum.ram,

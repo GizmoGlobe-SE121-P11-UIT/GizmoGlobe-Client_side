@@ -8,6 +8,7 @@ import 'package:gizmoglobe_client/objects/product_related/psu.dart';
 import 'package:gizmoglobe_client/objects/product_related/ram.dart';
 
 import '../../objects/address_related/address.dart';
+import '../../objects/product_related/product.dart';
 
 Future<void> pushProductSamplesToFirebase() async {
   try {
@@ -368,6 +369,54 @@ class Firebase {
       await Database().fetchAddress();
     } catch (e) {
       print('Error creating new address: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addFavorite(String customerID, String productID) async {
+    try {
+      final favoriteRef = _firestore
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .doc(productID);
+
+      await favoriteRef.set({
+        'productID': productID,
+        'addedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error adding favorite: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> removeFavorite(String customerID, String productID) async {
+    try {
+      final favoriteRef = _firestore
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .doc(productID);
+
+      await favoriteRef.delete();
+    } catch (e) {
+      print('Error removing favorite: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<String>> getFavorites(String customerID) async {
+    try {
+      final favoriteSnapshot = await _firestore
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .get();
+
+      return favoriteSnapshot.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      print('Error getting favorites: $e');
       rethrow;
     }
   }

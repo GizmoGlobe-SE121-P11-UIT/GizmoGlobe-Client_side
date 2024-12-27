@@ -16,6 +16,7 @@ class CPU extends Product {
     required super.discount,
     required super.release,
     required super.stock,
+    required super.sales,
     required super.status,
     super.category = CategoryEnum.cpu,
     required this.family,

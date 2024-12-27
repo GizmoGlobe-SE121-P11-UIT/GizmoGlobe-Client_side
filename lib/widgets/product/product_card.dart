@@ -1,7 +1,8 @@
+// lib/widgets/product/product_card.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
-
 import '../../enums/product_related/category_enum.dart';
 import 'favorites/favorites_cubit.dart';
 import 'product_detail_screen.dart';
@@ -20,8 +21,8 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<FavoritesCubit, Set<String>>(
       builder: (context, favorites) {
-        final isFavorite = product.productID != null && 
-                          favorites.contains(product.productID);
+        final isFavorite = product.productID != null &&
+            favorites.contains(product.productID);
 
         return Card(
           elevation: 4,
@@ -149,7 +150,7 @@ class ProductCard extends StatelessWidget {
                 child: IconButton(
                   icon: Icon(
                     isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
+                    color: isFavorite ? Colors.red[400] : Colors.grey,
                   ),
                   onPressed: () {
                     if (product.productID != null) {

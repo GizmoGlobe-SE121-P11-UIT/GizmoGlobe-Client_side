@@ -33,9 +33,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<FavoritesCubit, Set<String>>(
       builder: (context, favorites) {
-        final isFavorite = widget.product.productID != null && 
+        final isFavorite = widget.product.productID != null &&
                           favorites.contains(widget.product.productID);
-        
+
         return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
@@ -160,18 +160,45 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
+                                if (widget.product.discount > 0) ...[
+                                  Text(
+                                    '\$${widget.product.price.toStringAsFixed(2)}',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      decoration: TextDecoration.lineThrough,
+                                      color: Colors.grey[400],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red[50],
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.red[100]!),
+                                    ),
+                                    child: Text(
+                                      '-${widget.product.discountPercentage.toStringAsFixed(0)}%',
+                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                        color: Colors.red[700],
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
                                 Text(
-                                  '\$${widget.product.price.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontSize: 24,
+                                  '\$${widget.product.discountedPrice.toStringAsFixed(2)}',
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Theme.of(context).primaryColor,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.teal,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 24),
                             const Text(
                               'Product specifications',
                               style: TextStyle(
@@ -456,4 +483,4 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return Icons.devices_other;
     }
   }
-} 
+}

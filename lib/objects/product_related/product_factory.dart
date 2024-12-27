@@ -21,6 +21,7 @@ class ProductFactory {
           discount: properties['discount'],
           release: properties['release'],
           stock: properties['stock'],
+          sales: properties['sales'],
           status: properties['status'],
         )..productID = properties['productID'];
       case CategoryEnum.cpu:
@@ -35,6 +36,7 @@ class ProductFactory {
           discount: properties['discount'],
           release: properties['release'],
           stock: properties['stock'],
+          sales: properties['sales'],
           status: properties['status'],
         )..productID = properties['productID'];
       case CategoryEnum.psu:
@@ -47,6 +49,7 @@ class ProductFactory {
           modular: properties['modular'],
           release: properties['release'],
           discount: properties['discount'],
+          sales: properties['sales'],
           stock: properties['stock'],
           status: properties['status'],
         )..productID = properties['productID'];
@@ -61,6 +64,7 @@ class ProductFactory {
           clockSpeed: properties['clockSpeed'],
           discount: properties['discount'],
           release: properties['release'],
+          sales: properties['sales'],
           stock: properties['stock'],
           status: properties['status'],
         )..productID = properties['productID'];
@@ -74,6 +78,7 @@ class ProductFactory {
           compatibility: properties['compatibility'],
           discount: properties['discount'],
           release: properties['release'],
+          sales: properties['sales'],
           stock: properties['stock'],
           status: properties['status'],
         )..productID = properties['productID'];
@@ -87,6 +92,7 @@ class ProductFactory {
           discount: properties['discount'],
           release: properties['release'],
           stock: properties['stock'],
+          sales: properties['sales'],
           status: properties['status'],
         )..productID = properties['productID'];
       default:

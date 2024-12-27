@@ -37,6 +37,8 @@ class Database {
   List<Product> productList = [];
   List<Province> provinceList = [];
   List<Address> addressList = [];
+  List<Product> favoriteProducts = [];
+  List<Product> bestSellerProducts = [];
 
   factory Database() {
     return _database;
@@ -46,6 +48,7 @@ class Database {
 
   Future<void> fetchDataFromFirestore() async {
     try {
+      getUser();
       print('Bắt đầu lấy dữ liệu từ Firestore');
       provinceList = await fetchProvinces();
       fetchAddress();
@@ -106,6 +109,7 @@ class Database {
               'price': (data['sellingPrice'] as num).toDouble(),
               'discount': (data['discount'] as num?)?.toDouble() ?? 0.0,
               'release': (data['release'] as Timestamp).toDate(),
+              'sales': data['sales'] as int,
               'stock': data['stock'] as int,
               'status': ProductStatusEnum.values.firstWhere(
                 (s) => s.getName() == data['status'],
@@ -126,6 +130,8 @@ class Database {
 
       print('Số lượng products trong list: ${productList.length}');
 
+      bestSellerProducts = await fetchBestSellerProducts();
+      favoriteProducts = await fetchFavoriteProducts(userID);
     } catch (e) {
       print('Lỗi chi tiết khi lấy dữ liệu: $e');
       rethrow;
@@ -744,6 +750,102 @@ class Database {
       addressList = addressSnapshot.docs.map((doc) {
         return Address.fromMap(doc.data());
       }).toList();
+    }
+  }
+
+  Future<List<Product>> fetchBestSellerProducts() async {
+    try {
+      final productSnapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .orderBy('sales', descending: true)
+          .limit(5)
+          .get();
+
+      return await Future.wait(productSnapshot.docs.map((doc) async {
+        final data = doc.data();
+
+        // Find the corresponding manufacturer
+        final manufacturer = manufacturerList.firstWhere(
+              (m) => m.manufacturerID == data['manufacturerID'],
+          orElse: () {
+            print('Manufacturer not found for product ${doc.id}');
+            throw Exception('Manufacturer not found for product ${doc.id}');
+          },
+        );
+
+        return ProductFactory.createProduct(
+          CategoryEnum.values.firstWhere((c) => c.getName() == data['category']),
+          {
+            'productID': doc.id,
+            'productName': data['productName'] as String,
+            'price': (data['sellingPrice'] as num).toDouble(),
+            'discount': (data['discount'] as num?)?.toDouble() ?? 0.0,
+            'release': (data['release'] as Timestamp).toDate(),
+            'sales': data['sales'] as int,
+            'stock': data['stock'] as int,
+            'status': ProductStatusEnum.values.firstWhere(
+                  (s) => s.getName() == data['status'],
+              orElse: () {
+                print('Invalid status for product ${doc.id}');
+                throw Exception('Invalid status for product ${doc.id}');
+              },
+            ),
+            'manufacturer': manufacturer,
+            ..._getSpecificProductData(data, CategoryEnum.values.firstWhere((c) => c.getName() == data['category'])),
+          },
+        );
+      }).toList());
+    } catch (e) {
+      print('Error fetching best seller products: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Product>> fetchFavoriteProducts(String customerID) async {
+    try {
+      final favoriteSnapshot = await FirebaseFirestore.instance
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .get();
+
+      final favoriteProductIDs = favoriteSnapshot.docs.map((doc) => doc.id).toList();
+
+      if (favoriteProductIDs.isEmpty) {
+        return [];
+      }
+
+      final productSnapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .where(FieldPath.documentId, whereIn: favoriteProductIDs)
+          .get();
+
+      return productSnapshot.docs.map((doc) {
+        return ProductFactory.createProduct(
+          CategoryEnum.values.firstWhere((c) => c.getName() == doc['category']),
+          {
+            'productID': doc.id,
+            'productName': doc['productName'] as String,
+            'price': (doc['sellingPrice'] as num).toDouble(),
+            'discount': (doc['discount'] as num?)?.toDouble() ?? 0.0,
+            'release': (doc['release'] as Timestamp).toDate(),
+            'sales': doc['sales'] as int,
+            'stock': doc['stock'] as int,
+            'status': ProductStatusEnum.values.firstWhere(
+                  (s) => s.getName() == doc['status'],
+              orElse: () {
+                print('Invalid status for product ${doc.id}');
+                throw Exception('Invalid status for product ${doc.id}');
+              },
+            ),
+            'manufacturer': manufacturerList.firstWhere((m) => m.manufacturerID == doc['manufacturerID']),
+            ..._getSpecificProductData(doc.data(), CategoryEnum.values.firstWhere((c) => c.getName() == doc['category'])),
+          },
+        );
+      }).toList();
+    } catch (e) {
+      print('Error fetching favorite products: $e');
+      rethrow;
     }
   }
 }
