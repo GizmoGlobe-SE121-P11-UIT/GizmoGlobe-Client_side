@@ -13,11 +13,12 @@ class ProductFactory {
       case CategoryEnum.ram:
         return RAM(
           productName: properties['productName'],
-          price: properties['sellingPrice'],
+          price: properties['price'],
           manufacturer: properties['manufacturer'],
           bus: properties['bus'],
           capacity: properties['capacity'],
           ramType: properties['ramType'],
+          discount: properties['discount'],
           release: properties['release'],
           stock: properties['stock'],
           status: properties['status'],
@@ -25,12 +26,13 @@ class ProductFactory {
       case CategoryEnum.cpu:
         return CPU(
           productName: properties['productName'],
-          price: properties['sellingPrice'],
+          price: properties['price'],
           manufacturer: properties['manufacturer'],
           family: properties['family'],
           core: properties['core'],
           thread: properties['thread'],
           clockSpeed: properties['clockSpeed'],
+          discount: properties['discount'],
           release: properties['release'],
           stock: properties['stock'],
           status: properties['status'],
@@ -38,24 +40,26 @@ class ProductFactory {
       case CategoryEnum.psu:
         return PSU(
           productName: properties['productName'],
-          price: properties['sellingPrice'],
+          price: properties['price'],
           manufacturer: properties['manufacturer'],
           wattage: properties['wattage'],
           efficiency: properties['efficiency'],
           modular: properties['modular'],
           release: properties['release'],
+          discount: properties['discount'],
           stock: properties['stock'],
           status: properties['status'],
         )..productID = properties['productID'];
       case CategoryEnum.gpu:
         return GPU(
           productName: properties['productName'],
-          price: properties['sellingPrice'],
+          price: properties['price'],
           manufacturer: properties['manufacturer'],
           series: properties['series'],
           capacity: properties['capacity'],
           bus: properties['busWidth'],
           clockSpeed: properties['clockSpeed'],
+          discount: properties['discount'],
           release: properties['release'],
           stock: properties['stock'],
           status: properties['status'],
@@ -63,11 +67,12 @@ class ProductFactory {
       case CategoryEnum.mainboard:
         return Mainboard(
           productName: properties['productName'],
-          price: properties['sellingPrice'],
+          price: properties['price'],
           manufacturer: properties['manufacturer'],
           formFactor: properties['formFactor'],
           series: properties['series'],
           compatibility: properties['compatibility'],
+          discount: properties['discount'],
           release: properties['release'],
           stock: properties['stock'],
           status: properties['status'],
@@ -75,10 +80,11 @@ class ProductFactory {
       case CategoryEnum.drive:
         return Drive(
           productName: properties['productName'],
-          price: properties['sellingPrice'],
+          price: properties['price'],
           manufacturer: properties['manufacturer'],
           type: properties['type'],
           capacity: properties['capacity'],
+          discount: properties['discount'],
           release: properties['release'],
           stock: properties['stock'],
           status: properties['status'],

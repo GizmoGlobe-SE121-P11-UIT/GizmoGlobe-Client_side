@@ -24,7 +24,7 @@ abstract class Product {
     required this.price,
     required this.manufacturer,
     required this.category,
-    this.discount,
+    required this.discount,
     required this.release,
     required this.stock,
     required this.status,

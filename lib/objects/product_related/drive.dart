@@ -12,6 +12,7 @@ class Drive extends Product {
     required super.productName,
     required super.price,
     required super.manufacturer,
+    required super.discount,
     required super.release,
     required super.stock,
     required super.status,

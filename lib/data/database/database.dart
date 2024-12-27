@@ -17,6 +17,7 @@ import '../../enums/product_related/gpu_enums/gpu_capacity.dart';
 import '../../enums/product_related/gpu_enums/gpu_series.dart';
 import '../../enums/product_related/mainboard_enums/mainboard_form_factor.dart';
 import '../../enums/product_related/mainboard_enums/mainboard_series.dart';
+import '../../enums/product_related/product_status_enum.dart';
 import '../../enums/product_related/psu_enums/psu_efficiency.dart';
 import '../../enums/product_related/psu_enums/psu_modular.dart';
 import '../../enums/product_related/ram_enums/ram_bus.dart';
@@ -99,7 +100,17 @@ class Database {
             {
               'productID': doc.id,
               'productName': data['productName'],
-              'price': data['price'].toDouble(),
+              'price': data['sellingPrice'].toDouble(),
+              'discount': data['discount'].toDouble(),
+              'release': (data['release'] as Timestamp).toDate(),
+              'stock': data['stock'],
+              'status': ProductStatusEnum.values.firstWhere(
+                    (s) => s.getName() == data['status'],
+                orElse: () {
+                  print('Invalid status for product ${doc.id}');
+                  throw Exception('Invalid status for product ${doc.id}');
+                },
+              ),
               'manufacturer': manufacturer,
               ...specificData,
             },
