@@ -14,7 +14,6 @@ import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/general/field_with_icon.dart';
-import '../product_list_search/product_list_search_view.dart';
 import 'home_screen_cubit.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -64,32 +63,6 @@ class _HomeScreen extends State<HomeScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FieldWithIcon(
-                            controller: searchController,
-                            hintText: 'What do you need?',
-                            fillColor: Theme.of(context).colorScheme.surface,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        GradientIconButton(
-                          icon: FontAwesomeIcons.magnifyingGlass,
-                          iconSize: 28,
-                          onPressed: () {
-                            cubit.changeSearchText(searchController.text);
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ProductListSearchScreen.newInstance(
-                                  initialSearchText: searchController.text,
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      ],
-                    ),
                     const SizedBox(height: 16),
                     BlocBuilder<HomeScreenCubit, HomeScreenState>(
                       builder: (context, state) {
