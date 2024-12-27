@@ -172,7 +172,7 @@ class Database {
     }
   }
 
-  void _initializeSampleData() {
+  Future<void> _initializeSampleData() async {
     manufacturerList = [
       Manufacturer(
         manufacturerID: 'Corsair',

@@ -129,7 +129,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                 textColor: Theme.of(context).colorScheme.primary,
                 hintTextColor: Theme.of(context).colorScheme.onPrimary,
                 keyboardType: TextInputType.phone,
-                onChange: (value) {
+                onChanged: (value) {
                   cubit.updatePhoneNumber(value);
                 },
               ),
