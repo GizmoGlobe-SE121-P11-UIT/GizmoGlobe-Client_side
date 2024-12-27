@@ -24,8 +24,7 @@ class CartScreenState extends Equatable {
         final quantity = (item['quantity'] as num?)?.toDouble() ?? 0;
         final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
         final discount = (product['discount'] as num?)?.toDouble() ?? 0;
-        
-        // Tính giá sau giảm giá
+
         final discountedPrice = price * (1 - discount / 100);
         total += discountedPrice * quantity;
       }
