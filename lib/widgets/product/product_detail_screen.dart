@@ -303,18 +303,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          context.read<CartScreenCubit>().addToCart(
-                            widget.product,
-                            quantity,
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Added ${widget.product.productName} to cart',
+                          if (widget.product.productID != null) {
+                            context.read<CartScreenCubit>().addToCart(
+                              widget.product.productID!,
+                              quantity,
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Added ${widget.product.productName} to cart',
+                                ),
+                                duration: const Duration(seconds: 2),
                               ),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Cannot add product to cart'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
