@@ -48,11 +48,11 @@ class Database {
     try {
       print('Bắt đầu lấy dữ liệu từ Firestore');
       provinceList = await fetchProvinces();
+      fetchAddress();
+
       final manufacturerSnapshot = await FirebaseFirestore.instance
           .collection('manufacturers')
           .get();
-
-      fetchAddress();
 
       manufacturerList = manufacturerSnapshot.docs.map((doc) {
         return Manufacturer(
