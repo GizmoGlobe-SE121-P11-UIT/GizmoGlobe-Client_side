@@ -5,9 +5,11 @@ import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import 'sign_in_state.dart';
 import '../../../enums/processing/notify_message_enum.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignInCubit extends Cubit<SignInState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   SignInCubit() : super(const SignInState());
 
@@ -36,9 +38,10 @@ class SignInCubit extends Cubit<SignInState> {
         if (!userCredential.user!.emailVerified) {
           emit(state.copyWith(
               processState: ProcessState.failure,
-              message: NotifyMessage.msg10,
+              message: NotifyMessage.msg1,
               dialogName: DialogName.failure
           ));
+          await _auth.signOut();
         } else {
           emit(state.copyWith(
               processState: ProcessState.success,
@@ -48,7 +51,10 @@ class SignInCubit extends Cubit<SignInState> {
         }
       }
     } catch (error) {
-      emit(state.copyWith(processState: ProcessState.failure, message: NotifyMessage.msg2));
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        message: NotifyMessage.msg2
+      ));
     }
   }
 
@@ -68,10 +74,41 @@ class SignInCubit extends Cubit<SignInState> {
 
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
       if (userCredential.user != null) {
-        emit(state.copyWith(processState: ProcessState.success, message: NotifyMessage.msg1));
+        // Google đã xác thực email nên không cần kiểm tra emailVerified
+
+        // Kiểm tra xem user đã tồn tại chưa
+        final DocumentSnapshot userDoc = await _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
+
+        if (!userDoc.exists) {
+          // Nếu user chưa tồn tại, tạo mới trong cả 2 bảng
+          await _firestore.collection('users').doc(userCredential.user!.uid).set({
+            'username': userCredential.user!.displayName,
+            'email': userCredential.user!.email,
+            'userid': userCredential.user!.uid,
+            'role': 'customer',
+          });
+
+          await _firestore.collection('customers').doc(userCredential.user!.uid).set({
+            'customerID': userCredential.user!.uid,
+            'customerName': userCredential.user!.displayName,
+            'email': userCredential.user!.email,
+            'phoneNumber': userCredential.user!.phoneNumber ?? '',
+          });
+        }
+
+        emit(state.copyWith(
+          processState: ProcessState.success,
+          message: NotifyMessage.msg1
+        ));
       }
     } catch (error) {
-      emit(state.copyWith(processState: ProcessState.failure, message: NotifyMessage.msg2));
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        message: NotifyMessage.msg2
+      ));
     }
   }
 }
