@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'package:flutter/services.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:gizmoglobe_client/enums/product_related/mainboard_enums/mainboard_compatibility.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
@@ -19,9 +22,8 @@ import '../../enums/product_related/psu_enums/psu_modular.dart';
 import '../../enums/product_related/ram_enums/ram_bus.dart';
 import '../../enums/product_related/ram_enums/ram_capacity_enum.dart';
 import '../../enums/product_related/ram_enums/ram_type.dart';
+import '../../objects/address_related/province.dart';
 import '../../objects/product_related/product_factory.dart';
-import '../../objects/product_related/psu.dart';
-import '../../objects/product_related/ram.dart';
 
 class Database {
   static final Database _database = Database._internal();
@@ -29,6 +31,7 @@ class Database {
   String email = '';
   List<Manufacturer> manufacturerList = [];
   List<Product> productList = [];
+  List<Province> provinceList = [];
 
   factory Database() {
     return _database;
@@ -36,7 +39,7 @@ class Database {
 
   Database._internal();
 
-  initialize() {
+  Future<void> initialize() async {
     manufacturerList = [
       Manufacturer(
         manufacturerID: 'Corsair',
@@ -99,8 +102,7 @@ class Database {
         manufacturerName: 'Thermaltake',
       ),
     ];
-
-     productList = [
+    productList = [
       // RAM samples - sử dụng các nhà sản xuất RAM (index 0-3)
       ProductFactory.createProduct(CategoryEnum.ram, {
         'productName': 'Corsair Vengeance LPX DDR5',
@@ -250,12 +252,34 @@ class Database {
         'modular': PSUModular.fullModular,
       }),
     ];
+    provinceList = await fetchProvinces();
   }
 
   void generateSampleData() {
        
     // Tạo danh sách sản phẩm
    
+  }
+
+  Future<List<Province>> fetchProvinces() async {
+    const filePath = 'lib/data/database/full_json_generated_data_vn_units.json';
+
+    try {
+      final String response = await rootBundle.loadString(filePath);
+      if (response.isEmpty) {
+        throw Exception('JSON file is empty');
+      }
+
+      final List? jsonList = jsonDecode(response) as List<dynamic>?;
+      if (jsonList == null) {
+        throw Exception('Error parsing JSON data');
+      }
+
+      List<Province> provinceList = jsonList.map((province) => Province.fromJson(province)).toList();
+      return provinceList;
+    } catch (e) {
+      throw Exception('Error loading provinces from file: $e');
+    }
   }
 
   Future<void> getUsername() async {

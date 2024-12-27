@@ -50,7 +50,7 @@ class RangeFilter extends StatelessWidget {
                     controller: fromController,
                     fillColor: Theme.of(context).colorScheme.surface,
                     hintText: 'Min',
-                    onChange: onFromValueChanged,
+                    onChanged: onFromValueChanged,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -74,7 +74,7 @@ class RangeFilter extends StatelessWidget {
                     controller: toController,
                     fillColor: Theme.of(context).colorScheme.surface,
                     hintText: 'Max',
-                    onChange: onToValueChanged,
+                    onChanged: onToValueChanged,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),

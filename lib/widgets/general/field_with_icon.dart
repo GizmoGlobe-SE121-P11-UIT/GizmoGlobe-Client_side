@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class FieldWithIcon extends StatelessWidget {
+  final double height;
   final bool readOnly;
   final String hintText;
   final Color fillColor;
@@ -18,7 +19,7 @@ class FieldWithIcon extends StatelessWidget {
   final EdgeInsets padding;
   final bool obscureText;
   final Function(String)? onSubmitted;
-  final Function(String)? onChange;
+  final Function(String)? onChanged;
   final TextEditingController controller;
   final Color hintTextColor;
   final Color textColor;
@@ -26,6 +27,7 @@ class FieldWithIcon extends StatelessWidget {
 
   const FieldWithIcon({
     super.key,
+    this.height = 45,
     this.readOnly = false,
     this.hintText = '',
     this.fillColor = Colors.white,
@@ -36,13 +38,13 @@ class FieldWithIcon extends StatelessWidget {
     this.onSuffixIconPressed,
     this.keyboardType,
     this.inputFormatters,
-    this.fontSize = 14,
+    this.fontSize = 16,
     this.fontWeight = FontWeight.normal,
     this.borderRadius = const BorderRadius.all(Radius.circular(10)),
-    this.padding = const EdgeInsets.all(1.5),
+    this.padding = const EdgeInsets.all(2),
     this.obscureText = false,
     this.onSubmitted,
-    this.onChange,
+    this.onChanged,
     required this.controller,
     this.hintTextColor = Colors.grey,
     this.textColor = Colors.white,
@@ -77,7 +79,7 @@ class FieldWithIcon extends StatelessWidget {
               textAlignVertical: TextAlignVertical.center,
               onTap: onTap,
               onFieldSubmitted: onSubmitted,
-              onChanged: onChange,
+              onChanged: onChanged,
               controller: controller,
               textInputAction: TextInputAction.done,
               focusNode: focusNode,
@@ -88,6 +90,9 @@ class FieldWithIcon extends StatelessWidget {
                 hintText: hintText,
                 hintStyle: TextStyle(
                   color: hintTextColor,
+                  fontFamily: 'Montserrat',
+                  fontSize: fontSize,
+                  fontWeight: fontWeight,
                 ),
                 prefixIcon: prefixIcon != null ? InkWell(
                   onTap: onPrefixIconPressed,
@@ -101,6 +106,7 @@ class FieldWithIcon extends StatelessWidget {
                   borderRadius: borderRadius,
                   borderSide: BorderSide.none,
                 ),
+                contentPadding: EdgeInsets.symmetric(vertical: (height - fontSize) / 2, horizontal: 16),
               ),
               keyboardType: keyboardType,
               inputFormatters: inputFormatters ?? [
@@ -110,6 +116,7 @@ class FieldWithIcon extends StatelessWidget {
                 fontSize: fontSize,
                 fontWeight: fontWeight,
                 color: textColor,
+                fontFamily: 'Montserrat',
               ),
               obscureText: obscureText,
             ),

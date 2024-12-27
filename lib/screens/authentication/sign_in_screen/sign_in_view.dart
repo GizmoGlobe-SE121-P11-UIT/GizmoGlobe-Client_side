@@ -69,7 +69,7 @@ class _SignInScreen extends State<SignInScreen> {
                     fontWeight: FontWeight.normal,
                     textColor: Theme.of(context).colorScheme.primary,
                     hintTextColor: Theme.of(context).colorScheme.onPrimary,
-                    onChange: (value) {
+                    onChanged: (value) {
                       cubit.emailChanged(value);
                     },
                   ),
@@ -84,7 +84,7 @@ class _SignInScreen extends State<SignInScreen> {
                     obscureText: true,
                     textColor: Theme.of(context).colorScheme.primary,
                     hintTextColor: Theme.of(context).colorScheme.onPrimary,
-                    onChange: (value) {
+                    onChanged: (value) {
                       cubit.passwordChanged(value);
                     },
                   ),
