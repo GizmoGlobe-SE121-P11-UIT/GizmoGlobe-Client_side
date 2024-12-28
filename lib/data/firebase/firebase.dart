@@ -24,6 +24,7 @@ import '../../enums/product_related/ram_enums/ram_bus.dart';
 import '../../enums/product_related/ram_enums/ram_capacity_enum.dart';
 import '../../enums/product_related/ram_enums/ram_type.dart';
 import '../../objects/address_related/address.dart';
+import '../../objects/invoice_related/sales_invoice.dart';
 import '../../objects/manufacturer.dart';
 import '../../objects/product_related/product.dart';
 import '../../objects/product_related/product_factory.dart';
@@ -773,6 +774,37 @@ class Firebase {
       Database().updateProductList(products);
     } catch (e) {
       print('Error adding product: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addSalesInvoice(SalesInvoice salesInvoice) async {
+    try {
+      final salesInvoiceRef = await _firestore.collection('sales_invoices').add(salesInvoice.toMap());
+
+      String salesInvoiceID = salesInvoiceRef.id;
+      salesInvoice.salesInvoiceID = salesInvoiceID;
+
+      await salesInvoiceRef.update({'salesInvoiceID': salesInvoiceID});
+      await _firestore.collection('sales_invoices').doc(salesInvoiceID).set({
+        'salesInvoiceID': salesInvoiceID,
+        'customerID': salesInvoice.customerID,
+        'customerName': salesInvoice.customerName,
+        'address': salesInvoice.address?.addressID,
+        'date': salesInvoice.date,
+        'paymentStatus': salesInvoice.paymentStatus.getName(),
+        'salesStatus': salesInvoice.salesStatus.getName(),
+        'totalPrice': salesInvoice.totalPrice,
+      });
+
+      for (var detail in salesInvoice.details) {
+        await _firestore.collection('sales_invoices')
+            .doc(salesInvoiceID)
+            .collection('details')
+            .add(detail.toMap(salesInvoiceID));
+      }
+    } catch (e) {
+      print('Error adding sales invoice: $e');
       rethrow;
     }
   }

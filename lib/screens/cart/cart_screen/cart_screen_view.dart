@@ -12,7 +12,10 @@ import 'cart_screen_state.dart';
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
-  static Widget newInstance() => const CartScreen();
+  static Widget newInstance() => BlocProvider(
+      create: (context) => CartScreenCubit(),
+      child: const CartScreen(),
+    );
 
   @override
   State<CartScreen> createState() => _CartScreen();
@@ -54,7 +57,7 @@ class _CartScreen extends State<CartScreen> {
             children: [
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(0, 16, 16, 20),
                   itemCount: state.items.length,
                   itemBuilder: (context, index) {
                     final item = state.items[index];
@@ -66,22 +69,19 @@ class _CartScreen extends State<CartScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Checkbox
-                          Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: Checkbox(
-                              value: state.selectedItems.contains(item['productID']),
-                              onChanged: (value) {
-                                cubit.toggleItemSelection(item['productID']);
-                              },
-                              activeColor: Colors.blue[200],
-                              checkColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              side: const BorderSide(
-                                color: Colors.white,
-                                width: 1.5,
-                              ),
+                          Checkbox(
+                            value: state.selectedItems.contains(item['productID']),
+                            onChanged: (value) {
+                              cubit.toggleItemSelection(item['productID']);
+                            },
+                            activeColor: Colors.blue[200],
+                            checkColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            side: const BorderSide(
+                              color: Colors.white,
+                              width: 1.5,
                             ),
                           ),
                           // Product Image
@@ -112,21 +112,18 @@ class _CartScreen extends State<CartScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  // constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.3),
-                                  child: Text(
-                                    product['productName'],
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
+                                Text(
+                                  product['productName'],
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 if (product['discount'] > 0) ...[
                                   Text(
-                                    '\$${product['sellingPrice'].toStringAsFixed(2)}',
+                                    '\$${(product['sellingPrice'] * item['quantity']).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       decoration: TextDecoration.lineThrough,
                                       color: Colors.grey[400],
@@ -136,7 +133,7 @@ class _CartScreen extends State<CartScreen> {
                                   const SizedBox(width: 4),
                                 ],
                                 Text(
-                                  '\$${(product['sellingPrice'] * (1 - product['discount'])).toStringAsFixed(2)}',
+                                  '\$${(product['sellingPrice'] * (1 - (product['discount'] ?? 0)) * item['quantity']).toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -176,8 +173,8 @@ class _CartScreen extends State<CartScreen> {
                                       padding: const EdgeInsets.all(2),
                                       constraints: const BoxConstraints(),
                                       style: IconButton.styleFrom(
-                                        foregroundColor: (item['quantity'] as int? ?? 0) > 1 
-                                            ? Colors.white 
+                                        foregroundColor: (item['quantity'] as int? ?? 0) > 1
+                                            ? Colors.white
                                             : Colors.grey,
                                       ),
                                     ),
@@ -339,6 +336,10 @@ class _CartScreen extends State<CartScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () async {
+                          if (state.selectedCount == 0) {
+                            return;
+                          }
+
                           final result = await Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => CheckoutScreen.newInstance(

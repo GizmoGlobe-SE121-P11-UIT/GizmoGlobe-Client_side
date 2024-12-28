@@ -57,7 +57,7 @@ class SalesInvoiceDetail {
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap(String salesInvoiceID) {
     return {
       'salesInvoiceDetailID': salesInvoiceDetailID,
       'salesInvoiceID': salesInvoiceID,

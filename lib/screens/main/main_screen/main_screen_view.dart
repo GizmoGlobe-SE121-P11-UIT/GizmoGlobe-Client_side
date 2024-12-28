@@ -47,7 +47,7 @@ class _MainScreenState extends State<MainScreen> {
             if (value == 2) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CartScreen()),
+                MaterialPageRoute(builder: (context) => CartScreen.newInstance()),
               );
             } else if (value != index) {
               setState(() {

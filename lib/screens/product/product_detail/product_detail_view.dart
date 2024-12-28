@@ -277,7 +277,7 @@ class ProductDetailScreen extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -299,8 +299,8 @@ class ProductDetailScreen extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.attach_money, size: 20, color: Colors.grey[500]),
-          SizedBox(width: 8),
-          Text(
+          const SizedBox(width: 8),
+          const Text(
             'Price: ',
             style: TextStyle(
               fontWeight: FontWeight.w900,
