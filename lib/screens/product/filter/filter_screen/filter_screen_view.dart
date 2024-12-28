@@ -112,7 +112,7 @@ class _FilterScreenState extends State<FilterScreen> {
                 Navigator.of(context).pop();
               },
             ),
-            title: const Text('Filter', style: AppTextStyle.bigText),
+            title: const Text('Filter', style: AppTextStyle.biggerText),
             actions: [
               TextButton(
                 onPressed: () {

@@ -7,6 +7,7 @@ import 'package:gizmoglobe_client/objects/product_related/mainboard.dart';
 import 'package:gizmoglobe_client/objects/product_related/psu.dart';
 import 'package:gizmoglobe_client/objects/product_related/ram.dart';
 
+import '../../enums/invoice_related/sales_status.dart';
 import '../../enums/product_related/category_enum.dart';
 import '../../enums/product_related/cpu_enums/cpu_family.dart';
 import '../../enums/product_related/drive_enums/drive_capacity.dart';
@@ -25,6 +26,7 @@ import '../../enums/product_related/ram_enums/ram_capacity_enum.dart';
 import '../../enums/product_related/ram_enums/ram_type.dart';
 import '../../objects/address_related/address.dart';
 import '../../objects/invoice_related/sales_invoice.dart';
+import '../../objects/invoice_related/sales_invoice_detail.dart';
 import '../../objects/manufacturer.dart';
 import '../../objects/product_related/product.dart';
 import '../../objects/product_related/product_factory.dart';
@@ -812,11 +814,68 @@ class Firebase {
         'totalPrice': salesInvoice.totalPrice,
       });
 
-      for (var detail in salesInvoice.details) {
-        await _firestore.collection('details').add(detail.toMap(salesInvoiceID));
+      for (SalesInvoiceDetail detail in salesInvoice.details) {
+        await _firestore.collection('sales_invoice_details').add(detail.toMap(salesInvoiceID));
       }
+
+      await Database().fetchSalesInvoice();
     } catch (e) {
       print('Error adding sales invoice: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<SalesInvoice>> getSalesInvoices() async {
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('sales_invoices')
+          .where('customerID', isEqualTo: Database().userID)
+          .get();
+
+      return await Future.wait(snapshot.docs.map((doc) async {
+        SalesInvoice salesInvoice = SalesInvoice.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+
+        final QuerySnapshot detailsSnapshot = await FirebaseFirestore.instance
+            .collection('sales_invoice_details')
+            .where('salesInvoiceID', isEqualTo: salesInvoice.salesInvoiceID)
+            .get();
+
+        salesInvoice.details = detailsSnapshot.docs.map((detailDoc) {
+          final detailData = detailDoc.data() as Map<String, dynamic>;
+          final productID = detailData['productID'] as String;
+
+          final product = Database().productList.firstWhere(
+                (product) => product.productID == productID,
+            orElse: () => throw Exception('Product not found for ID: $productID'),
+          );
+
+          return SalesInvoiceDetail(
+            salesInvoiceDetailID: detailDoc.id,
+            salesInvoiceID: salesInvoice.salesInvoiceID,
+            product: product,
+            quantity: detailData['quantity'] as int,
+            sellingPrice: (detailData['sellingPrice'] as num).toDouble(),
+            subtotal: (detailData['subtotal'] as num).toDouble(),
+          );
+        }).toList();
+
+        return salesInvoice;
+      }).toList());
+    } catch (e) {
+      print('Error getting sales invoices: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> confirmDelivery(SalesInvoice salesInvoice) async {
+    try {
+      await _firestore.collection('sales_invoices')
+          .doc(salesInvoice.salesInvoiceID).update({
+        'salesStatus': SalesStatus.completed.getName(),
+      });
+      await Database().fetchSalesInvoice();
+    } catch (e) {
+      print('Error confirming delivery: $e');
       rethrow;
     }
   }

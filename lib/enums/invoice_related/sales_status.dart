@@ -2,6 +2,7 @@ enum SalesStatus {
   pending('Pending'),
   preparing('Preparing'),
   shipping('Shipping'),
+  shipped('Shipped'),
   completed('Completed'),
   cancelled('Cancelled');
 

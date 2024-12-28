@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
+import '../../../enums/processing/order_option_enum.dart';
 import '../../../widgets/general/invisible_gradient_button.dart';
 import '../../../widgets/general/vertical_icon_button.dart';
 import '../add_address_screen/add_address_screen_view.dart';
 import '../address_screen/address_screen_view.dart';
+import '../order_screen/order_screen_view.dart';
 import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
 import '../../../data/firebase/firebase.dart'; // Import the Firebase file
@@ -158,36 +160,23 @@ class _UserScreen extends State<UserScreen> {
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(24.0),
+                        padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.shopping_bag_outlined,
-                                      size: 28,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      "My Orders",
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).colorScheme.primary,
-                                      ),
-                                    ),
-                                  ],
+                                Icon(
+                                  Icons.shopping_bag_outlined,
+                                  size: 28,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                                TextButton.icon(
-                                  onPressed: () {/* View all orders */},
-                                  icon: const Icon(Icons.arrow_forward),
-                                  label: const Text("View All"),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Theme.of(context).colorScheme.primary,
+                                const SizedBox(width: 12),
+                                Text(
+                                  'My Orders',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ],
@@ -200,19 +189,46 @@ class _UserScreen extends State<UserScreen> {
                                   context,
                                   FontAwesomeIcons.box,
                                   'To Ship',
-                                  () {/* Handle tap */},
+                                  () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => OrderScreen.newInstance(
+                                          orderOption: OrderOption.toShip,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                                 _buildEnhancedOrderStatus(
                                   context,
                                   Icons.local_shipping_outlined,
                                   'To Receive',
-                                  () {/* Handle tap */},
+                                  () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => OrderScreen.newInstance(
+                                          orderOption: OrderOption.toReceive,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                                 _buildEnhancedOrderStatus(
                                   context,
                                   FontAwesomeIcons.circleCheck,
                                   'Completed',
-                                  () {/* Handle tap */},
+                                  () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => OrderScreen.newInstance(
+                                          orderOption: OrderOption.completed,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -236,7 +252,7 @@ class _UserScreen extends State<UserScreen> {
                           Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                              color: Theme.of(context).colorScheme.surface.withOpacity(0.3),
                               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                             ),
                             child: Row(
