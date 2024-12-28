@@ -27,6 +27,14 @@ import '../../../enums/product_related/ram_enums/ram_type.dart';
 class ProductScreenCubit extends Cubit<ProductScreenState> {
   ProductScreenCubit() : super(const ProductScreenState());
 
+  void initialize(List<Product> initialProducts, SortEnum initialSortOption) {
+    emit(state.copyWith(
+      initialProducts: initialProducts,
+      initialSortOption: initialSortOption,
+      selectedSortOption: initialSortOption,
+    ));
+  }
+
   void updateSelectedTabIndex(int index) {
     emit(state.copyWith(selectedTabIndex: index));
   }

@@ -2,18 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_state.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_tab/product_tab_view.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import '../../../enums/product_related/category_enum.dart';
+import '../../../objects/product_related/product.dart';
 
 class ProductScreen extends StatefulWidget {
-  const ProductScreen({super.key});
+  final List<Product>? initialProducts;
+  final SortEnum? initialSortOption;
 
-  static Widget newInstance() => BlocProvider(
+  const ProductScreen({super.key, this.initialProducts, this.initialSortOption});
+
+  static Widget newInstance({List<Product>? initialProducts, SortEnum? initialSortOption}) => BlocProvider(
     create: (context) => ProductScreenCubit(),
-    child: const ProductScreen(),
+    child: ProductScreen(initialProducts: initialProducts, initialSortOption: initialSortOption),
   );
 
   @override
@@ -32,6 +37,7 @@ class _ProductScreenState extends State<ProductScreen> with SingleTickerProvider
     searchController = TextEditingController();
     searchFocusNode = FocusNode();
     tabController = TabController(length: CategoryEnum.values.length + 1, vsync: this);
+    cubit.initialize(widget.initialProducts ?? [], widget.initialSortOption ?? SortEnum.releaseLatest);
   }
 
   @override
@@ -100,13 +106,13 @@ class _ProductScreenState extends State<ProductScreen> with SingleTickerProvider
                 return TabBarView(
                   controller: tabController,
                   children: [
-                    ProductTab.newInstance(searchText: state.searchText),
-                    ProductTab.newRam(searchText: state.searchText),
-                    ProductTab.newCpu(searchText: state.searchText),
-                    ProductTab.newPsu(searchText: state.searchText),
-                    ProductTab.newGpu(searchText: state.searchText),
-                    ProductTab.newDrive(searchText: state.searchText),
-                    ProductTab.newMainboard(searchText: state.searchText),
+                    ProductTab.newInstance(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
+                    ProductTab.newRam(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
+                    ProductTab.newCpu(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
+                    ProductTab.newPsu(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
+                    ProductTab.newGpu(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
+                    ProductTab.newDrive(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
+                    ProductTab.newMainboard(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
                   ],
                 );
               },

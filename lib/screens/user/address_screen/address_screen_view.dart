@@ -6,6 +6,7 @@ import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:gizmoglobe_client/widgets/general/invisible_gradient_button.dart';
 import '../../../data/database/database.dart';
 import '../../../objects/address_related/address.dart';
+import '../../../widgets/general/gradient_icon_button.dart';
 import '../add_address_screen/add_address_screen_view.dart';
 import 'address_screen_cubit.dart';
 
@@ -34,11 +35,12 @@ class _AddressScreen extends State<AddressScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+        leading: GradientIconButton(
+          icon: Icons.chevron_left,
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.pop(context);
           },
+          fillColor: Colors.transparent,
         ),
         title: const GradientText(text: 'Address'),
       ),
