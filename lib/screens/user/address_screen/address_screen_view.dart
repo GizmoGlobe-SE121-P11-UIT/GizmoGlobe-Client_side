@@ -8,6 +8,7 @@ import '../../../data/database/database.dart';
 import '../../../objects/address_related/address.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../add_address_screen/add_address_screen_view.dart';
+import '../edit_address_screen/edit_address_screen_view.dart';
 import 'address_screen_cubit.dart';
 
 class AddressScreen extends StatefulWidget {
@@ -61,34 +62,46 @@ class _AddressScreen extends State<AddressScreen> {
                   )) :
                   Column(
                     children: state.addressList.map((address) {
-                      return ListTile(
-                        title: Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                address.firstLine(),
-                                style: AppTextStyle.boldText,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                address.secondLine(),
-                                style: AppTextStyle.regularText,
-                              ),
-                            ],
+                      return GestureDetector(
+                        onTap: () async {
+                          Address? result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => EditAddressScreen.newInstance(address)),
+                          );
+
+                          if (result != null) {
+                            cubit.editAddress(result);
+                          }
+                        },
+                        child: ListTile(
+                          title: Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  address.firstLine(),
+                                  style: AppTextStyle.boldText,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  address.secondLine(),
+                                  style: AppTextStyle.regularText,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );

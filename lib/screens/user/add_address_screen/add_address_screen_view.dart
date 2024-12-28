@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../data/database/database.dart';
 import '../../../objects/address_related/address.dart';
 import '../../../widgets/general/gradient_checkbox.dart';
+import '../../../widgets/general/gradient_icon_button.dart';
 import 'add_address_screen_cubit.dart';
 import '../../../widgets/general/address_picker.dart';
 
@@ -43,13 +45,14 @@ class _AddAddressScreen extends State<AddAddressScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+          leading: GradientIconButton(
+            icon: Icons.chevron_left,
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.pop(context);
             },
+            fillColor: Colors.transparent,
           ),
-          title: const Text('Add Address', style: TextStyle(fontSize: 20)),
+          title: const GradientText(text: 'Add Address'),
           actions: [
             TextButton(
               onPressed: () {

@@ -20,11 +20,17 @@ class AddressScreenCubit extends Cubit<AddressScreenState> {
   }
 
   void reloadList() {
-    emit(state.copyWith(addressList: Database().addressList));
+    final visibleAddresses = Database().addressList.where((address) => !address.hidden).toList();
+    emit(state.copyWith(addressList: visibleAddresses));
   }
 
   Future<void> addAddress(Address address) async {
     await Firebase().createAddress(address);
+    reloadList();
+  }
+
+  Future<void> editAddress(Address address) async {
+    await Firebase().updateAddress(address);
     reloadList();
   }
 }
