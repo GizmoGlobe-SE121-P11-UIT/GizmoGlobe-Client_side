@@ -22,11 +22,12 @@ import 'product_tab_state.dart';
 abstract class TabCubit extends Cubit<TabState> {
   TabCubit() : super(const TabState());
 
-  void initialize(FilterArgument filter, {String? searchText}) {
+  void initialize(FilterArgument filter, {String? searchText, List<Product>? initialProducts, required SortEnum initialSortOption}) {
     emit(state.copyWith(
-      productList: Database().productList,
-      filteredProductList: Database().productList,
+      productList: initialProducts!.isEmpty ? Database().productList : initialProducts,
+      filteredProductList: initialProducts.isEmpty ? Database().productList : initialProducts,
       searchText: searchText ?? '',
+      selectedSortOption: initialSortOption,
     ));
     emit(state.copyWith(
       manufacturerList: getManufacturerList(),

@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
 import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_button.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:gizmoglobe_client/widgets/product/product_card.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_state.dart';
@@ -13,6 +15,7 @@ import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart
 
 import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
+import '../../../enums/processing/sort_enum.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/general/field_with_icon.dart';
 import 'home_screen_cubit.dart';
@@ -75,7 +78,10 @@ class _HomeScreen extends State<HomeScreen> {
                               title: 'Best Sellers',
                               products: state.bestSellerProducts,
                               onSeeAll: () {
-                                // Navigate to best sellers list
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => ProductScreen.newInstance(initialSortOption: SortEnum.salesHighest)),
+                                );
                               },
                             ),
                             const SizedBox(height: 16),
@@ -84,7 +90,10 @@ class _HomeScreen extends State<HomeScreen> {
                               title: 'Favorites',
                               products: state.favoriteProducts,
                               onSeeAll: () {
-                                // Navigate to favorites list
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => ProductScreen.newInstance(initialProducts: state.favoriteProducts)),
+                                );
                               },
                             ),
                           ],
@@ -108,9 +117,8 @@ class _HomeScreen extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleLarge,
+            GradientText(
+              text: title,
             ),
             TextButton(
               onPressed: onSeeAll,
@@ -119,14 +127,14 @@ class _HomeScreen extends State<HomeScreen> {
           ],
         ),
         SizedBox(
-          height: 200,
+          height: 220,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: products.length > 5 ? 5 : products.length,
             itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: ProductCard(product: products[index]),
+              return SizedBox(
+                width: 150,
+                child: ProductCard(product: products[index])
               );
             },
           ),

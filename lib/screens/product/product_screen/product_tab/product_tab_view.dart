@@ -8,6 +8,7 @@ import '../../../../enums/processing/sort_enum.dart';
 import '../../../../enums/product_related/category_enum.dart';
 import '../../../../enums/product_related/product_status_enum.dart';
 import '../../../../objects/product_related/filter_argument.dart';
+import '../../../../objects/product_related/product.dart';
 import '../../../../widgets/general/app_text_style.dart';
 import '../../../../widgets/product/product_card.dart';
 import '../../filter/filter_screen/filter_screen_view.dart';
@@ -19,38 +20,38 @@ import 'product_tab_state.dart';
 class ProductTab extends StatefulWidget {
   const ProductTab({super.key});
 
-  static Widget newInstance({String? searchText}) => BlocProvider<TabCubit>(
-    create: (context) => AllTabCubit()..initialize(const FilterArgument(), searchText: searchText),
+  static Widget newInstance({String? searchText, List<Product>? initialProducts, required SortEnum initialSortOption}) => BlocProvider<TabCubit>(
+    create: (context) => AllTabCubit()..initialize(const FilterArgument(), searchText: searchText, initialProducts: initialProducts, initialSortOption: initialSortOption),
     child: const ProductTab(),
   );
 
-  static Widget newRam({String? searchText}) => BlocProvider<TabCubit>(
-    create: (context) => RamTabCubit()..initialize(const FilterArgument(), searchText: searchText),
+  static Widget newRam({String? searchText, List<Product>? initialProducts, required SortEnum initialSortOption}) => BlocProvider<TabCubit>(
+    create: (context) => RamTabCubit()..initialize(const FilterArgument(), searchText: searchText, initialProducts: initialProducts, initialSortOption: initialSortOption),
     child: const ProductTab(),
   );
 
-  static Widget newCpu({String? searchText}) => BlocProvider<TabCubit>(
-    create: (context) => CpuTabCubit()..initialize(const FilterArgument(), searchText: searchText),
+  static Widget newCpu({String? searchText, List<Product>? initialProducts, required SortEnum initialSortOption}) => BlocProvider<TabCubit>(
+    create: (context) => CpuTabCubit()..initialize(const FilterArgument(), searchText: searchText, initialProducts: initialProducts, initialSortOption: initialSortOption),
     child: const ProductTab(),
   );
 
-  static Widget newPsu({String? searchText}) => BlocProvider<TabCubit>(
-    create: (context) => PsuTabCubit()..initialize(const FilterArgument(), searchText: searchText),
+  static Widget newPsu({String? searchText, List<Product>? initialProducts, required SortEnum initialSortOption}) => BlocProvider<TabCubit>(
+    create: (context) => PsuTabCubit()..initialize(const FilterArgument(), searchText: searchText, initialProducts: initialProducts, initialSortOption: initialSortOption),
     child: const ProductTab(),
   );
 
-  static Widget newGpu({String? searchText}) => BlocProvider<TabCubit>(
-    create: (context) => GpuTabCubit()..initialize(const FilterArgument(), searchText: searchText),
+  static Widget newGpu({String? searchText, List<Product>? initialProducts, required SortEnum initialSortOption}) => BlocProvider<TabCubit>(
+    create: (context) => GpuTabCubit()..initialize(const FilterArgument(), searchText: searchText, initialProducts: initialProducts, initialSortOption: initialSortOption),
     child: const ProductTab(),
   );
 
-  static Widget newDrive({String? searchText}) => BlocProvider<TabCubit>(
-    create: (context) => DriveTabCubit()..initialize(const FilterArgument(), searchText: searchText),
+  static Widget newDrive({String? searchText, List<Product>? initialProducts, required SortEnum initialSortOption}) => BlocProvider<TabCubit>(
+    create: (context) => DriveTabCubit()..initialize(const FilterArgument(), searchText: searchText, initialProducts: initialProducts, initialSortOption: initialSortOption),
     child: const ProductTab(),
   );
 
-  static Widget newMainboard({String? searchText}) => BlocProvider<TabCubit>(
-    create: (context) => MainboardTabCubit()..initialize(const FilterArgument(), searchText: searchText),
+  static Widget newMainboard({String? searchText, List<Product>? initialProducts, required SortEnum initialSortOption}) => BlocProvider<TabCubit>(
+    create: (context) => MainboardTabCubit()..initialize(const FilterArgument(), searchText: searchText, initialProducts: initialProducts, initialSortOption: initialSortOption),
     child: const ProductTab(),
   );
 
