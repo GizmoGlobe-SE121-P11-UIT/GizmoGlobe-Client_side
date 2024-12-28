@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/screens/cart/address_screen/choose_address_screen_state.dart';
 import 'package:gizmoglobe_client/screens/user/address_screen/address_screen_state.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
@@ -10,6 +9,7 @@ import '../../../objects/address_related/address.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../user/add_address_screen/add_address_screen_view.dart';
 import 'choose_address_screen_cubit.dart';
+import 'choose_address_screen_state.dart';
 
 class ChooseAddressScreen extends StatefulWidget {
   final Address address;

@@ -20,7 +20,8 @@ class ChooseAddressScreenCubit extends Cubit<ChooseAddressScreenState> {
   }
 
   void reloadList() {
-    emit(state.copyWith(addressList: Database().addressList));
+    final visibleAddresses = Database().addressList.where((address) => !address.hidden).toList();
+    emit(state.copyWith(addressList: visibleAddresses));
   }
 
   Future<void> addAddress(Address address) async {

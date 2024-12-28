@@ -383,11 +383,26 @@ class Firebase {
         'districtCode': address.district?.code,
         'wardCode': address.ward?.code,
         'street': address.street ?? '',
+        'hidden': false,
       });
 
       await Database().fetchAddress();
     } catch (e) {
       print('Error creating new address: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateAddress(Address address) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('addresses')
+          .doc(address.addressID)
+          .update(address.toMap());
+
+      await Database().fetchAddress();
+    } catch (e) {
+      print('Error updating address: $e');
       rethrow;
     }
   }
@@ -798,10 +813,7 @@ class Firebase {
       });
 
       for (var detail in salesInvoice.details) {
-        await _firestore.collection('sales_invoices')
-            .doc(salesInvoiceID)
-            .collection('details')
-            .add(detail.toMap(salesInvoiceID));
+        await _firestore.collection('details').add(detail.toMap(salesInvoiceID));
       }
     } catch (e) {
       print('Error adding sales invoice: $e');

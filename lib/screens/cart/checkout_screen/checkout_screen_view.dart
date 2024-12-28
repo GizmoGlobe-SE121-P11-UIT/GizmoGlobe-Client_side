@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/screens/cart/address_screen/choose_address_screen_view.dart';
 import 'package:gizmoglobe_client/services/stripe_services.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import '../../../enums/processing/process_state_enum.dart';
@@ -12,6 +11,7 @@ import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../user/address_screen/address_screen_view.dart';
 import '../cart_screen/cart_screen_view.dart';
+import '../choose_address_screen/choose_address_screen_view.dart';
 import 'checkout_screen_cubit.dart';
 import 'checkout_screen_state.dart';
 

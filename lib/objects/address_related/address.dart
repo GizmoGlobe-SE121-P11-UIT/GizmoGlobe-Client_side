@@ -12,6 +12,7 @@ class Address {
   District? district;
   Ward? ward;
   String? street;
+  bool hidden;
 
   Address({
     this.addressID,
@@ -22,6 +23,7 @@ class Address {
     this.district,
     this.ward,
     this.street,
+    this.hidden = false,
   });
 
   @override
@@ -52,14 +54,15 @@ class Address {
 
   Map<String, dynamic> toMap() {
     return {
-      'AddressID': addressID,
-      'CustomerID': customerID,
-      'ReceiverName': receiverName,
-      'ReceiverPhone': receiverPhone,
-      'ProvinceCode': province?.code,
-      'DistrictCode': district?.code,
-      'WardCode': ward?.code,
-      'Street': street,
+      'addressID': addressID,
+      'customerID': customerID,
+      'receiverName': receiverName,
+      'receiverPhone': receiverPhone,
+      'provinceCode': province?.code,
+      'districtCode': district?.code,
+      'wardCode': ward?.code,
+      'street': street,
+      'hidden': hidden,
     };
   }
 
@@ -77,6 +80,7 @@ class Address {
       district: district,
       ward: ward,
       street: map['street'],
+      hidden: map['hidden'],
     );
   }
 }
