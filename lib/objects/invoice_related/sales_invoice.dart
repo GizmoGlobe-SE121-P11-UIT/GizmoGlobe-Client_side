@@ -2,8 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizmoglobe_client/enums/invoice_related/payment_status.dart';
 import 'package:gizmoglobe_client/enums/invoice_related/sales_status.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
-
-import '../../enums/invoice_related/payment_method.dart';
 import '../address_related/address.dart';
 
 class SalesInvoice {
@@ -14,10 +12,7 @@ class SalesInvoice {
   DateTime date;
   SalesStatus salesStatus;
   double totalPrice;
-  String? paymentID;
-  PaymentMethodEnum paymentMethod;
   PaymentStatus paymentStatus;
-  DateTime? paymentDate;
   List<SalesInvoiceDetail> details;
 
   SalesInvoice({
@@ -29,10 +24,7 @@ class SalesInvoice {
     required this.salesStatus,
     required this.totalPrice,
     required this.details,
-    this.paymentID,
-    this.paymentMethod = PaymentMethodEnum.online,
     this.paymentStatus = PaymentStatus.unpaid,
-    this.paymentDate,
   });
 
   SalesInvoice copyWith({
@@ -44,10 +36,7 @@ class SalesInvoice {
     SalesStatus? salesStatus,
     double? totalPrice,
     List<SalesInvoiceDetail>? details,
-    String? paymentID,
-    PaymentMethodEnum? paymentMethod,
     PaymentStatus? paymentStatus,
-    DateTime? paymentDate,
   }) {
     return SalesInvoice(
       salesInvoiceID: salesInvoiceID ?? this.salesInvoiceID,
@@ -58,10 +47,7 @@ class SalesInvoice {
       salesStatus: salesStatus ?? this.salesStatus,
       totalPrice: totalPrice ?? this.totalPrice,
       details: details ?? this.details,
-      paymentID: paymentID ?? this.paymentID,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
       paymentStatus: paymentStatus ?? this.paymentStatus,
-      paymentDate: paymentDate ?? this.paymentDate,
     );
   }
 
@@ -70,14 +56,11 @@ class SalesInvoice {
       'salesInvoiceID': salesInvoiceID,
       'customerID': customerID,
       'customerName': customerName,
-      'address': address,
+      'address': address!.addressID != '' ? address!.addressID : '',
       'date': date,
       'paymentStatus': paymentStatus.getName(),
       'salesStatus': salesStatus.getName(),
       'totalPrice': totalPrice,
-      'paymentID': paymentID,
-      'paymentDate': paymentDate,
-      'paymentMethod': paymentMethod.getName(),
     };
   }
 
@@ -97,13 +80,15 @@ class SalesInvoice {
         orElse: () => SalesStatus.pending,
       ),
       totalPrice: (map['totalPrice'] ?? 0).toDouble(),
-      paymentID: map['paymentID'],
-      paymentDate: map['paymentDate'] != null ? (map['paymentDate'] as Timestamp).toDate() : null,
-      paymentMethod: PaymentMethodEnum.values.firstWhere(
-        (e) => e.getName() == map['paymentMethod'],
-        orElse: () => PaymentMethodEnum.online,
-      ),
       details: [],
     );
+  }
+
+  bool hasDiscount() {
+    return details.any((detail) => detail.product.discount > 0);
+  }
+
+  double getTotalBasedPrice() {
+    return details.fold(0, (previousValue, detail) => previousValue + detail.product.price * detail.quantity);
   }
 } 
