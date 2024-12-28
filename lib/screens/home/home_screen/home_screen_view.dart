@@ -9,6 +9,7 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/widgets/product/product_card.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_state.dart';
+import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 
 import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
@@ -19,11 +20,12 @@ import 'home_screen_cubit.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  static Widget newInstance() =>
-      BlocProvider(
-        create: (context) => HomeScreenCubit(),
-        child: const HomeScreen(),
-      );
+  static Widget newInstance() => BlocProvider(
+    create: (context) => HomeScreenCubit(
+      favoritesCubit: context.read<FavoritesCubit>(),
+    ),
+    child: const HomeScreen(),
+  );
 
   @override
   State<HomeScreen> createState() => _HomeScreen();
