@@ -124,23 +124,23 @@ class _CartScreen extends State<CartScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                if (product['discount'] != null && (product['discount'] as num) > 0) ...[
+                                if (product['discount'] > 0) ...[
                                   Text(
-                                    '\$${(product['sellingPrice'] as num?)?.toStringAsFixed(2) ?? '0.00'}',
+                                    '\$${product['sellingPrice'].toStringAsFixed(2)}',
                                     style: TextStyle(
                                       decoration: TextDecoration.lineThrough,
                                       color: Colors.grey[400],
                                       fontSize: 14,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(width: 4),
                                 ],
                                 Text(
-                                  '\$${((item['subtotal'] as num?) ?? 0.0 / (item['quantity'] as int? ?? 1)).toStringAsFixed(2)}',
+                                  '\$${(product['sellingPrice'] * (1 - product['discount'])).toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue[200],
+                                    color: Colors.blue[700],
                                   ),
                                 ),
                               ],
@@ -285,6 +285,8 @@ class _CartScreen extends State<CartScreen> {
                         Row(
                           children: [
                             Checkbox(
+                              activeColor: Colors.blue[200],
+                              checkColor: Colors.black,
                               value: state.isAllSelected,
                               onChanged: (value) {
                                 cubit.toggleSelectAll();

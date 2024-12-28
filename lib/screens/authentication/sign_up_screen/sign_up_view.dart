@@ -65,7 +65,7 @@ class _SignUpScreen extends State<SignUpScreen> {
           onPressed: () {
             Navigator.pop(context);
           },
-          fillColor: Theme.of(context).colorScheme.surface,
+          fillColor: Colors.transparent,
         ),
       ),
       body: SingleChildScrollView(

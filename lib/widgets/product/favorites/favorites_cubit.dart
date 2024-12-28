@@ -1,19 +1,35 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../data/firebase/firebase.dart';
 
 class FavoritesCubit extends Cubit<Set<String>> {
-  FavoritesCubit() : super({});
+  final Firebase _firebase = Firebase();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void toggleFavorite(String productId) {
-    final newFavorites = Set<String>.from(state);
-    if (newFavorites.contains(productId)) {
-      newFavorites.remove(productId);
+  FavoritesCubit() : super({}) {
+    loadFavorites();
+  }
+
+  Future<void> loadFavorites() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final favorites = await _firebase.getFavorites(user.uid);
+    emit(favorites.toSet());
+  }
+
+  Future<void> toggleFavorite(String productId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final currentFavorites = Set<String>.from(state);
+    if (currentFavorites.contains(productId)) {
+      currentFavorites.remove(productId);
+      await _firebase.removeFavorite(user.uid, productId);
     } else {
-      newFavorites.add(productId);
+      currentFavorites.add(productId);
+      await _firebase.addFavorite(user.uid, productId);
     }
-    emit(newFavorites);
+    emit(currentFavorites);
   }
-
-  bool isFavorite(String productId) {
-    return state.contains(productId);
-  }
-} 
+}

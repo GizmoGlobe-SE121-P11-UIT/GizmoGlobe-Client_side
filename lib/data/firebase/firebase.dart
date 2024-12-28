@@ -7,7 +7,26 @@ import 'package:gizmoglobe_client/objects/product_related/mainboard.dart';
 import 'package:gizmoglobe_client/objects/product_related/psu.dart';
 import 'package:gizmoglobe_client/objects/product_related/ram.dart';
 
+import '../../enums/product_related/category_enum.dart';
+import '../../enums/product_related/cpu_enums/cpu_family.dart';
+import '../../enums/product_related/drive_enums/drive_capacity.dart';
+import '../../enums/product_related/drive_enums/drive_type.dart';
+import '../../enums/product_related/gpu_enums/gpu_bus.dart';
+import '../../enums/product_related/gpu_enums/gpu_capacity.dart';
+import '../../enums/product_related/gpu_enums/gpu_series.dart';
+import '../../enums/product_related/mainboard_enums/mainboard_compatibility.dart';
+import '../../enums/product_related/mainboard_enums/mainboard_form_factor.dart';
+import '../../enums/product_related/mainboard_enums/mainboard_series.dart';
+import '../../enums/product_related/product_status_enum.dart';
+import '../../enums/product_related/psu_enums/psu_efficiency.dart';
+import '../../enums/product_related/psu_enums/psu_modular.dart';
+import '../../enums/product_related/ram_enums/ram_bus.dart';
+import '../../enums/product_related/ram_enums/ram_capacity_enum.dart';
+import '../../enums/product_related/ram_enums/ram_type.dart';
 import '../../objects/address_related/address.dart';
+import '../../objects/manufacturer.dart';
+import '../../objects/product_related/product.dart';
+import '../../objects/product_related/product_factory.dart';
 
 Future<void> pushProductSamplesToFirebase() async {
   try {
@@ -368,6 +387,392 @@ class Firebase {
       await Database().fetchAddress();
     } catch (e) {
       print('Error creating new address: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addFavorite(String customerID, String productID) async {
+    try {
+      final favoriteRef = _firestore
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .doc(productID);
+
+      await favoriteRef.set({
+        'productID': productID,
+        'addedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error adding favorite: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> removeFavorite(String customerID, String productID) async {
+    try {
+      final favoriteRef = _firestore
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .doc(productID);
+
+      await favoriteRef.delete();
+    } catch (e) {
+      print('Error removing favorite: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<String>> getFavorites(String customerID) async {
+    try {
+      final favoriteSnapshot = await _firestore
+          .collection('customers')
+          .doc(customerID)
+          .collection('favorites')
+          .get();
+
+      return favoriteSnapshot.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      print('Error getting favorites: $e');
+      rethrow;
+    }
+  }
+
+  Future<Manufacturer?> getManufacturerById(String manufacturerId) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('manufacturers')
+          .where('manufacturerID', isEqualTo: manufacturerId)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) return null;
+
+      final data = querySnapshot.docs.first.data();
+      return Manufacturer(
+        manufacturerID: data['manufacturerID'] ?? '',
+        manufacturerName: data['manufacturerName'] ?? '',
+      );
+    } catch (e) {
+      print('Error finding manufacturer by ID: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Product>> getProducts() async {
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .get();
+
+      List<Product> products = [];
+      for (var doc in snapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+        // Lấy manufacturer từ manufacturerID
+        String manufacturerId = data['manufacturerID'];
+        Manufacturer? manufacturer = await getManufacturerById(manufacturerId);
+        if (manufacturer == null) continue;
+
+        // Chuyển đổi category string thành enum
+        CategoryEnum category = CategoryEnum.values.firstWhere(
+              (e) => e.getName() == data['category'],
+          orElse: () => CategoryEnum.ram,
+        );
+
+        // Tạo product với các thuộc tính cơ bản
+        Map<String, dynamic> productProps = {
+          'productID': doc.id,
+          'productName': data['productName'],
+          'manufacturer': manufacturer,
+          'importPrice': (data['importPrice'] as num).toDouble(),
+          'sellingPrice': (data['sellingPrice'] as num).toDouble(),
+          'discount': (data['discount'] as num).toDouble(),
+          'release': (data['release'] as Timestamp).toDate(),
+          'sales': data['sales'] as int,
+          'stock': data['stock'] as int,
+          'status': ProductStatusEnum.values.firstWhere(
+                (e) => e.getName() == data['status'],
+            orElse: () => ProductStatusEnum.active,
+          ),
+        };
+
+        // Thêm các thuộc tính đặc thù theo category
+        switch (category) {
+          case CategoryEnum.ram:
+            productProps.addAll({
+              'bus': RAMBus.values.firstWhere(
+                    (e) => e.getName() == data['bus'],
+                orElse: () => RAMBus.mhz3200,
+              ),
+              'capacity': RAMCapacity.values.firstWhere(
+                    (e) => e.getName() == data['capacity'],
+                orElse: () => RAMCapacity.gb8,
+              ),
+              'ramType': RAMType.values.firstWhere(
+                    (e) => e.getName() == data['ramType'],
+                orElse: () => RAMType.ddr4,
+              ),
+            });
+            break;
+          case CategoryEnum.cpu:
+            productProps.addAll({
+              'family': CPUFamily.values.firstWhere(
+                    (e) => e.getName() == data['family'],
+                orElse: () => CPUFamily.corei3Ultra3,
+              ),
+              'core': data['core'] as int,
+              'thread': data['thread'] as int,
+              'clockSpeed': (data['clockSpeed'] as num).toDouble(),
+            });
+            break;
+          case CategoryEnum.gpu:
+            productProps.addAll({
+              'series': GPUSeries.values.firstWhere(
+                    (e) => e.getName() == data['series'],
+                orElse: () => GPUSeries.rtx,
+              ),
+              'capacity': GPUCapacity.values.firstWhere(
+                    (e) => e.getName() == data['capacity'],
+                orElse: () => GPUCapacity.gb8,
+              ),
+              'busWidth': GPUBus.values.firstWhere(
+                    (e) => e.getName() == data['busWidth'],
+                orElse: () => GPUBus.bit128,
+              ),
+              'clockSpeed': (data['clockSpeed'] as num).toDouble(),
+            });
+            break;
+          case CategoryEnum.mainboard:
+            productProps.addAll({
+              'formFactor': MainboardFormFactor.values.firstWhere(
+                    (e) => e.getName() == data['formFactor'],
+                orElse: () => MainboardFormFactor.atx,
+              ),
+              'series': MainboardSeries.values.firstWhere(
+                    (e) => e.getName() == data['series'],
+                orElse: () => MainboardSeries.h,
+              ),
+              'compatibility': MainboardCompatibility.values.firstWhere(
+                    (e) => e.getName() == data['compatibility'],
+                orElse: () => MainboardCompatibility.intel,
+              ),
+            });
+            break;
+          case CategoryEnum.drive:
+            productProps.addAll({
+              'type': DriveType.values.firstWhere(
+                    (e) => e.getName() == data['type'],
+                orElse: () => DriveType.sataSSD,
+              ),
+              'capacity': DriveCapacity.values.firstWhere(
+                    (e) => e.getName() == data['capacity'],
+                orElse: () => DriveCapacity.gb256,
+              ),
+            });
+            break;
+          case CategoryEnum.psu:
+            productProps.addAll({
+              'wattage': data['wattage'] as int,
+              'efficiency': PSUEfficiency.values.firstWhere(
+                    (e) => e.getName() == data['efficiency'],
+                orElse: () => PSUEfficiency.gold,
+              ),
+              'modular': PSUModular.values.firstWhere(
+                    (e) => e.getName() == data['modular'],
+                orElse: () => PSUModular.fullModular,
+              ),
+            });
+            break;
+        }
+
+        // Tạo product instance thông qua factory
+        Product product = ProductFactory.createProduct(category, productProps);
+        products.add(product);
+      }
+
+      return products;
+    } catch (e) {
+      print('Error getting products: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> changeProductStatus(String productId, ProductStatusEnum status) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .update({'status': status.getName()});
+
+      List<Product> products = await getProducts();
+      Database().updateProductList(products);
+    } catch (e) {
+      print('Error changing product status: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateProduct(Product product) async {
+    try {
+      Map<String, dynamic> productData = {
+        'productName': product.productName,
+        'sellingPrice': product.price,
+        'discount': product.discount,
+        'release': product.release,
+        'sales': product.sales,
+        'stock': product.stock,
+        'status': product.status.getName(),
+        'manufacturerID': product.manufacturer.manufacturerID,
+        'category': product.category.getName(),
+      };
+
+      switch (product.runtimeType) {
+        case RAM:
+          final ram = product as RAM;
+          productData.addAll({
+            'bus': ram.bus.getName(),
+            'capacity': ram.capacity.getName(),
+            'ramType': ram.ramType.getName(),
+          });
+          break;
+
+        case CPU:
+          final cpu = product as CPU;
+          productData.addAll({
+            'family': cpu.family.getName(),
+            'core': cpu.core,
+            'thread': cpu.thread,
+            'clockSpeed': cpu.clockSpeed,
+          });
+          break;
+
+        case GPU:
+          final gpu = product as GPU;
+          productData.addAll({
+            'series': gpu.series.getName(),
+            'capacity': gpu.capacity.getName(),
+            'busWidth': gpu.bus.getName(),
+            'clockSpeed': gpu.clockSpeed,
+          });
+          break;
+
+        case Mainboard:
+          final mainboard = product as Mainboard;
+          productData.addAll({
+            'formFactor': mainboard.formFactor.getName(),
+            'series': mainboard.series.getName(),
+            'compatibility': mainboard.compatibility.getName(),
+          });
+          break;
+
+        case Drive:
+          final drive = product as Drive;
+          productData.addAll({
+            'type': drive.type.getName(),
+            'capacity': drive.capacity.getName(),
+          });
+          break;
+
+        case PSU:
+          final psu = product as PSU;
+          productData.addAll({
+            'wattage': psu.wattage,
+            'efficiency': psu.efficiency.getName(),
+            'modular': psu.modular.getName(),
+          });
+          break;
+      }
+
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(product.productID)
+          .update(productData);
+
+      List<Product> products = await getProducts();
+      Database().updateProductList(products);
+    } catch (e) {
+      print('Error updating product: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addProduct(Product product) async {
+    try {
+      Map<String, dynamic> productData = {
+        'productName': product.productName,
+        'sellingPrice': product.price,
+        'discount': product.discount,
+        'release': product.release,
+        'sales': product.sales,
+        'stock': product.stock,
+        'status': product.status.getName(),
+        'manufacturerID': product.manufacturer.manufacturerID,
+        'category': product.category.getName(),
+      };
+
+      switch (product.runtimeType) {
+        case RAM:
+          final ram = product as RAM;
+          productData.addAll({
+            'bus': ram.bus.getName(),
+            'capacity': ram.capacity.getName(),
+            'ramType': ram.ramType.getName(),
+          });
+          break;
+
+        case CPU:
+          final cpu = product as CPU;
+          productData.addAll({
+            'family': cpu.family.getName(),
+            'core': cpu.core,
+            'thread': cpu.thread,
+            'clockSpeed': cpu.clockSpeed,
+          });
+          break;
+
+        case GPU:
+          final gpu = product as GPU;
+          productData.addAll({
+            'series': gpu.series.getName(),
+            'capacity': gpu.capacity.getName(),
+            'busWidth': gpu.bus.getName(),
+            'clockSpeed': gpu.clockSpeed,
+          });
+          break;
+
+        case Mainboard:
+          final mainboard = product as Mainboard;
+          productData.addAll({
+            'formFactor': mainboard.formFactor.getName(),
+            'series': mainboard.series.getName(),
+            'compatibility': mainboard.compatibility.getName(),
+          });
+          break;
+
+        case Drive:
+          final drive = product as Drive;
+          productData.addAll({
+            'type': drive.type.getName(),
+            'capacity': drive.capacity.getName(),
+          });
+          break;
+
+        case PSU:
+          final psu = product as PSU;
+          productData.addAll({
+            'wattage': psu.wattage,
+            'efficiency': psu.efficiency.getName(),
+            'modular': psu.modular.getName(),
+          });
+          break;
+      }
+
+      await FirebaseFirestore.instance.collection('products').add(productData);
+      List<Product> products = await getProducts();
+      Database().updateProductList(products);
+    } catch (e) {
+      print('Error adding product: $e');
       rethrow;
     }
   }
