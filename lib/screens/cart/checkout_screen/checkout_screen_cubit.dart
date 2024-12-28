@@ -24,6 +24,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         quantity: quantity,
         sellingPrice: product.price * (1 - product.discount),
         subtotal: product.price * quantity * (1 - product.discount),
+        salesInvoiceID: '',
       );
     }).toList();
 

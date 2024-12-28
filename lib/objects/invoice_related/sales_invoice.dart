@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizmoglobe_client/enums/invoice_related/payment_status.dart';
 import 'package:gizmoglobe_client/enums/invoice_related/sales_status.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
+import '../../data/database/database.dart';
 import '../address_related/address.dart';
 
 class SalesInvoice {
@@ -65,11 +66,15 @@ class SalesInvoice {
   }
 
   static SalesInvoice fromMap(String id, Map<String, dynamic> map) {
+    Address address = Database().addressList.firstWhere(
+          (address) => address.addressID == map['address'],
+    );
+
     return SalesInvoice(
       salesInvoiceID: id,
       customerID: map['customerID'] ?? '',
       customerName: map['customerName'],
-      address: map['address'] != null ? Address.fromMap(map['address']) : Address.nullAddress,
+      address: address,
       date: (map['date'] as Timestamp).toDate(),
       paymentStatus: PaymentStatus.values.firstWhere(
         (e) => e.getName() == map['paymentStatus'],
@@ -90,5 +95,9 @@ class SalesInvoice {
 
   double getTotalBasedPrice() {
     return details.fold(0, (previousValue, detail) => previousValue + detail.product.price * detail.quantity);
+  }
+
+  int getTotalItems() {
+    return details.fold(0, (previousValue, detail) => previousValue + detail.quantity);
   }
 } 

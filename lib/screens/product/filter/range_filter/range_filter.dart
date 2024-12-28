@@ -29,7 +29,7 @@ class RangeFilter extends StatelessWidget {
       children: [
         Text(
           name,
-          style: AppTextStyle.bigText.copyWith(
+          style: AppTextStyle.biggerText.copyWith(
             color: Theme.of(context).primaryColor,
           ),
         ),

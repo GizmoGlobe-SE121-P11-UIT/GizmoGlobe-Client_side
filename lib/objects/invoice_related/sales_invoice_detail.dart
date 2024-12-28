@@ -18,27 +18,6 @@ class SalesInvoiceDetail {
     required this.subtotal,
   });
 
-  // factory SalesInvoiceDetail.withQuantity({
-  //   String? salesInvoiceDetailID,
-  //   required String salesInvoiceID,
-  //   required String productID,
-  //   String? productName,
-  //   String? category,
-  //   required double sellingPrice,
-  //   required int quantity,
-  // }) {
-  //   return SalesInvoiceDetail(
-  //     salesInvoiceDetailID: salesInvoiceDetailID,
-  //     salesInvoiceID: salesInvoiceID,
-  //     productID: productID,
-  //     productName: productName,
-  //     category: category,
-  //     sellingPrice: sellingPrice,
-  //     quantity: quantity,
-  //     subtotal: sellingPrice * quantity,
-  //   );
-  // }
-
   SalesInvoiceDetail copyWith({
     String? salesInvoiceDetailID,
     String? salesInvoiceID,

@@ -69,6 +69,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                       content: 'Your order has been placed successfully',
                       onPressed: () =>
                       {
+                        Navigator.pop(context),
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(

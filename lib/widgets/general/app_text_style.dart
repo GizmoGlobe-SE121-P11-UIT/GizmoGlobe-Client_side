@@ -19,7 +19,7 @@ class AppTextStyle {
     fontFamily: 'Montserrat',
   );
 
-  static const TextStyle bigText = TextStyle(
+  static const TextStyle biggerText = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.normal,
     fontFamily: 'Montserrat',
@@ -29,6 +29,12 @@ class AppTextStyle {
     fontSize: 18,
     fontWeight: FontWeight.bold,
     fontFamily: 'Montserrat',
+  );
+
+  static const TextStyle bigText = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.normal,
+    color: Colors.white,
   );
 
   static const TextStyle regularText = TextStyle(

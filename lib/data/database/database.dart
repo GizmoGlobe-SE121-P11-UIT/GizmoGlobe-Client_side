@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gizmoglobe_client/enums/product_related/mainboard_enums/mainboard_compatibility.dart';
 import 'package:gizmoglobe_client/objects/address_related/address.dart';
+import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 
@@ -24,7 +25,9 @@ import '../../enums/product_related/ram_enums/ram_bus.dart';
 import '../../enums/product_related/ram_enums/ram_capacity_enum.dart';
 import '../../enums/product_related/ram_enums/ram_type.dart';
 import '../../objects/address_related/province.dart';
+import '../../objects/invoice_related/sales_invoice_detail.dart';
 import '../../objects/product_related/product_factory.dart';
+import '../firebase/firebase.dart';
 
 class Database {
   static final Database _database = Database._internal();
@@ -39,6 +42,7 @@ class Database {
   List<Address> addressList = [];
   List<Product> favoriteProducts = [];
   List<Product> bestSellerProducts = [];
+  List<SalesInvoice> salesInvoiceList = [];
 
   factory Database() {
     return _database;
@@ -51,7 +55,7 @@ class Database {
       getUser();
       print('Bắt đầu lấy dữ liệu từ Firestore');
       provinceList = await fetchProvinces();
-      fetchAddress();
+      await fetchAddress();
 
       final manufacturerSnapshot = await FirebaseFirestore.instance
           .collection('manufacturers')
@@ -132,6 +136,7 @@ class Database {
 
       bestSellerProducts = await fetchBestSellerProducts();
       favoriteProducts = await fetchFavoriteProducts(userID);
+      await fetchSalesInvoice();
     } catch (e) {
       print('Lỗi chi tiết khi lấy dữ liệu: $e');
       rethrow;
@@ -851,5 +856,9 @@ class Database {
 
   void updateProductList (List<Product> productList) {
     this.productList = productList;
+  }
+
+  Future<void> fetchSalesInvoice() async {
+    salesInvoiceList = await Firebase().getSalesInvoices();
   }
 }
