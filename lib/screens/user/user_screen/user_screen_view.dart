@@ -34,270 +34,397 @@ class _UserScreen extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        body: Center(
-          child: Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: BlocBuilder<UserScreenCubit, UserScreenState>(
-                  builder: (context, state) {
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GradientText(
-                                text: state.username,
-                                fontSize: 24.0,
+        body: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Clean SliverAppBar
+            SliverAppBar(
+              expandedHeight: 320,
+              pinned: true,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  color: Theme.of(context).colorScheme.primary,
+                  child: BlocBuilder<UserScreenCubit, UserScreenState>(
+                    builder: (context, state) {
+                      return SafeArea(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Luxurious Avatar
+                            Container(
+                              width: 130,
+                              height: 130,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.white,
+                                    Colors.white.withOpacity(0.95),
+                                  ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 20,
+                                    spreadRadius: 5,
+                                  ),
+                                  BoxShadow(
+                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                    blurRadius: 15,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4.0),
-                              Text(
+                              child: Icon(
+                                Icons.person,
+                                size: 75,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            // Enhanced Username
+                            Text(
+                              state.username,
+                              style: const TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                                shadows: [
+                                  Shadow(
+                                    offset: Offset(0, 2),
+                                    blurRadius: 6,
+                                    color: Colors.black26,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Elegant Email Container
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(25),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
                                 state.email,
                                 style: TextStyle(
-                                  fontSize: 16.0,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  overflow: TextOverflow.ellipsis,
+                                  fontSize: 16,
+                                  color: Colors.white.withOpacity(0.95),
+                                  letterSpacing: 0.5,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          icon: const Icon(
-                            FontAwesomeIcons.penToSquare,
-                            size: 32.0,
-                          ),
-                          color: Theme.of(context).colorScheme.onSurface,
-                          onPressed: () {
-                            // Handle edit action
-                          },
-                        ),
-                      ],
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
-              const SizedBox(height: 8.0),
+            ),
 
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const GradientText(
-                      text: "My orders",
-                      fontSize: 24.0,
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  // Clean Orders Section
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                    child: Card(
+                      elevation: 4,
+                      shadowColor: Colors.black12,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.shopping_bag_outlined,
+                                      size: 28,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      "My Orders",
+                                      style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                TextButton.icon(
+                                  onPressed: () {/* View all orders */},
+                                  icon: const Icon(Icons.arrow_forward),
+                                  label: const Text("View All"),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildEnhancedOrderStatus(
+                                  context,
+                                  FontAwesomeIcons.box,
+                                  'To Ship',
+                                  () {/* Handle tap */},
+                                ),
+                                _buildEnhancedOrderStatus(
+                                  context,
+                                  Icons.local_shipping_outlined,
+                                  'To Receive',
+                                  () {/* Handle tap */},
+                                ),
+                                _buildEnhancedOrderStatus(
+                                  context,
+                                  FontAwesomeIcons.circleCheck,
+                                  'Completed',
+                                  () {/* Handle tap */},
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 8.0),
+                  ),
 
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Center(
-                            child: VerticalIconButton(
-                              onPress: () {
-                                // Handle To ship action
-                              },
-                              icon: FontAwesomeIcons.box,
-                              text: 'To ship',
-                              color: Theme.of(context).colorScheme.onSurface,
+                  // Clean Account Settings
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Card(
+                      elevation: 4,
+                      shadowColor: Colors.black12,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Icon(
+                                    Icons.settings,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  "Account Settings",
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-
-                        Expanded(
-                          child: Center(
-                            child: VerticalIconButton(
-                              onPress: () {
-                                // Handle To receive action
-                              },
-                              icon: Icons.local_shipping,
-                              text: 'To receive',
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-
-                        Expanded(
-                          child: Center(
-                            child: VerticalIconButton(
-                              onPress: () {
-                                // Handle Completed action
-                              },
-                              icon: FontAwesomeIcons.circleCheck,
-                              text: 'Completed',
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12.0),
-
-              Container(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const GradientText(
-                          text: "Wish list",
-                          fontSize: 24.0,
-                        ),
-                        InvisibleGradientButton(
-                          onPressed: () {
-                            // Handle see all action
-                          },
-                          suffixIcon: Icons.chevron_right,
-                          text: 'See all',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8.0),
-                    Container(
-                      height: 100.0,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8.0),
-
-              Container(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const GradientText(
-                          text: "Re-purchase",
-                          fontSize: 24.0,
-                        ),
-                        InvisibleGradientButton(
-                          onPressed: () {
-                            // Handle see all action
-                          },
-                          suffixIcon: Icons.chevron_right,
-                          text: 'See all',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8.0),
-                    Container(
-                      height: 100.0,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8.0),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const GradientText(
-                      text: "Account",
-                      fontSize: 24.0,
-                    ),
-                    const SizedBox(height: 8.0),
-
-                    SizedBox(
-                      height: 24.0,
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
+                          _buildEnhancedSettingsItem(
                             context,
-                            MaterialPageRoute(builder: (context) => AddressScreen.newInstance()),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                            padding: const EdgeInsets.fromLTRB(8, 0, 0, 0)
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "My addresses",
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontFamily: 'Montserrat',
-                                fontSize: 16.0,
+                            'Edit Profile',
+                            Icons.person_outline,
+                            'Update your personal information',
+                            () {/* Handle edit profile */},
+                            showTopDivider: false,
+                          ),
+                          _buildEnhancedSettingsItem(
+                            context,
+                            'My Addresses',
+                            Icons.location_on_outlined,
+                            'Manage your delivery addresses',
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddressScreen.newInstance(),
                               ),
                             ),
-                            Icon(
-                              Icons.chevron_right,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ],
+                          ),
+                          _buildEnhancedSettingsItem(
+                            context,
+                            'Change Password',
+                            Icons.lock_outline,
+                            'Update your account security',
+                            () {/* Handle password change */},
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Clean Logout Button
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton.icon(
+                      onPressed: () => cubit.logOut(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 60),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 4,
+                      ),
+                      icon: const Icon(Icons.logout, size: 26),
+                      label: const Text(
+                        'Log Out',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8,),
-
-                    SizedBox(
-                      height: 24.0,
-                      child: TextButton(
-                        onPressed: () {
-                          // Handle Account action
-                        },
-                        style: TextButton.styleFrom(
-                            padding: const EdgeInsets.fromLTRB(8, 0, 0, 0)
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Change password",
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontFamily: 'Montserrat',
-                                fontSize: 16.0,
-                              ),
-                            ),
-                            Icon(
-                              Icons.chevron_right,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(height: 8.0),
-
-              InvisibleGradientButton(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-                onPressed: () {
-                  cubit.logOut(context);
-                },
-                suffixIcon: Icons.logout,
-                text: 'Log out',
-              ),
-            ],
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            await pushProductSamplesToFirebase();
-          },
-          child: const Icon(Icons.cloud_upload),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildEnhancedOrderStatus(
+    BuildContext context,
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 100,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                icon,
+                color: Theme.of(context).colorScheme.primary,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnhancedSettingsItem(
+    BuildContext context,
+    String title,
+    IconData icon,
+    String subtitle,
+    VoidCallback onTap, {
+    bool showTopDivider = true,
+  }) {
+    return Column(
+      children: [
+        // if (showTopDivider) const Divider(height: 1),
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          leading: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: Theme.of(context).colorScheme.primary,
+              size: 24,
+            ),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              subtitle,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 14,
+              ),
+            ),
+          ),
+          trailing: Icon(
+            Icons.arrow_forward_ios,
+            color: Theme.of(context).colorScheme.primary,
+            size: 16,
+          ),
+          onTap: onTap,
+        ),
+      ],
     );
   }
 }

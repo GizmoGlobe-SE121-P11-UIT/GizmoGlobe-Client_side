@@ -159,55 +159,50 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Row(
+                            Column(
                               mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (widget.product.discount > 0) ...[
-                                  Text(
-                                    '\$${widget.product.price.toStringAsFixed(2)}',
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      decoration: TextDecoration.lineThrough,
-                                      color: Colors.grey[400],
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red[50],
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: Colors.red[100]!),
-                                    ),
-                                    child: Text(
-                                      '-${widget.product.discountPercentage.toStringAsFixed(0)}%',
-                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                        color: Colors.red[700],
-                                        fontWeight: FontWeight.bold,
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '\$${widget.product.price.toStringAsFixed(2)}',
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          decoration: TextDecoration.lineThrough,
+                                          color: Colors.grey[400],
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red[700],
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          '-${widget.product.discountPercentage.toStringAsFixed(0)}%',
+                                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(height: 4),
                                 ],
                                 Text(
                                   '\$${widget.product.discountedPrice.toStringAsFixed(2)}',
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                     color: Theme.of(context).primaryColor,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
                             ),
-                            const Text(
-                              'Product specifications',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 8),
                             _buildSpecificationList(context),
                             const SizedBox(height: 24),
                           ],
@@ -239,61 +234,49 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Text(
-                              'Amount',
+                              'Quantity',
                               style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 13,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Container(
                               decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey[700]!),
+                                border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.5)),
                                 borderRadius: BorderRadius.circular(8),
+                                color: Theme.of(context).primaryColor.withOpacity(0.1),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  SizedBox(
-                                    width: 28,
-                                    height: 28,
-                                    child: IconButton(
-                                      icon: const Icon(Icons.remove, color: Colors.white),
-                                      onPressed: () {
-                                        if (quantity > 1) {
-                                          setState(() => quantity--);
-                                        }
-                                      },
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      iconSize: 16,
-                                    ),
+                                  _buildQuantityButton(
+                                    icon: Icons.remove,
+                                    onPressed: () {
+                                      if (quantity > 1) {
+                                        setState(() => quantity--);
+                                      }
+                                    },
                                   ),
-                                  SizedBox(
-                                    width: 24,
+                                  Container(
+                                    width: 40,
+                                    alignment: Alignment.center,
                                     child: Text(
                                       quantity.toString(),
-                                      textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 14,
+                                        fontSize: 16,
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: 28,
-                                    height: 28,
-                                    child: IconButton(
-                                      icon: const Icon(Icons.add, color: Colors.white),
-                                      onPressed: () {
-                                        setState(() => quantity++);
-                                      },
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      iconSize: 16,
-                                    ),
+                                  _buildQuantityButton(
+                                    icon: Icons.add,
+                                    onPressed: () {
+                                      setState(() => quantity++);
+                                    },
                                   ),
                                 ],
                               ),
@@ -302,24 +285,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         const Spacer(),
                         Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
-                              'Total',
+                            Text(
+                              'Total Price',
                               style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 13,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              '\$${(widget.product.discountedPrice * quantity).toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  '\$${(widget.product.discountedPrice * quantity).toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -328,6 +316,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
+                      height: 54,
                       child: ElevatedButton(
                         onPressed: () {
                           if (widget.product.productID != null) {
@@ -340,6 +329,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 content: Text(
                                   'Added ${widget.product.productName} to cart',
                                 ),
+                                backgroundColor: Theme.of(context).primaryColor,
+                                behavior: SnackBarBehavior.floating,
+                                margin: EdgeInsets.all(16),
                                 duration: const Duration(seconds: 2),
                               ),
                             );
@@ -353,18 +345,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: const Text(
-                          'Add to cart',
+                          'Add to Cart',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
@@ -381,69 +375,128 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildSpecificationList(BuildContext context) {
     final specs = <Widget>[
-      _buildSpecRow('Manufacturer', widget.product.manufacturer.manufacturerName),
+      const Padding(
+        padding: EdgeInsets.only(bottom: 16.0),
+        child: Text(
+          'Product Specifications',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      _buildSpecGroup(
+        'Basic Information',
+        [_buildSpecRow('Manufacturer', widget.product.manufacturer.manufacturerName)],
+      ),
     ];
 
     switch (widget.product.runtimeType) {
       case RAM:
         final ram = widget.product as RAM;
-        specs.addAll([
-          _buildSpecRow('Bus Speed', ram.bus.toString()),
-          _buildSpecRow('Capacity', ram.capacity.toString()),
-          _buildSpecRow('RAM Type', ram.ramType.toString()),
-        ]);
+        specs.add(_buildSpecGroup(
+          'Memory Specifications',
+          [
+            _buildSpecRow('Bus Speed', '${ram.bus} MHz'),
+            _buildSpecRow('Capacity', '${ram.capacity} GB'),
+            _buildSpecRow('RAM Type', ram.ramType.toString()),
+          ],
+        ));
         break;
       case CPU:
         final cpu = widget.product as CPU;
-        specs.addAll([
-          _buildSpecRow('Family', cpu.family.toString()),
-          _buildSpecRow('Cores', '${cpu.core}'),
-          _buildSpecRow('Threads', '${cpu.thread}'),
-          _buildSpecRow('Clock Speed', cpu.clockSpeed.toString()),
-        ]);
+        specs.add(_buildSpecGroup(
+          'Processor Specifications',
+          [
+            _buildSpecRow('Family', cpu.family.toString()),
+            _buildSpecRow('Cores', '${cpu.core} Cores'),
+            _buildSpecRow('Threads', '${cpu.thread} Threads'),
+            _buildSpecRow('Clock Speed', '${cpu.clockSpeed} GHz'),
+          ],
+        ));
         break;
       case PSU:
         final psu = widget.product as PSU;
-        specs.addAll([
-          _buildSpecRow('Wattage', psu.wattage.toString()),
-          _buildSpecRow('Efficiency', psu.efficiency.toString()),
-          _buildSpecRow('Modular', psu.modular.toString()),
-        ]);
+        specs.add(_buildSpecGroup(
+          'Power Supply Specifications',
+          [
+            _buildSpecRow('Wattage', psu.wattage.toString()),
+            _buildSpecRow('Efficiency', psu.efficiency.toString()),
+            _buildSpecRow('Modular', psu.modular.toString()),
+          ],
+        ));
         break;
       case GPU:
         final gpu = widget.product as GPU;
-        specs.addAll([
-          _buildSpecRow('Series', gpu.series.toString()),
-          _buildSpecRow('Memory', gpu.capacity.toString()),
-          _buildSpecRow('Bus Width', gpu.bus.toString()),
-          _buildSpecRow('Clock Speed', gpu.clockSpeed.toString()),
-        ]);
+        specs.add(_buildSpecGroup(
+          'Graphics Card Specifications',
+          [
+            _buildSpecRow('Series', gpu.series.toString()),
+            _buildSpecRow('Memory', gpu.capacity.toString()),
+            _buildSpecRow('Bus Width', gpu.bus.toString()),
+            _buildSpecRow('Clock Speed', gpu.clockSpeed.toString()),
+          ],
+        ));
         break;
       case Mainboard:
         final mainboard = widget.product as Mainboard;
-        specs.addAll([
-          _buildSpecRow('Form Factor', mainboard.formFactor.toString()),
-          _buildSpecRow('Series', mainboard.series.toString()),
-          _buildSpecRow('Compatibility', mainboard.compatibility.toString()),
-        ]);
+        specs.add(_buildSpecGroup(
+          'Motherboard Specifications',
+          [
+            _buildSpecRow('Form Factor', mainboard.formFactor.toString()),
+            _buildSpecRow('Series', mainboard.series.toString()),
+            _buildSpecRow('Compatibility', mainboard.compatibility.toString()),
+          ],
+        ));
         break;
       case Drive:
         final drive = widget.product as Drive;
-        specs.addAll([
-          _buildSpecRow('Drive Type', drive.type.toString()),
-          _buildSpecRow('Capacity', drive.capacity.toString()),
-        ]);
+        specs.add(_buildSpecGroup(
+          'Storage Specifications',
+          [
+            _buildSpecRow('Drive Type', drive.type.toString()),
+            _buildSpecRow('Capacity', drive.capacity.toString()),
+          ],
+        ));
         break;
     }
 
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black12,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: specs,
+      ),
+    );
+  }
+
+  Widget _buildSpecGroup(String title, List<Widget> specs) {
     return Column(
-      children: specs,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.blue,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...specs,
+        const SizedBox(height: 16),
+      ],
     );
   }
 
   Widget _buildSpecRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -451,13 +504,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             label,
             style: const TextStyle(
               color: Colors.grey,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
           Text(
             value,
             style: const TextStyle(
-              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -482,5 +538,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       default:
         return Icons.devices_other;
     }
+  }
+
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      width: 32,
+      height: 32,
+      child: IconButton(
+        icon: Icon(icon, color: Theme.of(context).primaryColor),
+        onPressed: onPressed,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        iconSize: 18,
+        splashRadius: 20,
+      ),
+    );
   }
 }
