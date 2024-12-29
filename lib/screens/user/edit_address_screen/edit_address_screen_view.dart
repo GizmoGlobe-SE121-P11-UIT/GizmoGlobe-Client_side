@@ -81,21 +81,26 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                           cubit.updateAddress(receiverName: value);
                         },
                         fillColor: Theme.of(context).colorScheme.surface,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                        ],
                       ),
                       const SizedBox(height: 8),
-                    
+
                       FieldWithIcon(
                         controller: _receiverPhoneController,
                         hintText: 'Receiver Phone',
                         onChanged: (value) {
                           cubit.updateAddress(receiverPhone: value);
                         },
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         keyboardType: TextInputType.phone,
                         fillColor: Theme.of(context).colorScheme.surface,
                       ),
                       const SizedBox(height: 8),
-                    
+
                       AddressPicker(
                         provinceSelected: widget.address.province,
                         districtSelected: widget.address.district,
@@ -110,7 +115,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         },
                       ),
                       const SizedBox(height: 8),
-                    
+
                       FieldWithIcon(
                         controller: _streetController,
                         hintText: 'Street name, building, house no.',
@@ -118,6 +123,9 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                           cubit.updateAddress(street: value);
                         },
                         fillColor: Theme.of(context).colorScheme.surface,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s,-]')),
+                        ],
                       ),
                     ],
                   ),

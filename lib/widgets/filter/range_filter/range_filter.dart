@@ -53,7 +53,7 @@ class RangeFilter extends StatelessWidget {
                     onChanged: onFromValueChanged,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\s]')),
                     ],
                   ),
                 ],

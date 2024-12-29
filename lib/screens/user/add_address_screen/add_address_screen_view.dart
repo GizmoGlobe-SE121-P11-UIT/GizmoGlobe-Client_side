@@ -84,6 +84,9 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                     cubit.updateAddress(receiverName: value);
                   },
                   fillColor: Theme.of(context).colorScheme.surface,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                  ],
                 ),
                 const SizedBox(height: 8),
 
@@ -93,7 +96,9 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   onChanged: (value) {
                     cubit.updateAddress(receiverPhone: value);
                   },
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                   keyboardType: TextInputType.phone,
                   fillColor: Theme.of(context).colorScheme.surface,
                 ),
@@ -118,6 +123,9 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                     cubit.updateAddress(street: value);
                   },
                   fillColor: Theme.of(context).colorScheme.surface,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s,-]')),
+                  ],
                 ),
               ],
             ),

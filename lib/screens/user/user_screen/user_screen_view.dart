@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
+import '../../../data/database/database.dart';
 import '../../../enums/processing/order_option_enum.dart';
 import '../../../widgets/general/invisible_gradient_button.dart';
 import '../../../widgets/general/vertical_icon_button.dart';
@@ -286,7 +289,80 @@ class _UserScreen extends State<UserScreen> {
                             'Edit Profile',
                             Icons.person_outline,
                             'Update your personal information',
-                            () {/* Handle edit profile */},
+                                () async {
+                              final newName = await showDialog<String>(
+                                context: context,
+                                builder: (context) {
+                                  final TextEditingController nameController = TextEditingController();
+                                  return AlertDialog(
+                                    title: const Text('Edit Profile'),
+                                    content: TextField(
+                                      controller: nameController,
+                                      decoration: InputDecoration(
+                                        hintText: 'Enter new username',
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 16,
+                                        ),
+                                        filled: true,
+                                        fillColor: Theme.of(context).colorScheme.surface,
+                                        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context).colorScheme.primary,
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(nameController.text);
+                                        },
+                                        child: const Text('Save'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              if (newName != null && newName.isNotEmpty) {
+                                // Await the result of getCurrentUserID
+                                final userId = await Database().getCurrentUserID();
+                                if (userId != null) {
+                                  await FirebaseFirestore.instance
+                                      .collection('customers')
+                                      .doc(userId)
+                                      .update({'customerName': newName});
+
+                                  // Update the local state
+                                  cubit.updateUsername(newName);
+                                }
+                              }
+                            },
                             showTopDivider: false,
                           ),
                           _buildEnhancedSettingsItem(
@@ -306,7 +382,15 @@ class _UserScreen extends State<UserScreen> {
                             'Change Password',
                             Icons.lock_outline,
                             'Update your account security',
-                            () {/* Handle password change */},
+                                () async {
+                              final User? user = FirebaseAuth.instance.currentUser;
+                              if (user != null) {
+                                await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Password reset email sent to ${user.email}')),
+                                );
+                              }
+                            },
                           ),
                         ],
                       ),

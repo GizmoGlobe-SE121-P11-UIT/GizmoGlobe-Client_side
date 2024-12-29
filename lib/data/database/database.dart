@@ -50,6 +50,11 @@ class Database {
 
   Database._internal();
 
+  Future<String?> getCurrentUserID() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
+  }
+
   Future<void> fetchDataFromFirestore() async {
     try {
       getUser();
@@ -733,7 +738,6 @@ class Database {
       username = userDoc['username'];
     }
   }
-
   Future<void> getUser() async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -743,6 +747,9 @@ class Database {
       email = userDoc['email'];
     }
   }
+
+
+
 
   Future<void> fetchAddress() async {
     final User? user = FirebaseAuth.instance.currentUser;

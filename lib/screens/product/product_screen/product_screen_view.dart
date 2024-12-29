@@ -82,6 +82,9 @@ class _ProductScreenState extends State<ProductScreen> with SingleTickerProvider
               onChanged: (value) {
                 cubit.updateSearchText(searchController.text);
               },
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s-]')),
+              ],
             ),
             bottom: TabBar(
               controller: tabController,

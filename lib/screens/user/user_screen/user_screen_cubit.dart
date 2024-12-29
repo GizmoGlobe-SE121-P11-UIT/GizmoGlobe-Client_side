@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,20 @@ class UserScreenCubit extends Cubit<UserScreenState> {
     } catch (e) {
       if (kDebugMode) {
         print('Error signing out: $e');
+      }
+    }
+  }
+
+  void updateUsername(String newName) async {
+    if (newName.isNotEmpty) {
+      final userId = await Database().getCurrentUserID();
+      if (userId != null) {
+        await FirebaseFirestore.instance
+            .collection('customers')
+            .doc(userId)
+            .update({'customerName': newName});
+
+        emit(state.copyWith(username: newName));
       }
     }
   }
