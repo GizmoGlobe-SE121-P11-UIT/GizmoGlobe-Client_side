@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import 'package:gizmoglobe_client/services/stripe_services.dart';
+import '../../../data/database/database.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
+import '../../../objects/product_related/product.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import 'cart_screen_cubit.dart';
@@ -376,18 +378,21 @@ class _CartScreen extends State<CartScreen> {
   }
 
   IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case 'RAM':
+    CategoryEnum categoryEnum = CategoryEnum.values.firstWhere(
+      (element) => element.getName() == category,
+    );
+    switch (categoryEnum) {
+      case CategoryEnum.ram:
         return Icons.memory;
-      case 'CPU':
+      case CategoryEnum.cpu:
         return Icons.developer_board;
-      case 'GPU':
+      case CategoryEnum.gpu:
         return Icons.videocam;
-      case 'PSU':
+      case CategoryEnum.psu:
         return Icons.power;
-      case 'DRIVE':
+      case CategoryEnum.drive:
         return Icons.storage;
-      case 'MAINBOARD':
+      case CategoryEnum.mainboard:
         return Icons.dashboard;
       default:
         return Icons.devices_other;

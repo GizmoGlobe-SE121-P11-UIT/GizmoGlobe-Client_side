@@ -31,9 +31,7 @@ abstract class TabCubit extends Cubit<TabState> {
     ));
     emit(state.copyWith(
       manufacturerList: getManufacturerList(),
-      filterArgument: filter.copyWith(
-        manufacturerList: getManufacturerList(),
-      ),
+      filterArgument: filter.copyWith(manufacturerList: getManufacturerList()),
     ));
     applyFilters();
   }
