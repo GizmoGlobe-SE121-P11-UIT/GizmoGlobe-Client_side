@@ -738,6 +738,7 @@ class Database {
       username = userDoc['username'];
     }
   }
+
   Future<void> getUser() async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -746,6 +747,9 @@ class Database {
       username = userDoc['username'];
       email = userDoc['email'];
     }
+
+    await fetchAddress();
+    await fetchSalesInvoice();
   }
 
 

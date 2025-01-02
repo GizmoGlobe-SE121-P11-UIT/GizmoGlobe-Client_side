@@ -91,7 +91,6 @@ class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStat
                     title: 'Confirmed',
                     content: 'The delivery has been confirmed.',
                     onPressed: () {
-                      Navigator.pop(context);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
