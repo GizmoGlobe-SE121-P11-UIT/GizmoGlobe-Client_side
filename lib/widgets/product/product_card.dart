@@ -115,7 +115,7 @@ class ProductCard extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  product.discount != null && product.discount! > 0 ?
+                                  product.discount > 0 ?
                                     Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 6,
@@ -126,7 +126,7 @@ class ProductCard extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        '-${(product.discount!*100).toStringAsFixed(0)}%',
+                                        '-${(product.discount*100).toStringAsFixed(0)}%',
                                         style: TextStyle(
                                           color: Colors.blue[700],
                                           fontSize: 10,

@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
@@ -9,7 +8,6 @@ import 'forget_password_cubit.dart';
 import '../../../widgets/general/app_logo.dart';
 import '../../../widgets/general/field_with_icon.dart';
 import 'forget_password_state.dart';
-import '../../../enums/processing/notify_message_enum.dart';
 
 class ForgetPasswordScreen extends StatefulWidget {
   const ForgetPasswordScreen({super.key});
@@ -62,7 +60,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
               const Align(
                 alignment: Alignment.centerLeft,
                 child: GradientText(
-                    text: 'Forget Password',
+                    text: 'Forget Password', // 'Quên Mật Khẩu'
                     fontSize: 32),
               ),
               const SizedBox(height: 8),
@@ -70,7 +68,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Don’t worry! It happens. Please enter the email associated with your account.',
+                  'Do not worry! It happens. Please enter the email associated with your account.', //'Đừng lo lắng! Điều này có thể xảy ra. Vui lòng nhập email liên kết với tài khoản của bạn.'
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -81,7 +79,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Email address',
+                  'Email address', // 'Địa chỉ email'
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -91,7 +89,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
 
               FieldWithIcon(
                 controller: _emailController,
-                hintText: 'Enter your email address',
+                hintText: 'Enter your email address', // 'Nhập địa chỉ email của bạn'
                 fillColor: Theme.of(context).colorScheme.surface,
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
@@ -128,7 +126,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                   }
                 },
                 child: GradientButton(
-                  text: 'Send Verification Link',
+                  text: 'Send Verification Link', // 'Gửi Liên Kết Xác Thực'
                   onPress: () {
                     cubit.sendVerificationLink(_emailController.text.trim());
                   },

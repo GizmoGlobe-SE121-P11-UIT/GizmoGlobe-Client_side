@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
-import '../../../data/database/database.dart';
 import '../../../enums/processing/process_state_enum.dart';
 
 class CheckoutScreenState extends Equatable {

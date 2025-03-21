@@ -14,6 +14,7 @@ class MainScreenCubit extends Cubit<MainScreenState> {
       emit(state.copyWith(username: Database().username));
     } catch (e) {
       debugPrint('Error fetching username: $e');
+      // debugPrint('Lỗi khi lấy tên người dùng: $e');
     }
   }
 }

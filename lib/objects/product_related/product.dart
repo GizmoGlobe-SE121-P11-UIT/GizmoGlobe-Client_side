@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 
-import '../../data/database/database.dart';
 import '../../enums/product_related/category_enum.dart';
 import '../../enums/product_related/product_status_enum.dart';
 import 'product_factory.dart';

@@ -1,20 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gizmoglobe_client/enums/invoice_related/sales_status.dart';
 import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
-import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
-import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_cubit.dart';
-import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_state.dart';
-import 'package:gizmoglobe_client/screens/product/product_screen/product_tab/product_tab_view.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.dart';
-import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../enums/processing/process_state_enum.dart';
-import '../../../enums/product_related/category_enum.dart';
-import '../../../objects/product_related/product.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/app_text_style.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
@@ -65,7 +56,7 @@ class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStat
             },
             fillColor: Colors.transparent,
           ),
-          title: const GradientText(text: 'Order'),
+          title: const GradientText(text: 'Order'), // 'Đơn hàng'
           bottom: TabBar(
             controller: tabController,
             labelColor: Theme.of(context).colorScheme.primary,
@@ -88,8 +79,8 @@ class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStat
                 showDialog(
                   context: context,
                   builder: (context) => InformationDialog(
-                    title: 'Confirmed',
-                    content: 'The delivery has been confirmed.',
+                    title: 'Confirmed', // 'Xác nhận'
+                    content: 'The delivery has been confirmed.', // 'Đơn hàng đã được xác nhận giao thành công.'
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
@@ -111,7 +102,7 @@ class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStat
                     // Tab 1: To Ship List
                     state.toShipList.isEmpty
                         ? const Center(
-                      child: Text('No order is waiting to be shipped.', style: AppTextStyle.regularText),
+                      child: Text('No order is waiting to be shipped.', style: AppTextStyle.regularText), // 'Không có đơn hàng nào đang chờ vận chuyển.'
                     ) : ListView.builder(
                       itemCount: state.toShipList.length,
                       itemBuilder: (context, index) {
@@ -125,7 +116,7 @@ class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStat
                     // Tab 2: To Receive List
                     state.toReceiveList.isEmpty
                         ? const Center(
-                      child: Text('No order is waiting to be received.', style: AppTextStyle.regularText),
+                      child: Text('No order is waiting to be received.', style: AppTextStyle.regularText), // 'Không có đơn hàng nào đang chờ nhận.'
                     ) : ListView.builder(
                       itemCount: state.toReceiveList.length,
                       itemBuilder: (context, index) {
@@ -143,7 +134,7 @@ class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStat
                     // Tab 3: Completed List
                     state.completedList.isEmpty
                         ? const Center(
-                      child: Text('No order has been completed.', style: AppTextStyle.regularText),
+                      child: Text('No order has been completed.', style: AppTextStyle.regularText), // 'Không có đơn hàng nào đã hoàn thành.'
                     ) : ListView.builder(
                       itemCount: state.completedList.length,
                       itemBuilder: (context, index) {

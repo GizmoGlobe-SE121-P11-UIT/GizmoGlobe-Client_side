@@ -4,7 +4,6 @@ import 'package:gizmoglobe_client/screens/user/address_screen/address_screen_sta
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:gizmoglobe_client/widgets/general/invisible_gradient_button.dart';
-import '../../../data/database/database.dart';
 import '../../../objects/address_related/address.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../add_address_screen/add_address_screen_view.dart';
@@ -43,7 +42,7 @@ class _AddressScreen extends State<AddressScreen> {
           },
           fillColor: Colors.transparent,
         ),
-        title: const GradientText(text: 'Address'),
+        title: const GradientText(text: 'Address'), // 'Địa chỉ'
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -56,7 +55,7 @@ class _AddressScreen extends State<AddressScreen> {
                   const Center(child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 60.0),
                     child: Text(
-                      'No address found',
+                      'No address found', // 'Không tìm thấy địa chỉ'
                       style: AppTextStyle.regularText,
                     ),
                   )) :
@@ -110,7 +109,7 @@ class _AddressScreen extends State<AddressScreen> {
                 },
               ),
               InvisibleGradientButton(
-                text: 'Add Address',
+                text: 'Add Address', // 'Thêm địa chỉ'
                 prefixIcon: Icons.add,
                 onPressed: () async {
                   final result = await Navigator.push(

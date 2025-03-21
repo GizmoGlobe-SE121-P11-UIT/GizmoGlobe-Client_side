@@ -99,7 +99,7 @@ class _MonthPickerState extends State<MonthPicker> {
           builder: (context, setState) {
             return AlertDialog(
               title: const Text(
-                  'Choose month and year',
+                  'Choose month and year', //Chọn tháng - năm
                   style: TextStyle(
                     fontSize: 24.0,
                     fontWeight: FontWeight.bold,

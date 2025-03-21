@@ -4,9 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
-import '../../../data/database/database.dart';
 import '../../../objects/address_related/address.dart';
-import '../../../widgets/general/gradient_checkbox.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import 'edit_address_screen_cubit.dart';
 import '../../../widgets/general/address_picker.dart';
@@ -64,7 +62,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
             },
             fillColor: Colors.transparent,
           ),
-          title: const GradientText(text: 'Edit Address'),
+          title: const GradientText(text: 'Edit Address'), // 'Chỉnh sửa địa chỉ'
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -76,7 +74,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                     children: [
                       FieldWithIcon(
                         controller: _receiverNameController,
-                        hintText: 'Receiver Name',
+                        hintText: 'Receiver Name', // 'Tên người nhận'
                         onChanged: (value) {
                           cubit.updateAddress(receiverName: value);
                         },
@@ -89,7 +87,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
 
                       FieldWithIcon(
                         controller: _receiverPhoneController,
-                        hintText: 'Receiver Phone',
+                        hintText: 'Receiver Phone', // 'Số điện thoại người nhận'
                         onChanged: (value) {
                           cubit.updateAddress(receiverPhone: value);
                         },
@@ -118,7 +116,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
 
                       FieldWithIcon(
                         controller: _streetController,
-                        hintText: 'Street name, building, house no.',
+                        hintText: 'Street name, building, house no.', // 'Tên đường, tòa nhà, số nhà'
                         onChanged: (value) {
                           cubit.updateAddress(street: value);
                         },
@@ -140,7 +138,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         cubit.getAddresses(),
                       );
                     },
-                    child: Text('Save',
+                    child: Text('Save', // 'Lưu'
                       style: AppTextStyle.buttonTextBold.copyWith(color: Theme.of(context).colorScheme.onSurface),
                     ),
                   ),
@@ -154,7 +152,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade300,
                     ),
-                    child: Text('Delete',
+                    child: Text('Delete', // 'Xóa'
                       style: AppTextStyle.buttonTextBold.copyWith(color: Theme.of(context).colorScheme.onSurface),
                     ),
                   ),

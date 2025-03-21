@@ -1,13 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
-import 'package:gizmoglobe_client/enums/product_related/product_status_enum.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
-import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_state.dart';
 
-import '../../../../data/firebase/firebase.dart';
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../enums/processing/sort_enum.dart';
 import '../../../../objects/product_related/cpu.dart';
@@ -68,7 +65,10 @@ abstract class TabCubit extends Cubit<TabState> {
   }
 
   void applyFilters() {
-    print('Apply filter');
+    if (kDebugMode) {
+      print('Apply filter');
+    }
+    // print('Áp dụng bộ lọc');
     final filteredProducts = state.productList.where((product) {
       if (!product.productName.toLowerCase().contains(state.searchText.toLowerCase())) {
         return false;
@@ -196,7 +196,7 @@ abstract class TabCubit extends Cubit<TabState> {
 
       case CategoryEnum.psu:
         product as PSU;
-        final matchesPsuWattage = matchesMinMax(product.wattage.toDouble() ?? 0, state.filterArgument.minPsuWattage, state.filterArgument.maxPsuWattage);
+        final matchesPsuWattage = matchesMinMax(product.wattage.toDouble(), state.filterArgument.minPsuWattage, state.filterArgument.maxPsuWattage);
         return filterArgument.psuModularList.contains(product.modular) &&
             filterArgument.psuEfficiencyList.contains(product.efficiency) &&
             matchesPsuWattage;

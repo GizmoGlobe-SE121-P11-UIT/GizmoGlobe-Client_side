@@ -84,7 +84,7 @@ class _AdvancedFilterSearchScreenState extends State<AdvancedFilterSearchScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 OptionFilterView<CategoryEnum>(
-                  name: 'Category',
+                  name: 'Category', //Loại sản phẩm
                   enumValues: CategoryEnum.values,
                   selectedValues: state.selectedCategories,
                   onToggleSelection: cubit.toggleCategory,
@@ -98,7 +98,7 @@ class _AdvancedFilterSearchScreenState extends State<AdvancedFilterSearchScreen>
                 const SizedBox(height: 16.0),
 
                 RangeFilter(
-                  name: 'Price',
+                  name: 'Price', //Giá
                   fromController: fromController,
                   toController: toController,
                   onFromValueChanged: (value) {

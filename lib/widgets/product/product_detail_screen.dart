@@ -234,7 +234,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Text(
-                              'Quantity',
+                              'Quantity', // 'Số lượng'
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
@@ -288,8 +288,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              'Total Price',
+                            const Text(
+                              'Total Price', // 'Tổng tiền'
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
@@ -327,18 +327,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Added ${widget.product.productName} to cart',
+                                  'Added ${widget.product.productName} to cart', // 'Đã thêm ${widget.product.productName} vào giỏ hàng'
                                 ),
                                 backgroundColor: Theme.of(context).primaryColor,
                                 behavior: SnackBarBehavior.floating,
-                                margin: EdgeInsets.all(16),
+                                margin: const EdgeInsets.all(16),
                                 duration: const Duration(seconds: 2),
                               ),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Cannot add product to cart'),
+                                content: Text('Cannot add product to cart'), // 'Không thể thêm sản phẩm vào giỏ hàng'
                                 duration: Duration(seconds: 2),
                               ),
                             );
@@ -354,7 +354,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ),
                         child: const Text(
-                          'Add to Cart',
+                          'Add to Cart', // 'Thêm vào giỏ'
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -378,7 +378,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       const Padding(
         padding: EdgeInsets.only(bottom: 16.0),
         child: Text(
-          'Product Specifications',
+          'Product Specifications', // 'Thông số kỹ thuật'
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -387,76 +387,76 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       ),
       _buildSpecGroup(
-        'Basic Information',
-        [_buildSpecRow('Manufacturer', widget.product.manufacturer.manufacturerName)],
+        'Basic Information', // 'Thông tin cơ bản'
+        [_buildSpecRow('Manufacturer', widget.product.manufacturer.manufacturerName)], // 'Nhà sản xuất'
       ),
     ];
 
     switch (widget.product.runtimeType) {
-      case RAM:
+      case RAM _:
         final ram = widget.product as RAM;
         specs.add(_buildSpecGroup(
-          'Memory Specifications',
+          'Memory Specifications', // 'Thông số bộ nhớ'
           [
-            _buildSpecRow('Bus Speed', '${ram.bus} MHz'),
-            _buildSpecRow('Capacity', '${ram.capacity} GB'),
-            _buildSpecRow('RAM Type', ram.ramType.toString()),
+            _buildSpecRow('Bus Speed', '${ram.bus} MHz'), // 'Tốc độ Bus'
+            _buildSpecRow('Capacity', '${ram.capacity} GB'), // 'Dung lượng'
+            _buildSpecRow('RAM Type', ram.ramType.toString()), // 'Loại RAM'
           ],
         ));
         break;
-      case CPU:
+      case const (CPU):
         final cpu = widget.product as CPU;
         specs.add(_buildSpecGroup(
-          'Processor Specifications',
+          'Processor Specifications', // 'Thông số vi xử lý'
           [
-            _buildSpecRow('Family', cpu.family.toString()),
-            _buildSpecRow('Cores', '${cpu.core} Cores'),
-            _buildSpecRow('Threads', '${cpu.thread} Threads'),
-            _buildSpecRow('Clock Speed', '${cpu.clockSpeed} GHz'),
+            _buildSpecRow('Family', cpu.family.toString()), // 'Dòng'
+            _buildSpecRow('Cores', '${cpu.core} Cores'), // 'Nhân'
+            _buildSpecRow('Threads', '${cpu.thread} Threads'), // 'Luồng'
+            _buildSpecRow('Clock Speed', '${cpu.clockSpeed} GHz'), // 'Tốc độ xung nhịp'
           ],
         ));
         break;
-      case PSU:
+      case PSU _:
         final psu = widget.product as PSU;
         specs.add(_buildSpecGroup(
-          'Power Supply Specifications',
+          'Power Supply Specifications', // 'Thông số nguồn'
           [
-            _buildSpecRow('Wattage', psu.wattage.toString()),
-            _buildSpecRow('Efficiency', psu.efficiency.toString()),
-            _buildSpecRow('Modular', psu.modular.toString()),
+            _buildSpecRow('Wattage', psu.wattage.toString()), // 'Công suất'
+            _buildSpecRow('Efficiency', psu.efficiency.toString()), // 'Hiệu suất'
+            _buildSpecRow('Modular', psu.modular.toString()), // 'Kiểu mô-đun'
           ],
         ));
         break;
-      case GPU:
+      case GPU _:
         final gpu = widget.product as GPU;
         specs.add(_buildSpecGroup(
-          'Graphics Card Specifications',
+          'Graphics Card Specifications', // 'Thông số card đồ họa'
           [
-            _buildSpecRow('Series', gpu.series.toString()),
-            _buildSpecRow('Memory', gpu.capacity.toString()),
-            _buildSpecRow('Bus Width', gpu.bus.toString()),
-            _buildSpecRow('Clock Speed', gpu.clockSpeed.toString()),
+            _buildSpecRow('Series', gpu.series.toString()), // 'Dòng'
+            _buildSpecRow('Memory', gpu.capacity.toString()), // 'Bộ nhớ'
+            _buildSpecRow('Bus Width', gpu.bus.toString()), // 'Độ rộng Bus'
+            _buildSpecRow('Clock Speed', gpu.clockSpeed.toString()), // 'Tốc độ xung nhịp'
           ],
         ));
         break;
-      case Mainboard:
+      case Mainboard _:
         final mainboard = widget.product as Mainboard;
         specs.add(_buildSpecGroup(
-          'Motherboard Specifications',
+          'Motherboard Specifications', // 'Thông số bo mạch chủ'
           [
-            _buildSpecRow('Form Factor', mainboard.formFactor.toString()),
-            _buildSpecRow('Series', mainboard.series.toString()),
-            _buildSpecRow('Compatibility', mainboard.compatibility.toString()),
+            _buildSpecRow('Form Factor', mainboard.formFactor.toString()), // 'Kích thước'
+            _buildSpecRow('Series', mainboard.series.toString()), // 'Dòng'
+            _buildSpecRow('Compatibility', mainboard.compatibility.toString()), // 'Tương thích'
           ],
         ));
         break;
-      case Drive:
+      case Drive _:
         final drive = widget.product as Drive;
         specs.add(_buildSpecGroup(
-          'Storage Specifications',
+          'Storage Specifications', // 'Thông số lưu trữ'
           [
-            _buildSpecRow('Drive Type', drive.type.toString()),
-            _buildSpecRow('Capacity', drive.capacity.toString()),
+            _buildSpecRow('Drive Type', drive.type.toString()), // 'Loại ổ đĩa'
+            _buildSpecRow('Capacity', drive.capacity.toString()), // 'Dung lượng'
           ],
         ));
         break;
@@ -544,7 +544,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    return Container(
+    return SizedBox(
       width: 32,
       height: 32,
       child: IconButton(

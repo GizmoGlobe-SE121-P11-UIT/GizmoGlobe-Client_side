@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/screens/user/address_screen/address_screen_state.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:gizmoglobe_client/widgets/general/invisible_gradient_button.dart';
-import '../../../data/database/database.dart';
 import '../../../objects/address_related/address.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../user/add_address_screen/add_address_screen_view.dart';
@@ -45,7 +43,7 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
           },
           fillColor: Colors.transparent,
         ),
-        title: const GradientText(text: 'Address'),
+        title: const GradientText(text: 'Address'), // 'Địa chỉ'
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -58,7 +56,7 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
                   const Center(child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 60.0),
                     child: Text(
-                      'No address found',
+                      'No address found', // 'Không tìm thấy địa chỉ'
                       style: AppTextStyle.regularText,
                     ),
                   )) :
@@ -105,7 +103,7 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
                 },
               ),
               InvisibleGradientButton(
-                text: 'Add Address',
+                text: 'Add Address', // 'Thêm địa chỉ'
                 prefixIcon: Icons.add,
                 onPressed: () async {
                   final result = await Navigator.push(

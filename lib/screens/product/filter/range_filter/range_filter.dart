@@ -40,7 +40,7 @@ class RangeFilter extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'From',
+                    'From', //Từ
                     style: AppTextStyle.subtitleText.copyWith(
                       color: Theme.of(context).primaryColor,
                     ),
@@ -48,7 +48,7 @@ class RangeFilter extends StatelessWidget {
                   FieldWithIcon(
                     controller: fromController,
                     fillColor: Theme.of(context).colorScheme.surface,
-                    hintText: 'Min',
+                    hintText: 'Min', 
                     onChanged: onFromValueChanged,
                     keyboardType: TextInputType.number,
                   ),
@@ -61,7 +61,7 @@ class RangeFilter extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'To',
+                    'To', //Đến
                     style: AppTextStyle.subtitleText.copyWith(
                       color: Theme.of(context).primaryColor,
                     ),

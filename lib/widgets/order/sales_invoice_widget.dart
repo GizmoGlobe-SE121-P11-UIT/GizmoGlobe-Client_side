@@ -40,7 +40,7 @@ class SalesInvoiceWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Total ${salesInvoice.getTotalItems()} items: \$${salesInvoice.totalPrice.toStringAsFixed(2)}',
+                      'Total ${salesInvoice.getTotalItems()} items: \$${salesInvoice.totalPrice.toStringAsFixed(2)}', // 'Tổng ${salesInvoice.getTotalItems()} sản phẩm: \$${salesInvoice.totalPrice.toStringAsFixed(2)}'
                       style: AppTextStyle.regularText,
                     ),
                     const SizedBox(height: 8),
@@ -62,7 +62,7 @@ class SalesInvoiceWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Your order is being processed.',
+              'Your order is being processed.', // 'Đơn hàng của bạn đang được xử lý.'
               style: AppTextStyle.bigText,
             ),
           ],
@@ -73,7 +73,7 @@ class SalesInvoiceWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Your order is being prepared.',
+              'Your order is being prepared.', // 'Đơn hàng của bạn đang được chuẩn bị.'
               style: AppTextStyle.bigText,
             ),
           ],
@@ -83,7 +83,7 @@ class SalesInvoiceWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Your order is on the way.',
+              'Your order is on the way.', // 'Đơn hàng của bạn đang trên đường giao.'
               style: AppTextStyle.bigText,
             ),
           ],
@@ -93,12 +93,12 @@ class SalesInvoiceWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             const Text(
-              'Your order has been delivered.',
+              'Your order has been delivered.', // 'Đơn hàng của bạn đã được giao.'
               style: AppTextStyle.bigText,
             ),
             const SizedBox(height: 4),
             const Text(
-              'Please confirm the delivery.',
+              'Please confirm the delivery.', // 'Vui lòng xác nhận đã nhận hàng.'
               style: AppTextStyle.bigText,
             ),
             const SizedBox(height: 8),
@@ -110,7 +110,7 @@ class SalesInvoiceWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text('Received', style: AppTextStyle.buttonTextBold.copyWith(color: Colors.white)),
+              child: Text('Received', style: AppTextStyle.buttonTextBold.copyWith(color: Colors.white)), // 'Đã nhận'
             ),
           ],
         );
@@ -119,12 +119,12 @@ class SalesInvoiceWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Your order has been completed.',
+              'Your order has been completed.', // 'Đơn hàng của bạn đã hoàn thành.'
               style: AppTextStyle.bigText,
             ),
             SizedBox(height: 4),
             Text(
-              'Thank you for your purchase!',
+              'Thank you for your purchase!', // 'Cảm ơn bạn đã mua hàng!'
               style: AppTextStyle.bigText,
             ),
           ],
@@ -134,12 +134,12 @@ class SalesInvoiceWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Status: Unknown',
+              'Status: Unknown', // 'Trạng thái: Không xác định'
               style: AppTextStyle.bigText,
             ),
             SizedBox(height: 8),
             Text(
-              'Please contact support.',
+              'Please contact support.', // 'Vui lòng liên hệ hỗ trợ.'
               style: AppTextStyle.bigText,
             ),
           ],

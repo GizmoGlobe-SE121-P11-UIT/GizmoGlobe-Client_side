@@ -21,7 +21,7 @@ class ManufacturerFilter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Manufacturer',
+          'Manufacturer', //Nhà sản xuất
           style: AppTextStyle.buttonTextBold,
         ),
         Wrap(

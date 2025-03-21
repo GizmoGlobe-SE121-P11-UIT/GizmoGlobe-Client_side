@@ -19,17 +19,12 @@ class CheckboxButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final gradient = LinearGradient(
-      colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-    );
+    Theme.of(context);
 
     return GestureDetector(
       onTap: onSelected,
       child: Container(
-        padding: padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: padding,
         decoration: BoxDecoration(
           gradient: isSelected ? 
             LinearGradient(
@@ -45,11 +40,8 @@ class CheckboxButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: textStyle?.copyWith(
+          style: textStyle.copyWith(
             color: isSelected ? Colors.white : Colors.grey[600],
-          ) ?? TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[600],
-            fontSize: 12,
           ),
         ),
       ),

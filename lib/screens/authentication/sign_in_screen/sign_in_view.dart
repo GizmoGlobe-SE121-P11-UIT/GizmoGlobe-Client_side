@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../widgets/dialog/information_dialog.dart';
@@ -56,14 +55,14 @@ class _SignInScreen extends State<SignInScreen> {
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: GradientText(
-                      text: 'Sign in',
+                      text: 'Sign in', // 'Đăng nhập'
                       fontSize: 32),
                   ),
                   const SizedBox(height: 30),
 
                   FieldWithIcon(
                     controller: _emailController,
-                    hintText: 'Your email',
+                    hintText: 'Your email', // 'Email của bạn'
                     fillColor: Theme.of(context).colorScheme.surface,
                     fontSize: 16,
                     fontWeight: FontWeight.normal,
@@ -77,7 +76,7 @@ class _SignInScreen extends State<SignInScreen> {
 
                   FieldWithIcon(
                     controller: _passwordController,
-                    hintText: 'Password',
+                    hintText: 'Password', // 'Mật khẩu'
                     fillColor: Theme.of(context).colorScheme.surface,
                     fontSize: 16,
                     fontWeight: FontWeight.normal,
@@ -96,7 +95,7 @@ class _SignInScreen extends State<SignInScreen> {
                         Navigator.pushNamed(context, '/forget-password');
                       },
                       child: Text(
-                        'Forgot password?',
+                        'Forgot password?', // 'Quên mật khẩu?'
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w400,
@@ -142,7 +141,7 @@ class _SignInScreen extends State<SignInScreen> {
                             onPress: () async {
                               await cubit.signInWithEmailPassword();
                             },
-                            text: 'Sign in',
+                            text: 'Sign in', // 'Đăng nhập'
                             gradient: LinearGradient(
                               colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                               begin: Alignment.centerLeft,
@@ -156,7 +155,7 @@ class _SignInScreen extends State<SignInScreen> {
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                                 child: Text(
-                                  'or',
+                                  'or', // 'hoặc'
                                   style: TextStyle(color: Theme.of(context).colorScheme.primary),
                                 ),
                               ),
@@ -168,7 +167,7 @@ class _SignInScreen extends State<SignInScreen> {
                             onPress: () async {
                               await cubit.signInWithGoogle();
                             },
-                            text: 'Continue with Google',
+                            text: 'Continue with Google', // 'Tiếp tục với Google'
                             gradient: LinearGradient(
                               colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                               begin: Alignment.centerLeft,
@@ -185,7 +184,7 @@ class _SignInScreen extends State<SignInScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    "Don't have an account?",
+                    "Don't have an account?", // 'Chưa có tài khoản?'
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w400,
@@ -197,7 +196,7 @@ class _SignInScreen extends State<SignInScreen> {
                       Navigator.pushNamed(context, '/sign-up');
                     },
                     child: Text(
-                      'Sign up',
+                      'Sign up', // 'Đăng ký'
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 14,

@@ -11,7 +11,6 @@ import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dar
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
-import 'package:gizmoglobe_client/widgets/filter/advanced_filter_search/advanced_filter_search_state.dart';
 import 'package:gizmoglobe_client/providers/cart_provider.dart';
 
 import 'consts.dart';
@@ -29,7 +28,7 @@ void main() async {
       runApp(MaterialApp(
         home: Scaffold(
           body: Center(
-            child: Text('Error initializing Firebase: $e'),
+            child: Text('Error initializing Firebase: $e'), // 'Lỗi khởi tạo Firebase: $e'
           ),
         ),
       ));
@@ -53,7 +52,7 @@ class MyApp extends StatelessWidget {
       ],
       child: CartProvider(
         child: MaterialApp(
-          title: 'GizmoGlobe',
+          title: 'GizmoGlobe', // 'GizmoGlobe - Cửa hàng linh kiện máy tính'
           theme: ThemeData(
             primarySwatch: Colors.blue,
             colorScheme: const ColorScheme(
@@ -93,7 +92,7 @@ class AuthWrapper extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator()); // 'Đang tải...'
         }
         if (snapshot.hasData) {
           return const MainScreen();

@@ -1,8 +1,6 @@
 // lib/screens/main/main_screen/main_screen_view.dart
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
 import '../../../widgets/general/selectable_gradient_icon.dart';
@@ -66,28 +64,28 @@ class _MainScreenState extends State<MainScreen> {
                 icon: Icons.home,
                 isSelected: index == 0,
               ),
-              label: "Home",
+              label: "Home", // "Trang chủ"
             ),
             BottomNavigationBarItem(
               icon: SelectableGradientIcon(
                 icon: Icons.shopping_bag,
                 isSelected: index == 1,
               ),
-              label: "Product",
+              label: "Product", // "Sản phẩm"
             ),
             const BottomNavigationBarItem(
               icon: SelectableGradientIcon(
                 icon: Icons.shopping_cart,
                 isSelected: false,
               ),
-              label: "Cart",
+              label: "Cart", // "Giỏ hàng"
             ),
             BottomNavigationBarItem(
               icon: SelectableGradientIcon(
                 icon: Icons.person,
                 isSelected: index == 2,
               ),
-              label: "User",
+              label: "User", // "Người dùng"
             ),
           ],
         ),

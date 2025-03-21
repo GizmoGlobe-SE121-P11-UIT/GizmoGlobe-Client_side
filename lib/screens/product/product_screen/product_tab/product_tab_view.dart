@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 
-import '../../../../data/database/database.dart';
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../enums/processing/sort_enum.dart';
-import '../../../../enums/product_related/category_enum.dart';
-import '../../../../enums/product_related/product_status_enum.dart';
 import '../../../../objects/product_related/filter_argument.dart';
 import '../../../../objects/product_related/product.dart';
 import '../../../../widgets/general/app_text_style.dart';
 import '../../../../widgets/product/product_card.dart';
 import '../../filter/filter_screen/filter_screen_view.dart';
 import '../../mixin/product_tab_mixin.dart';
-import '../../product_detail/product_detail_view.dart';
 import 'product_tab_cubit.dart';
 import 'product_tab_state.dart';
 
@@ -79,7 +75,7 @@ class _ProductTabState extends State<ProductTab> with SingleTickerProviderStateM
                   return Row(
                     children: [
                       const Text(
-                        'Sort by: ',
+                        'Sort by: ', // 'Sắp xếp theo: '
                         style: AppTextStyle.smallText,
                       ),
                       const SizedBox(width: 8),
@@ -96,7 +92,7 @@ class _ProductTabState extends State<ProductTab> with SingleTickerProviderStateM
                             value: value,
                             child: Row(
                               children: [
-                                Text(value.toString()),
+                                Text(value.toString()), // Các giá trị enum cần được dịch trong enum class
                               ],
                             ),
                           );
@@ -141,7 +137,7 @@ class _ProductTabState extends State<ProductTab> with SingleTickerProviderStateM
                   builder: (context, state) {
                     if (state.filteredProductList.isEmpty) {
                       return const Center(
-                        child: Text('No products found'),
+                        child: Text('No products found'), // 'Không tìm thấy sản phẩm'
                       );
                     }
                     return GridView.builder(

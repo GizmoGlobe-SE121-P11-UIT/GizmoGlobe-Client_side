@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
-import 'package:gizmoglobe_client/services/stripe_services.dart';
-import '../../../data/database/database.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
-import '../../../objects/product_related/product.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import 'cart_screen_cubit.dart';
@@ -39,7 +35,7 @@ class _CartScreen extends State<CartScreen> {
           },
           fillColor: Theme.of(context).colorScheme.surface,
         ),
-        title: const GradientText(text: 'Cart'),
+        title: const GradientText(text: 'Cart'), // 'Giỏ hàng'
       ),
       body: BlocBuilder<CartScreenCubit, CartScreenState>(
         builder: (context, state) {
@@ -48,11 +44,11 @@ class _CartScreen extends State<CartScreen> {
           }
 
           if (state.processState == ProcessState.failure) {
-            return Center(child: Text(state.error ?? 'Error loading cart'));
+            return Center(child: Text(state.error ?? 'Error loading cart')); // 'Lỗi khi tải giỏ hàng'
           }
 
           if (state.items.isEmpty) {
-            return const Center(child: Text('Your cart is empty'));
+            return const Center(child: Text('Your cart is empty')); // 'Giỏ hàng của bạn trống'
           }
 
           return Column(
@@ -225,17 +221,17 @@ class _CartScreen extends State<CartScreen> {
                                     builder: (context) => AlertDialog(
                                       backgroundColor: Theme.of(context).colorScheme.surface,
                                       title: const Text(
-                                        'Remove Item',
+                                        'Remove Item', // 'Xóa sản phẩm'
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       content: const Text(
-                                        'Are you sure you want to remove this item from your cart?',
+                                        'Are you sure you want to remove this item from your cart?', // 'Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?'
                                         style: TextStyle(color: Colors.white70),
                                       ),
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.pop(context),
-                                          child: const Text('Cancel'),
+                                          child: const Text('Cancel'), // 'Hủy'
                                         ),
                                         TextButton(
                                           onPressed: () {
@@ -243,7 +239,7 @@ class _CartScreen extends State<CartScreen> {
                                             cubit.removeFromCart(item['productID'] as String);
                                           },
                                           child: const Text(
-                                            'Remove',
+                                            'Remove', // 'Xóa'
                                             style: TextStyle(color: Colors.red),
                                           ),
                                         ),
@@ -299,7 +295,7 @@ class _CartScreen extends State<CartScreen> {
                               ),
                             ),
                             const Text(
-                              'Select all',
+                              'Select all', // 'Chọn tất cả'
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -342,13 +338,6 @@ class _CartScreen extends State<CartScreen> {
                             return;
                           }
 
-                          final result = await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => CheckoutScreen.newInstance(
-                                cartItems: cubit.convertItemsToProductQuantityList(),
-                              ),
-                            ),
-                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
@@ -358,7 +347,7 @@ class _CartScreen extends State<CartScreen> {
                           ),
                         ),
                         child: const Text(
-                          'Go to checkout',
+                          'Go to checkout', // 'Tiến hành thanh toán'
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

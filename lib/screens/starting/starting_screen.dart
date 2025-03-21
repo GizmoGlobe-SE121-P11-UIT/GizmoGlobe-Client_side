@@ -68,7 +68,7 @@ class WelcomeScreen extends StatelessWidget {
                   backgroundColor: WidgetStateProperty.all<Color>(
                       const Color(0xFFC15BFF)), // Purple color for button
                 ),
-                child: const Text('Tạo tài khoản mới'),
+                child: const Text('Create new account'), //Tạo tài khoản mới
               ),
               const SizedBox(height: 10), // Add spacing between buttons
               ElevatedButton(
@@ -79,7 +79,7 @@ class WelcomeScreen extends StatelessWidget {
                   backgroundColor: WidgetStateProperty.all<Color>(
                       const Color(0xFF0A98FF)), // Blue color for button
                 ),
-                child: const Text('Đã có tài khoản'),
+                child: const Text('Signed Up?'), //Đã có tài khoản
               ),
             ],
           ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/services/stripe_services.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
@@ -9,7 +8,6 @@ import '../../../objects/product_related/product.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
-import '../../user/address_screen/address_screen_view.dart';
 import '../cart_screen/cart_screen_view.dart';
 import '../choose_address_screen/choose_address_screen_view.dart';
 import 'checkout_screen_cubit.dart';
@@ -55,7 +53,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
           },
           fillColor: Theme.of(context).colorScheme.surface,
         ),
-        title: const GradientText(text: 'Checkout'),
+        title: const GradientText(text: 'Checkout'), // 'Thanh toán'
       ),
       body: BlocConsumer<CheckoutScreenCubit, CheckoutScreenState>(
         listener: (context, state) {
@@ -65,8 +63,8 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                 context: context,
                 builder: (context) =>
                     InformationDialog(
-                      title: 'Order Placed',
-                      content: 'Your order has been placed successfully',
+                      title: 'Order Placed', // 'Đặt hàng thành công'
+                      content: 'Your order has been placed successfully', // 'Đơn hàng của bạn đã được đặt thành công'
                       onPressed: () =>
                       {
                         Navigator.pop(context),
@@ -80,7 +78,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                     ),
               );
             }
-          };
+          }
         },
         builder: (context, state) {
           if (state.processState == ProcessState.loading) {
@@ -88,7 +86,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
           }
 
           if (state.processState == ProcessState.failure) {
-            return Center(child: Text(state.error ?? 'Error loading checkout'));
+            return Center(child: Text(state.error ?? 'Error loading checkout')); // 'Lỗi khi tải trang thanh toán'
           }
 
           return Column(
@@ -191,7 +189,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Shipping Address',
+                        'Shipping Address', // 'Địa chỉ giao hàng'
                         style: AppTextStyle.boldText,
                       ),
                       GestureDetector(
@@ -219,7 +217,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                 state.salesInvoice?.address == Address.nullAddress ?
                                 const Center(
                                   child: Text(
-                                    'Choose Address',
+                                    'Choose Address', // 'Chọn địa chỉ'
                                     style: AppTextStyle.regularText,
                                   ),
                                 ) :
@@ -262,7 +260,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                       children: [
                         const Row(
                           children: [
-                            GradientText(text: 'Total cost'),
+                            GradientText(text: 'Total cost'), // 'Tổng tiền'
                           ],
                         ),
                         Column(
@@ -297,7 +295,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                       child: ElevatedButton(
                         onPressed: () async {
                           if (state.salesInvoice?.address == Address.nullAddress) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please choose an address')));
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please choose an address'))); // 'Vui lòng chọn địa chỉ'
                             return;
                           }
                           await cubit.checkout();
@@ -310,7 +308,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                           ),
                         ),
                         child: const Text(
-                          'Place Order',
+                          'Place Order', // 'Đặt hàng'
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -339,7 +337,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
         return Icons.videocam;
       case CategoryEnum.psu:
         return Icons.power;
-      case CategoryEnum.mainboard:
+      case CategoryEnum.drive:
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;

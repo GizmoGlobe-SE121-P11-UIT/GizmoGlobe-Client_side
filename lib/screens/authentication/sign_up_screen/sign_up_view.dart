@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../widgets/general/app_logo.dart';
@@ -86,14 +85,14 @@ class _SignUpScreen extends State<SignUpScreen> {
               const Align(
                 alignment: Alignment.centerLeft,
                 child: GradientText(
-                    text: 'Create an account',
+                    text: 'Create an account', // 'Tạo tài khoản'
                     fontSize: 32),
               ),
 
               const SizedBox(height: 30),
               FieldWithIcon(
                 controller: _nameController,
-                hintText: 'Full name',
+                hintText: 'Full name', // 'Họ và tên'
                 fillColor: Theme.of(context).colorScheme.surface,
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
@@ -107,7 +106,7 @@ class _SignUpScreen extends State<SignUpScreen> {
 
               FieldWithIcon(
                 controller: _emailController,
-                hintText: 'Email address',
+                hintText: 'Email address', // 'Địa chỉ email'
                 fillColor: Theme.of(context).colorScheme.surface,
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
@@ -122,7 +121,7 @@ class _SignUpScreen extends State<SignUpScreen> {
 
               FieldWithIcon(
                 controller: _phoneController,
-                hintText: 'Phone number',
+                hintText: 'Phone number', // 'Số điện thoại'
                 fillColor: Theme.of(context).colorScheme.surface,
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
@@ -138,7 +137,7 @@ class _SignUpScreen extends State<SignUpScreen> {
 
               FieldWithIcon(
                 controller: _passwordController,
-                hintText: 'Password',
+                hintText: 'Password', // 'Mật khẩu'
                 fillColor: Theme.of(context).colorScheme.surface,
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
@@ -153,7 +152,7 @@ class _SignUpScreen extends State<SignUpScreen> {
 
               FieldWithIcon(
                 controller: _confirmPasswordController,
-                hintText: 'Confirm password',
+                hintText: 'Confirm password', // 'Xác nhận mật khẩu'
                 fillColor: Theme.of(context).colorScheme.surface,
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
@@ -198,7 +197,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                     onPress: () async {
                       await cubit.signUp();
                     },
-                    text: 'Create account',
+                    text: 'Create account', // 'Tạo tài khoản'
                     gradient: LinearGradient(
                       colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
                       begin: Alignment.centerLeft,

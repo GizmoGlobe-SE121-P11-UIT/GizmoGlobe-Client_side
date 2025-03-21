@@ -3,17 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../data/database/database.dart';
 import '../../../enums/processing/order_option_enum.dart';
-import '../../../widgets/general/invisible_gradient_button.dart';
-import '../../../widgets/general/vertical_icon_button.dart';
-import '../add_address_screen/add_address_screen_view.dart';
 import '../address_screen/address_screen_view.dart';
 import '../order_screen/order_screen_view.dart';
 import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
-import '../../../data/firebase/firebase.dart'; // Import the Firebase file
+// Import the Firebase file
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -175,7 +171,7 @@ class _UserScreen extends State<UserScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'My Orders',
+                                  'My Orders', // 'Đơn hàng của tôi'
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
@@ -191,7 +187,7 @@ class _UserScreen extends State<UserScreen> {
                                 _buildEnhancedOrderStatus(
                                   context,
                                   FontAwesomeIcons.box,
-                                  'To Ship',
+                                  'To Ship', // 'Chờ vận chuyển'
                                   () {
                                     Navigator.push(
                                       context,
@@ -206,7 +202,7 @@ class _UserScreen extends State<UserScreen> {
                                 _buildEnhancedOrderStatus(
                                   context,
                                   Icons.local_shipping_outlined,
-                                  'To Receive',
+                                  'To Receive', // 'Chờ nhận hàng'
                                   () {
                                     Navigator.push(
                                       context,
@@ -221,7 +217,7 @@ class _UserScreen extends State<UserScreen> {
                                 _buildEnhancedOrderStatus(
                                   context,
                                   FontAwesomeIcons.circleCheck,
-                                  'Completed',
+                                  'Completed', // 'Đã hoàn thành'
                                   () {
                                     Navigator.push(
                                       context,
@@ -450,7 +446,7 @@ class _UserScreen extends State<UserScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
@@ -490,7 +486,7 @@ class _UserScreen extends State<UserScreen> {
           leading: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(

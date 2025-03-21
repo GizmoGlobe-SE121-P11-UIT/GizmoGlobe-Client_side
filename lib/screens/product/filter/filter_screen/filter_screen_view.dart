@@ -112,7 +112,7 @@ class _FilterScreenState extends State<FilterScreen> {
                 Navigator.of(context).pop();
               },
             ),
-            title: const Text('Filter', style: AppTextStyle.biggerText),
+            title: const Text('Filter', style: AppTextStyle.biggerText), //Lọc
             actions: [
               TextButton(
                 onPressed: () {
@@ -136,7 +136,7 @@ class _FilterScreenState extends State<FilterScreen> {
                 ),
                 const SizedBox(height: 16.0),
                 RangeFilter(
-                  name: 'Price',
+                  name: 'Price', //Giá
                   fromController: minPriceController,
                   toController: maxPriceController,
                   onFromValueChanged: (value) {
@@ -188,7 +188,7 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Category',
+          name: 'Category', //Thể loại
           enumValues: CategoryEnum.values,
           selectedValues: List<CategoryEnum>.from(state.filterArgument.categoryList),
           onToggleSelection: (category) {
@@ -234,7 +234,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         OptionFilter(
-          name: 'Capacity',
+          name: 'Capacity', //Dung lượng
           enumValues: RAMCapacity.values,
           selectedValues: List<RAMCapacity>.from(state.filterArgument.ramCapacityList),
           onToggleSelection: (capacity) {
@@ -254,7 +254,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         OptionFilter(
-          name: 'Type',
+          name: 'Type', //Loại
           enumValues: RAMType.values,
           selectedValues: List<RAMType>.from(state.filterArgument.ramTypeList),
           onToggleSelection: (type) {
@@ -280,7 +280,7 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Family',
+          name: 'Family', //Loại
           enumValues: CPUFamily.values,
           selectedValues: List<CPUFamily>.from(state.filterArgument.cpuFamilyList),
           onToggleSelection: (family) {
@@ -300,7 +300,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         RangeFilter(
-          name: 'CPU Core',
+          name: 'CPU Core', //Nhân
           fromController: minCpuCoreController,
           toController: maxCpuCoreController,
           onFromValueChanged: (value) {
@@ -319,7 +319,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         RangeFilter(
-          name: 'CPU Thread',
+          name: 'CPU Thread', //Luồng
           fromController: minCpuThreadController,
           toController: maxCpuThreadController,
           onFromValueChanged: (value) {
@@ -338,7 +338,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         RangeFilter(
-          name: 'CPU Clock Speed',
+          name: 'CPU Clock Speed', //Xung nhịp
           fromController: minCpuClockSpeedController,
           toController: maxCpuClockSpeedController,
           onFromValueChanged: (value) {
@@ -363,7 +363,7 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Modular',
+          name: 'Modular', //Loại Module
           enumValues: PSUModular.values,
           selectedValues: List<PSUModular>.from(state.filterArgument.psuModularList),
           onToggleSelection: (modular) {
@@ -383,7 +383,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         OptionFilter(
-          name: 'Efficiency',
+          name: 'Efficiency', //Chuẩn hiệu suất
           enumValues: PSUEfficiency.values,
           selectedValues: List<PSUEfficiency>.from(state.filterArgument.psuEfficiencyList),
           onToggleSelection: (efficiency) {
@@ -403,7 +403,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         RangeFilter(
-          name: 'PSU Wattage',
+          name: 'PSU Wattage', //Công suất
           fromController: minPsuWattageController,
           toController: maxPsuWattageController,
           onFromValueChanged: (value) {
@@ -448,7 +448,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         OptionFilter(
-          name: 'Capacity',
+          name: 'Capacity', //Dung lượng
           enumValues: GPUCapacity.values,
           selectedValues: List<GPUCapacity>.from(state.filterArgument.gpuCapacityList),
           onToggleSelection: (capacity) {
@@ -468,7 +468,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         OptionFilter(
-          name: 'Series',
+          name: 'Series', //Dòng
           enumValues: GPUSeries.values,
           selectedValues: List<GPUSeries>.from(state.filterArgument.gpuSeriesList),
           onToggleSelection: (series) {
@@ -488,7 +488,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         RangeFilter(
-          name: 'GPU Clock Speed',
+          name: 'GPU Clock Speed', //Xung nhịp
           fromController: minGpuClockSpeedController,
           toController: maxGpuClockSpeedController,
           onFromValueChanged: (value) {
@@ -513,7 +513,7 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Type',
+          name: 'Type', //Loại
           enumValues: DriveType.values,
           selectedValues: List<DriveType>.from(state.filterArgument.driveTypeList),
           onToggleSelection: (type) {
@@ -533,7 +533,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         OptionFilter(
-          name: 'Capacity',
+          name: 'Capacity', //Dung lượng
           enumValues: DriveCapacity.values,
           selectedValues: List<DriveCapacity>.from(state.filterArgument.driveCapacityList),
           onToggleSelection: (capacity) {
@@ -559,7 +559,7 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Form Factor',
+          name: 'Form Factor', //Loại kích cỡ
           enumValues: MainboardFormFactor.values,
           selectedValues: List<MainboardFormFactor>.from(state.filterArgument.mainboardFormFactorList),
           onToggleSelection: (formFactor) {
@@ -579,7 +579,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         OptionFilter(
-          name: 'Series',
+          name: 'Series', //Dòng
           enumValues: MainboardSeries.values,
           selectedValues: List<MainboardSeries>.from(state.filterArgument.mainboardSeriesList),
           onToggleSelection: (series) {
@@ -599,7 +599,7 @@ class _FilterScreenState extends State<FilterScreen> {
         const SizedBox(height: 16.0),
 
         OptionFilter(
-          name: 'Compatibility',
+          name: 'Compatibility', //Tính tương thích
           enumValues: MainboardCompatibility.values,
           selectedValues: List<MainboardCompatibility>.from(state.filterArgument.mainboardCompatibilityList),
           onToggleSelection: (compatibility) {

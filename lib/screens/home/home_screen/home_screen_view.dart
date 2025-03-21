@@ -1,11 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
 import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
-import 'package:gizmoglobe_client/widgets/general/gradient_button.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:gizmoglobe_client/widgets/product/product_card.dart';
@@ -13,12 +9,7 @@ import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_cubit.dar
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_state.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 
-import '../../../data/database/database.dart';
-import '../../../data/firebase/firebase.dart';
 import '../../../enums/processing/sort_enum.dart';
-import '../../../widgets/general/gradient_icon_button.dart';
-import '../../../widgets/general/field_with_icon.dart';
-import 'home_screen_cubit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -75,7 +66,7 @@ class _HomeScreen extends State<HomeScreen> {
                           children: [
                             _buildCarousel(
                               context,
-                              title: 'Best Sellers',
+                              title: 'Best Sellers', // 'Bán chạy nhất'
                               products: state.bestSellerProducts,
                               onSeeAll: () {
                                 Navigator.push(
@@ -87,7 +78,7 @@ class _HomeScreen extends State<HomeScreen> {
                             const SizedBox(height: 16),
                             _buildCarousel(
                               context,
-                              title: 'Favorites',
+                              title: 'Favorites', // 'Yêu thích'
                               products: state.favoriteProducts,
                               onSeeAll: () {
                                 Navigator.push(
@@ -122,7 +113,7 @@ class _HomeScreen extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: onSeeAll,
-              child: const Text('See All'),
+              child: const Text('See All'), // 'Xem tất cả'
             ),
           ],
         ),

@@ -5,13 +5,7 @@ import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:intl/intl.dart';
 
-import '../../../objects/product_related/cpu.dart';
-import '../../../objects/product_related/drive.dart';
-import '../../../objects/product_related/gpu.dart';
-import '../../../objects/product_related/mainboard.dart';
 import '../../../objects/product_related/product.dart';
-import '../../../objects/product_related/psu.dart';
-import '../../../objects/product_related/ram.dart';
 
 
 class ProductDetailScreen extends StatelessWidget {
@@ -35,13 +29,13 @@ class ProductDetailScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.share),
+            icon: const Icon(Icons.share),
             onPressed: () {
               // Implement share functionality
             },
           ),
           IconButton(
-            icon: Icon(Icons.favorite_border),
+            icon: const Icon(Icons.favorite_border),
             onPressed: () {
               // Implement wishlist functionality
             },
@@ -50,7 +44,7 @@ class ProductDetailScreen extends StatelessWidget {
         title: BlocBuilder<ProductDetailCubit, ProductDetailState>(
           builder: (context, state) => Text(
             state.product.productName,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
         ),
       ),
@@ -81,29 +75,29 @@ class ProductDetailScreen extends StatelessWidget {
                     children: [
                       // Basic Information Section
                       Text(
-                        'Basic Information',
+                        'Basic Information', // 'Thông tin cơ bản'
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.blue[300],
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       
                       _buildInfoRow(
                         icon: Icons.inventory_2,
-                        title: 'Product',
+                        title: 'Product', // 'Sản phẩm'
                         value: product.productName,
                       ),
                       
                       _buildInfoRow(
                         icon: Icons.category,
-                        title: 'Category',
+                        title: 'Category', // 'Danh mục'
                         value: product.category.toString().split('.').last,
                       ),
                       
                       _buildInfoRow(
                         icon: Icons.business,
-                        title: 'Manufacturer',
+                        title: 'Manufacturer', // 'Nhà sản xuất'
                         value: product.manufacturer.manufacturerName,
                       ),
                       
@@ -117,7 +111,7 @@ class ProductDetailScreen extends StatelessWidget {
                       
                       // Status Information Section
                       Text(
-                        'Status Information',
+                        'Status Information', // 'Thông tin trạng thái'
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.blue[300],
@@ -128,15 +122,15 @@ class ProductDetailScreen extends StatelessWidget {
                       Row(
                         children: [
                           _buildStatusChip(product.status),
-                          SizedBox(width: 16),
+                          const SizedBox(width: 16),
                           Icon(
                             product.stock > 0 ? Icons.check_circle : Icons.error,
                             color: product.stock > 0 ? Colors.green : Colors.red,
                             size: 16,
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
-                            'Stock: ${product.stock}',
+                            'Stock: ${product.stock}', // 'Tồn kho: ${product.stock}'
                             style: TextStyle(
                               color: product.stock > 0 ? Colors.green : Colors.red,
                               fontWeight: FontWeight.w500,
@@ -145,24 +139,24 @@ class ProductDetailScreen extends StatelessWidget {
                         ],
                       ),
                       
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       _buildInfoRow(
                         icon: Icons.calendar_today,
-                        title: 'Release Date',
+                        title: 'Release Date', // 'Ngày phát hành'
                         value: DateFormat('dd/MM/yyyy').format(product.release),
                       ),
                       
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       
                       // Technical Specifications Section
                       Text(
-                        'Technical Specifications',
+                        'Technical Specifications', // 'Thông số kỹ thuật'
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.blue[300],
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       
                       ..._buildProductSpecificDetails(context, product, state.technicalSpecs),
                     ],
@@ -200,7 +194,7 @@ class ProductDetailScreen extends StatelessWidget {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: chipColor,
         borderRadius: BorderRadius.circular(16),
@@ -226,10 +220,10 @@ class ProductDetailScreen extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 20, color: Colors.grey[500]),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(
             '$title: ',
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.w900,
               color: Colors.white,
             ),
@@ -237,7 +231,7 @@ class ProductDetailScreen extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w400,
               ),
@@ -301,7 +295,7 @@ class ProductDetailScreen extends StatelessWidget {
           Icon(Icons.attach_money, size: 20, color: Colors.grey[500]),
           const SizedBox(width: 8),
           const Text(
-            'Price: ',
+            'Price: ', // 'Giá: '
             style: TextStyle(
               fontWeight: FontWeight.w900,
               color: Colors.white,
@@ -317,7 +311,7 @@ class ProductDetailScreen extends StatelessWidget {
                 fontSize: 14,
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               '\$${discountedPrice.toStringAsFixed(2)}',
               style: TextStyle(
@@ -326,9 +320,9 @@ class ProductDetailScreen extends StatelessWidget {
                 fontSize: 16,
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(4),
@@ -345,7 +339,7 @@ class ProductDetailScreen extends StatelessWidget {
           ] else
             Text(
               '\$${sellingPrice.toStringAsFixed(2)}',
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w400,
               ),

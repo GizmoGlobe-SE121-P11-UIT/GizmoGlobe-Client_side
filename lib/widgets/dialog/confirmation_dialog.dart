@@ -14,8 +14,8 @@ class ConfirmationDialog extends StatelessWidget {
     super.key,
     this.title = '',
     this.content = '',
-    this.confirmText = 'Confirm',
-    this.cancelText = 'Cancel',
+    this.confirmText = 'Confirm', //Xác nhận
+    this.cancelText = 'Cancel', //Hủy
     this.onConfirm,
     this.onCancel,
   });

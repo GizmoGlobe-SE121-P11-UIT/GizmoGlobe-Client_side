@@ -5,7 +5,6 @@ import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../data/database/database.dart';
 import '../../../objects/address_related/address.dart';
-import '../../../widgets/general/gradient_checkbox.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import 'add_address_screen_cubit.dart';
 import '../../../widgets/general/address_picker.dart';
@@ -52,7 +51,7 @@ class _AddAddressScreen extends State<AddAddressScreen> {
             },
             fillColor: Colors.transparent,
           ),
-          title: const GradientText(text: 'Add Address'),
+          title: const GradientText(text: 'Add Address'), // 'Thêm địa chỉ'
           actions: [
             TextButton(
               onPressed: () {
@@ -68,7 +67,7 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   ),
                 );
               },
-              child: const Text('OK', style: TextStyle(color: Colors.white)),
+              child: const Text('OK', style: TextStyle(color: Colors.white)), // 'Xác nhận'
             ),
           ],
         ),
@@ -79,7 +78,7 @@ class _AddAddressScreen extends State<AddAddressScreen> {
               children: [
                 FieldWithIcon(
                   controller: _receiverNameController,
-                  hintText: 'Receiver Name',
+                  hintText: 'Receiver Name', // 'Tên người nhận'
                   onChanged: (value) {
                     cubit.updateAddress(receiverName: value);
                   },
@@ -92,7 +91,7 @@ class _AddAddressScreen extends State<AddAddressScreen> {
 
                 FieldWithIcon(
                   controller: _receiverPhoneController,
-                  hintText: 'Receiver Phone',
+                  hintText: 'Receiver Phone', // 'Số điện thoại người nhận'
                   onChanged: (value) {
                     cubit.updateAddress(receiverPhone: value);
                   },
@@ -118,7 +117,7 @@ class _AddAddressScreen extends State<AddAddressScreen> {
 
                 FieldWithIcon(
                   controller: _streetController,
-                  hintText: 'Street name, building, house no.',
+                  hintText: 'Street name, building, house no.', // 'Tên đường, tòa nhà, số nhà'
                   onChanged: (value) {
                     cubit.updateAddress(street: value);
                   },

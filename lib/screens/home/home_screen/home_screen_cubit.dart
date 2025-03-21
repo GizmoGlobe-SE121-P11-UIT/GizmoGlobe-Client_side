@@ -1,8 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
-import '../../../data/firebase/firebase.dart';
-import '../../../objects/product_related/product.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
 import 'home_screen_state.dart';
 
@@ -31,7 +30,10 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
         emit(state.copyWith(favoriteProducts: favoriteProducts));
       }
     } catch (e) {
-      print('Error updating favorite products: $e');
+      if (kDebugMode) {
+        print('Error updating favorite products: $e');
+      }
+      // print('Lỗi khi cập nhật danh sách sản phẩm yêu thích: $e');
     }
   }
 

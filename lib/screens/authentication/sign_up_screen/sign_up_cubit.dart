@@ -77,19 +77,14 @@ class SignUpCubit extends Cubit<SignUpState> {
       ));
       
     } on FirebaseAuthException catch (e) {
-      String errorMessage;
       switch (e.code) {
         case 'weak-password':
-          errorMessage = 'The password provided is too weak.';
           break;
         case 'email-already-in-use':
-          errorMessage = 'An account already exists for that email.';
           break;
         case 'invalid-email':
-          errorMessage = 'The email address is not valid.';
           break;
         default:
-          errorMessage = 'An error occurred during registration.';
       }
       
       emit(state.copyWith(

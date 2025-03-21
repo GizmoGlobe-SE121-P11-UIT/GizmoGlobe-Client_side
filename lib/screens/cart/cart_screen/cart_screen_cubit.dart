@@ -153,7 +153,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       if (user == null) {
         emit(state.copyWith(
           processState: ProcessState.failure,
-          error: 'User not logged in'
+          error: 'User not logged in.' //Người dùng chưa đăng nhập.
         ));
         return;
       }

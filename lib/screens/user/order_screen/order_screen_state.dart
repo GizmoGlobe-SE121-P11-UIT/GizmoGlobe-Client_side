@@ -1,12 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
 import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
-import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
-import 'package:gizmoglobe_client/objects/manufacturer.dart';
-import 'package:gizmoglobe_client/objects/product_related/product.dart';
 
-import '../../../enums/processing/sort_enum.dart';
 
 class OrderScreenState extends Equatable {
   final OrderOption orderOption;

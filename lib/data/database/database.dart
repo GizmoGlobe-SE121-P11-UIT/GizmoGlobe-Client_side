@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -25,7 +26,6 @@ import '../../enums/product_related/ram_enums/ram_bus.dart';
 import '../../enums/product_related/ram_enums/ram_capacity_enum.dart';
 import '../../enums/product_related/ram_enums/ram_type.dart';
 import '../../objects/address_related/province.dart';
-import '../../objects/invoice_related/sales_invoice_detail.dart';
 import '../../objects/product_related/product_factory.dart';
 import '../firebase/firebase.dart';
 
@@ -58,7 +58,10 @@ class Database {
   Future<void> fetchDataFromFirestore() async {
     try {
       getUser();
-      print('Bắt đầu lấy dữ liệu từ Firestore');
+      if (kDebugMode) {
+        print('Getting data from Firebase');
+      }
+      // print('Đang lấy dữ liệu từ Firebase');
       provinceList = await fetchProvinces();
       await fetchAddress();
 
@@ -73,14 +76,14 @@ class Database {
         );
       }).toList();
 
-      print('Số lượng manufacturers: ${manufacturerList.length}');
+      // print('Số lượng manufacturers: ${manufacturerList.length}');
 
       // Lấy danh sách products từ Firestore
       final productSnapshot = await FirebaseFirestore.instance
           .collection('products')
           .get();
 
-      print('Số lượng products trong snapshot: ${productSnapshot.docs.length}');
+      // print('Số lượng products trong snapshot: ${productSnapshot.docs.length}');
 
       productList = await Future.wait(productSnapshot.docs.map((doc) async {
         try {
@@ -90,8 +93,12 @@ class Database {
           final manufacturer = manufacturerList.firstWhere(
             (m) => m.manufacturerID == data['manufacturerID'],
             orElse: () {
-              print('Manufacturer not found for product ${doc.id}');
+              if (kDebugMode) {
+                print('Manufacturer not found for product ${doc.id}');
+              }
+              // print('Không tìm thấy nhà sản xuất cho sản phẩm ${doc.id}');
               throw Exception('Manufacturer not found for product ${doc.id}');
+              // throw Exception('Không tìm thấy nhà sản xuất cho sản phẩm ${doc.id}');
             },
           );
 
@@ -99,15 +106,23 @@ class Database {
           final category = CategoryEnum.values.firstWhere(
             (c) => c.getName() == data['category'],
             orElse: () {
-              print('Invalid category for product ${doc.id}');
+              if (kDebugMode) {
+                print('Invalid category for product ${doc.id}');
+              }
+              // print('Danh mục không hợp lệ cho sản phẩm ${doc.id}');
               throw Exception('Invalid category for product ${doc.id}');
+              // throw Exception('Danh mục không hợp lệ cho sản phẩm ${doc.id}');
             },
           );
 
           final specificData = _getSpecificProductData(data, category);
           if (specificData.isEmpty) {
-            print('Cannot get specific data for product ${doc.id}');
+            if (kDebugMode) {
+              print('Cannot get specific data for product ${doc.id}');
+            }
+            // print('Không thể lấy dữ liệu cụ thể cho sản phẩm ${doc.id}');
             throw Exception('Cannot get specific data for product ${doc.id}');
+            // throw Exception('Không thể lấy dữ liệu cụ thể cho sản phẩm ${doc.id}');
           }
 
           return ProductFactory.createProduct(
@@ -123,8 +138,12 @@ class Database {
               'status': ProductStatusEnum.values.firstWhere(
                 (s) => s.getName() == data['status'],
                 orElse: () {
-                  print('Invalid status for product ${doc.id}');
+                  if (kDebugMode) {
+                    print('Invalid status for product ${doc.id}');
+                  }
+                  // print('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
                   throw Exception('Invalid status for product ${doc.id}');
+                  // throw Exception('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
                 },
               ),
               'manufacturer': manufacturer,
@@ -132,18 +151,25 @@ class Database {
             },
           );
         } catch (e) {
-          print('Error processing product ${doc.id}: $e');
+          if (kDebugMode) {
+            print('Error processing product ${doc.id}: $e');
+          }
+          // print('Lỗi xử lý sản phẩm ${doc.id}: $e');
           return Future.error('Error processing product ${doc.id}: $e');
+          // return Future.error('Lỗi xử lý sản phẩm ${doc.id}: $e');
         }
       }));
 
-      print('Số lượng products trong list: ${productList.length}');
+      // print('Số lượng products trong list: ${productList.length}');
 
       bestSellerProducts = await fetchBestSellerProducts();
       favoriteProducts = await fetchFavoriteProducts(userID);
       await fetchSalesInvoice();
     } catch (e) {
-      print('Lỗi chi tiết khi lấy dữ liệu: $e');
+      if (kDebugMode) {
+        print('Fetching data error: $e');
+      }
+      // print('Lỗi khi lấy dữ liệu: $e');
       rethrow;
     }
   }
@@ -197,7 +223,10 @@ class Database {
     try {
       await fetchDataFromFirestore();
     } catch (e) {
-      print('Lỗi khi khởi tạo database: $e');
+      if (kDebugMode) {
+        print('Error initializing connection to Firebase: $e');
+      }
+      // print('Lỗi khi khởi tạo kết nối tới Firebase: $e');
       // Nếu không lấy được dữ liệu từ Firestore, sử dụng dữ liệu mẫu
       // _initializeSampleData();
     }
@@ -717,17 +746,20 @@ class Database {
       final String response = await rootBundle.loadString(filePath);
       if (response.isEmpty) {
         throw Exception('JSON file is empty');
+        // throw Exception('Tệp JSON trống');
       }
 
       final List? jsonList = jsonDecode(response) as List<dynamic>?;
       if (jsonList == null) {
         throw Exception('Error parsing JSON data');
+        // throw Exception('Lỗi khi phân tích dữ liệu JSON');
       }
 
       List<Province> provinceList = jsonList.map((province) => Province.fromJson(province)).toList();
       return provinceList;
     } catch (e) {
       throw Exception('Error loading provinces from file: $e');
+      // throw Exception('Lỗi khi tải danh sách tỉnh thành từ tệp: $e');
     }
   }
 
@@ -784,8 +816,12 @@ class Database {
         final manufacturer = manufacturerList.firstWhere(
               (m) => m.manufacturerID == data['manufacturerID'],
           orElse: () {
-            print('Manufacturer not found for product ${doc.id}');
+            if (kDebugMode) {
+              print('Manufacturer not found for product ${doc.id}');
+            }
+            // print('Nhà sản xuất không tìm thấy cho sản phẩm ${doc.id}');
             throw Exception('Manufacturer not found for product ${doc.id}');
+            // throw Exception('Nhà sản xuất không tìm thấy cho sản phẩm ${doc.id}');
           },
         );
 
@@ -802,8 +838,12 @@ class Database {
             'status': ProductStatusEnum.values.firstWhere(
                   (s) => s.getName() == data['status'],
               orElse: () {
-                print('Invalid status for product ${doc.id}');
+                if (kDebugMode) {
+                  print('Invalid status for product ${doc.id}');
+                }
+                // print('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
                 throw Exception('Invalid status for product ${doc.id}');
+                // throw Exception('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
               },
             ),
             'manufacturer': manufacturer,
@@ -812,7 +852,10 @@ class Database {
         );
       }).toList());
     } catch (e) {
-      print('Error fetching best seller products: $e');
+      if (kDebugMode) {
+        print('Error fetching best seller products: $e');
+      }
+      // print('Lỗi khi lấy danh sách sản phẩm bán chạy: $e');
       rethrow;
     }
   }
@@ -850,8 +893,12 @@ class Database {
             'status': ProductStatusEnum.values.firstWhere(
                   (s) => s.getName() == doc['status'],
               orElse: () {
-                print('Invalid status for product ${doc.id}');
+                if (kDebugMode) {
+                  print('Invalid status for product ${doc.id}');
+                }
+                // print('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
                 throw Exception('Invalid status for product ${doc.id}');
+                // throw Exception('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
               },
             ),
             'manufacturer': manufacturerList.firstWhere((m) => m.manufacturerID == doc['manufacturerID']),
@@ -860,7 +907,10 @@ class Database {
         );
       }).toList();
     } catch (e) {
-      print('Error fetching favorite products: $e');
+      if (kDebugMode) {
+        print('Error fetching favorite products: $e');
+      }
+      // print('Lỗi khi lấy danh sách sản phẩm yêu thích: $e');
       rethrow;
     }
   }

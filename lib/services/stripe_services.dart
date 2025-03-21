@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
@@ -26,8 +27,10 @@ class StripeServices {
         return result;
       }
     } catch (e) {
-      print(e);
-      throw Exception('Payment failed');
+      if (kDebugMode) {
+        print(e);
+      }
+      throw Exception('Payment failed'); //Thanh toán thất bại.
     }
     return null;
   }
@@ -53,14 +56,18 @@ class StripeServices {
       );
 
       if (response.data != null) {
-        print(response.data);
+        if (kDebugMode) {
+          print(response.data);
+        }
         return response.data['client_secret'];
       }
       return null;
 
     } catch (e) {
-      print(e);
-      throw Exception('Payment method creation failed');
+      if (kDebugMode) {
+        print(e);
+      }
+      throw Exception('Payment method creation failed'); //Khởi tạo phương thức thanh toán thất bại
     }
   }
 
@@ -73,8 +80,10 @@ class StripeServices {
       }
       return null;
     } catch (e) {
-      print(e);
-      throw Exception('Payment processing failed');
+      if (kDebugMode) {
+        print(e);
+      }
+      throw Exception('Payment processing failed'); //Quá trình thanh toán thất bại
     }
   }
 
