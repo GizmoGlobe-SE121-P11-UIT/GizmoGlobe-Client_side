@@ -12,6 +12,7 @@ import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
 import 'package:gizmoglobe_client/providers/cart_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'consts.dart';
 
@@ -22,13 +23,16 @@ void main() async {
       options: DefaultFirebaseOptions.android,
     );
     await Database().initialize();
+    await Permission.camera.request();
+    await Permission.photos.request();
     runApp(const MyApp());
   } catch (e) {
     if (kDebugMode) {
       runApp(MaterialApp(
         home: Scaffold(
           body: Center(
-            child: Text('Error initializing Firebase: $e'), // 'Lỗi khởi tạo Firebase: $e'
+            child: Text(
+                'Error initializing Firebase: $e'), // 'Lỗi khởi tạo Firebase: $e'
           ),
         ),
       ));
@@ -36,7 +40,7 @@ void main() async {
   }
 }
 
-Future<void> _setup () async {
+Future<void> _setup() async {
   WidgetsFlutterBinding.ensureInitialized();
   Stripe.publishableKey = stripePublishableKey;
 }
@@ -92,7 +96,8 @@ class AuthWrapper extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator()); // 'Đang tải...'
+          return const Center(
+              child: CircularProgressIndicator()); // 'Đang tải...'
         }
         if (snapshot.hasData) {
           return const MainScreen();

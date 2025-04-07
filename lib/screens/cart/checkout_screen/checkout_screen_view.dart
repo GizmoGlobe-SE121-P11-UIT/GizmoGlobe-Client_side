@@ -341,8 +341,6 @@ class _CheckoutScreen extends State<CheckoutScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
-      default:
-        return Icons.devices_other;
-    }
+      }
   }
 }

@@ -200,9 +200,7 @@ abstract class TabCubit extends Cubit<TabState> {
         return filterArgument.psuModularList.contains(product.modular) &&
             filterArgument.psuEfficiencyList.contains(product.efficiency) &&
             matchesPsuWattage;
-      default:
-        return false;
-    }
+      }
   }
 }
 

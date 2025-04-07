@@ -383,8 +383,6 @@ class _CartScreen extends State<CartScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
-      default:
-        return Icons.devices_other;
-    }
+      }
   }
 }

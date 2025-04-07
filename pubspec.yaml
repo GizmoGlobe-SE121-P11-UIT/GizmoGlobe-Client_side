@@ -48,6 +48,11 @@ dependencies:
   dropdown_search: ^6.0.1
   flutter_stripe: ^11.3.0
   dio: ^5.7.0
+  image_picker: ^1.0.7
+  firebase_storage: ^12.4.5
+  path: ^1.8.3
+  permission_handler: ^11.3.0
+  device_info_plus: ^9.1.2
 
 dev_dependencies:
   flutter_test:

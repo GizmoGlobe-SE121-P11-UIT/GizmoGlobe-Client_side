@@ -214,9 +214,7 @@ class Database {
           'efficiency': PSUEfficiency.values.firstWhere((e) => e.getName() == data['efficiency']),
           'modular': PSUModular.values.firstWhere((m) => m.getName() == data['modular']),
         };
-      default:
-        return {};
-    }
+      }
   }
 
   Future<void> initialize() async {

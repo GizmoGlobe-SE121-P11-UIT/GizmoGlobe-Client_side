@@ -393,7 +393,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     ];
 
     switch (widget.product.runtimeType) {
-      case RAM _:
+      case const (RAM):
         final ram = widget.product as RAM;
         specs.add(_buildSpecGroup(
           'Memory Specifications', // 'Thông số bộ nhớ'
@@ -416,7 +416,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ));
         break;
-      case PSU _:
+      case const (PSU):
         final psu = widget.product as PSU;
         specs.add(_buildSpecGroup(
           'Power Supply Specifications', // 'Thông số nguồn'
@@ -427,7 +427,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ));
         break;
-      case GPU _:
+      case const(GPU):
         final gpu = widget.product as GPU;
         specs.add(_buildSpecGroup(
           'Graphics Card Specifications', // 'Thông số card đồ họa'
@@ -439,7 +439,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ));
         break;
-      case Mainboard _:
+      case const(Mainboard):
         final mainboard = widget.product as Mainboard;
         specs.add(_buildSpecGroup(
           'Motherboard Specifications', // 'Thông số bo mạch chủ'
@@ -450,7 +450,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ));
         break;
-      case Drive _:
+      case const(Drive):
         final drive = widget.product as Drive;
         specs.add(_buildSpecGroup(
           'Storage Specifications', // 'Thông số lưu trữ'
@@ -535,9 +535,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
-      default:
-        return Icons.devices_other;
-    }
+      }
   }
 
   Widget _buildQuantityButton({

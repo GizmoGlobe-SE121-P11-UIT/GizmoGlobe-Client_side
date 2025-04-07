@@ -95,8 +95,6 @@ class ProductFactory {
           sales: properties['sales'],
           status: properties['status'],
         )..productID = properties['productID'];
-      default:
-        throw Exception('Invalid product category');
-    }
+      }
   }
 }

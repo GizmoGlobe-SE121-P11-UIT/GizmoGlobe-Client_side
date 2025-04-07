@@ -17,8 +17,7 @@ abstract class Product {
   final Manufacturer manufacturer;
   ProductStatusEnum status;
 
-  double get discountedPrice =>
-      price * (1 - discount);
+  double get discountedPrice => price * (1 - discount);
 
   double get discountPercentage {
     return discount > 0 ? (discount * 100) : 0;
@@ -38,7 +37,8 @@ abstract class Product {
   });
 
   static Product fromMap(Map<String, dynamic> data) {
-    final category = CategoryEnum.values.firstWhere((c) => c.getName() == data['category']);
+    final category =
+        CategoryEnum.values.firstWhere((c) => c.getName() == data['category']);
 
     return ProductFactory.createProduct(category, {
       'productID': data['productID'],
@@ -48,12 +48,14 @@ abstract class Product {
       'release': (data['release'] as Timestamp).toDate(),
       'sales': data['sales'] as int,
       'stock': data['stock'] as int,
-      'status': ProductStatusEnum.values.firstWhere((s) => s.getName() == data['status']),
-      'manufacturer': data ['manufacturerID'].toString(),
+      'status': ProductStatusEnum.values
+          .firstWhere((s) => s.getName() == data['status']),
+      'manufacturer': data['manufacturerID'].toString(),
     });
   }
 
-  Product changeCategory(CategoryEnum newCategory, Map<String, dynamic> properties) {
+  Product changeCategory(
+      CategoryEnum newCategory, Map<String, dynamic> properties) {
     properties['productID'] = productID;
     return ProductFactory.createProduct(newCategory, properties);
   }

@@ -8,11 +8,30 @@ import '../../authentication/sign_in_screen/sign_in_view.dart';
 import 'user_screen_state.dart';
 
 class UserScreenCubit extends Cubit<UserScreenState> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   UserScreenCubit() : super(const UserScreenState(username: '', email: ''));
 
   Future<void> getUser() async {
-    await Database().getUser();
-    emit(state.copyWith(username: Database().username, email: Database().email));
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          final data = doc.data() as Map<String, dynamic>;
+          emit(state.copyWith(
+            username: data['username'] ?? '',
+            email: user.email ?? '',
+            avatarUrl: data['avatarUrl'],
+          ));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting user: $e');
+      }
+    }
   }
 
   Future<void> logOut(BuildContext context) async {
@@ -22,7 +41,7 @@ class UserScreenCubit extends Cubit<UserScreenState> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => SignInScreen.newInstance()),
-              (Route<dynamic> route) => false,
+          (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
@@ -44,6 +63,23 @@ class UserScreenCubit extends Cubit<UserScreenState> {
 
         emit(state.copyWith(username: newName));
       }
+    }
+  }
+
+  Future<void> updateAvatar(String avatarUrl) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('users').doc(user.uid).update({
+          'avatarUrl': avatarUrl,
+        });
+        emit(state.copyWith(avatarUrl: avatarUrl));
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating avatar: $e');
+      }
+      rethrow;
     }
   }
 }
