@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "413433346211",
+    "project_id": "se121p11-gizmoglobe",
+    "storage_bucket": "se121p11-gizmoglobe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:413433346211:android:b0d022c6183f1e6c73a716",
+        "android_client_info": {
+          "package_name": "com.example.gizmoglobe_client"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "413433346211-e37ub7irjajc7p3lnl8f7e3km9qbpus7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gizmoglobe_client",
+            "certificate_hash": "be532ae0cf22cb3e82fc2e5a8ccf9bbe42e9b973"
+          }
+        },
+        {
+          "client_id": "413433346211-o2u44f162of4b1u1c212om796sgphg9g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gizmoglobe_client",
+            "certificate_hash": "c894737a03db30db6a50b5d0e7f1932f46c2d91a"
+          }
+        },
+        {
+          "client_id": "413433346211-mgedbl60a2q2824jvvf570hqsfa7m6k2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD19PvPONLG89r_mW99GZJmSSt4JfWTa_E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "413433346211-mgedbl60a2q2824jvvf570hqsfa7m6k2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "413433346211-596fpqvad17r0f9dvusqj6q8ovggjaid.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gizmoglobeClient"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
