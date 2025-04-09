@@ -34,27 +34,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return BlocBuilder<FavoritesCubit, Set<String>>(
       builder: (context, favorites) {
         final isFavorite = widget.product.productID != null &&
-                          favorites.contains(widget.product.productID);
+            favorites.contains(widget.product.productID);
 
         return Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          backgroundColor: Theme.of(context).colorScheme.background,
+          extendBodyBehindAppBar: true,
           appBar: AppBar(
-            backgroundColor: Colors.transparent,
+            backgroundColor: Theme.of(context).colorScheme.background,
             elevation: 0,
             leading: GradientIconButton(
               icon: Icons.chevron_left,
               onPressed: () {
                 Navigator.pop(context);
               },
-              fillColor: Theme.of(context).colorScheme.surface,
+              fillColor: Theme.of(context).colorScheme.background,
             ),
             actions: [
               Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.shopping_cart,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     onPressed: () {
                       Navigator.push(
@@ -83,8 +84,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           child: Text(
                             state.itemCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onError,
                               fontSize: 10,
                             ),
                             textAlign: TextAlign.center,
@@ -114,12 +115,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             child: Container(
                               height: 250,
                               width: double.infinity,
-                              color: Colors.grey[300],
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .surface
+                                        .withOpacity(0.1)
+                                    : Colors.grey[300],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                               child: Center(
                                 child: Icon(
                                   _getCategoryIcon(),
                                   size: 100,
-                                  color: Colors.grey[600],
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withOpacity(0.7)
+                                      : Colors.grey[600],
                                 ),
                               ),
                             ),
@@ -129,17 +145,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             bottom: 24,
                             child: FloatingActionButton(
                               mini: true,
-                              backgroundColor: Colors.white,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.surface,
                               onPressed: () {
                                 if (widget.product.productID != null) {
                                   context.read<FavoritesCubit>().toggleFavorite(
-                                    widget.product.productID!,
-                                  );
+                                        widget.product.productID!,
+                                      );
                                 }
                               },
                               child: Icon(
-                                isFavorite ? Icons.favorite : Icons.favorite_border,
-                                color: isFavorite ? Colors.red : Colors.grey,
+                                isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: isFavorite
+                                    ? Colors.red[400]
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -152,10 +175,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           children: [
                             Text(
                               widget.product.productName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -168,25 +191,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     children: [
                                       Text(
                                         '\$${widget.product.price.toStringAsFixed(2)}',
-                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                          decoration: TextDecoration.lineThrough,
-                                          color: Colors.grey[400],
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                              color: Colors.grey[400],
+                                              fontWeight: FontWeight.w500,
+                                            ),
                                       ),
                                       const SizedBox(width: 8),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: Colors.red[700],
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
                                         ),
                                         child: Text(
                                           '-${widget.product.discountPercentage.toStringAsFixed(0)}%',
-                                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
                                       ),
                                     ],
@@ -195,10 +227,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ],
                                 Text(
                                   '\$${widget.product.discountedPrice.toStringAsFixed(2)}',
-                                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                    color: Theme.of(context).primaryColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                               ],
                             ),
@@ -218,7 +255,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   color: Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withOpacity(
+                          Theme.of(context).brightness == Brightness.dark
+                              ? 0.5
+                              : 0.2),
                       blurRadius: 8,
                       offset: const Offset(0, -4),
                     ),
@@ -233,10 +273,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
-                              'Quantity', // 'Số lượng'
+                            Text(
+                              'Quantity',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -244,13 +286,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             const SizedBox(height: 8),
                             Container(
                               decoration: BoxDecoration(
-                                border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.5)),
+                                border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withOpacity(0.5)),
                                 borderRadius: BorderRadius.circular(8),
-                                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.1),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
                                   _buildQuantityButton(
                                     icon: Icons.remove,
@@ -265,8 +315,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     alignment: Alignment.center,
                                     child: Text(
                                       quantity.toString(),
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                       ),
@@ -288,10 +340,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
-                              'Total Price', // 'Tổng tiền'
+                            Text(
+                              'Total Price',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -302,7 +356,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Text(
                                   '\$${(widget.product.discountedPrice * quantity).toStringAsFixed(2)}',
                                   style: TextStyle(
-                                    color: Theme.of(context).primaryColor,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -321,15 +376,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         onPressed: () {
                           if (widget.product.productID != null) {
                             context.read<CartScreenCubit>().addToCart(
-                              widget.product.productID!,
-                              quantity,
-                            );
+                                  widget.product.productID!,
+                                  quantity,
+                                );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Added ${widget.product.productName} to cart', // 'Đã thêm ${widget.product.productName} vào giỏ hàng'
+                                  'Added ${widget.product.productName} to cart',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                  ),
                                 ),
-                                backgroundColor: Theme.of(context).primaryColor,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
                                 behavior: SnackBarBehavior.floating,
                                 margin: const EdgeInsets.all(16),
                                 duration: const Duration(seconds: 2),
@@ -337,28 +397,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Cannot add product to cart'), // 'Không thể thêm sản phẩm vào giỏ hàng'
-                                duration: Duration(seconds: 2),
+                              SnackBar(
+                                content: Text(
+                                  'Cannot add product to cart',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onError,
+                                  ),
+                                ),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.error,
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           }
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
-                          elevation: 2,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Add to Cart', // 'Thêm vào giỏ'
+                        child: Text(
+                          'Add to Cart',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                       ),
@@ -375,20 +435,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildSpecificationList(BuildContext context) {
     final specs = <Widget>[
-      const Padding(
-        padding: EdgeInsets.only(bottom: 16.0),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
         child: Text(
-          'Product Specifications', // 'Thông số kỹ thuật'
+          'Product Specifications',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
       _buildSpecGroup(
-        'Basic Information', // 'Thông tin cơ bản'
-        [_buildSpecRow('Manufacturer', widget.product.manufacturer.manufacturerName)], // 'Nhà sản xuất'
+        'Basic Information',
+        [
+          _buildSpecRow(context, 'Manufacturer',
+              widget.product.manufacturer.manufacturerName)
+        ],
       ),
     ];
 
@@ -396,67 +459,69 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       case const (RAM):
         final ram = widget.product as RAM;
         specs.add(_buildSpecGroup(
-          'Memory Specifications', // 'Thông số bộ nhớ'
+          'Memory Specifications',
           [
-            _buildSpecRow('Bus Speed', '${ram.bus} MHz'), // 'Tốc độ Bus'
-            _buildSpecRow('Capacity', '${ram.capacity} GB'), // 'Dung lượng'
-            _buildSpecRow('RAM Type', ram.ramType.toString()), // 'Loại RAM'
+            _buildSpecRow(context, 'Bus Speed', '${ram.bus} MHz'),
+            _buildSpecRow(context, 'Capacity', '${ram.capacity} GB'),
+            _buildSpecRow(context, 'RAM Type', ram.ramType.toString()),
           ],
         ));
         break;
       case const (CPU):
         final cpu = widget.product as CPU;
         specs.add(_buildSpecGroup(
-          'Processor Specifications', // 'Thông số vi xử lý'
+          'Processor Specifications',
           [
-            _buildSpecRow('Family', cpu.family.toString()), // 'Dòng'
-            _buildSpecRow('Cores', '${cpu.core} Cores'), // 'Nhân'
-            _buildSpecRow('Threads', '${cpu.thread} Threads'), // 'Luồng'
-            _buildSpecRow('Clock Speed', '${cpu.clockSpeed} GHz'), // 'Tốc độ xung nhịp'
+            _buildSpecRow(context, 'Family', cpu.family.toString()),
+            _buildSpecRow(context, 'Cores', '${cpu.core} Cores'),
+            _buildSpecRow(context, 'Threads', '${cpu.thread} Threads'),
+            _buildSpecRow(context, 'Clock Speed', '${cpu.clockSpeed} GHz'),
           ],
         ));
         break;
       case const (PSU):
         final psu = widget.product as PSU;
         specs.add(_buildSpecGroup(
-          'Power Supply Specifications', // 'Thông số nguồn'
+          'Power Supply Specifications',
           [
-            _buildSpecRow('Wattage', psu.wattage.toString()), // 'Công suất'
-            _buildSpecRow('Efficiency', psu.efficiency.toString()), // 'Hiệu suất'
-            _buildSpecRow('Modular', psu.modular.toString()), // 'Kiểu mô-đun'
+            _buildSpecRow(context, 'Wattage', psu.wattage.toString()),
+            _buildSpecRow(context, 'Efficiency', psu.efficiency.toString()),
+            _buildSpecRow(context, 'Modular', psu.modular.toString()),
           ],
         ));
         break;
-      case const(GPU):
+      case const (GPU):
         final gpu = widget.product as GPU;
         specs.add(_buildSpecGroup(
-          'Graphics Card Specifications', // 'Thông số card đồ họa'
+          'Graphics Card Specifications',
           [
-            _buildSpecRow('Series', gpu.series.toString()), // 'Dòng'
-            _buildSpecRow('Memory', gpu.capacity.toString()), // 'Bộ nhớ'
-            _buildSpecRow('Bus Width', gpu.bus.toString()), // 'Độ rộng Bus'
-            _buildSpecRow('Clock Speed', gpu.clockSpeed.toString()), // 'Tốc độ xung nhịp'
+            _buildSpecRow(context, 'Series', gpu.series.toString()),
+            _buildSpecRow(context, 'Memory', gpu.capacity.toString()),
+            _buildSpecRow(context, 'Bus Width', gpu.bus.toString()),
+            _buildSpecRow(context, 'Clock Speed', gpu.clockSpeed.toString()),
           ],
         ));
         break;
-      case const(Mainboard):
+      case const (Mainboard):
         final mainboard = widget.product as Mainboard;
         specs.add(_buildSpecGroup(
-          'Motherboard Specifications', // 'Thông số bo mạch chủ'
+          'Motherboard Specifications',
           [
-            _buildSpecRow('Form Factor', mainboard.formFactor.toString()), // 'Kích thước'
-            _buildSpecRow('Series', mainboard.series.toString()), // 'Dòng'
-            _buildSpecRow('Compatibility', mainboard.compatibility.toString()), // 'Tương thích'
+            _buildSpecRow(
+                context, 'Form Factor', mainboard.formFactor.toString()),
+            _buildSpecRow(context, 'Series', mainboard.series.toString()),
+            _buildSpecRow(
+                context, 'Compatibility', mainboard.compatibility.toString()),
           ],
         ));
         break;
-      case const(Drive):
+      case const (Drive):
         final drive = widget.product as Drive;
         specs.add(_buildSpecGroup(
-          'Storage Specifications', // 'Thông số lưu trữ'
+          'Storage Specifications',
           [
-            _buildSpecRow('Drive Type', drive.type.toString()), // 'Loại ổ đĩa'
-            _buildSpecRow('Capacity', drive.capacity.toString()), // 'Dung lượng'
+            _buildSpecRow(context, 'Drive Type', drive.type.toString()),
+            _buildSpecRow(context, 'Capacity', drive.capacity.toString()),
           ],
         ));
         break;
@@ -464,7 +529,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black12,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).colorScheme.surface.withOpacity(0.1)
+            : Theme.of(context).colorScheme.primary.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(16),
@@ -481,37 +548,56 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.blue,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 8),
-        ...specs,
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Theme.of(context).colorScheme.surface.withOpacity(0.1)
+                : Theme.of(context).colorScheme.background,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            children: specs,
+          ),
+        ),
         const SizedBox(height: 16),
       ],
     );
   }
 
-  Widget _buildSpecRow(String label, String value) {
+  Widget _buildSpecRow(BuildContext context, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Theme.of(context).colorScheme.surface.withOpacity(0.3)
+            : Theme.of(context).colorScheme.background,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.grey,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -535,7 +621,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
-      }
+    }
   }
 
   Widget _buildQuantityButton({
@@ -546,7 +632,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       width: 32,
       height: 32,
       child: IconButton(
-        icon: Icon(icon, color: Theme.of(context).primaryColor),
+        icon: Icon(icon, color: Theme.of(context).colorScheme.primary),
         onPressed: onPressed,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),

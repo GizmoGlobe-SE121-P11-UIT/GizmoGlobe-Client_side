@@ -10,6 +10,8 @@ import '../address_screen/address_screen_view.dart';
 import '../order_screen/order_screen_view.dart';
 import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/theme_provider.dart';
 // Import the Firebase file
 
 class UserScreen extends StatefulWidget {
@@ -153,9 +155,10 @@ class _UserScreen extends State<UserScreen> {
                                       ),
                                     ),
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
-                                    color: Colors.white,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 actions: [
@@ -291,17 +294,21 @@ class _UserScreen extends State<UserScreen> {
                                           children: [
                                             Text(
                                               state.username,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.white,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                             Text(
                                               state.email,
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: Colors.white
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
                                                     .withOpacity(0.8),
                                               ),
                                             ),
@@ -333,14 +340,16 @@ class _UserScreen extends State<UserScreen> {
                                       const SizedBox(height: 16),
                                       Text(
                                         state.username,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 28,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
                                           letterSpacing: 0.5,
                                           shadows: [
                                             Shadow(
-                                              offset: Offset(0, 2),
+                                              offset: const Offset(0, 2),
                                               blurRadius: 6,
                                               color: Colors.black26,
                                             ),
@@ -367,8 +376,10 @@ class _UserScreen extends State<UserScreen> {
                                           state.email,
                                           style: TextStyle(
                                             fontSize: 16,
-                                            color:
-                                                Colors.white.withOpacity(0.95),
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withOpacity(0.95),
                                             letterSpacing: 0.5,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -662,7 +673,142 @@ class _UserScreen extends State<UserScreen> {
                                                   Icons.dark_mode_outlined,
                                                   'Change app theme',
                                                   () {
-                                                    // TODO: Implement theme change
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      backgroundColor:
+                                                          Colors.transparent,
+                                                      builder: (context) =>
+                                                          Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .scaffoldBackgroundColor,
+                                                          borderRadius:
+                                                              const BorderRadius
+                                                                  .vertical(
+                                                                  top: Radius
+                                                                      .circular(
+                                                                          24)),
+                                                        ),
+                                                        child: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Container(
+                                                              margin:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                      top: 12),
+                                                              width: 40,
+                                                              height: 4,
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: Colors
+                                                                    .grey[600],
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            2),
+                                                              ),
+                                                            ),
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(24),
+                                                              child: Row(
+                                                                children: [
+                                                                  Container(
+                                                                    padding:
+                                                                        const EdgeInsets
+                                                                            .all(
+                                                                            12),
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      color: Theme.of(
+                                                                              context)
+                                                                          .colorScheme
+                                                                          .primary
+                                                                          .withOpacity(
+                                                                              0.1),
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              16),
+                                                                    ),
+                                                                    child: Icon(
+                                                                      Icons
+                                                                          .dark_mode_outlined,
+                                                                      color: Theme.of(
+                                                                              context)
+                                                                          .colorScheme
+                                                                          .primary,
+                                                                      size: 28,
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                      width:
+                                                                          16),
+                                                                  Text(
+                                                                    "Theme Settings",
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontSize:
+                                                                          24,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: Theme.of(
+                                                                              context)
+                                                                          .colorScheme
+                                                                          .primary,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                            Consumer<
+                                                                ThemeProvider>(
+                                                              builder: (context,
+                                                                  themeProvider,
+                                                                  child) {
+                                                                return Column(
+                                                                  children: [
+                                                                    _buildThemeOption(
+                                                                      context,
+                                                                      'Light Mode',
+                                                                      Icons
+                                                                          .light_mode_outlined,
+                                                                      themeProvider
+                                                                              .themeMode ==
+                                                                          ThemeMode
+                                                                              .light,
+                                                                      () => themeProvider
+                                                                          .setTheme(
+                                                                              ThemeMode.light),
+                                                                    ),
+                                                                    _buildThemeOption(
+                                                                      context,
+                                                                      'Dark Mode',
+                                                                      Icons
+                                                                          .dark_mode_outlined,
+                                                                      themeProvider
+                                                                              .themeMode ==
+                                                                          ThemeMode
+                                                                              .dark,
+                                                                      () => themeProvider
+                                                                          .setTheme(
+                                                                              ThemeMode.dark),
+                                                                    ),
+                                                                  ],
+                                                                );
+                                                              },
+                                                            ),
+                                                            const SizedBox(
+                                                                height: 24),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    );
                                                   },
                                                 ),
                                               ],
@@ -1052,7 +1198,6 @@ class _UserScreen extends State<UserScreen> {
   }) {
     return Column(
       children: [
-        // if (showTopDivider) const Divider(height: 1),
         ListTile(
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -1070,10 +1215,10 @@ class _UserScreen extends State<UserScreen> {
           ),
           title: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           subtitle: Padding(
@@ -1081,7 +1226,7 @@ class _UserScreen extends State<UserScreen> {
             child: Text(
               subtitle,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 14,
               ),
             ),
@@ -1289,10 +1434,10 @@ class _UserScreen extends State<UserScreen> {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -1300,7 +1445,7 @@ class _UserScreen extends State<UserScreen> {
           content,
           style: TextStyle(
             fontSize: 14,
-            color: Colors.white.withOpacity(0.8),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
           ),
         ),
       ],
@@ -1407,10 +1552,10 @@ class _UserScreen extends State<UserScreen> {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -1418,10 +1563,54 @@ class _UserScreen extends State<UserScreen> {
           content,
           style: TextStyle(
             fontSize: 14,
-            color: Colors.white.withOpacity(0.8),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context,
+    String title,
+    IconData icon,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      leading: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          icon,
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.onSurface,
+          size: 24,
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+      trailing: isSelected
+          ? Icon(
+              Icons.check_circle,
+              color: Theme.of(context).colorScheme.primary,
+              size: 24,
+            )
+          : null,
+      onTap: onTap,
     );
   }
 }

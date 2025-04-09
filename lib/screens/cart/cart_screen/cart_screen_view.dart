@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../widgets/general/gradient_text.dart';
@@ -11,9 +12,9 @@ class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   static Widget newInstance() => BlocProvider(
-      create: (context) => CartScreenCubit(),
-      child: const CartScreen(),
-    );
+        create: (context) => CartScreenCubit(),
+        child: const CartScreen(),
+      );
 
   @override
   State<CartScreen> createState() => _CartScreen();
@@ -44,11 +45,14 @@ class _CartScreen extends State<CartScreen> {
           }
 
           if (state.processState == ProcessState.failure) {
-            return Center(child: Text(state.error ?? 'Error loading cart')); // 'Lỗi khi tải giỏ hàng'
+            return Center(
+                child: Text(state.error ??
+                    'Error loading cart')); // 'Lỗi khi tải giỏ hàng'
           }
 
           if (state.items.isEmpty) {
-            return const Center(child: Text('Your cart is empty')); // 'Giỏ hàng của bạn trống'
+            return const Center(
+                child: Text('Your cart is empty')); // 'Giỏ hàng của bạn trống'
           }
 
           return Column(
@@ -60,7 +64,7 @@ class _CartScreen extends State<CartScreen> {
                   itemBuilder: (context, index) {
                     final item = state.items[index];
                     final product = item['product'] as Map<String, dynamic>;
-                    
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Row(
@@ -68,7 +72,8 @@ class _CartScreen extends State<CartScreen> {
                         children: [
                           // Checkbox
                           Checkbox(
-                            value: state.selectedItems.contains(item['productID']),
+                            value:
+                                state.selectedItems.contains(item['productID']),
                             onChanged: (value) {
                               cubit.toggleItemSelection(item['productID']);
                             },
@@ -160,27 +165,33 @@ class _CartScreen extends State<CartScreen> {
                                         Icons.remove,
                                         size: 16,
                                       ),
-                                      onPressed: (item['quantity'] as int? ?? 0) > 1
-                                          ? () {
-                                              cubit.updateQuantity(
-                                                item['productID'] as String,
-                                                (item['quantity'] as int? ?? 0) - 1,
-                                              );
-                                            }
-                                          : null,
+                                      onPressed:
+                                          (item['quantity'] as int? ?? 0) > 1
+                                              ? () {
+                                                  cubit.updateQuantity(
+                                                    item['productID'] as String,
+                                                    (item['quantity'] as int? ??
+                                                            0) -
+                                                        1,
+                                                  );
+                                                }
+                                              : null,
                                       padding: const EdgeInsets.all(2),
                                       constraints: const BoxConstraints(),
                                       style: IconButton.styleFrom(
-                                        foregroundColor: (item['quantity'] as int? ?? 0) > 1
-                                            ? Colors.white
-                                            : Colors.grey,
+                                        foregroundColor:
+                                            (item['quantity'] as int? ?? 0) > 1
+                                                ? Colors.white
+                                                : Colors.grey,
                                       ),
                                     ),
                                     Container(
-                                      constraints: const BoxConstraints(minWidth: 16),
+                                      constraints:
+                                          const BoxConstraints(minWidth: 16),
                                       alignment: Alignment.center,
                                       child: Text(
-                                        (item['quantity'] as int? ?? 0).toString(),
+                                        (item['quantity'] as int? ?? 0)
+                                            .toString(),
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(
                                           color: Colors.white,
@@ -219,7 +230,8 @@ class _CartScreen extends State<CartScreen> {
                                   showDialog(
                                     context: context,
                                     builder: (context) => AlertDialog(
-                                      backgroundColor: Theme.of(context).colorScheme.surface,
+                                      backgroundColor:
+                                          Theme.of(context).colorScheme.surface,
                                       title: const Text(
                                         'Remove Item', // 'Xóa sản phẩm'
                                         style: TextStyle(color: Colors.white),
@@ -230,13 +242,15 @@ class _CartScreen extends State<CartScreen> {
                                       ),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
                                           child: const Text('Cancel'), // 'Hủy'
                                         ),
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(context);
-                                            cubit.removeFromCart(item['productID'] as String);
+                                            cubit.removeFromCart(
+                                                item['productID'] as String);
                                           },
                                           child: const Text(
                                             'Remove', // 'Xóa'
@@ -306,7 +320,8 @@ class _CartScreen extends State<CartScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            if (state.hasDiscounts && state.selectedCount > 0) ...[
+                            if (state.hasDiscounts &&
+                                state.selectedCount > 0) ...[
                               Text(
                                 '\$${state.totalBeforeDiscount.toStringAsFixed(2)}',
                                 style: TextStyle(
@@ -337,7 +352,14 @@ class _CartScreen extends State<CartScreen> {
                           if (state.selectedCount == 0) {
                             return;
                           }
-
+                          final result = await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => CheckoutScreen.newInstance(
+                                cartItems:
+                                    cubit.convertItemsToProductQuantityList(),
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
@@ -383,6 +405,6 @@ class _CartScreen extends State<CartScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
-      }
+    }
   }
 }

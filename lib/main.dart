@@ -13,14 +13,17 @@ import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
 import 'package:gizmoglobe_client/providers/cart_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:gizmoglobe_client/providers/theme_provider.dart';
 
 import 'consts.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await _setup();
   try {
     await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.android,
+      options: DefaultFirebaseOptions.currentPlatform,
     );
     await Database().initialize();
     await Permission.camera.request();
@@ -50,38 +53,120 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => MainScreenCubit()),
-      ],
-      child: CartProvider(
-        child: MaterialApp(
-          title: 'GizmoGlobe', // 'GizmoGlobe - Cửa hàng linh kiện máy tính'
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            colorScheme: const ColorScheme(
-              primary: Color(0xFF6CC4F4),
-              onPrimary: Color(0xFF4A94F1),
-              secondary: Color(0xFF6465F1),
-              onSecondary: Color(0xFF292B5C),
-              primaryContainer: Color(0xFF323F73),
-              secondaryContainer: Color(0xFF608BC1),
-              surface: Color(0xFF202046),
-              onSurface: Color(0xFFF3F3E0),
-              onSurfaceVariant: Color(0xFF202046),
-              error: Colors.red,
-              onError: Colors.white,
-              brightness: Brightness.light,
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (context) => MainScreenCubit()),
+            ],
+            child: CartProvider(
+              child: MaterialApp(
+                title: 'GizmoGlobe',
+                themeMode: themeProvider.themeMode,
+                theme: ThemeData(
+                  primarySwatch: Colors.blue,
+                  colorScheme: ColorScheme(
+                    brightness: Brightness.light,
+                    primary: const Color(0xFF2196F3),
+                    onPrimary: Colors.white,
+                    secondary: const Color(0xFF6465F1),
+                    onSecondary: const Color(0xFF292B5C),
+                    primaryContainer: const Color(0xFFE3F2FD),
+                    secondaryContainer: const Color(0xFFBBDEFB),
+                    surface: const Color(0xFFF5F9FF),
+                    onSurface: const Color(0xFF2C3E50),
+                    onSurfaceVariant: const Color(0xFF455A64),
+                    background: const Color(0xFFF5F9FF),
+                    onBackground: const Color(0xFF2C3E50),
+                    error: Colors.red[400]!,
+                    onError: Colors.white,
+                  ),
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      backgroundColor: const Color(0xFF2196F3),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  scaffoldBackgroundColor:
+                      const Color(0xFFF5F9FF), // Very light blue background
+                  appBarTheme: const AppBarTheme(
+                    backgroundColor: Color(0xFFF5F9FF),
+                    foregroundColor: Color(0xFF2C3E50),
+                    elevation: 0,
+                  ),
+                  textTheme: const TextTheme(
+                    bodyLarge: TextStyle(color: Color(0xFF2C3E50)),
+                    bodyMedium: TextStyle(color: Color(0xFF2C3E50)),
+                    titleLarge: TextStyle(color: Color(0xFF2C3E50)),
+                    titleMedium: TextStyle(color: Color(0xFF2C3E50)),
+                  ),
+                ),
+                darkTheme: ThemeData(
+                  primarySwatch: Colors.blue,
+                  colorScheme: const ColorScheme(
+                    brightness: Brightness.dark,
+                    primary: Color(0xFF2196F3),
+                    onPrimary: Colors.white,
+                    secondary: Color(0xFF6465F1),
+                    onSecondary: Color(0xFF292B5C),
+                    primaryContainer: Color(0xFF323F73),
+                    secondaryContainer: Color(0xFF608BC1),
+                    surface: Color(0xFF202046),
+                    onSurface: Colors.white,
+                    onSurfaceVariant: Colors.white70,
+                    background: Color(0xFF202046),
+                    onBackground: Colors.white,
+                    error: Colors.red,
+                    onError: Colors.white,
+                  ),
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      backgroundColor: const Color(0xFF2196F3),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  scaffoldBackgroundColor: const Color(0xFF202046),
+                  appBarTheme: const AppBarTheme(
+                    backgroundColor: Color(0xFF202046),
+                    foregroundColor: Color(0xFFF3F3E0),
+                    elevation: 0,
+                  ),
+                  navigationBarTheme: NavigationBarThemeData(
+                    backgroundColor: const Color(0xFF323F73),
+                    indicatorColor: const Color(0xFF2196F3).withOpacity(0.3),
+                    labelTextStyle: MaterialStateProperty.all(
+                      const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ),
+                  textTheme: const TextTheme(
+                    bodyLarge: TextStyle(color: Color(0xFFF3F3E0)),
+                    bodyMedium: TextStyle(color: Color(0xFFF3F3E0)),
+                    titleLarge: TextStyle(color: Color(0xFFF3F3E0)),
+                    titleMedium: TextStyle(color: Color(0xFFF3F3E0)),
+                  ),
+                ),
+                routes: {
+                  '/sign-in': (context) => SignInScreen.newInstance(),
+                  '/sign-up': (context) => SignUpScreen.newInstance(),
+                  '/forget-password': (context) =>
+                      ForgetPasswordScreen.newInstance(),
+                  '/main': (context) => const MainScreen(),
+                },
+                home: const AuthWrapper(),
+              ),
             ),
-          ),
-          routes: {
-            '/sign-in': (context) => SignInScreen.newInstance(),
-            '/sign-up': (context) => SignUpScreen.newInstance(),
-            '/forget-password': (context) => ForgetPasswordScreen.newInstance(),
-            '/main': (context) => const MainScreen(),
-          },
-          home: const AuthWrapper(),
-        ),
+          );
+        },
       ),
     );
   }
