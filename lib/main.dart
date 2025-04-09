@@ -13,7 +13,6 @@ import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
 import 'package:gizmoglobe_client/providers/cart_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'consts.dart';
 
