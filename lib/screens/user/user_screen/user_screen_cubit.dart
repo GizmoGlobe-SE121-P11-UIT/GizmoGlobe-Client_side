@@ -81,9 +81,41 @@ class UserScreenCubit extends Cubit<UserScreenState> {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        await _firestore.collection('users').doc(user.uid).update({
-          'avatarUrl': avatarUrl,
-        });
+        final batch = _firestore.batch();
+        final email = user.email;
+
+        // Kiểm tra và cập nhật trong collection 'users'
+        final userDoc =
+            await _firestore.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          batch.update(_firestore.collection('users').doc(user.uid), {
+            'avatarUrl': avatarUrl,
+          });
+        }
+
+        // Kiểm tra và cập nhật trong collection 'customers'
+        final customersQuery = await _firestore
+            .collection('customers')
+            .where('email', isEqualTo: email)
+            .get();
+        if (customersQuery.docs.isNotEmpty) {
+          batch.update(_firestore.collection('customers').doc(user.uid), {
+            'avatarUrl': avatarUrl,
+          });
+        }
+
+        // Kiểm tra và cập nhật trong collection 'employees'
+        final employeesQuery = await _firestore
+            .collection('employees')
+            .where('email', isEqualTo: email)
+            .get();
+        if (employeesQuery.docs.isNotEmpty) {
+          batch.update(_firestore.collection('employees').doc(user.uid), {
+            'avatarUrl': avatarUrl,
+          });
+        }
+
+        await batch.commit();
         emit(state.copyWith(avatarUrl: avatarUrl));
       }
     } catch (e) {

@@ -340,10 +340,33 @@ class _UserScreen extends State<UserScreen> {
                             await FirebaseAuth.instance
                                 .sendPasswordResetEmail(email: user.email!);
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(
+                                    'Password Reset Email Sent',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   content: Text(
-                                      'Password reset email sent to ${user.email}'),
+                                    'A password reset link has been sent to ${user.email}. Please check your email to reset your password.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text(
+                                        'OK',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               );
                             }
@@ -1212,7 +1235,7 @@ class _UserScreen extends State<UserScreen> {
                                                   'Version',
                                                   Icons.new_releases_outlined,
                                                   'App version 1.0.0',
-                                                  () {},
+                                                  null,
                                                   showTopDivider: false,
                                                 ),
                                                 _buildEnhancedSettingsItem(
@@ -1412,7 +1435,7 @@ class _UserScreen extends State<UserScreen> {
     String title,
     IconData icon,
     String subtitle,
-    VoidCallback onTap, {
+    VoidCallback? onTap, {
     bool showTopDivider = true,
   }) {
     return Column(
@@ -1450,11 +1473,13 @@ class _UserScreen extends State<UserScreen> {
               ),
             ),
           ),
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            color: Theme.of(context).colorScheme.primary,
-            size: 16,
-          ),
+          trailing: onTap != null
+              ? Icon(
+                  Icons.arrow_forward_ios,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 16,
+                )
+              : null,
           onTap: onTap,
         ),
       ],
@@ -1533,7 +1558,7 @@ class _UserScreen extends State<UserScreen> {
                       'To Vinh Tien - Terry',
                       Icons.person_outline,
                       'Developer',
-                      () {},
+                      null,
                       showTopDivider: false,
                     ),
                     _buildEnhancedSettingsItem(
@@ -1541,7 +1566,7 @@ class _UserScreen extends State<UserScreen> {
                       'Do Hong Quan',
                       Icons.groups_outlined,
                       'Developer',
-                      () {},
+                      null,
                     ),
                   ],
                 ),
