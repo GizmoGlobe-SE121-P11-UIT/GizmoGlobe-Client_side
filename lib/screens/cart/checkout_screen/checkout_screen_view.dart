@@ -22,10 +22,10 @@ class CheckoutScreen extends StatefulWidget {
   });
 
   static Widget newInstance({required List<Map<Product, int>> cartItems}) =>
-    BlocProvider(
-      create: (context) => CheckoutScreenCubit(),
-      child: CheckoutScreen(cartItems: cartItems),
-    );
+      BlocProvider(
+        create: (context) => CheckoutScreenCubit(),
+        child: CheckoutScreen(cartItems: cartItems),
+      );
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreen();
@@ -61,21 +61,20 @@ class _CheckoutScreen extends State<CheckoutScreen> {
             {
               showDialog(
                 context: context,
-                builder: (context) =>
-                    InformationDialog(
-                      title: 'Order Placed', // 'Đặt hàng thành công'
-                      content: 'Your order has been placed successfully', // 'Đơn hàng của bạn đã được đặt thành công'
-                      onPressed: () =>
-                      {
-                        Navigator.pop(context),
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CartScreen.newInstance(),
-                          ),
-                        ),
-                      },
+                builder: (context) => InformationDialog(
+                  title: 'Order Placed', // 'Đặt hàng thành công'
+                  content:
+                      'Your order has been placed successfully', // 'Đơn hàng của bạn đã được đặt thành công'
+                  onPressed: () => {
+                    Navigator.pop(context),
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CartScreen.newInstance(),
+                      ),
                     ),
+                  },
+                ),
               );
             }
           }
@@ -86,7 +85,9 @@ class _CheckoutScreen extends State<CheckoutScreen> {
           }
 
           if (state.processState == ProcessState.failure) {
-            return Center(child: Text(state.error ?? 'Error loading checkout')); // 'Lỗi khi tải trang thanh toán'
+            return Center(
+                child: Text(state.error ??
+                    'Error loading checkout')); // 'Lỗi khi tải trang thanh toán'
           }
 
           return Column(
@@ -138,21 +139,25 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                 const SizedBox(height: 4),
                                 if (product.discount > 0) ...[
                                   Text(
-                                    '\$${(product.price*detail.quantity).toStringAsFixed(2)}',
+                                    '\$${(product.price * detail.quantity).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       decoration: TextDecoration.lineThrough,
-                                      color: Colors.grey[400],
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.6),
                                       fontSize: 14,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                 ],
                                 Text(
-                                  '\$${(detail.sellingPrice*detail.quantity).toStringAsFixed(2)}',
+                                  '\$${(detail.sellingPrice * detail.quantity).toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue[200],
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ],
@@ -196,7 +201,10 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                         onTap: () async {
                           Address address = await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ChooseAddressScreen.newInstance(address: state.salesInvoice!.address!)),
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ChooseAddressScreen.newInstance(
+                                        address: state.salesInvoice!.address!)),
                           );
 
                           if (address != Address.nullAddress) {
@@ -214,18 +222,21 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                state.salesInvoice?.address == Address.nullAddress ?
-                                const Center(
-                                  child: Text(
-                                    'Choose Address', // 'Chọn địa chỉ'
-                                    style: AppTextStyle.regularText,
-                                  ),
-                                ) :
-                                Text(
-                                  state.salesInvoice!.address!.firstLine(),
-                                  style: AppTextStyle.boldText,
-                                ),
-                                if (state.salesInvoice?.address != Address.nullAddress)
+                                state.salesInvoice?.address ==
+                                        Address.nullAddress
+                                    ? const Center(
+                                        child: Text(
+                                          'Choose Address', // 'Chọn địa chỉ'
+                                          style: AppTextStyle.regularText,
+                                        ),
+                                      )
+                                    : Text(
+                                        state.salesInvoice!.address!
+                                            .firstLine(),
+                                        style: AppTextStyle.boldText,
+                                      ),
+                                if (state.salesInvoice?.address !=
+                                    Address.nullAddress)
                                   Text(
                                     state.salesInvoice!.address!.secondLine(),
                                     style: AppTextStyle.regularText,
@@ -258,31 +269,37 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
-                          children: [
-                            GradientText(text: 'Total cost'), // 'Tổng tiền'
-                          ],
+                        Text(
+                          'Total cost',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onBackground,
+                          ),
                         ),
+                        const Spacer(),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            if (state.salesInvoice!.hasDiscount()) ...[
+                            if (state.salesInvoice != null &&
+                                state.salesInvoice!.getTotalBasedPrice() >
+                                    state.salesInvoice!.totalPrice)
                               Text(
-                                '\$${state.salesInvoice?.getTotalBasedPrice().toStringAsFixed(2)}',
+                                '\$${state.salesInvoice!.getTotalBasedPrice().toStringAsFixed(2)}',
                                 style: TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.grey[400],
                                   fontSize: 16,
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                            ],
                             Text(
                               '\$${state.salesInvoice?.totalPrice.toStringAsFixed(2)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ],
@@ -294,8 +311,12 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () async {
-                          if (state.salesInvoice?.address == Address.nullAddress) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please choose an address'))); // 'Vui lòng chọn địa chỉ'
+                          if (state.salesInvoice?.address ==
+                              Address.nullAddress) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Please choose an address'))); // 'Vui lòng chọn địa chỉ'
                             return;
                           }
                           await cubit.checkout();
@@ -341,6 +362,6 @@ class _CheckoutScreen extends State<CheckoutScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
-      }
+    }
   }
 }

@@ -84,18 +84,21 @@ class ProductDetailScreen extends StatelessWidget {
                       const SizedBox(height: 16),
 
                       _buildInfoRow(
+                        context: context,
                         icon: Icons.inventory_2,
                         title: 'Product', // 'Sản phẩm'
                         value: product.productName,
                       ),
 
                       _buildInfoRow(
+                        context: context,
                         icon: Icons.category,
                         title: 'Category', // 'Danh mục'
                         value: product.category.toString().split('.').last,
                       ),
 
                       _buildInfoRow(
+                        context: context,
                         icon: Icons.business,
                         title: 'Manufacturer', // 'Nhà sản xuất'
                         value: product.manufacturer.manufacturerName,
@@ -103,6 +106,7 @@ class ProductDetailScreen extends StatelessWidget {
 
                       // Thêm thông tin về giá và discount
                       _buildPriceSection(
+                        context: context,
                         sellingPrice: product.price,
                         discount: product.discount,
                       ),
@@ -145,6 +149,7 @@ class ProductDetailScreen extends StatelessWidget {
 
                       const SizedBox(height: 8),
                       _buildInfoRow(
+                        context: context,
                         icon: Icons.calendar_today,
                         title: 'Release Date', // 'Ngày phát hành'
                         value: DateFormat('dd/MM/yyyy').format(product.release),
@@ -216,6 +221,7 @@ class ProductDetailScreen extends StatelessWidget {
   }
 
   Widget _buildInfoRow({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String value,
@@ -228,16 +234,16 @@ class ProductDetailScreen extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             '$title: ',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onBackground,
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -250,11 +256,12 @@ class ProductDetailScreen extends StatelessWidget {
   List<Widget> _buildProductSpecificDetails(
       BuildContext context, Product product, Map<String, String> specs) {
     return specs.entries
-        .map((entry) => _buildSpecificationRow(entry.key, entry.value))
+        .map((entry) => _buildSpecificationRow(context, entry.key, entry.value))
         .toList();
   }
 
-  Widget _buildSpecificationRow(String label, String value) {
+  Widget _buildSpecificationRow(
+      BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -265,7 +272,7 @@ class ProductDetailScreen extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                color: Colors.grey[400],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 14,
               ),
             ),
@@ -273,9 +280,10 @@ class ProductDetailScreen extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onBackground,
               ),
             ),
           ),
@@ -285,6 +293,7 @@ class ProductDetailScreen extends StatelessWidget {
   }
 
   Widget _buildPriceSection({
+    required BuildContext context,
     required double sellingPrice,
     required double discount,
   }) {
@@ -296,18 +305,18 @@ class ProductDetailScreen extends StatelessWidget {
         children: [
           Icon(Icons.attach_money, size: 20, color: Colors.grey[500]),
           const SizedBox(width: 8),
-          const Text(
-            'Price: ', // 'Giá: '
+          Text(
+            'Price: ',
             style: TextStyle(
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onBackground,
             ),
           ),
           if (discount > 0) ...[
             Text(
               '\$${sellingPrice.toStringAsFixed(2)}',
               style: TextStyle(
-                color: Colors.grey[400],
+                color: Colors.grey[600],
                 fontWeight: FontWeight.w400,
                 decoration: TextDecoration.lineThrough,
                 fontSize: 14,
@@ -317,7 +326,7 @@ class ProductDetailScreen extends StatelessWidget {
             Text(
               '\$${discountedPrice.toStringAsFixed(2)}',
               style: TextStyle(
-                color: Colors.green[300],
+                color: Colors.green[600],
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -332,7 +341,7 @@ class ProductDetailScreen extends StatelessWidget {
               child: Text(
                 '-${(discount * 100).toStringAsFixed(0)}%',
                 style: TextStyle(
-                  color: Colors.red[300],
+                  color: Colors.red[600],
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -341,8 +350,8 @@ class ProductDetailScreen extends StatelessWidget {
           ] else
             Text(
               '\$${sellingPrice.toStringAsFixed(2)}',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
                 fontWeight: FontWeight.w400,
               ),
             ),
