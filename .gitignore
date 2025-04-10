@@ -77,6 +77,7 @@ android/local.properties
 **/android/key.properties
 **/android/google-services.json
 *.jks
+**/android/app/.cxx
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
