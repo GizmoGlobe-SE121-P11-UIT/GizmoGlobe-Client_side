@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 
 import '../../../objects/product_related/product.dart';
 
-
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
   const ProductDetailScreen({super.key, required this.product});
@@ -56,17 +55,18 @@ class ProductDetailScreen extends StatelessWidget {
               children: [
                 // Product Image Section - smaller size
                 Container(
-                  height: MediaQuery.of(context).size.height * 0.25,
+                  height: MediaQuery.of(context).size.height * 0.35,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
                   ),
                   child: Image.network(
                     'https://ramleather.vn/wp-content/uploads/2022/07/woocommerce-placeholder-200x200-1.jpg',
-                    fit: BoxFit.contain,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
                   ),
                 ),
-                
+
                 // Product Info Section
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -77,88 +77,93 @@ class ProductDetailScreen extends StatelessWidget {
                       Text(
                         'Basic Information', // 'Thông tin cơ bản'
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[300],
-                        ),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[300],
+                            ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       _buildInfoRow(
                         icon: Icons.inventory_2,
                         title: 'Product', // 'Sản phẩm'
                         value: product.productName,
                       ),
-                      
+
                       _buildInfoRow(
                         icon: Icons.category,
                         title: 'Category', // 'Danh mục'
                         value: product.category.toString().split('.').last,
                       ),
-                      
+
                       _buildInfoRow(
                         icon: Icons.business,
                         title: 'Manufacturer', // 'Nhà sản xuất'
                         value: product.manufacturer.manufacturerName,
                       ),
-                      
+
                       // Thêm thông tin về giá và discount
                       _buildPriceSection(
                         sellingPrice: product.price,
                         discount: product.discount,
                       ),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       // Status Information Section
                       Text(
                         'Status Information', // 'Thông tin trạng thái'
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[300],
-                        ),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[300],
+                            ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       Row(
                         children: [
                           _buildStatusChip(product.status),
                           const SizedBox(width: 16),
                           Icon(
-                            product.stock > 0 ? Icons.check_circle : Icons.error,
-                            color: product.stock > 0 ? Colors.green : Colors.red,
+                            product.stock > 0
+                                ? Icons.check_circle
+                                : Icons.error,
+                            color:
+                                product.stock > 0 ? Colors.green : Colors.red,
                             size: 16,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             'Stock: ${product.stock}', // 'Tồn kho: ${product.stock}'
                             style: TextStyle(
-                              color: product.stock > 0 ? Colors.green : Colors.red,
+                              color:
+                                  product.stock > 0 ? Colors.green : Colors.red,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 8),
                       _buildInfoRow(
                         icon: Icons.calendar_today,
                         title: 'Release Date', // 'Ngày phát hành'
                         value: DateFormat('dd/MM/yyyy').format(product.release),
                       ),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       // Technical Specifications Section
                       Text(
                         'Technical Specifications', // 'Thông số kỹ thuật'
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[300],
-                        ),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[300],
+                            ),
                       ),
                       const SizedBox(height: 16),
-                      
-                      ..._buildProductSpecificDetails(context, product, state.technicalSpecs),
+
+                      ..._buildProductSpecificDetails(
+                          context, product, state.technicalSpecs),
                     ],
                   ),
                 ),
@@ -174,8 +179,8 @@ class ProductDetailScreen extends StatelessWidget {
     // Xác định màu sắc dựa trên status
     Color chipColor;
     Color textColor;
-    
-    switch(status.toString().toLowerCase()) {
+
+    switch (status.toString().toLowerCase()) {
       case 'active':
         chipColor = Colors.green.withOpacity(0.1);
         textColor = Colors.green;
@@ -243,13 +248,10 @@ class ProductDetailScreen extends StatelessWidget {
   }
 
   List<Widget> _buildProductSpecificDetails(
-    BuildContext context, 
-    Product product,
-    Map<String, String> specs
-  ) {
-    return specs.entries.map((entry) => 
-      _buildSpecificationRow(entry.key, entry.value)
-    ).toList();
+      BuildContext context, Product product, Map<String, String> specs) {
+    return specs.entries
+        .map((entry) => _buildSpecificationRow(entry.key, entry.value))
+        .toList();
   }
 
   Widget _buildSpecificationRow(String label, String value) {
@@ -287,7 +289,7 @@ class ProductDetailScreen extends StatelessWidget {
     required double discount,
   }) {
     final discountedPrice = sellingPrice * (1 - discount);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(

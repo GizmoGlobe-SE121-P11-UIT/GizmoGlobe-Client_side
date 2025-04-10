@@ -1,32 +1,32 @@
 import 'package:equatable/equatable.dart';
 
-class UserScreenState with EquatableMixin {
+class UserScreenState extends Equatable {
   final String username;
   final String email;
   final String? avatarUrl;
-  final bool isLoading;
+  final bool isGuest;
 
   const UserScreenState({
-    required this.username,
-    required this.email,
+    this.username = '',
+    this.email = '',
     this.avatarUrl,
-    this.isLoading = false,
+    this.isGuest = false,
   });
 
   @override
-  List<Object?> get props => [username, email, avatarUrl, isLoading];
+  List<Object?> get props => [username, email, avatarUrl, isGuest];
 
   UserScreenState copyWith({
     String? username,
     String? email,
     String? avatarUrl,
-    bool? isLoading,
+    bool? isGuest,
   }) {
     return UserScreenState(
       username: username ?? this.username,
       email: email ?? this.email,
       avatarUrl: avatarUrl ?? this.avatarUrl,
-      isLoading: isLoading ?? this.isLoading,
+      isGuest: isGuest ?? this.isGuest,
     );
   }
 }

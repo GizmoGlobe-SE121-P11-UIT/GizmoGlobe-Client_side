@@ -15,6 +15,7 @@ import 'package:gizmoglobe_client/providers/cart_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:gizmoglobe_client/providers/theme_provider.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 import 'consts.dart';
 
@@ -25,6 +26,16 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+
+    // Initialize Firebase App Check with debug token and retry configuration
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+      appleProvider: AppleProvider.deviceCheck,
+    );
+
+    // Configure retry behavior for App Check
+    FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true);
+
     await Database().initialize();
     await Permission.camera.request();
     await Permission.photos.request();
@@ -73,12 +84,12 @@ class MyApp extends StatelessWidget {
                     onPrimary: Colors.white,
                     secondary: const Color(0xFF6465F1),
                     onSecondary: const Color(0xFF292B5C),
-                    primaryContainer: const Color(0xFFE3F2FD),
-                    secondaryContainer: const Color(0xFFBBDEFB),
-                    surface: const Color(0xFFF5F9FF),
+                    primaryContainer: const Color(0xFF64B5F6),
+                    secondaryContainer: const Color(0xFF64B5F6),
+                    surface: Colors.white,
                     onSurface: const Color(0xFF2C3E50),
                     onSurfaceVariant: const Color(0xFF455A64),
-                    background: const Color(0xFFF5F9FF),
+                    background: Colors.white,
                     onBackground: const Color(0xFF2C3E50),
                     error: Colors.red[400]!,
                     onError: Colors.white,
@@ -93,10 +104,9 @@ class MyApp extends StatelessWidget {
                       ),
                     ),
                   ),
-                  scaffoldBackgroundColor:
-                      const Color(0xFFF5F9FF), // Very light blue background
+                  scaffoldBackgroundColor: Colors.white,
                   appBarTheme: const AppBarTheme(
-                    backgroundColor: Color(0xFFF5F9FF),
+                    backgroundColor: Colors.white,
                     foregroundColor: Color(0xFF2C3E50),
                     elevation: 0,
                   ),
@@ -181,12 +191,22 @@ class AuthWrapper extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-              child: CircularProgressIndicator()); // 'Đang tải...'
+          return const Center(child: CircularProgressIndicator());
         }
+
+        // Get the current route name
+        final currentRoute = ModalRoute.of(context)?.settings.name;
+
+        // If we're on the sign-up screen, don't redirect
+        if (currentRoute == '/sign-up') {
+          return SignUpScreen.newInstance();
+        }
+
         if (snapshot.hasData) {
           return const MainScreen();
         }
+
+        // For all other cases, show sign in screen
         return SignInScreen.newInstance();
       },
     );

@@ -77,13 +77,16 @@ class _CartScreen extends State<CartScreen> {
                             onChanged: (value) {
                               cubit.toggleItemSelection(item['productID']);
                             },
-                            activeColor: Colors.blue[200],
-                            checkColor: Colors.black,
+                            activeColor: Theme.of(context).colorScheme.primary,
+                            checkColor: Theme.of(context).colorScheme.surface,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            side: const BorderSide(
-                              color: Colors.white,
+                            side: BorderSide(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.5),
                               width: 1.5,
                             ),
                           ),
@@ -117,10 +120,11 @@ class _CartScreen extends State<CartScreen> {
                               children: [
                                 Text(
                                   product['productName'],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -129,7 +133,10 @@ class _CartScreen extends State<CartScreen> {
                                     '\$${(product['sellingPrice'] * item['quantity']).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       decoration: TextDecoration.lineThrough,
-                                      color: Colors.grey[400],
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.6),
                                       fontSize: 14,
                                     ),
                                   ),
@@ -140,7 +147,8 @@ class _CartScreen extends State<CartScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue[700],
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ],
@@ -154,7 +162,12 @@ class _CartScreen extends State<CartScreen> {
                               Container(
                                 height: 32,
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey[700]!),
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withOpacity(0.2),
+                                  ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
@@ -181,8 +194,13 @@ class _CartScreen extends State<CartScreen> {
                                       style: IconButton.styleFrom(
                                         foregroundColor:
                                             (item['quantity'] as int? ?? 0) > 1
-                                                ? Colors.white
-                                                : Colors.grey,
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withOpacity(0.3),
                                       ),
                                     ),
                                     Container(
@@ -193,8 +211,10 @@ class _CartScreen extends State<CartScreen> {
                                         (item['quantity'] as int? ?? 0)
                                             .toString(),
                                         textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -213,7 +233,9 @@ class _CartScreen extends State<CartScreen> {
                                       padding: const EdgeInsets.all(4),
                                       constraints: const BoxConstraints(),
                                       style: IconButton.styleFrom(
-                                        foregroundColor: Colors.white,
+                                        foregroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                       ),
                                     ),
                                   ],
@@ -294,8 +316,9 @@ class _CartScreen extends State<CartScreen> {
                         Row(
                           children: [
                             Checkbox(
-                              activeColor: Colors.blue[200],
-                              checkColor: Colors.black,
+                              activeColor:
+                                  Theme.of(context).colorScheme.primary,
+                              checkColor: Theme.of(context).colorScheme.surface,
                               value: state.isAllSelected,
                               onChanged: (value) {
                                 cubit.toggleSelectAll();
@@ -303,15 +326,18 @@ class _CartScreen extends State<CartScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              side: const BorderSide(
-                                color: Colors.white,
+                              side: BorderSide(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withOpacity(0.5),
                                 width: 1.5,
                               ),
                             ),
-                            const Text(
+                            Text(
                               'Select all', // 'Chọn tất cả'
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
                               ),
                             ),
@@ -326,7 +352,10 @@ class _CartScreen extends State<CartScreen> {
                                 '\$${state.totalBeforeDiscount.toStringAsFixed(2)}',
                                 style: TextStyle(
                                   decoration: TextDecoration.lineThrough,
-                                  color: Colors.grey[400],
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.6),
                                   fontSize: 14,
                                 ),
                               ),
@@ -334,10 +363,10 @@ class _CartScreen extends State<CartScreen> {
                             ],
                             Text(
                               '\$${state.totalAmount.toStringAsFixed(2)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ],

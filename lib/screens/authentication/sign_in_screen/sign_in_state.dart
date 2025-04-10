@@ -4,12 +4,13 @@ import 'package:gizmoglobe_client/enums/processing/notify_message_enum.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
 
-class SignInState with EquatableMixin  {
+class SignInState with EquatableMixin {
   final ProcessState processState;
   final DialogName dialogName;
   final NotifyMessage message;
   final String email;
   final String password;
+  final bool isGuestLogin;
 
   const SignInState({
     this.processState = ProcessState.idle,
@@ -17,10 +18,12 @@ class SignInState with EquatableMixin  {
     this.message = NotifyMessage.empty,
     this.email = '',
     this.password = '',
+    this.isGuestLogin = false,
   });
 
   @override
-  List<Object?> get props => [processState, dialogName, message, email, password];
+  List<Object?> get props =>
+      [processState, dialogName, message, email, password, isGuestLogin];
 
   SignInState copyWith({
     ProcessState? processState,
@@ -28,6 +31,7 @@ class SignInState with EquatableMixin  {
     NotifyMessage? message,
     String? email,
     String? password,
+    bool? isGuestLogin,
   }) {
     return SignInState(
       processState: processState ?? this.processState,
@@ -35,6 +39,7 @@ class SignInState with EquatableMixin  {
       message: message ?? this.message,
       email: email ?? this.email,
       password: password ?? this.password,
+      isGuestLogin: isGuestLogin ?? this.isGuestLogin,
     );
   }
 }

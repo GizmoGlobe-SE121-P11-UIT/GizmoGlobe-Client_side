@@ -12,6 +12,8 @@ import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/theme_provider.dart';
+import '../../authentication/sign_in_screen/sign_in_view.dart';
+import '../../authentication/sign_up_screen/sign_up_view.dart';
 // Import the Firebase file
 
 class UserScreen extends StatefulWidget {
@@ -237,6 +239,125 @@ class _UserScreen extends State<UserScreen> {
     );
   }
 
+  void _showSignUpOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface.withOpacity(0.3),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        Icons.person_add_outlined,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      "Account Settings",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  children: [
+                    _buildEnhancedSettingsItem(
+                      context,
+                      'Sign Up with Email',
+                      Icons.email_outlined,
+                      'Create account using email',
+                      () {
+                        Navigator.pop(context);
+                        // Đăng xuất tài khoản guest
+                        FirebaseAuth.instance.signOut();
+                        // Chuyển hướng đến màn hình đăng ký
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SignUpScreen.newInstance(),
+                          ),
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                      showTopDivider: false,
+                    ),
+                    _buildEnhancedSettingsItem(
+                      context,
+                      'Sign In',
+                      Icons.login,
+                      'Already have an account?',
+                      () {
+                        Navigator.pop(context);
+                        // Đăng xuất tài khoản guest
+                        FirebaseAuth.instance.signOut();
+                        // Chuyển hướng đến màn hình đăng nhập
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SignInScreen.newInstance(),
+                          ),
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -249,15 +370,14 @@ class _UserScreen extends State<UserScreen> {
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   SliverAppBar(
-                    expandedHeight: 260,
+                    expandedHeight: MediaQuery.of(context).size.height * 0.32,
                     pinned: true,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    stretch: true,
                     flexibleSpace: LayoutBuilder(
                       builder:
                           (BuildContext context, BoxConstraints constraints) {
                         final bool isCollapsed =
                             constraints.maxHeight <= kToolbarHeight + 30;
-
                         return FlexibleSpaceBar(
                           centerTitle: false,
                           titlePadding:
@@ -268,8 +388,8 @@ class _UserScreen extends State<UserScreen> {
                                     return Row(
                                       children: [
                                         Container(
-                                          width: 40,
-                                          height: 40,
+                                          width: 32,
+                                          height: 32,
                                           margin:
                                               const EdgeInsets.only(right: 12),
                                           decoration: BoxDecoration(
@@ -284,35 +404,49 @@ class _UserScreen extends State<UserScreen> {
                                           ),
                                           child: state.avatarUrl == null
                                               ? const Icon(Icons.person,
-                                                  size: 24, color: Colors.white)
+                                                  size: 20, color: Colors.white)
                                               : null,
                                         ),
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              state.username,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface,
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                state.isGuest
+                                                    ? 'Guest Account'
+                                                    : state.username,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Theme.of(context)
+                                                              .brightness ==
+                                                          Brightness.light
+                                                      ? const Color(0xFF2C3E50)
+                                                      : Colors.white,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                            ),
-                                            Text(
-                                              state.email,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withOpacity(0.8),
+                                              Text(
+                                                state.isGuest
+                                                    ? 'Guest Account'
+                                                    : state.email,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Theme.of(context)
+                                                              .brightness ==
+                                                          Brightness.light
+                                                      ? const Color(0xFF2C3E50)
+                                                          .withOpacity(0.7)
+                                                      : Colors.white70,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     );
@@ -328,6 +462,7 @@ class _UserScreen extends State<UserScreen> {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
+                                      const SizedBox(height: 16),
                                       AvatarPicker(
                                         userId: FirebaseAuth
                                                 .instance.currentUser?.uid ??
@@ -336,36 +471,30 @@ class _UserScreen extends State<UserScreen> {
                                         onAvatarChanged: (String newAvatarUrl) {
                                           cubit.updateAvatar(newAvatarUrl);
                                         },
+                                        isGuest: state.isGuest,
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
-                                        state.username,
-                                        style: TextStyle(
+                                        state.isGuest
+                                            ? 'Guest Account'
+                                            : state.username,
+                                        style: const TextStyle(
                                           fontSize: 28,
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                          letterSpacing: 0.5,
-                                          shadows: [
-                                            Shadow(
-                                              offset: const Offset(0, 2),
-                                              blurRadius: 6,
-                                              color: Colors.black26,
-                                            ),
-                                          ],
+                                          color: Colors.white,
                                         ),
+                                        textAlign: TextAlign.center,
                                       ),
-                                      const SizedBox(height: 8),
+                                      const SizedBox(height: 12),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
+                                          horizontal: 20,
                                           vertical: 8,
                                         ),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.15),
                                           borderRadius:
-                                              BorderRadius.circular(25),
+                                              BorderRadius.circular(20),
                                           border: Border.all(
                                             color:
                                                 Colors.white.withOpacity(0.3),
@@ -373,14 +502,13 @@ class _UserScreen extends State<UserScreen> {
                                           ),
                                         ),
                                         child: Text(
-                                          state.email,
-                                          style: TextStyle(
+                                          state.isGuest
+                                              ? 'Guest Account'
+                                              : state.email,
+                                          style: const TextStyle(
                                             fontSize: 16,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withOpacity(0.95),
-                                            letterSpacing: 0.5,
+                                            color: Colors.white,
+                                            letterSpacing: 0.3,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
@@ -400,7 +528,7 @@ class _UserScreen extends State<UserScreen> {
                       children: [
                         // Clean Orders Section
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
                           child: Card(
                             elevation: 4,
                             shadowColor: Colors.black12,
@@ -497,73 +625,71 @@ class _UserScreen extends State<UserScreen> {
                         ),
 
                         // Account Settings Card
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                          child: Card(
-                            elevation: 4,
-                            shadowColor: Colors.black12,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: InkWell(
-                              onTap: _showAccountSettingsModal,
-                              borderRadius: BorderRadius.circular(24),
-                              child: Container(
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surface
-                                      .withOpacity(0.3),
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Icon(
-                                        Icons.settings,
+                        BlocBuilder<UserScreenCubit, UserScreenState>(
+                            builder: (context, state) {
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                            child: Card(
+                              elevation: 4,
+                              shadowColor: Colors.black12,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: InkWell(
+                                onTap: state.isGuest
+                                    ? _showSignUpOptions
+                                    : _showAccountSettingsModal,
+                                borderRadius: BorderRadius.circular(24),
+                                child: Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.person_outline,
                                         color: Theme.of(context)
                                             .colorScheme
                                             .primary,
                                         size: 28,
                                       ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Text(
-                                      "Account Settings",
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
+                                      const SizedBox(width: 16),
+                                      Text(
+                                        state.isGuest
+                                            ? 'Create Account'
+                                            : 'Account Settings',
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Icon(
+                                        Icons.arrow_forward_ios,
                                         color: Theme.of(context)
                                             .colorScheme
                                             .primary,
+                                        size: 20,
                                       ),
-                                    ),
-                                    const Spacer(),
-                                    Icon(
-                                      Icons.arrow_forward_ios,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                      size: 20,
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        }),
 
                         // App Settings Card
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                           child: Card(
                             elevation: 4,
                             shadowColor: Colors.black12,
@@ -631,7 +757,7 @@ class _UserScreen extends State<UserScreen> {
                                                             16),
                                                   ),
                                                   child: Icon(
-                                                    Icons.settings_applications,
+                                                    Icons.settings,
                                                     color: Theme.of(context)
                                                         .colorScheme
                                                         .primary,
@@ -826,32 +952,21 @@ class _UserScreen extends State<UserScreen> {
                                 decoration: BoxDecoration(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .surface
-                                      .withOpacity(0.3),
+                                      .primary
+                                      .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: Row(
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Icon(
-                                        Icons.settings_applications,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        size: 28,
-                                      ),
+                                    Icon(
+                                      Icons.settings,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      size: 28,
                                     ),
                                     const SizedBox(width: 16),
                                     Text(
-                                      "App Settings",
+                                      'App Settings',
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -876,7 +991,7 @@ class _UserScreen extends State<UserScreen> {
 
                         // About Card
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                           child: Card(
                             elevation: 4,
                             shadowColor: Colors.black12,
@@ -1024,32 +1139,21 @@ class _UserScreen extends State<UserScreen> {
                                 decoration: BoxDecoration(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .surface
-                                      .withOpacity(0.3),
+                                      .primary
+                                      .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: Row(
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Icon(
-                                        Icons.info_outline,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        size: 28,
-                                      ),
+                                    Icon(
+                                      Icons.info_outline,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      size: 28,
                                     ),
                                     const SizedBox(width: 16),
                                     Text(
-                                      "About",
+                                      'About',
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -1072,9 +1176,12 @@ class _UserScreen extends State<UserScreen> {
                           ),
                         ),
 
+                        // Add spacing before Log Out Card
+                        const SizedBox(height: 16),
+
                         // Log Out Card
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                           child: Card(
                             elevation: 4,
                             shadowColor: Colors.black12,
@@ -1095,25 +1202,15 @@ class _UserScreen extends State<UserScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .error
-                                            .withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Icon(
-                                        Icons.logout,
-                                        color:
-                                            Theme.of(context).colorScheme.error,
-                                        size: 28,
-                                      ),
+                                    Icon(
+                                      Icons.logout,
+                                      color:
+                                          Theme.of(context).colorScheme.error,
+                                      size: 28,
                                     ),
                                     const SizedBox(width: 16),
                                     Text(
-                                      "Log Out",
+                                      'Log Out',
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -1164,7 +1261,7 @@ class _UserScreen extends State<UserScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(

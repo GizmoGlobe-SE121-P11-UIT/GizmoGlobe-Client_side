@@ -11,12 +11,14 @@ class AvatarPicker extends StatefulWidget {
   final String userId;
   final String? currentAvatarUrl;
   final Function(String) onAvatarChanged;
+  final bool isGuest;
 
   const AvatarPicker({
     Key? key,
     required this.userId,
     this.currentAvatarUrl,
     required this.onAvatarChanged,
+    this.isGuest = false,
   }) : super(key: key);
 
   @override
@@ -156,11 +158,14 @@ class _AvatarPickerState extends State<AvatarPicker> {
           // Gọi callback để cập nhật avatar mới
           widget.onAvatarChanged(downloadUrl);
         } catch (e) {
-          String errorMessage = 'Error uploading image'; // 'Lỗi khi tải ảnh lên'
+          String errorMessage =
+              'Error uploading image'; // 'Lỗi khi tải ảnh lên'
           if (e.toString().contains('unauthorized')) {
-            errorMessage = 'You need to log in to configure avatar.'; // Bạn cần đăng nhập để thay đổi ảnh đại diện
+            errorMessage =
+                'You need to log in to configure avatar.'; // Bạn cần đăng nhập để thay đổi ảnh đại diện
           } else if (e.toString().contains('User not found')) {
-            errorMessage = 'You need to log in to configure avatar.'; // 'Bạn cần đăng nhập để thay đổi ảnh đại diện'
+            errorMessage =
+                'You need to log in to configure avatar.'; // 'Bạn cần đăng nhập để thay đổi ảnh đại diện'
           }
 
           if (mounted) {
@@ -173,7 +178,9 @@ class _AvatarPickerState extends State<AvatarPicker> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')), // 'Lỗi khi chọn ảnh: $e'
+          SnackBar(
+              content:
+                  Text('Error picking image: $e')), // 'Lỗi khi chọn ảnh: $e'
         );
       }
       if (kDebugMode) {
@@ -189,7 +196,7 @@ class _AvatarPickerState extends State<AvatarPicker> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _isUploading ? null : _showImageSourceDialog,
+      onTap: _isUploading || widget.isGuest ? null : _showImageSourceDialog,
       child: Stack(
         children: [
           Container(
@@ -261,20 +268,21 @@ class _AvatarPickerState extends State<AvatarPicker> {
                 ),
               ),
             ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.camera_alt, color: Colors.white),
-                onPressed: _isUploading ? null : _showImageSourceDialog,
+          if (!widget.isGuest)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.camera_alt, color: Colors.white),
+                  onPressed: _isUploading ? null : _showImageSourceDialog,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

@@ -13,23 +13,48 @@ class SignUpCubit extends Cubit<SignUpState> {
   SignUpCubit() : super(const SignUpState());
 
   void updateUsername(String username) {
-    emit(state.copyWith(username: username));
+    emit(state.copyWith(
+      username: username,
+      processState: ProcessState.idle,
+      dialogName: DialogName.empty,
+      message: NotifyMessage.empty,
+    ));
   }
 
   void updateEmail(String email) {
-    emit(state.copyWith(email: email));
+    emit(state.copyWith(
+      email: email,
+      processState: ProcessState.idle,
+      dialogName: DialogName.empty,
+      message: NotifyMessage.empty,
+    ));
   }
 
   void updatePassword(String password) {
-    emit(state.copyWith(password: password));
+    emit(state.copyWith(
+      password: password,
+      processState: ProcessState.idle,
+      dialogName: DialogName.empty,
+      message: NotifyMessage.empty,
+    ));
   }
 
   void updateConfirmPassword(String confirmPassword) {
-    emit(state.copyWith(confirmPassword: confirmPassword));
+    emit(state.copyWith(
+      confirmPassword: confirmPassword,
+      processState: ProcessState.idle,
+      dialogName: DialogName.empty,
+      message: NotifyMessage.empty,
+    ));
   }
 
   void updatePhoneNumber(String phoneNumber) {
-    emit(state.copyWith(phoneNumber: phoneNumber));
+    emit(state.copyWith(
+      phoneNumber: phoneNumber,
+      processState: ProcessState.idle,
+      dialogName: DialogName.empty,
+      message: NotifyMessage.empty,
+    ));
   }
 
   Future<void> signUp() async {
@@ -37,7 +62,7 @@ class SignUpCubit extends Cubit<SignUpState> {
       emit(state.copyWith(
         processState: ProcessState.failure,
         message: NotifyMessage.msg5,
-        dialogName: DialogName.failure
+        dialogName: DialogName.failure,
       ));
       return;
     }
@@ -45,15 +70,17 @@ class SignUpCubit extends Cubit<SignUpState> {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
 
-      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      final UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: state.email,
-        password: state.password
+        password: state.password,
       );
-      
+
       await userCredential.user!.sendEmailVerification();
 
-      // Lưu thông tin vào users collection
-      final CollectionReference usersCollection = _firestore.collection('users');
+      // Save information to users collection
+      final CollectionReference usersCollection =
+          _firestore.collection('users');
       await usersCollection.doc(userCredential.user!.uid).set({
         'username': state.username,
         'email': state.email,
@@ -61,8 +88,9 @@ class SignUpCubit extends Cubit<SignUpState> {
         'role': 'customer',
       });
 
-      // Lưu thông tin vào customers collection
-      final CollectionReference customersCollection = _firestore.collection('customers');
+      // Save information to customers collection
+      final CollectionReference customersCollection =
+          _firestore.collection('customers');
       await customersCollection.doc(userCredential.user!.uid).set({
         'customerID': userCredential.user!.uid,
         'customerName': state.username,
@@ -73,20 +101,24 @@ class SignUpCubit extends Cubit<SignUpState> {
       emit(state.copyWith(
         processState: ProcessState.success,
         dialogName: DialogName.success,
-        message: NotifyMessage.msg6
+        message: NotifyMessage.msg6,
       ));
-      
     } on FirebaseAuthException catch (e) {
+      String errorMessage;
       switch (e.code) {
         case 'weak-password':
+          errorMessage = 'The password provided is too weak.';
           break;
         case 'email-already-in-use':
+          errorMessage = 'An account already exists for that email.';
           break;
         case 'invalid-email':
+          errorMessage = 'The email address is not valid.';
           break;
         default:
+          errorMessage = 'An error occurred during sign up.';
       }
-      
+
       emit(state.copyWith(
         processState: ProcessState.failure,
         dialogName: DialogName.failure,

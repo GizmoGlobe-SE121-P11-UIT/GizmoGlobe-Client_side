@@ -7,6 +7,7 @@ import '../../../widgets/general/selectable_gradient_icon.dart';
 import '../../cart/cart_screen/cart_screen_view.dart';
 import '../../home/home_screen/home_screen_view.dart';
 import '../../user/user_screen/user_screen_view.dart';
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -18,10 +19,10 @@ class _MainScreenState extends State<MainScreen> {
   int index = 0;
 
   final List<Widget Function()> widgetList = [
-        () => HomeScreen.newInstance(),
-        () => ProductScreen.newInstance(),
-        () => Container(),
-        () => UserScreen.newInstance(),
+    () => HomeScreen.newInstance(),
+    () => ProductScreen.newInstance(),
+    () => Container(),
+    () => UserScreen.newInstance(),
   ];
 
   @override
@@ -45,7 +46,8 @@ class _MainScreenState extends State<MainScreen> {
             if (value == 2) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CartScreen.newInstance()),
+                MaterialPageRoute(
+                    builder: (context) => CartScreen.newInstance()),
               );
             } else if (value != index) {
               setState(() {
@@ -83,7 +85,7 @@ class _MainScreenState extends State<MainScreen> {
             BottomNavigationBarItem(
               icon: SelectableGradientIcon(
                 icon: Icons.person,
-                isSelected: index == 2,
+                isSelected: index == 3,
               ),
               label: "User", // "Người dùng"
             ),

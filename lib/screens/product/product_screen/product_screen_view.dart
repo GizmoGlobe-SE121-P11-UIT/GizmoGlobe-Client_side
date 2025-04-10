@@ -13,18 +13,24 @@ class ProductScreen extends StatefulWidget {
   final List<Product>? initialProducts;
   final SortEnum? initialSortOption;
 
-  const ProductScreen({super.key, this.initialProducts, this.initialSortOption});
+  const ProductScreen(
+      {super.key, this.initialProducts, this.initialSortOption});
 
-  static Widget newInstance({List<Product>? initialProducts, SortEnum? initialSortOption}) => BlocProvider(
-    create: (context) => ProductScreenCubit(),
-    child: ProductScreen(initialProducts: initialProducts, initialSortOption: initialSortOption),
-  );
+  static Widget newInstance(
+          {List<Product>? initialProducts, SortEnum? initialSortOption}) =>
+      BlocProvider(
+        create: (context) => ProductScreenCubit(),
+        child: ProductScreen(
+            initialProducts: initialProducts,
+            initialSortOption: initialSortOption),
+      );
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();
 }
 
-class _ProductScreenState extends State<ProductScreen> with SingleTickerProviderStateMixin {
+class _ProductScreenState extends State<ProductScreen>
+    with SingleTickerProviderStateMixin {
   late TextEditingController searchController;
   late FocusNode searchFocusNode;
   ProductScreenCubit get cubit => context.read<ProductScreenCubit>();
@@ -35,8 +41,10 @@ class _ProductScreenState extends State<ProductScreen> with SingleTickerProvider
     super.initState();
     searchController = TextEditingController();
     searchFocusNode = FocusNode();
-    tabController = TabController(length: CategoryEnum.values.length + 1, vsync: this);
-    cubit.initialize(widget.initialProducts ?? [], widget.initialSortOption ?? SortEnum.releaseLatest);
+    tabController =
+        TabController(length: CategoryEnum.values.length + 1, vsync: this);
+    cubit.initialize(widget.initialProducts ?? [],
+        widget.initialSortOption ?? SortEnum.releaseLatest);
   }
 
   @override
@@ -77,7 +85,12 @@ class _ProductScreenState extends State<ProductScreen> with SingleTickerProvider
               focusNode: searchFocusNode,
               hintText: 'Find your item', // 'Tìm kiếm sản phẩm'
               fillColor: Theme.of(context).colorScheme.surface,
-              prefixIcon: Icon(Icons.search, color: Theme.of(context).primaryColor),
+              prefixIcon: Icon(
+                Icons.search,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white70
+                    : Theme.of(context).primaryColor,
+              ),
               onChanged: (value) {
                 cubit.updateSearchText(searchController.text);
               },
@@ -88,7 +101,8 @@ class _ProductScreenState extends State<ProductScreen> with SingleTickerProvider
             bottom: TabBar(
               controller: tabController,
               labelColor: Theme.of(context).colorScheme.primary,
-              unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              unselectedLabelColor:
+                  Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
               labelPadding: const EdgeInsets.symmetric(horizontal: 16),
               indicatorColor: Theme.of(context).colorScheme.primary,
               tabAlignment: TabAlignment.start,
@@ -97,8 +111,11 @@ class _ProductScreenState extends State<ProductScreen> with SingleTickerProvider
               tabs: [
                 const Tab(text: 'All'), // 'Tất cả'
                 ...CategoryEnum.values.map((category) => Tab(
-                  text: category.toString().split('.').last, // Các giá trị enum cần được dịch trong CategoryEnum
-                )),
+                      text: category
+                          .toString()
+                          .split('.')
+                          .last, // Các giá trị enum cần được dịch trong CategoryEnum
+                    )),
               ],
             ),
           ),
@@ -108,13 +125,34 @@ class _ProductScreenState extends State<ProductScreen> with SingleTickerProvider
                 return TabBarView(
                   controller: tabController,
                   children: [
-                    ProductTab.newInstance(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
-                    ProductTab.newRam(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
-                    ProductTab.newCpu(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
-                    ProductTab.newPsu(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
-                    ProductTab.newGpu(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
-                    ProductTab.newDrive(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
-                    ProductTab.newMainboard(searchText: state.searchText, initialProducts: state.initialProducts, initialSortOption: state.initialSortOption),
+                    ProductTab.newInstance(
+                        searchText: state.searchText,
+                        initialProducts: state.initialProducts,
+                        initialSortOption: state.initialSortOption),
+                    ProductTab.newRam(
+                        searchText: state.searchText,
+                        initialProducts: state.initialProducts,
+                        initialSortOption: state.initialSortOption),
+                    ProductTab.newCpu(
+                        searchText: state.searchText,
+                        initialProducts: state.initialProducts,
+                        initialSortOption: state.initialSortOption),
+                    ProductTab.newPsu(
+                        searchText: state.searchText,
+                        initialProducts: state.initialProducts,
+                        initialSortOption: state.initialSortOption),
+                    ProductTab.newGpu(
+                        searchText: state.searchText,
+                        initialProducts: state.initialProducts,
+                        initialSortOption: state.initialSortOption),
+                    ProductTab.newDrive(
+                        searchText: state.searchText,
+                        initialProducts: state.initialProducts,
+                        initialSortOption: state.initialSortOption),
+                    ProductTab.newMainboard(
+                        searchText: state.searchText,
+                        initialProducts: state.initialProducts,
+                        initialSortOption: state.initialSortOption),
                   ],
                 );
               },

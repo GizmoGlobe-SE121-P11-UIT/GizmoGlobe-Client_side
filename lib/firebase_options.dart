@@ -63,6 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '413433346211',
     projectId: 'se121p11-gizmoglobe',
     storageBucket: 'se121p11-gizmoglobe.firebasestorage.app',
+    androidClientId: '413433346211-7hvtg0mbci2quu8uroqtcqmnecoq422s.apps.googleusercontent.com',
+    iosClientId: '413433346211-596fpqvad17r0f9dvusqj6q8ovggjaid.apps.googleusercontent.com',
     iosBundleId: 'com.example.gizmoglobeClient',
   );
 

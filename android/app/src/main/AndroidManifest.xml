@@ -5,10 +5,14 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     
+    <!-- OpenGL ES version -->
+    <uses-feature android:glEsVersion="0x00020000" android:required="true" />
+    
     <application
         android:label="GizmoGlobe Client"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:hardwareAccelerated="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

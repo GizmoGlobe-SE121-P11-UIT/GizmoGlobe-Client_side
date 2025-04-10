@@ -13,6 +13,14 @@ class UserScreenCubit extends Cubit<UserScreenState> {
 
   UserScreenCubit() : super(const UserScreenState(username: '', email: ''));
 
+  Future<bool> _isGuestUser() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final userDoc = await _firestore.collection('users').doc(user.uid).get();
+    return userDoc.exists && (userDoc.data()?['isGuest'] ?? false);
+  }
+
   Future<void> getUser() async {
     try {
       final user = _auth.currentUser;
@@ -20,10 +28,13 @@ class UserScreenCubit extends Cubit<UserScreenState> {
         final doc = await _firestore.collection('users').doc(user.uid).get();
         if (doc.exists) {
           final data = doc.data() as Map<String, dynamic>;
+          final isGuest = data['isGuest'] ?? false;
+
           emit(state.copyWith(
             username: data['username'] ?? '',
             email: user.email ?? '',
             avatarUrl: data['avatarUrl'],
+            isGuest: isGuest,
           ));
         }
       }
