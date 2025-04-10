@@ -121,63 +121,185 @@ class _UserScreen extends State<UserScreen> {
                             builder: (context) {
                               final TextEditingController nameController =
                                   TextEditingController();
-                              return AlertDialog(
-                                title: const Text('Edit Profile'),
-                                content: TextField(
-                                  controller: nameController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Enter new username',
-                                    hintStyle: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 16,
-                                    ),
-                                    filled: true,
-                                    fillColor:
-                                        Theme.of(context).colorScheme.surface,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 15, horizontal: 20),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(
-                                        color: Colors.grey[300]!,
-                                        width: 1,
+                              return Dialog(
+                                insetPadding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.85,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(24),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              const BorderRadius.vertical(
+                                                  top: Radius.circular(24)),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              child: Icon(
+                                                Icons.person_outline,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                size: 28,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Text(
+                                              "Edit Profile",
+                                              style: TextStyle(
+                                                fontSize: 24,
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        width: 2,
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            24, 32, 24, 32),
+                                        child: TextField(
+                                          controller: nameController,
+                                          decoration: InputDecoration(
+                                            hintText: 'Enter new username',
+                                            hintStyle: TextStyle(
+                                              color: Colors.grey[400],
+                                              fontSize: 16,
+                                            ),
+                                            filled: true,
+                                            fillColor: Theme.of(context)
+                                                .colorScheme
+                                                .surface,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    vertical: 20,
+                                                    horizontal: 24),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              borderSide: BorderSide.none,
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              borderSide: BorderSide(
+                                                color: Colors.grey[300]!,
+                                                width: 1,
+                                              ),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              borderSide: BorderSide(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                width: 2,
+                                              ),
+                                            ),
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
+                                      Container(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            24, 0, 24, 24),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              style: TextButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 24,
+                                                        vertical: 16),
+                                                foregroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .error,
+                                              ),
+                                              child: Text(
+                                                'Cancel',
+                                                style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .error,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                Navigator.of(context)
+                                                    .pop(nameController.text);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                foregroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .onPrimary,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 32,
+                                                        vertical: 16),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                ),
+                                              ),
+                                              child: const Text(
+                                                'Save',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pop(nameController.text);
-                                    },
-                                    child: const Text('Save'),
-                                  ),
-                                ],
                               );
                             },
                           );
@@ -1408,17 +1530,17 @@ class _UserScreen extends State<UserScreen> {
                   children: [
                     _buildEnhancedSettingsItem(
                       context,
-                      'Terry',
+                      'To Vinh Tien - Terry',
                       Icons.person_outline,
-                      'Lead Developer',
+                      'Developer',
                       () {},
                       showTopDivider: false,
                     ),
                     _buildEnhancedSettingsItem(
                       context,
-                      'GizmoGlobe Team',
+                      'Do Hong Quan',
                       Icons.groups_outlined,
-                      'Development & Design',
+                      'Developer',
                       () {},
                     ),
                   ],
