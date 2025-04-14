@@ -13,9 +13,9 @@ class AddAddressScreen extends StatefulWidget {
   const AddAddressScreen({super.key});
 
   static Widget newInstance() => BlocProvider(
-    create: (context) => AddAddressScreenCubit(),
-    child: const AddAddressScreen(),
-  );
+        create: (context) => AddAddressScreenCubit(),
+        child: const AddAddressScreen(),
+      );
 
   @override
   State<AddAddressScreen> createState() => _AddAddressScreen();
@@ -25,7 +25,8 @@ class _AddAddressScreen extends State<AddAddressScreen> {
   AddAddressScreenCubit get cubit => context.read<AddAddressScreenCubit>();
 
   final TextEditingController _receiverNameController = TextEditingController();
-  final TextEditingController _receiverPhoneController = TextEditingController();
+  final TextEditingController _receiverPhoneController =
+      TextEditingController();
   final TextEditingController _streetController = TextEditingController();
 
   @override
@@ -67,7 +68,8 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   ),
                 );
               },
-              child: const Text('OK', style: TextStyle(color: Colors.white)), // 'Xác nhận'
+              child: const Text('OK',
+                  style: TextStyle(color: Colors.white)), // 'Xác nhận'
             ),
           ],
         ),
@@ -83,12 +85,14 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                     cubit.updateAddress(receiverName: value);
                   },
                   fillColor: Theme.of(context).colorScheme.surface,
+                  textColor: Theme.of(context).colorScheme.onSurface,
+                  hintTextColor:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
                   ],
                 ),
                 const SizedBox(height: 8),
-
                 FieldWithIcon(
                   controller: _receiverPhoneController,
                   hintText: 'Receiver Phone', // 'Số điện thoại người nhận'
@@ -100,9 +104,11 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   ],
                   keyboardType: TextInputType.phone,
                   fillColor: Theme.of(context).colorScheme.surface,
+                  textColor: Theme.of(context).colorScheme.onSurface,
+                  hintTextColor:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                 ),
                 const SizedBox(height: 8),
-
                 AddressPicker(
                   onAddressChanged: (province, district, ward) {
                     cubit.updateAddress(
@@ -114,17 +120,55 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   },
                 ),
                 const SizedBox(height: 8),
-
                 FieldWithIcon(
                   controller: _streetController,
-                  hintText: 'Street name, building, house no.', // 'Tên đường, tòa nhà, số nhà'
+                  hintText:
+                      'Street name, building, house no.', // 'Tên đường, tòa nhà, số nhà'
                   onChanged: (value) {
                     cubit.updateAddress(street: value);
                   },
                   fillColor: Theme.of(context).colorScheme.surface,
+                  textColor: Theme.of(context).colorScheme.onSurface,
+                  hintTextColor:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s,-]')),
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'[a-zA-Z0-9\s,\-\./]')),
                   ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(
+                        Address(
+                          customerID: Database().userID,
+                          receiverName: cubit.state.receiverName,
+                          receiverPhone: cubit.state.receiverPhone,
+                          province: cubit.state.province,
+                          district: cubit.state.district,
+                          ward: cubit.state.ward,
+                          street: cubit.state.street,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

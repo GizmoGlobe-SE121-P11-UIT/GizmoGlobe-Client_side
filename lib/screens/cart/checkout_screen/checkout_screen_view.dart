@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import '../../../enums/processing/process_state_enum.dart';
+import '../../../enums/processing/dialog_name_enum.dart';
+import '../../../enums/processing/order_option_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../objects/address_related/address.dart';
 import '../../../objects/product_related/product.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
+import '../../user/order_screen/order_screen_view.dart';
+import '../../main/main_screen/main_screen_view.dart';
 import '../cart_screen/cart_screen_view.dart';
 import '../choose_address_screen/choose_address_screen_view.dart';
 import 'checkout_screen_cubit.dart';
@@ -58,36 +62,56 @@ class _CheckoutScreen extends State<CheckoutScreen> {
       body: BlocConsumer<CheckoutScreenCubit, CheckoutScreenState>(
         listener: (context, state) {
           if (state.processState == ProcessState.success) {
-            {
-              showDialog(
-                context: context,
-                builder: (context) => InformationDialog(
-                  title: 'Order Placed', // 'Đặt hàng thành công'
-                  content:
-                      'Your order has been placed successfully', // 'Đơn hàng của bạn đã được đặt thành công'
-                  onPressed: () => {
-                    Navigator.pop(context),
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CartScreen.newInstance(),
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => InformationDialog(
+                title: 'Order Placed',
+                content:
+                    'Your order has been placed successfully. You can track your order in the Orders section.',
+                dialogName: DialogName.success,
+                buttonText: 'View Order',
+                onPressed: () {
+                  Navigator.pop(context); // Close dialog
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderScreen.newInstance(
+                        orderOption: OrderOption.toShip,
                       ),
                     ),
-                  },
-                ),
-              );
+                    (route) => false,
+                  );
+                },
+              ),
+            );
+          } else if (state.processState == ProcessState.failure) {
+            String errorMessage = 'An error occurred during checkout';
+
+            if (state.error != null &&
+                (state.error!.toLowerCase().contains('payment failed') ||
+                    state.error!.toLowerCase().contains('stripe'))) {
+              errorMessage =
+                  'Payment was cancelled. Please try again or choose a different payment method.';
             }
+
+            showDialog(
+              context: context,
+              builder: (context) => InformationDialog(
+                title: 'Payment Status',
+                content: errorMessage,
+                dialogName: DialogName.failure,
+                buttonText: 'Try Again',
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            );
           }
         },
         builder: (context, state) {
           if (state.processState == ProcessState.loading) {
             return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state.processState == ProcessState.failure) {
-            return Center(
-                child: Text(state.error ??
-                    'Error loading checkout')); // 'Lỗi khi tải trang thanh toán'
           }
 
           return Column(

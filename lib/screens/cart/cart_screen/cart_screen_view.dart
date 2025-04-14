@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import '../../../enums/processing/process_state_enum.dart';
+import '../../../enums/processing/sort_enum.dart';
+import '../../../enums/processing/order_option_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
+import '../../product/product_screen/product_screen_view.dart';
+import '../../main/main_screen/main_screen_view.dart';
+import '../../user/order_screen/order_screen_view.dart';
 import 'cart_screen_cubit.dart';
 import 'cart_screen_state.dart';
 
@@ -51,8 +56,67 @@ class _CartScreen extends State<CartScreen> {
           }
 
           if (state.items.isEmpty) {
-            return const Center(
-                child: Text('Your cart is empty')); // 'Giỏ hàng của bạn trống'
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 64,
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Your cart is empty',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onBackground,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add some products to your cart and they will show up here',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onBackground
+                              .withOpacity(0.7),
+                        ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const MainScreen(initialIndex: 1),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Browse Products',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
 
           return Column(
@@ -381,7 +445,7 @@ class _CartScreen extends State<CartScreen> {
                           if (state.selectedCount == 0) {
                             return;
                           }
-                          final result = await Navigator.of(context).push(
+                          Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => CheckoutScreen.newInstance(
                                 cartItems:

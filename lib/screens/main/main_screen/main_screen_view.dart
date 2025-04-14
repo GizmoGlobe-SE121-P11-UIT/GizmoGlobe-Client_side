@@ -9,14 +9,15 @@ import '../../home/home_screen/home_screen_view.dart';
 import '../../user/user_screen/user_screen_view.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialIndex;
+  const MainScreen({super.key, this.initialIndex = 0});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int index = 0;
+  late int index;
 
   final List<Widget Function()> widgetList = [
     () => HomeScreen.newInstance(),
@@ -28,6 +29,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    index = widget.initialIndex;
     context.read<MainScreenCubit>().getUserName();
   }
 

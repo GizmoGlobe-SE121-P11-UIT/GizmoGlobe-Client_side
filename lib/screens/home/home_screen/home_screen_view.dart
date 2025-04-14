@@ -8,6 +8,7 @@ import 'package:gizmoglobe_client/widgets/product/product_card.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_state.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
+import 'package:gizmoglobe_client/screens/chat/chat_screen/chat_screen_view.dart';
 
 import '../../../enums/processing/sort_enum.dart';
 
@@ -15,11 +16,11 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   static Widget newInstance() => BlocProvider(
-    create: (context) => HomeScreenCubit(
-      favoritesCubit: context.read<FavoritesCubit>(),
-    ),
-    child: const HomeScreen(),
-  );
+        create: (context) => HomeScreenCubit(
+          favoritesCubit: context.read<FavoritesCubit>(),
+        ),
+        child: const HomeScreen(),
+      );
 
   @override
   State<HomeScreen> createState() => _HomeScreen();
@@ -52,8 +53,26 @@ class _HomeScreen extends State<HomeScreen> {
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 title: const Center(
-                    child: AppLogo(height: 60,)
+                  child: AppLogo(height: 50),
                 ),
+                actions: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.chat,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 28,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen.newInstance(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                ],
               ),
               body: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -71,7 +90,11 @@ class _HomeScreen extends State<HomeScreen> {
                               onSeeAll: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => ProductScreen.newInstance(initialSortOption: SortEnum.salesHighest)),
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          ProductScreen.newInstance(
+                                              initialSortOption:
+                                                  SortEnum.salesHighest)),
                                 );
                               },
                             ),
@@ -83,7 +106,11 @@ class _HomeScreen extends State<HomeScreen> {
                               onSeeAll: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => ProductScreen.newInstance(initialProducts: state.favoriteProducts)),
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          ProductScreen.newInstance(
+                                              initialProducts:
+                                                  state.favoriteProducts)),
                                 );
                               },
                             ),
@@ -101,7 +128,10 @@ class _HomeScreen extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCarousel(BuildContext context, {required String title, required List<Product> products, required VoidCallback onSeeAll}) {
+  Widget _buildCarousel(BuildContext context,
+      {required String title,
+      required List<Product> products,
+      required VoidCallback onSeeAll}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -124,9 +154,7 @@ class _HomeScreen extends State<HomeScreen> {
             itemCount: products.length > 5 ? 5 : products.length,
             itemBuilder: (context, index) {
               return SizedBox(
-                width: 150,
-                child: ProductCard(product: products[index])
-              );
+                  width: 150, child: ProductCard(product: products[index]));
             },
           ),
         ),

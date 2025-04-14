@@ -74,101 +74,180 @@ class ProductDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Basic Information Section
-                      Text(
-                        'Basic Information', // 'Thông tin cơ bản'
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[300],
-                            ),
+                      Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    color: Colors.blue[300],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Basic Information',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue[300],
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              const Divider(height: 24),
+                              _buildInfoRow(
+                                context: context,
+                                icon: Icons.inventory_2,
+                                title: 'Product',
+                                value: product.productName,
+                              ),
+                              const SizedBox(height: 12),
+                              _buildInfoRow(
+                                context: context,
+                                icon: Icons.category,
+                                title: 'Category',
+                                value:
+                                    product.category.toString().split('.').last,
+                              ),
+                              const SizedBox(height: 12),
+                              _buildInfoRow(
+                                context: context,
+                                icon: Icons.business,
+                                title: 'Manufacturer',
+                                value: product.manufacturer.manufacturerName,
+                              ),
+                              const SizedBox(height: 12),
+                              _buildPriceSection(
+                                context: context,
+                                sellingPrice: product.price,
+                                discount: product.discount,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-
-                      _buildInfoRow(
-                        context: context,
-                        icon: Icons.inventory_2,
-                        title: 'Product', // 'Sản phẩm'
-                        value: product.productName,
-                      ),
-
-                      _buildInfoRow(
-                        context: context,
-                        icon: Icons.category,
-                        title: 'Category', // 'Danh mục'
-                        value: product.category.toString().split('.').last,
-                      ),
-
-                      _buildInfoRow(
-                        context: context,
-                        icon: Icons.business,
-                        title: 'Manufacturer', // 'Nhà sản xuất'
-                        value: product.manufacturer.manufacturerName,
-                      ),
-
-                      // Thêm thông tin về giá và discount
-                      _buildPriceSection(
-                        context: context,
-                        sellingPrice: product.price,
-                        discount: product.discount,
-                      ),
-
-                      const SizedBox(height: 24),
 
                       // Status Information Section
-                      Text(
-                        'Status Information', // 'Thông tin trạng thái'
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[300],
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      Row(
-                        children: [
-                          _buildStatusChip(product.status),
-                          const SizedBox(width: 16),
-                          Icon(
-                            product.stock > 0
-                                ? Icons.check_circle
-                                : Icons.error,
-                            color:
-                                product.stock > 0 ? Colors.green : Colors.red,
-                            size: 16,
+                      Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.analytics_outlined,
+                                    color: Colors.blue[300],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Status Information',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue[300],
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              const Divider(height: 24),
+                              Row(
+                                children: [
+                                  _buildStatusChip(product.status),
+                                  const SizedBox(width: 16),
+                                  Icon(
+                                    product.stock > 0
+                                        ? Icons.check_circle
+                                        : Icons.error,
+                                    color: product.stock > 0
+                                        ? Colors.green
+                                        : Colors.red,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Stock: ${product.stock}',
+                                    style: TextStyle(
+                                      color: product.stock > 0
+                                          ? Colors.green
+                                          : Colors.red,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              _buildInfoRow(
+                                context: context,
+                                icon: Icons.calendar_today,
+                                title: 'Release Date',
+                                value: DateFormat('dd/MM/yyyy')
+                                    .format(product.release),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Stock: ${product.stock}', // 'Tồn kho: ${product.stock}'
-                            style: TextStyle(
-                              color:
-                                  product.stock > 0 ? Colors.green : Colors.red,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-
-                      const SizedBox(height: 8),
-                      _buildInfoRow(
-                        context: context,
-                        icon: Icons.calendar_today,
-                        title: 'Release Date', // 'Ngày phát hành'
-                        value: DateFormat('dd/MM/yyyy').format(product.release),
-                      ),
-
-                      const SizedBox(height: 24),
 
                       // Technical Specifications Section
-                      Text(
-                        'Technical Specifications', // 'Thông số kỹ thuật'
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[300],
-                            ),
+                      Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.memory,
+                                    color: Colors.blue[300],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Technical Specifications',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue[300],
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              const Divider(height: 24),
+                              ..._buildProductSpecificDetails(
+                                context,
+                                product,
+                                state.technicalSpecs,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-
-                      ..._buildProductSpecificDetails(
-                          context, product, state.technicalSpecs),
                     ],
                   ),
                 ),
@@ -220,70 +299,97 @@ class ProductDetailScreen extends StatelessWidget {
     );
   }
 
+  List<Widget> _buildProductSpecificDetails(
+    BuildContext context,
+    Product product,
+    Map<String, dynamic> specs,
+  ) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    return specs.entries.map((entry) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isDarkMode
+              ? theme.colorScheme.surface.withOpacity(0.1)
+              : theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isDarkMode
+                ? theme.colorScheme.primary.withOpacity(0.1)
+                : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Text(
+                entry.key,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDarkMode
+                      ? theme.colorScheme.primary.withOpacity(0.8)
+                      : theme.colorScheme.onSurface.withOpacity(0.7),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 3,
+              child: Text(
+                entry.value.toString(),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: isDarkMode
+                      ? theme.colorScheme.onSurface
+                      : theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
+  }
+
   Widget _buildInfoRow({
     required BuildContext context,
     required IconData icon,
     required String title,
     required String value,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey[500]),
-          const SizedBox(width: 8),
+          Icon(
+            icon,
+            size: 20,
+            color: theme.colorScheme.primary.withOpacity(0.7),
+          ),
+          const SizedBox(width: 12),
           Text(
             '$title: ',
             style: TextStyle(
-              fontWeight: FontWeight.w900,
-              color: Theme.of(context).colorScheme.onBackground,
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurface.withOpacity(0.8),
             ),
           ),
           Expanded(
             child: Text(
               value,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onBackground,
+                color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildProductSpecificDetails(
-      BuildContext context, Product product, Map<String, String> specs) {
-    return specs.entries
-        .map((entry) => _buildSpecificationRow(context, entry.key, entry.value))
-        .toList();
-  }
-
-  Widget _buildSpecificationRow(
-      BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Theme.of(context).colorScheme.onBackground,
               ),
             ),
           ),
@@ -297,64 +403,58 @@ class ProductDetailScreen extends StatelessWidget {
     required double sellingPrice,
     required double discount,
   }) {
-    final discountedPrice = sellingPrice * (1 - discount);
+    final theme = Theme.of(context);
+    final originalPrice = sellingPrice / (1 - discount);
+    final formatter = NumberFormat.currency(locale: 'en_US', symbol: '\$');
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.attach_money, size: 20, color: Colors.grey[500]),
-          const SizedBox(width: 8),
+          if (discount > 0) ...[
+            Row(
+              children: [
+                Text(
+                  formatter.format(originalPrice),
+                  style: TextStyle(
+                    decoration: TextDecoration.lineThrough,
+                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '-${(discount * 100).toInt()}%',
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+          ],
           Text(
-            'Price: ',
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              color: Theme.of(context).colorScheme.onBackground,
+            formatter.format(sellingPrice),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          if (discount > 0) ...[
-            Text(
-              '\$${sellingPrice.toStringAsFixed(2)}',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w400,
-                decoration: TextDecoration.lineThrough,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '\$${discountedPrice.toStringAsFixed(2)}',
-              style: TextStyle(
-                color: Colors.green[600],
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                '-${(discount * 100).toStringAsFixed(0)}%',
-                style: TextStyle(
-                  color: Colors.red[600],
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ] else
-            Text(
-              '\$${sellingPrice.toStringAsFixed(2)}',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onBackground,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
         ],
       ),
     );
