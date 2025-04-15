@@ -9,6 +9,7 @@ import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_cubit.dar
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_state.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/screens/chat/chat_screen/chat_screen_view.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 import '../../../enums/processing/sort_enum.dart';
 
@@ -52,24 +53,30 @@ class _HomeScreen extends State<HomeScreen> {
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                title: const Center(
-                  child: AppLogo(height: 50),
+                title: Center(
+                  child: Semantics(
+                    label: S.of(context).appLogo,
+                    child: const AppLogo(height: 50),
+                  ),
                 ),
                 actions: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.chat,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 28,
+                  Semantics(
+                    label: S.of(context).chatButton,
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.chat,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 28,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen.newInstance(),
+                          ),
+                        );
+                      },
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChatScreen.newInstance(),
-                        ),
-                      );
-                    },
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -85,7 +92,7 @@ class _HomeScreen extends State<HomeScreen> {
                           children: [
                             _buildCarousel(
                               context,
-                              title: 'Best Sellers', // 'Bán chạy nhất'
+                              title: S.of(context).bestSellers,
                               products: state.bestSellerProducts,
                               onSeeAll: () {
                                 Navigator.push(
@@ -101,7 +108,7 @@ class _HomeScreen extends State<HomeScreen> {
                             const SizedBox(height: 16),
                             _buildCarousel(
                               context,
-                              title: 'Favorites', // 'Yêu thích'
+                              title: S.of(context).favorites,
                               products: state.favoriteProducts,
                               onSeeAll: () {
                                 Navigator.push(
@@ -143,7 +150,7 @@ class _HomeScreen extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: onSeeAll,
-              child: const Text('See All'), // 'Xem tất cả'
+              child: Text(S.of(context).seeAll),
             ),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../widgets/dialog/confirmation_dialog.dart';
@@ -168,10 +169,10 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                         alignment: Alignment.centerRight,
                       ),
                       const SizedBox(height: 32),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: GradientText(
-                          text: 'Sign in',
+                          text: S.of(context).login,
                           fontSize: 32,
                         ),
                       ),
@@ -192,7 +193,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                         ),
                         child: FieldWithIcon(
                           controller: _emailController,
-                          hintText: 'Your email',
+                          hintText: S.of(context).email,
                           fillColor: theme.colorScheme.surface,
                           fontSize: 16,
                           fontWeight: FontWeight.normal,
@@ -220,7 +221,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                         ),
                         child: FieldWithIcon(
                           controller: _passwordController,
-                          hintText: 'Password',
+                          hintText: S.of(context).password,
                           fillColor: theme.colorScheme.surface,
                           fontSize: 16,
                           fontWeight: FontWeight.normal,
@@ -244,7 +245,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                             padding: EdgeInsets.zero,
                           ),
                           child: Text(
-                            'Forgot password?',
+                            S.of(context).forgotPassword,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.primary.withOpacity(0.8),
                               fontWeight: FontWeight.w500,
@@ -348,9 +349,9 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                           Colors.white),
                                     ),
                                   )
-                                : const Text(
-                                    'Sign In', // 'Đăng nhập'
-                                    style: TextStyle(
+                                : Text(
+                                    S.of(context).login,
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -369,7 +370,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              "Don't have an account?",
+                              S.of(context).dontHaveAccount,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontSize: 14,
@@ -386,7 +387,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                     const EdgeInsets.symmetric(horizontal: 8),
                               ),
                               child: Text(
-                                'Sign up',
+                                S.of(context).register,
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.colorScheme.primary
                                       .withOpacity(0.8),
@@ -411,7 +412,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16.0),
                               child: Text(
-                                'or',
+                                S.of(context).or,
                                 style: TextStyle(
                                   color: theme.colorScheme.onSurfaceVariant,
                                   fontSize: 14,
@@ -464,7 +465,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
                           child: Text(
-                            'Continue as Guest',
+                            S.of(context).continueAsGuest,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.primary.withOpacity(0.8),
                               fontWeight: FontWeight.w600,

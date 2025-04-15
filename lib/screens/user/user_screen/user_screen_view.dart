@@ -14,6 +14,8 @@ import 'package:provider/provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../authentication/sign_in_screen/sign_in_view.dart';
 import '../../authentication/sign_up_screen/sign_up_view.dart';
+import '../../../providers/language_provider.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 // Import the Firebase file
 
 class UserScreen extends StatefulWidget {
@@ -560,7 +562,7 @@ class _UserScreen extends State<UserScreen> {
                                             children: [
                                               Text(
                                                 state.isGuest
-                                                    ? 'Guest Account'
+                                                    ? S.of(context).guestAccount
                                                     : state.username,
                                                 style: TextStyle(
                                                   fontSize: 14,
@@ -576,7 +578,7 @@ class _UserScreen extends State<UserScreen> {
                                               ),
                                               Text(
                                                 state.isGuest
-                                                    ? 'Guest Account'
+                                                    ? S.of(context).guestAccount
                                                     : state.email,
                                                 style: TextStyle(
                                                   fontSize: 12,
@@ -621,7 +623,7 @@ class _UserScreen extends State<UserScreen> {
                                       const SizedBox(height: 16),
                                       Text(
                                         state.isGuest
-                                            ? 'Guest Account'
+                                            ? S.of(context).guestAccount
                                             : state.username,
                                         style: const TextStyle(
                                           fontSize: 28,
@@ -648,7 +650,7 @@ class _UserScreen extends State<UserScreen> {
                                         ),
                                         child: Text(
                                           state.isGuest
-                                              ? 'Guest Account'
+                                              ? S.of(context).guestAccount
                                               : state.email,
                                           style: const TextStyle(
                                             fontSize: 16,
@@ -806,8 +808,8 @@ class _UserScreen extends State<UserScreen> {
                                       const SizedBox(width: 16),
                                       Text(
                                         state.isGuest
-                                            ? 'Create Account'
-                                            : 'Account Settings',
+                                            ? S.of(context).createAccount
+                                            : S.of(context).accountSettings,
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
@@ -934,7 +936,80 @@ class _UserScreen extends State<UserScreen> {
                                                   Icons.language,
                                                   'Change app language',
                                                   () {
-                                                    // TODO: Implement language change
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) {
+                                                        return AlertDialog(
+                                                          title: Text(
+                                                            S
+                                                                .of(context)
+                                                                .language,
+                                                            style: TextStyle(
+                                                              fontSize: 24,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .primary,
+                                                            ),
+                                                          ),
+                                                          content: Consumer<
+                                                              LanguageProvider>(
+                                                            builder: (context,
+                                                                languageProvider,
+                                                                child) {
+                                                              return Column(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                children: [
+                                                                  ListTile(
+                                                                    title: Text(S
+                                                                        .of(context)!
+                                                                        .languageEn),
+                                                                    leading:
+                                                                        const Text(
+                                                                            '🇺🇸'),
+                                                                    onTap: () {
+                                                                      languageProvider
+                                                                          .setLanguage(
+                                                                              'en');
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                    },
+                                                                    selected: languageProvider
+                                                                            .currentLocale
+                                                                            .languageCode ==
+                                                                        'en',
+                                                                  ),
+                                                                  ListTile(
+                                                                    title: Text(S
+                                                                        .of(context)!
+                                                                        .languageVi),
+                                                                    leading:
+                                                                        const Text(
+                                                                            '🇻🇳'),
+                                                                    onTap: () {
+                                                                      languageProvider
+                                                                          .setLanguage(
+                                                                              'vi');
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                    },
+                                                                    selected: languageProvider
+                                                                            .currentLocale
+                                                                            .languageCode ==
+                                                                        'vi',
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          ),
+                                                        );
+                                                      },
+                                                    );
                                                   },
                                                   showTopDivider: false,
                                                 ),
@@ -1213,7 +1288,7 @@ class _UserScreen extends State<UserScreen> {
                                                 ),
                                                 const SizedBox(width: 16),
                                                 Text(
-                                                  "About",
+                                                  S.of(context).about,
                                                   style: TextStyle(
                                                     fontSize: 24,
                                                     fontWeight: FontWeight.bold,

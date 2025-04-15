@@ -1,0 +1,271 @@
+{
+    "@@locale": "en",
+    "appTitle": "GizmoGlobe",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "language": "Language",
+    "@language": {
+        "description": "Language selection option"
+    },
+    "languageEn": "English",
+    "@languageEn": {
+        "description": "English language option"
+    },
+    "languageVi": "Vietnamese",
+    "@languageVi": {
+        "description": "Vietnamese language option"
+    },
+    "theme": "Theme",
+    "@theme": {
+        "description": "Theme selection option"
+    },
+    "themeLight": "Light",
+    "@themeLight": {
+        "description": "Light theme option"
+    },
+    "themeDark": "Dark",
+    "@themeDark": {
+        "description": "Dark theme option"
+    },
+    "themeSystem": "System",
+    "@themeSystem": {
+        "description": "System theme option"
+    },
+    "settings": "Settings",
+    "@settings": {
+        "description": "Settings menu title"
+    },
+    "accountSettings": "Account Settings",
+    "@accountSettings": {
+        "description": "Account settings menu title"
+    },
+    "appSettings": "App Settings",
+    "@appSettings": {
+        "description": "App settings menu title"
+    },
+    "editProfile": "Edit Profile",
+    "@editProfile": {
+        "description": "Edit profile option"
+    },
+    "updatePersonalInfo": "Update your personal information",
+    "@updatePersonalInfo": {
+        "description": "Update personal information description"
+    },
+    "changeLanguage": "Change app language",
+    "@changeLanguage": {
+        "description": "Change language option description"
+    },
+    "changeTheme": "Change app theme",
+    "@changeTheme": {
+        "description": "Change theme option description"
+    },
+    "version": "Version",
+    "appVersion": "App version 1.0.0",
+    "developers": "Developers",
+    "meetDevelopers": "Meet our development team",
+    "guestAccount": "Guest Account",
+    "createAccount": "Create Account",
+    "about": "About",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "from": "From",
+    "min": "Min",
+    "to": "To",
+    "max": "Max",
+    "success": "Success",
+    "failure": "Failure",
+    "orderProcessing": "Your order is being processed.",
+    "orderPreparing": "Your order is being prepared.",
+    "orderShipping": "Your order is on the way.",
+    "orderDelivered": "Your order has been delivered.",
+    "pleaseConfirmDelivery": "Please confirm the delivery.",
+    "received": "Received",
+    "orderCompleted": "Your order has been completed.",
+    "thankYou": "Thank you for your purchase!",
+    "statusUnknown": "Status: Unknown",
+    "pleaseContactSupport": "Please contact support.",
+    "passwordTooShort": "The password provided is too weak.",
+    "@passwordTooShort": {
+        "description": "Error message when password is too weak"
+    },
+    "emailAlreadyInUse": "An account already exists for that email.",
+    "@emailAlreadyInUse": {
+        "description": "Error message when email is already in use"
+    },
+    "invalidEmail": "The email address is not valid.",
+    "@invalidEmail": {
+        "description": "Error message when email is invalid"
+    },
+    "registerFailed": "Failed to sign up. Please try again.",
+    "@registerFailed": {
+        "description": "Error message when registration fails"
+    },
+    "chatSupport": "Chat Support",
+    "@chatSupport": {
+        "description": "Title of the chat support screen"
+    },
+    "aiAssistant": "AI Assistant",
+    "@aiAssistant": {
+        "description": "Label for AI assistant mode"
+    },
+    "adminSupport": "Admin Support",
+    "@adminSupport": {
+        "description": "Label for admin support mode"
+    },
+    "typeMessage": "Type a message...",
+    "@typeMessage": {
+        "description": "Placeholder text for message input field"
+    },
+    "home": "Home",
+    "products": "Products",
+    "cart": "Cart",
+    "profile": "Profile",
+    "search": "Search",
+    "categories": "Categories",
+    "featuredProducts": "Featured Products",
+    "newArrivals": "New Arrivals",
+    "viewAll": "View All",
+    "addToCart": "Add to Cart",
+    "productDetails": "Product Details",
+    "description": "Description",
+    "specifications": "Specifications",
+    "reviews": "Reviews",
+    "relatedProducts": "Related Products",
+    "shoppingCart": "Shopping Cart",
+    "total": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "emptyCart": "Your cart is empty",
+    "startShopping": "Start Shopping",
+    "userProfile": "User Profile",
+    "orders": "Orders",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "name": "Name",
+    "confirmPassword": "Confirm Password",
+    "send": "Send",
+    "bestSellers": "Best Sellers",
+    "@bestSellers": {
+        "description": "Title for best selling products section"
+    },
+    "favorites": "Favorites",
+    "@favorites": {
+        "description": "Title for favorites products section"
+    },
+    "seeAll": "See All",
+    "@seeAll": {
+        "description": "Button text to view all products"
+    },
+    "appLogo": "App Logo",
+    "@appLogo": {
+        "description": "Accessibility label for app logo"
+    },
+    "chatButton": "Chat Support",
+    "@chatButton": {
+        "description": "Accessibility label for chat button"
+    },
+    "homeTab": "Home",
+    "@homeTab": {
+        "description": "Label for home tab in bottom navigation"
+    },
+    "productsTab": "Products",
+    "@productsTab": {
+        "description": "Label for products tab in bottom navigation"
+    },
+    "cartTab": "Cart",
+    "@cartTab": {
+        "description": "Label for cart tab in bottom navigation"
+    },
+    "userTab": "User",
+    "@userTab": {
+        "description": "Label for user tab in bottom navigation"
+    },
+    "filter": "Filter",
+    "@filter": {
+        "description": "Title of the filter screen"
+    },
+    "price": "Price",
+    "@price": {
+        "description": "Label for price filter"
+    },
+    "category": "Category",
+    "@category": {
+        "description": "Label for category filter"
+    },
+    "bus": "Bus",
+    "@bus": {
+        "description": "Label for bus filter"
+    },
+    "capacity": "Capacity",
+    "@capacity": {
+        "description": "Label for capacity filter"
+    },
+    "type": "Type",
+    "@type": {
+        "description": "Label for type filter"
+    },
+    "family": "Family",
+    "@family": {
+        "description": "Label for family filter"
+    },
+    "cpuCore": "CPU Core",
+    "@cpuCore": {
+        "description": "Label for CPU core filter"
+    },
+    "cpuThread": "CPU Thread",
+    "@cpuThread": {
+        "description": "Label for CPU thread filter"
+    },
+    "cpuClockSpeed": "CPU Clock Speed",
+    "@cpuClockSpeed": {
+        "description": "Label for CPU clock speed filter"
+    },
+    "modular": "Modular",
+    "@modular": {
+        "description": "Label for modular filter"
+    },
+    "efficiency": "Efficiency",
+    "@efficiency": {
+        "description": "Label for efficiency filter"
+    },
+    "psuWattage": "PSU Wattage",
+    "@psuWattage": {
+        "description": "Label for PSU wattage filter"
+    },
+    "series": "Series",
+    "@series": {
+        "description": "Label for series filter"
+    },
+    "gpuClockSpeed": "GPU Clock Speed",
+    "@gpuClockSpeed": {
+        "description": "Label for GPU clock speed filter"
+    },
+    "formFactor": "Form Factor",
+    "@formFactor": {
+        "description": "Label for form factor filter"
+    },
+    "compatibility": "Compatibility",
+    "@compatibility": {
+        "description": "Label for compatibility filter"
+    },
+    "manufacturer": "Manufacturer",
+    "@manufacturer": {
+        "description": "Label for manufacturer filter"
+    },
+    "enterMinPrice": "Enter minimum price",
+    "@enterMinPrice": {
+        "description": "Placeholder for minimum price input"
+    },
+    "enterMaxPrice": "Enter maximum price",
+    "@enterMaxPrice": {
+        "description": "Placeholder for maximum price input"
+    }
+} 

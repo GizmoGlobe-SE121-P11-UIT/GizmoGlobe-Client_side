@@ -7,6 +7,7 @@ import 'forget_password_cubit.dart';
 import '../../../widgets/general/app_logo.dart';
 import '../../../widgets/general/field_with_icon.dart';
 import 'forget_password_state.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class ForgetPasswordScreen extends StatefulWidget {
   const ForgetPasswordScreen({super.key});
@@ -67,17 +68,16 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                   alignment: Alignment.centerRight,
                 ),
                 const SizedBox(height: 32),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: GradientText(
-                      text: 'Forget Password', // 'Quên Mật Khẩu'
-                      fontSize: 32),
+                      text: S.of(context).forgetPassword, fontSize: 32),
                 ),
                 const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Do not worry! It happens. Please enter the email associated with your account.', //'Đừng lo lắng! Điều này có thể xảy ra. Vui lòng nhập email liên kết với tài khoản của bạn.'
+                    S.of(context).forgetPasswordDescription,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -87,7 +87,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Email address', // 'Địa chỉ email'
+                    S.of(context).emailAddress,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -96,8 +96,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                 const SizedBox(height: 8),
                 FieldWithIcon(
                   controller: _emailController,
-                  hintText:
-                      'Enter your email address', // 'Nhập địa chỉ email của bạn'
+                  hintText: S.of(context).enterYourEmail,
                   fillColor: Theme.of(context).colorScheme.surface,
                   fontSize: 16,
                   fontWeight: FontWeight.normal,
@@ -166,7 +165,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                         ),
                       ),
                       child: Text(
-                        'Send Verification Link',
+                        S.of(context).sendVerificationLink,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onPrimary,
                           fontSize: 16,

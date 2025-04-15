@@ -6,6 +6,7 @@ import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../objects/chat_related/chat_message.dart';
 import '../../../screens/chat/chat_screen/chat_screen_cubit.dart';
 import '../../../screens/chat/chat_screen/chat_screen_state.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -105,9 +106,11 @@ class _ChatScreenState extends State<ChatScreen> {
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const GradientText(text: 'Chat Support'),
+                GradientText(text: S.of(context).chatSupport),
                 Text(
-                  state.isAIMode ? 'AI Assistant' : 'Admin Support',
+                  state.isAIMode
+                      ? S.of(context).aiAssistant
+                      : S.of(context).adminSupport,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onBackground.withOpacity(0.7),
                   ),
@@ -190,7 +193,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: TextField(
               controller: _messageController,
               decoration: InputDecoration(
-                hintText: 'Type a message...',
+                hintText: S.of(context).typeMessage,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),

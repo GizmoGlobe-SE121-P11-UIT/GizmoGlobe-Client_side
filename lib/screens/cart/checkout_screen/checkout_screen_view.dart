@@ -14,6 +14,7 @@ import '../../user/order_screen/order_screen_view.dart';
 import '../../main/main_screen/main_screen_view.dart';
 import '../cart_screen/cart_screen_view.dart';
 import '../choose_address_screen/choose_address_screen_view.dart';
+import '../../../generated/l10n.dart';
 import 'checkout_screen_cubit.dart';
 import 'checkout_screen_state.dart';
 
@@ -57,7 +58,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
           },
           fillColor: Theme.of(context).colorScheme.surface,
         ),
-        title: const GradientText(text: 'Checkout'), // 'Thanh toán'
+        title: GradientText(text: S.of(context).checkoutTitle),
       ),
       body: BlocConsumer<CheckoutScreenCubit, CheckoutScreenState>(
         listener: (context, state) {
@@ -66,13 +67,12 @@ class _CheckoutScreen extends State<CheckoutScreen> {
               context: context,
               barrierDismissible: false,
               builder: (context) => InformationDialog(
-                title: 'Order Placed',
-                content:
-                    'Your order has been placed successfully. You can track your order in the Orders section.',
+                title: S.of(context).orderPlaced,
+                content: S.of(context).orderPlacedSuccess,
                 dialogName: DialogName.success,
-                buttonText: 'View Order',
+                buttonText: S.of(context).viewOrder,
                 onPressed: () {
-                  Navigator.pop(context); // Close dialog
+                  Navigator.pop(context);
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
@@ -86,22 +86,21 @@ class _CheckoutScreen extends State<CheckoutScreen> {
               ),
             );
           } else if (state.processState == ProcessState.failure) {
-            String errorMessage = 'An error occurred during checkout';
+            String errorMessage = S.of(context).errorCheckout;
 
             if (state.error != null &&
                 (state.error!.toLowerCase().contains('payment failed') ||
                     state.error!.toLowerCase().contains('stripe'))) {
-              errorMessage =
-                  'Payment was cancelled. Please try again or choose a different payment method.';
+              errorMessage = S.of(context).paymentCancelled;
             }
 
             showDialog(
               context: context,
               builder: (context) => InformationDialog(
-                title: 'Payment Status',
+                title: S.of(context).paymentStatus,
                 content: errorMessage,
                 dialogName: DialogName.failure,
-                buttonText: 'Try Again',
+                buttonText: S.of(context).tryAgain,
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -217,8 +216,8 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Shipping Address', // 'Địa chỉ giao hàng'
+                      Text(
+                        S.of(context).shippingAddress,
                         style: AppTextStyle.boldText,
                       ),
                       GestureDetector(
@@ -248,9 +247,9 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                               children: [
                                 state.salesInvoice?.address ==
                                         Address.nullAddress
-                                    ? const Center(
+                                    ? Center(
                                         child: Text(
-                                          'Choose Address', // 'Chọn địa chỉ'
+                                          S.of(context).chooseAddress,
                                           style: AppTextStyle.regularText,
                                         ),
                                       )
@@ -337,10 +336,9 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                         onPressed: () async {
                           if (state.salesInvoice?.address ==
                               Address.nullAddress) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Please choose an address'))); // 'Vui lòng chọn địa chỉ'
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content:
+                                    Text(S.of(context).addShippingAddress)));
                             return;
                           }
                           await cubit.checkout();
@@ -352,9 +350,9 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Place Order', // 'Đặt hàng'
-                          style: TextStyle(
+                        child: Text(
+                          S.of(context).placeOrder,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,

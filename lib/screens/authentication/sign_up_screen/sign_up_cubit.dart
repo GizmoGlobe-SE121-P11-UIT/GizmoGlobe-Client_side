@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
 import 'package:gizmoglobe_client/enums/processing/notify_message_enum.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'sign_up_state.dart';
 import '../../../enums/processing/process_state_enum.dart';
 
@@ -107,16 +108,16 @@ class SignUpCubit extends Cubit<SignUpState> {
       String errorMessage;
       switch (e.code) {
         case 'weak-password':
-          errorMessage = 'The password provided is too weak.';
+          errorMessage = S.current.passwordTooShort;
           break;
         case 'email-already-in-use':
-          errorMessage = 'An account already exists for that email.';
+          errorMessage = S.current.emailAlreadyInUse;
           break;
         case 'invalid-email':
-          errorMessage = 'The email address is not valid.';
+          errorMessage = S.current.invalidEmail;
           break;
         default:
-          errorMessage = 'An error occurred during sign up.';
+          errorMessage = S.current.registerFailed;
       }
 
       emit(state.copyWith(

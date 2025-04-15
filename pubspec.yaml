@@ -35,7 +35,7 @@ dependencies:
   firebase_auth: ^5.3.3
   google_sign_in: ^6.2.2
   cloud_firestore: ^5.5.0
-  intl: ^0.20.2
+  intl: ^0.19.0
   flutter_bloc: ^9.1.0
   font_awesome_flutter: ^10.8.0
   flutter_colorpicker: ^1.1.0
@@ -55,6 +55,8 @@ dependencies:
   google_generative_ai: ^0.2.0
   flutter_dotenv: ^5.1.0
   http: ^1.2.0
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +83,7 @@ flutter:
     - lib/GizmoGlobeLogo.png
     - lib/data/database/full_json_generated_data_vn_units.json
     - .env
+    - lib/l10n/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -112,3 +115,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+  generate: true

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/processing/sort_enum.dart';
@@ -41,7 +42,7 @@ class _CartScreen extends State<CartScreen> {
           },
           fillColor: Theme.of(context).colorScheme.surface,
         ),
-        title: const GradientText(text: 'Cart'), // 'Giỏ hàng'
+        title: GradientText(text: S.of(context).cart),
       ),
       body: BlocBuilder<CartScreenCubit, CartScreenState>(
         builder: (context, state) {
@@ -51,8 +52,7 @@ class _CartScreen extends State<CartScreen> {
 
           if (state.processState == ProcessState.failure) {
             return Center(
-                child: Text(state.error ??
-                    'Error loading cart')); // 'Lỗi khi tải giỏ hàng'
+                child: Text(state.error ?? S.of(context).errorLoadingCart));
           }
 
           if (state.items.isEmpty) {
@@ -68,7 +68,7 @@ class _CartScreen extends State<CartScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Your cart is empty',
+                    S.of(context).emptyCart,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Theme.of(context).colorScheme.onBackground,
                           fontWeight: FontWeight.bold,
@@ -76,7 +76,7 @@ class _CartScreen extends State<CartScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Add some products to your cart and they will show up here',
+                    S.of(context).emptyCartDescription,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context)
@@ -106,9 +106,9 @@ class _CartScreen extends State<CartScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'Browse Products',
-                      style: TextStyle(
+                    child: Text(
+                      S.of(context).browseProducts,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -318,19 +318,21 @@ class _CartScreen extends State<CartScreen> {
                                     builder: (context) => AlertDialog(
                                       backgroundColor:
                                           Theme.of(context).colorScheme.surface,
-                                      title: const Text(
-                                        'Remove Item', // 'Xóa sản phẩm'
-                                        style: TextStyle(color: Colors.white),
+                                      title: Text(
+                                        S.of(context).removeItem,
+                                        style: const TextStyle(
+                                            color: Colors.white),
                                       ),
-                                      content: const Text(
-                                        'Are you sure you want to remove this item from your cart?', // 'Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?'
-                                        style: TextStyle(color: Colors.white70),
+                                      content: Text(
+                                        S.of(context).removeItemConfirmation,
+                                        style: const TextStyle(
+                                            color: Colors.white70),
                                       ),
                                       actions: [
                                         TextButton(
                                           onPressed: () =>
                                               Navigator.pop(context),
-                                          child: const Text('Cancel'), // 'Hủy'
+                                          child: Text(S.of(context).cancel),
                                         ),
                                         TextButton(
                                           onPressed: () {
@@ -338,9 +340,10 @@ class _CartScreen extends State<CartScreen> {
                                             cubit.removeFromCart(
                                                 item['productID'] as String);
                                           },
-                                          child: const Text(
-                                            'Remove', // 'Xóa'
-                                            style: TextStyle(color: Colors.red),
+                                          child: Text(
+                                            S.of(context).remove,
+                                            style: const TextStyle(
+                                                color: Colors.red),
                                           ),
                                         ),
                                       ],
@@ -399,7 +402,7 @@ class _CartScreen extends State<CartScreen> {
                               ),
                             ),
                             Text(
-                              'Select all', // 'Chọn tất cả'
+                              S.of(context).selectAll,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
@@ -461,9 +464,9 @@ class _CartScreen extends State<CartScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Go to checkout', // 'Tiến hành thanh toán'
-                          style: TextStyle(
+                        child: Text(
+                          S.of(context).goToCheckout,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,

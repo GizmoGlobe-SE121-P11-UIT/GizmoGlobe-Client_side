@@ -19,10 +19,51 @@ class AIService {
     'mainboard': 'mainboard'
   };
 
+  // Lưu trữ lịch sử câu hỏi và câu trả lời
+  final Map<String, Map<String, dynamic>> _conversationHistory = {};
+  static const Duration _historyExpiration = Duration(days: 1);
+
   AIService() : _firestore = FirebaseFirestore.instance {
     if (dotenv.env['GEMINI_API_KEY']?.isEmpty ?? true) {
       throw Exception('GEMINI_API_KEY không được cấu hình trong file .env');
     }
+  }
+
+  // Thêm phương thức để xử lý ngữ cảnh
+  String _processContext(String userMessage, String userId) {
+    final now = DateTime.now();
+    final history = _conversationHistory[userId];
+
+    // Xóa lịch sử cũ nếu có
+    if (history != null) {
+      final lastInteraction = history['timestamp'] as DateTime;
+      if (now.difference(lastInteraction) > _historyExpiration) {
+        _conversationHistory.remove(userId);
+        return userMessage;
+      }
+    }
+
+    // Nếu có lịch sử, thêm ngữ cảnh vào câu hỏi
+    if (history != null) {
+      final lastQuestion = history['question'] as String;
+      final lastAnswer = history['answer'] as String;
+      return '''
+Previous question: $lastQuestion
+Previous answer: $lastAnswer
+Current question: $userMessage
+''';
+    }
+
+    return userMessage;
+  }
+
+  // Cập nhật lịch sử
+  void _updateHistory(String userId, String question, String answer) {
+    _conversationHistory[userId] = {
+      'question': question,
+      'answer': answer,
+      'timestamp': DateTime.now(),
+    };
   }
 
   Future<QuerySnapshot> searchProducts(
@@ -164,12 +205,16 @@ class AIService {
     }
   }
 
-  Future<String> generateResponse(String userMessage) async {
+  Future<String> generateResponse(String userMessage, {String? userId}) async {
     try {
       final isVietnamese = _isVietnamese(userMessage);
       final isGreeting = _isGreeting(userMessage);
       final isStoreQuestion = _isStoreQuestion(userMessage);
       final isProductQuestion = _isProductQuestion(userMessage);
+
+      // Xử lý ngữ cảnh nếu có userId
+      final processedMessage =
+          userId != null ? _processContext(userMessage, userId) : userMessage;
 
       // Nếu là câu hỏi về sản phẩm, cần kiểm tra kết nối Firebase và sản phẩm
       if (isProductQuestion) {
@@ -181,8 +226,8 @@ class AIService {
         }
 
         // Tìm kiếm sản phẩm dựa trên phân tích câu hỏi
-        final category = _detectProductCategory(userMessage);
-        final keywords = _extractSearchKeywords(userMessage);
+        final category = _detectProductCategory(processedMessage);
+        final keywords = _extractSearchKeywords(processedMessage);
         print('Detected category: $category');
         print('Extracted keywords: $keywords');
 
@@ -210,19 +255,41 @@ class AIService {
         }
 
         final prompt = _createPromptWithProducts(
-            userMessage, productsSnapshot, isVietnamese);
-        return await _callGeminiAPI(prompt);
+            processedMessage, productsSnapshot, isVietnamese);
+        final response = await _callGeminiAPI(prompt);
+
+        // Cập nhật lịch sử nếu có userId
+        if (userId != null) {
+          _updateHistory(userId, userMessage, response);
+        }
+
+        return response;
       }
 
       // Với câu chào hoặc câu hỏi về cửa hàng
       if (isGreeting || isStoreQuestion) {
-        final prompt = _createPromptWithoutProducts(userMessage, isVietnamese);
-        return await _callGeminiAPI(prompt);
+        final prompt =
+            _createPromptWithoutProducts(processedMessage, isVietnamese);
+        final response = await _callGeminiAPI(prompt);
+
+        // Cập nhật lịch sử nếu có userId
+        if (userId != null) {
+          _updateHistory(userId, userMessage, response);
+        }
+
+        return response;
       }
 
       // Với các câu hỏi chung khác
-      final prompt = _createGeneralPrompt(userMessage, isVietnamese);
-      return await _callGeminiAPI(prompt);
+      final prompt = _createGeneralPrompt(processedMessage, isVietnamese);
+      final response = await _callGeminiAPI(prompt);
+
+      // Cập nhật lịch sử nếu có userId
+      if (userId != null) {
+        _updateHistory(userId, userMessage, response);
+      }
+
+      return response;
     } catch (e) {
       print('Error in generateResponse: $e');
       return _isVietnamese(userMessage)
@@ -303,40 +370,48 @@ class AIService {
   String _createPromptWithoutProducts(String userMessage, bool isVietnamese) {
     return isVietnamese
         ? '''
-Bạn là trợ lý AI của GizmoGlobe, một cửa hàng bán linh kiện máy tính.
+Bạn là trợ lý AI của GizmoGlobe, một ứng dụng di động bán linh kiện máy tính.
 
 THÔNG TIN VỀ GIZMOGLOBE:
-- Cửa hàng linh kiện máy tính chuyên nghiệp
+- Ứng dụng di động chuyên về linh kiện máy tính
 - Cam kết chất lượng và giá cả cạnh tranh
 - Đội ngũ tư vấn chuyên nghiệp
 - Chính sách bảo hành và hỗ trợ sau bán hàng tốt
 - Nhiều ưu đãi và khuyến mãi hấp dẫn
 
-NHIỆM VỤ CỦA BẠN:
+HƯỚNG DẪN TRẢ LỜI:
 1. Trả lời thân thiện và chuyên nghiệp
-2. Giới thiệu về GizmoGlobe và các dịch vụ
-3. Nhắc đến các ưu đãi hoặc chương trình khuyến mãi
-4. Khuyến khích khách hàng tiếp tục theo dõi sản phẩm mới
+2. Hướng dẫn người dùng sử dụng các tính năng trong ứng dụng:
+   - Thanh tìm kiếm ở trên cùng để tìm sản phẩm
+   - Menu danh mục để duyệt theo loại sản phẩm
+   - Bộ lọc để tìm sản phẩm theo yêu cầu cụ thể
+3. KHÔNG đề cập đến website hoặc trang web
+4. Nhắc đến các ưu đãi trong ứng dụng
+5. Khuyến khích người dùng bật thông báo để nhận tin mới
 
 CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
 
 Trả lời bằng Tiếng Việt:
 '''
         : '''
-I am the AI assistant of GizmoGlobe, a computer parts store.
+I am the AI assistant of GizmoGlobe, a mobile app for computer parts.
 
 ABOUT GIZMOGLOBE:
-- Professional computer parts store
+- Mobile app specializing in computer parts
 - Committed to quality and competitive pricing
 - Professional consulting team
 - Excellent warranty and after-sales support
 - Attractive promotions and discounts
 
-MY TASKS:
+RESPONSE GUIDELINES:
 1. Respond in a friendly and professional manner
-2. Introduce GizmoGlobe and our services
-3. Mention promotions or special offers
-4. Encourage customers to stay updated about new products
+2. Guide users on app features:
+   - Search bar at the top for finding products
+   - Category menu for browsing by product type
+   - Filters for specific requirements
+3. DO NOT mention website or web pages
+4. Mention in-app promotions
+5. Encourage users to enable notifications for updates
 
 CUSTOMER QUESTION: $userMessage
 
@@ -347,28 +422,32 @@ Reply in English:
   String _createGeneralPrompt(String userMessage, bool isVietnamese) {
     return isVietnamese
         ? '''
-Bạn là trợ lý AI của GizmoGlobe, một cửa hàng bán linh kiện máy tính.
+Bạn là trợ lý AI của GizmoGlobe, một ứng dụng di động bán linh kiện máy tính.
 
 NHIỆM VỤ CỦA BẠN:
 1. Trả lời câu hỏi một cách thân thiện và chuyên nghiệp
-2. Nếu câu hỏi không liên quan đến cửa hàng:
+2. Nếu câu hỏi không liên quan đến sản phẩm:
    - Trả lời ngắn gọn và hữu ích
-   - Sau đó hướng người dùng về các sản phẩm và dịch vụ của cửa hàng
+   - Sau đó hướng dẫn người dùng khám phá các tính năng trong ứng dụng
 3. Giữ giọng điệu lịch sự và thân thiện
+4. KHÔNG đề cập đến website hoặc trang web
+5. Tập trung vào các tính năng của ứng dụng di động
 
 CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
 
 Trả lời bằng Tiếng Việt:
 '''
         : '''
-I am the AI assistant of GizmoGlobe, a computer parts store.
+I am the AI assistant of GizmoGlobe, a mobile app for computer parts.
 
 MY TASKS:
 1. Answer questions in a friendly and professional manner
-2. For non-store related questions:
+2. For non-product related questions:
    - Provide brief and helpful answers
-   - Then guide users towards our products and services
+   - Then guide users to explore app features
 3. Maintain a polite and friendly tone
+4. DO NOT mention website or web pages
+5. Focus on mobile app features
 
 CUSTOMER QUESTION: $userMessage
 
@@ -421,7 +500,7 @@ Reply in English:
 
     return isVietnamese
         ? '''
-Bạn là trợ lý AI của GizmoGlobe, một cửa hàng bán linh kiện máy tính. Hãy trả lời dựa trên thông tin sản phẩm sau:
+Bạn là trợ lý AI của GizmoGlobe, một ứng dụng di động bán linh kiện máy tính. Hãy trả lời dựa trên thông tin sản phẩm sau:
 
 DANH SÁCH SẢN PHẨM:
 $formattedProducts
@@ -443,7 +522,13 @@ HƯỚNG DẪN TRẢ LỜI:
    - So sánh giá/hiệu năng
    - Đề xuất các sản phẩm đi kèm phù hợp
 
-4. Quy tắc trả lời:
+4. Hướng dẫn mua hàng trong ứng dụng:
+   - Chỉ dẫn cách thêm vào giỏ hàng
+   - Nhắc về các khuyến mãi đang áp dụng
+   - Hướng dẫn các bước thanh toán
+   - KHÔNG đề cập đến website
+
+5. Quy tắc trả lời:
    - LUÔN đề cập đến giá cụ thể nếu có sản phẩm
    - LUÔN đề cập đến tình trạng hàng
    - Sử dụng số liệu chính xác từ database
@@ -455,7 +540,7 @@ CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
 Trả lời bằng Tiếng Việt:
 '''
         : '''
-I am the AI assistant of GizmoGlobe, a computer parts store. I will answer based on the following product information:
+I am the AI assistant of GizmoGlobe, a mobile app for computer parts. I will answer based on the following product information:
 
 PRODUCT LIST:
 $formattedProducts
@@ -477,7 +562,13 @@ RESPONSE GUIDELINES:
    - Price/performance comparison
    - Suggest compatible accompanying products
 
-4. Response Rules:
+4. In-App Purchase Guide:
+   - Guide how to add to cart
+   - Mention current promotions
+   - Explain payment steps
+   - DO NOT mention website
+
+5. Response Rules:
    - ALWAYS mention specific prices if product exists
    - ALWAYS mention stock availability
    - Use exact numbers from database
@@ -578,46 +669,81 @@ Reply in English:
   String _formatCapacity(dynamic value) {
     if (value == null) return 'N/A';
 
-    // Xử lý format như "gb32" -> "32GB"
-    final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value.toString());
-    if (match != null) {
-      final unit = match.group(1)!.toUpperCase();
-      final number = match.group(2);
-      return '$number${unit.toUpperCase()}';
+    // Xử lý format cho GPU capacity
+    if (value is String) {
+      final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value);
+      if (match != null) {
+        final unit = match.group(1)!.toUpperCase();
+        final number = match.group(2);
+        return '$number $unit';
+      }
     }
+
+    // Nếu là enum GPUCapacity
+    if (value.toString().contains('GPUCapacity')) {
+      return value.toString();
+    }
+
     return value.toString().toUpperCase();
   }
 
   String _formatMemorySpeed(dynamic value) {
     if (value == null) return 'N/A';
 
-    // Xử lý format như "mhz3200" -> "3200MHz"
-    final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value.toString());
-    if (match != null) {
-      final number = match.group(2);
-      return '$number MHz';
+    // Xử lý format cho RAM bus speed
+    if (value is String) {
+      final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value);
+      if (match != null) {
+        final number = match.group(2);
+        return '$number MHz';
+      }
     }
+
+    // Nếu là enum RAMBus
+    if (value.toString().contains('RAMBus')) {
+      return value.toString();
+    }
+
     return value.toString();
   }
 
   String _formatBusWidth(dynamic value) {
     if (value == null) return 'N/A';
 
-    // Xử lý format như "bit256" -> "256-bit"
-    final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value.toString());
-    if (match != null) {
-      final number = match.group(2);
-      return '$number-bit';
+    // Xử lý format cho GPU bus width
+    if (value is String) {
+      final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value);
+      if (match != null) {
+        final number = match.group(2);
+        return '$number-bit';
+      }
     }
+
+    // Nếu là enum GPUBus
+    if (value.toString().contains('GPUBus')) {
+      return value.toString();
+    }
+
     return value.toString();
   }
 
   String _formatClockSpeed(dynamic value) {
     if (value == null) return 'N/A';
+
+    // Xử lý format cho CPU clock speed
     if (value is num) {
       return '${value.toStringAsFixed(1)} GHz';
     }
-    return '${value.toString()} GHz';
+
+    // Nếu là String, thử parse thành số
+    if (value is String) {
+      final numericValue = double.tryParse(value);
+      if (numericValue != null) {
+        return '${numericValue.toStringAsFixed(1)} GHz';
+      }
+    }
+
+    return value.toString();
   }
 
   String _formatSpeed(dynamic value) {
@@ -682,7 +808,7 @@ Reply in English:
       if (match != null) {
         final numericPrice = double.tryParse(match.group(1)!);
         if (numericPrice != null) {
-          return '\$${numericPrice.toStringAsFixed(2)}';
+          return numericPrice.toStringAsFixed(2);
         }
       }
       return price.toString();
@@ -713,6 +839,17 @@ Reply in English:
     return '${_formatPrice(finalPrice)} (Original: ${_formatPrice(price)})';
   }
 
+  String _formatGPUSeries(dynamic value) {
+    if (value == null) return 'N/A';
+
+    // Nếu là enum GPUSeries
+    if (value.toString().contains('GPUSeries')) {
+      return value.toString().toUpperCase();
+    }
+
+    return value.toString().toUpperCase();
+  }
+
   String _formatProductsInfo(
       List<QueryDocumentSnapshot> products, bool isVietnamese) {
     final buffer = StringBuffer();
@@ -732,83 +869,90 @@ Reply in English:
     // In thông tin theo category
     var productCount = 1;
     groupedProducts.forEach((category, productList) {
+      buffer.writeln('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       buffer.writeln(isVietnamese
-          ? '[DANH MỤC: ${category.toUpperCase()}]'
-          : '[CATEGORY: ${category.toUpperCase()}]');
-      buffer.writeln();
+          ? '📂 [DANH MỤC: ${category.toUpperCase()}]'
+          : '📂 [CATEGORY: ${category.toUpperCase()}]');
+      buffer.writeln('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       for (final data in productList) {
+        final productName = data['productName'] ?? 'Unknown Product';
+        buffer.writeln('$productCount. 🏷️ [PRODUCT_NAME:$productName]');
         buffer.writeln(
-            '$productCount. [PRODUCT_LINK:${data['id']}]${data['productName'] ?? 'Unknown Product'}[/PRODUCT_LINK]');
-        buffer.writeln(
-            'Price: ${_formatPriceWithDiscount(data['sellingPrice'], data['discount'])}');
+            '\n   💰 Price: ${_formatPriceWithDiscount(data['sellingPrice'], data['discount'])}');
 
         // Thông số kỹ thuật theo category
+        buffer.writeln('\n   📝 Technical Specifications:');
         switch (category) {
           case 'gpu':
-            buffer.writeln('Series: ${data['series'] ?? 'N/A'}');
-            buffer.writeln('Bus Width: ${_formatBusWidth(data['busWidth'])}');
-            buffer.writeln('VRAM: ${_formatCapacity(data['capacity'])}');
             buffer.writeln(
-                'Clock Speed: ${_formatClockSpeed(data['clockSpeed'])}');
+                '      • Series: ${data['series']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Memory: ${data['capacity']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Bus Width: ${data['bus']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Clock Speed: ${_formatClockSpeed(data['clockSpeed'])}');
             break;
           case 'cpu':
-            buffer.writeln('Family: ${data['family'] ?? 'N/A'}');
-            buffer.writeln('Cores: ${data['core'] ?? 'N/A'} cores');
-            buffer.writeln('Threads: ${data['thread'] ?? 'N/A'} threads');
-            buffer
-                .writeln('Base Clock: ${_formatClockSpeed(data['baseSpeed'])}');
             buffer.writeln(
-                'Boost Clock: ${_formatClockSpeed(data['boostSpeed'])}');
-            buffer.writeln('Cache: ${_formatCapacity(data['cache'])}');
-            buffer.writeln('TDP: ${data['tdp'] ?? 'N/A'}W');
+                '      • Family: ${data['family']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Cores: ${data['core']?.toString() ?? 'N/A'} cores');
+            buffer.writeln(
+                '      • Threads: ${data['thread']?.toString() ?? 'N/A'} threads');
+            buffer.writeln(
+                '      • Clock Speed: ${_formatClockSpeed(data['clockSpeed'])}');
             break;
           case 'ram':
             buffer.writeln(
-                'Type: ${data['ramType']?.toString().toUpperCase() ?? 'N/A'}');
-            buffer.writeln('Capacity: ${_formatCapacity(data['capacity'])}');
-            buffer.writeln('Speed: ${_formatMemorySpeed(data['bus'])}');
+                '      • Type: ${data['ramType']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Capacity: ${data['capacity']?.toString() ?? 'N/A'}');
+            buffer
+                .writeln('      • Speed: ${data['bus']?.toString() ?? 'N/A'}');
             break;
           case 'psu':
             buffer.writeln(
-                'Wattage: ${data['wattage'] != null ? '${data['wattage']}W' : 'N/A'}');
-            buffer.writeln('Efficiency: ${data['efficiency'] ?? 'N/A'}');
-            buffer.writeln('Modular: ${_formatModular(data['modular'])}');
+                '      • Wattage: ${data['wattage'] != null ? '${data['wattage']}W' : 'N/A'}');
             buffer.writeln(
-                'Fan Size: ${data['fanSize'] != null ? '${data['fanSize']}mm' : 'N/A'}');
+                '      • Efficiency: ${data['efficiency']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Modular: ${data['modular']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Fan Size: ${data['fanSize'] != null ? '${data['fanSize']}mm' : 'N/A'}');
             break;
           case 'drive':
-            buffer.writeln('Type: ${data['type'] ?? 'N/A'}');
-            buffer.writeln('Capacity: ${_formatCapacity(data['capacity'])}');
-            buffer.writeln('Interface: ${data['interface'] ?? 'N/A'}');
-            buffer.writeln('Read Speed: ${_formatSpeed(data['readSpeed'])}');
-            buffer.writeln('Write Speed: ${_formatSpeed(data['writeSpeed'])}');
+            buffer
+                .writeln('      • Type: ${data['type']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Capacity: ${data['capacity']?.toString() ?? 'N/A'}');
             break;
           case 'mainboard':
-            buffer.writeln('Chipset: ${data['chipset'] ?? 'N/A'}');
-            buffer.writeln('Socket: ${data['socket'] ?? 'N/A'}');
-            buffer.writeln('Form Factor: ${data['formFactor'] ?? 'N/A'}');
             buffer.writeln(
-                'Memory Support: ${_formatMemorySupport(data['memorySupport'])}');
-            buffer.writeln('PCIe Version: ${data['pcieVersion'] ?? 'N/A'}');
+                '      • Form Factor: ${data['formFactor']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Series: ${data['series']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Compatibility: ${data['compatibility']?.toString() ?? 'N/A'}');
             break;
         }
 
-        buffer.writeln('Manufacturer: ${data['manufacturerID'] ?? 'N/A'}');
-        buffer.writeln('Stock: ${_formatStock(data['stock'])}');
+        buffer.writeln(
+            '\n   🏭 Manufacturer: ${data['manufacturerID'] ?? 'N/A'}');
+        buffer.writeln('   📦 ${_formatStock(data['stock'])}');
 
         // Thêm mô tả sản phẩm nếu có
         if (data['description'] != null) {
-          buffer.writeln('Description: ${data['description']}');
+          buffer.writeln('\n   📄 Description: ${data['description']}');
         }
-        buffer.writeln('\n-------------------\n');
+        buffer.writeln('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         productCount++;
       }
     });
 
     if (products.isNotEmpty && products.length > 1) {
-      buffer.writeln('[SO SÁNH VÀ ĐỀ XUẤT]');
-      buffer.writeln();
+      buffer.writeln('\n📊 [SO SÁNH VÀ ĐỀ XUẤT]\n');
 
       // Phân tích và so sánh các thuộc tính chính
       final firstProduct = products.first.data() as Map<String, dynamic>;
@@ -819,71 +963,71 @@ Reply in English:
         }).toList();
 
         // So sánh Type
-        buffer.writeln('Type:');
+        buffer.writeln('🔹 Type:');
         for (var i = 0; i < rams.length; i++) {
-          buffer.write(
-              '${i + 1}. [PRODUCT_LINK:${rams[i]['id']}]${rams[i]['productName']}[/PRODUCT_LINK]: ');
+          final productName = rams[i]['productName'] ?? 'Unknown Product';
+          buffer.writeln('${i + 1}. [PRODUCT_NAME:$productName]');
           buffer.writeln(
-              '${rams[i]['ramType']?.toString().toUpperCase() ?? 'N/A'}');
+              '   • ${rams[i]['ramType']?.toString().toUpperCase() ?? 'N/A'}');
         }
         buffer.writeln();
 
         // So sánh Capacity
-        buffer.writeln('Capacity:');
+        buffer.writeln('🔹 Capacity:');
         for (var i = 0; i < rams.length; i++) {
-          buffer.write(
-              '${i + 1}. [PRODUCT_LINK:${rams[i]['id']}]${rams[i]['productName']}[/PRODUCT_LINK]: ');
-          buffer.writeln('${_formatCapacity(rams[i]['capacity'])}');
+          final productName = rams[i]['productName'] ?? 'Unknown Product';
+          buffer.writeln('${i + 1}. [PRODUCT_NAME:$productName]');
+          buffer.writeln('   • ${_formatCapacity(rams[i]['capacity'])}');
         }
         buffer.writeln();
 
         // So sánh Speed
-        buffer.writeln('Speed:');
+        buffer.writeln('🔹 Speed:');
         for (var i = 0; i < rams.length; i++) {
-          buffer.write(
-              '${i + 1}. [PRODUCT_LINK:${rams[i]['id']}]${rams[i]['productName']}[/PRODUCT_LINK]: ');
-          buffer.writeln('${_formatMemorySpeed(rams[i]['bus'])}');
+          final productName = rams[i]['productName'] ?? 'Unknown Product';
+          buffer.writeln('${i + 1}. [PRODUCT_NAME:$productName]');
+          buffer.writeln('   • ${_formatMemorySpeed(rams[i]['bus'])}');
         }
         buffer.writeln();
 
         // So sánh Price
-        buffer.writeln('Price:');
+        buffer.writeln('🔹 Price:');
         for (var i = 0; i < rams.length; i++) {
-          buffer.write(
-              '${i + 1}. [PRODUCT_LINK:${rams[i]['id']}]${rams[i]['productName']}[/PRODUCT_LINK]: ');
+          final productName = rams[i]['productName'] ?? 'Unknown Product';
+          buffer.writeln('${i + 1}. [PRODUCT_NAME:$productName]');
           buffer.writeln(
-              '${_formatPriceWithDiscount(rams[i]['sellingPrice'], rams[i]['discount'])}');
+              '   • ${_formatPriceWithDiscount(rams[i]['sellingPrice'], rams[i]['discount'])}');
         }
         buffer.writeln();
 
         // So sánh Stock
-        buffer.writeln('Stock:');
+        buffer.writeln('🔹 Stock:');
         for (var i = 0; i < rams.length; i++) {
-          buffer.write(
-              '${i + 1}. [PRODUCT_LINK:${rams[i]['id']}]${rams[i]['productName']}[/PRODUCT_LINK]: ');
-          buffer.writeln('${_formatStock(rams[i]['stock'])}');
+          final productName = rams[i]['productName'] ?? 'Unknown Product';
+          buffer.writeln('${i + 1}. [PRODUCT_NAME:$productName]');
+          buffer.writeln('   • ${_formatStock(rams[i]['stock'])}');
         }
         buffer.writeln();
 
         // Thêm ghi chú về đặc điểm của từng sản phẩm
-        buffer.writeln('Notes:');
+        buffer.writeln('📝 Notes:');
         for (var i = 0; i < rams.length; i++) {
-          buffer.write(
-              '${i + 1}. [PRODUCT_LINK:${rams[i]['id']}]${rams[i]['productName']}[/PRODUCT_LINK]: ');
+          final productName = rams[i]['productName'] ?? 'Unknown Product';
+          buffer.writeln('${i + 1}. [PRODUCT_NAME:$productName]');
           if (rams[i]['capacity'] == 'gb16') {
-            buffer.writeln('Suitable for basic to mid-range systems.');
+            buffer.writeln('   • Suitable for basic to mid-range systems.');
           } else if (rams[i]['capacity'] == 'gb32') {
             buffer.writeln(
-                'Good balance of capacity and speed, ideal for gaming and content creation.');
+                '   • Good balance of capacity and speed, ideal for gaming and content creation.');
           } else if (rams[i]['capacity'] == 'gb64') {
             buffer.writeln(
-                'Best for demanding tasks like video editing and running virtual machines.');
+                '   • Best for demanding tasks like video editing and running virtual machines.');
           } else if (rams[i]['capacity'] == 'gb8') {
             buffer.writeln(
-                'Entry-level option, suitable for basic computing needs.');
+                '   • Entry-level option, suitable for basic computing needs.');
           }
         }
-        buffer.writeln();
+        buffer.writeln('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       }
     }
 

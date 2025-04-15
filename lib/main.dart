@@ -15,8 +15,11 @@ import 'package:gizmoglobe_client/providers/cart_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:gizmoglobe_client/providers/theme_provider.dart';
+import 'package:gizmoglobe_client/providers/language_provider.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 import 'consts.dart';
 
@@ -66,18 +69,61 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          return MultiBlocProvider(
-            providers: [
-              BlocProvider(create: (context) => MainScreenCubit()),
-            ],
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
+      ],
+      child: Consumer2<ThemeProvider, LanguageProvider>(
+        builder: (context, themeProvider, languageProvider, child) {
+          if (kDebugMode) {
+            print('Current locale: ${languageProvider.currentLocale}');
+            print('Supported locales: ${[Locale('en'), Locale('vi')]}');
+          }
+          return BlocProvider(
+            create: (context) => MainScreenCubit(),
             child: CartProvider(
               child: MaterialApp(
                 title: 'GizmoGlobe',
                 themeMode: themeProvider.themeMode,
+                locale: languageProvider.currentLocale,
+                supportedLocales: const [
+                  Locale('en'),
+                  Locale('vi'),
+                ],
+                localizationsDelegates: const [
+                  S.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                localeResolutionCallback: (locale, supportedLocales) {
+                  if (kDebugMode) {
+                    print('Locale resolution callback called');
+                    print('Requested locale: $locale');
+                    print('Supported locales: $supportedLocales');
+                  }
+                  // Nếu locale không được hỗ trợ, trả về tiếng Việt
+                  if (!supportedLocales.contains(locale)) {
+                    if (kDebugMode) {
+                      print('Locale not supported, returning Vietnamese');
+                    }
+                    return const Locale('vi');
+                  }
+                  return locale;
+                },
+                builder: (context, child) {
+                  if (kDebugMode) {
+                    print('MaterialApp builder called');
+                    print(
+                        'Current locale in builder: ${Localizations.localeOf(context)}');
+                  }
+                  return Localizations.override(
+                    context: context,
+                    locale: languageProvider.currentLocale,
+                    child: child!,
+                  );
+                },
                 theme: ThemeData(
                   primarySwatch: Colors.blue,
                   colorScheme: ColorScheme(

@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class RangeFilter extends StatelessWidget {
   final String name;
-  final ValueChanged<String> onFromValueChanged;
-  final ValueChanged<String> onToValueChanged;
-  final String fromValue;
-  final String toValue;
   final TextEditingController fromController;
   final TextEditingController toController;
+  final Function(String) onFromValueChanged;
+  final Function(String) onToValueChanged;
+  final String fromValue;
+  final String toValue;
+  final String? fromHint;
+  final String? toHint;
 
   const RangeFilter({
     super.key,
     required this.name,
+    required this.fromController,
+    required this.toController,
     required this.onFromValueChanged,
     required this.onToValueChanged,
     required this.fromValue,
     required this.toValue,
-    required this.fromController,
-    required this.toController,
+    this.fromHint,
+    this.toHint,
   });
 
   @override
@@ -33,6 +38,7 @@ class RangeFilter extends StatelessWidget {
             color: Theme.of(context).primaryColor,
           ),
         ),
+        const SizedBox(height: 8.0),
         Row(
           children: [
             Expanded(
@@ -48,7 +54,7 @@ class RangeFilter extends StatelessWidget {
                   FieldWithIcon(
                     controller: fromController,
                     fillColor: Theme.of(context).colorScheme.surface,
-                    hintText: 'Min', 
+                    hintText: fromHint ?? S.of(context).min,
                     onChanged: onFromValueChanged,
                     keyboardType: TextInputType.number,
                   ),
@@ -69,7 +75,7 @@ class RangeFilter extends StatelessWidget {
                   FieldWithIcon(
                     controller: toController,
                     fillColor: Theme.of(context).colorScheme.surface,
-                    hintText: 'Max',
+                    hintText: toHint ?? S.of(context).max,
                     onChanged: onToValueChanged,
                     keyboardType: TextInputType.number,
                   ),

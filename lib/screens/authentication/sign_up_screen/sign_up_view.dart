@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/field_with_icon.dart';
@@ -74,10 +75,10 @@ class _SignUpScreen extends State<SignUpScreen> {
                         alignment: Alignment.centerRight,
                       ),
                       const SizedBox(height: 32),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: GradientText(
-                          text: 'Sign up',
+                          text: S.of(context).register,
                           fontSize: 32,
                         ),
                       ),
@@ -98,7 +99,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                         ),
                         child: FieldWithIcon(
                           controller: _nameController,
-                          hintText: 'Full name',
+                          hintText: S.of(context).enterFullName,
                           fillColor: theme.colorScheme.surface,
                           fontSize: 16,
                           fontWeight: FontWeight.normal,
@@ -126,7 +127,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                         ),
                         child: FieldWithIcon(
                           controller: _emailController,
-                          hintText: 'Email address',
+                          hintText: S.of(context).enterYourEmail,
                           fillColor: theme.colorScheme.surface,
                           fontSize: 16,
                           fontWeight: FontWeight.normal,
@@ -154,7 +155,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                         ),
                         child: FieldWithIcon(
                           controller: _phoneController,
-                          hintText: 'Phone number',
+                          hintText: S.of(context).enterPhoneNumber,
                           fillColor: theme.colorScheme.surface,
                           fontSize: 16,
                           fontWeight: FontWeight.normal,
@@ -183,7 +184,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                         ),
                         child: FieldWithIcon(
                           controller: _passwordController,
-                          hintText: 'Password',
+                          hintText: S.of(context).enterPassword,
                           fillColor: theme.colorScheme.surface,
                           fontSize: 16,
                           fontWeight: FontWeight.normal,
@@ -212,7 +213,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                         ),
                         child: FieldWithIcon(
                           controller: _confirmPasswordController,
-                          hintText: 'Confirm password',
+                          hintText: S.of(context).enterConfirmPassword,
                           fillColor: theme.colorScheme.surface,
                           fontSize: 16,
                           fontWeight: FontWeight.normal,
@@ -318,7 +319,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                                 height: 50,
                                 alignment: Alignment.center,
                                 child: Text(
-                                  'Sign up',
+                                  S.of(context).register,
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     color: theme.colorScheme.onPrimary,
                                     fontWeight: FontWeight.bold,
@@ -337,7 +338,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Already have an account?',
+                          S.of(context).alreadyHaveAccount,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                             fontSize: 14,
@@ -357,7 +358,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
                           child: Text(
-                            'Sign in',
+                            S.of(context).login,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.primary.withOpacity(0.8),
                               fontWeight: FontWeight.w600,

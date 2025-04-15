@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
 import 'package:gizmoglobe_client/widgets/order/invoice_details_widget.dart';
-
 import '../../enums/invoice_related/sales_status.dart';
 import '../general/app_text_style.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class SalesInvoiceWidget extends StatelessWidget {
   final SalesInvoice salesInvoice;
@@ -40,11 +40,11 @@ class SalesInvoiceWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Total ${salesInvoice.getTotalItems()} items: \$${salesInvoice.totalPrice.toStringAsFixed(2)}', // 'Tổng ${salesInvoice.getTotalItems()} sản phẩm: \$${salesInvoice.totalPrice.toStringAsFixed(2)}'
+                      'Total ${salesInvoice.getTotalItems()} items: \$${salesInvoice.totalPrice.toStringAsFixed(2)}',
                       style: AppTextStyle.regularText,
                     ),
                     const SizedBox(height: 8),
-                    _buildStatusWidget(salesInvoice, onPressed),
+                    _buildStatusWidget(context, salesInvoice, onPressed),
                   ],
                 ),
               ),
@@ -55,35 +55,36 @@ class SalesInvoiceWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusWidget(SalesInvoice salesInvoice, VoidCallback onPressed) {
+  Widget _buildStatusWidget(
+      BuildContext context, SalesInvoice salesInvoice, VoidCallback onPressed) {
     switch (salesInvoice.salesStatus) {
       case SalesStatus.pending:
-        return const Column(
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Your order is being processed.', // 'Đơn hàng của bạn đang được xử lý.'
+              S.of(context).orderProcessing,
               style: AppTextStyle.bigText,
             ),
           ],
         );
 
       case SalesStatus.preparing:
-        return const Column(
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Your order is being prepared.', // 'Đơn hàng của bạn đang được chuẩn bị.'
+              S.of(context).orderPreparing,
               style: AppTextStyle.bigText,
             ),
           ],
         );
       case SalesStatus.shipping:
-        return const Column(
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Your order is on the way.', // 'Đơn hàng của bạn đang trên đường giao.'
+              S.of(context).orderShipping,
               style: AppTextStyle.bigText,
             ),
           ],
@@ -92,13 +93,13 @@ class SalesInvoiceWidget extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            const Text(
-              'Your order has been delivered.', // 'Đơn hàng của bạn đã được giao.'
+            Text(
+              S.of(context).orderDelivered,
               style: AppTextStyle.bigText,
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Please confirm the delivery.', // 'Vui lòng xác nhận đã nhận hàng.'
+            Text(
+              S.of(context).pleaseConfirmDelivery,
               style: AppTextStyle.bigText,
             ),
             const SizedBox(height: 8),
@@ -110,36 +111,38 @@ class SalesInvoiceWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text('Received', style: AppTextStyle.buttonTextBold.copyWith(color: Colors.white)), // 'Đã nhận'
+              child: Text(S.of(context).received,
+                  style: AppTextStyle.buttonTextBold
+                      .copyWith(color: Colors.white)),
             ),
           ],
         );
       case SalesStatus.completed:
-        return const Column(
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Your order has been completed.', // 'Đơn hàng của bạn đã hoàn thành.'
+              S.of(context).orderCompleted,
               style: AppTextStyle.bigText,
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
-              'Thank you for your purchase!', // 'Cảm ơn bạn đã mua hàng!'
+              S.of(context).thankYou,
               style: AppTextStyle.bigText,
             ),
           ],
         );
       default:
-        return const Column(
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              'Status: Unknown', // 'Trạng thái: Không xác định'
+              S.of(context).statusUnknown,
               style: AppTextStyle.bigText,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              'Please contact support.', // 'Vui lòng liên hệ hỗ trợ.'
+              S.of(context).pleaseContactSupport,
               style: AppTextStyle.bigText,
             ),
           ],

@@ -42,9 +42,11 @@ class District {
       administrativeUnitFullName: json['AdministrativeUnitFullName'],
       administrativeUnitShortNameEn: json['AdministrativeUnitShortNameEn'],
       administrativeUnitFullNameEn: json['AdministrativeUnitFullNameEn'],
-      wards: json['Ward'] == null ? <Ward>[] : (json['Ward'] as List<dynamic>)
-          .map((w) => Ward.fromJson(w))
-          .toList(),
+      wards: json['Ward'] == null
+          ? <Ward>[]
+          : (json['Ward'] as List<dynamic>)
+              .map((w) => Ward.fromJson(w))
+              .toList(),
     );
   }
 
@@ -64,7 +66,7 @@ class District {
   );
 
   @override
-  String toString() {
-    return fullNameEn;
+  String toString({bool isEnglish = true}) {
+    return isEnglish ? fullNameEn : fullName;
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import '../../../widgets/general/selectable_gradient_icon.dart';
 import '../../cart/cart_screen/cart_screen_view.dart';
 import '../../home/home_screen/home_screen_view.dart';
@@ -68,28 +69,28 @@ class _MainScreenState extends State<MainScreen> {
                 icon: Icons.home,
                 isSelected: index == 0,
               ),
-              label: "Home", // "Trang chủ"
+              label: S.of(context).homeTab,
             ),
             BottomNavigationBarItem(
               icon: SelectableGradientIcon(
                 icon: Icons.shopping_bag,
                 isSelected: index == 1,
               ),
-              label: "Product", // "Sản phẩm"
+              label: S.of(context).productsTab,
             ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: SelectableGradientIcon(
                 icon: Icons.shopping_cart,
                 isSelected: false,
               ),
-              label: "Cart", // "Giỏ hàng"
+              label: S.of(context).cartTab,
             ),
             BottomNavigationBarItem(
               icon: SelectableGradientIcon(
                 icon: Icons.person,
                 isSelected: index == 3,
               ),
-              label: "User", // "Người dùng"
+              label: S.of(context).userTab,
             ),
           ],
         ),

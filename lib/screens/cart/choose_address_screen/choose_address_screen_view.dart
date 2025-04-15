@@ -8,6 +8,7 @@ import '../../../widgets/general/gradient_icon_button.dart';
 import '../../user/add_address_screen/add_address_screen_view.dart';
 import 'choose_address_screen_cubit.dart';
 import 'choose_address_screen_state.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class ChooseAddressScreen extends StatefulWidget {
   final Address address;
@@ -15,16 +16,17 @@ class ChooseAddressScreen extends StatefulWidget {
   const ChooseAddressScreen({super.key, required this.address});
 
   static Widget newInstance({required Address address}) => BlocProvider(
-    create: (context) => ChooseAddressScreenCubit(),
-    child: ChooseAddressScreen(address: address),
-  );
+        create: (context) => ChooseAddressScreenCubit(),
+        child: ChooseAddressScreen(address: address),
+      );
 
   @override
   State<ChooseAddressScreen> createState() => _ChooseAddressScreen();
 }
 
 class _ChooseAddressScreen extends State<ChooseAddressScreen> {
-  ChooseAddressScreenCubit get cubit => context.read<ChooseAddressScreenCubit>();
+  ChooseAddressScreenCubit get cubit =>
+      context.read<ChooseAddressScreenCubit>();
 
   @override
   void initState() {
@@ -43,7 +45,7 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
           },
           fillColor: Colors.transparent,
         ),
-        title: const GradientText(text: 'Address'), // 'Địa chỉ'
+        title: GradientText(text: S.of(context).address),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -52,63 +54,68 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
             children: [
               BlocBuilder<ChooseAddressScreenCubit, ChooseAddressScreenState>(
                 builder: (context, state) {
-                  return state.addressList.isEmpty ?
-                  const Center(child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 60.0),
-                    child: Text(
-                      'No address found', // 'Không tìm thấy địa chỉ'
-                      style: AppTextStyle.regularText,
-                    ),
-                  )) :
-                  Column(
-                    children: state.addressList.map((address) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.pop(context, address);
-                        },
-                        child: ListTile(
-                          title: Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  address.firstLine(),
-                                  style: AppTextStyle.boldText,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  address.secondLine(),
-                                  style: AppTextStyle.regularText,
-                                ),
-                              ],
-                            ),
+                  return state.addressList.isEmpty
+                      ? Center(
+                          child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 60.0),
+                          child: Text(
+                            S.of(context).noAddressFound,
+                            style: AppTextStyle.regularText,
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  );
+                        ))
+                      : Column(
+                          children: state.addressList.map((address) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context, address);
+                              },
+                              child: ListTile(
+                                title: Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        Theme.of(context).colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        address.firstLine(),
+                                        style: AppTextStyle.boldText,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        address.secondLine(),
+                                        style: AppTextStyle.regularText,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        );
                 },
               ),
               InvisibleGradientButton(
-                text: 'Add Address', // 'Thêm địa chỉ'
+                text: S.of(context).addAddress,
                 prefixIcon: Icons.add,
                 onPressed: () async {
                   final result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AddAddressScreen.newInstance()),
+                    MaterialPageRoute(
+                        builder: (context) => AddAddressScreen.newInstance()),
                   );
 
                   if (result != null && result is Address) {
