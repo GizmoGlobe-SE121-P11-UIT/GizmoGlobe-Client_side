@@ -134,9 +134,6 @@ class _FilterScreenState extends State<FilterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(S.of(context).manufacturer,
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8.0),
                 ManufacturerFilter(
                   selectedManufacturers: state.filterArgument.manufacturerList,
                   onToggleSelection: cubit.toggleManufacturer,

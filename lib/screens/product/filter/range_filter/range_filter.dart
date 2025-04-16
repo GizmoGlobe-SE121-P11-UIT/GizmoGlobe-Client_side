@@ -46,7 +46,7 @@ class RangeFilter extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'From', //Từ
+                    S.of(context).from,
                     style: AppTextStyle.subtitleText.copyWith(
                       color: Theme.of(context).primaryColor,
                     ),
@@ -67,7 +67,7 @@ class RangeFilter extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'To', //Đến
+                    S.of(context).to,
                     style: AppTextStyle.subtitleText.copyWith(
                       color: Theme.of(context).primaryColor,
                     ),

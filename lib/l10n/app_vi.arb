@@ -10,7 +10,7 @@
     "featuredProducts": "Sản phẩm nổi bật",
     "newArrivals": "Sản phẩm mới",
     "viewAll": "Xem tất cả",
-    "addToCart": "Thêm vào giỏ",
+    "addToCart": "Thêm vào giỏ hàng",
     "productDetails": "Chi tiết sản phẩm",
     "description": "Mô tả",
     "specifications": "Thông số kỹ thuật",
@@ -86,6 +86,25 @@
     "address": "Địa chỉ",
     "noAddressFound": "Không tìm thấy địa chỉ",
     "addAddress": "Thêm địa chỉ",
+    "@addAddress": {
+        "description": "Title for add address screen"
+    },
+    "receiverName": "Tên người nhận",
+    "@receiverName": {
+        "description": "Label for receiver name field"
+    },
+    "receiverPhone": "Số điện thoại người nhận",
+    "@receiverPhone": {
+        "description": "Label for receiver phone field"
+    },
+    "streetAddress": "Tên đường, tòa nhà, số nhà",
+    "@streetAddress": {
+        "description": "Label for street address field"
+    },
+    "save": "Lưu",
+    "@save": {
+        "description": "Label for save button"
+    },
     "bestSellers": "Bán chạy nhất",
     "favorites": "Yêu thích",
     "seeAll": "Xem tất cả",
@@ -101,18 +120,166 @@
     "bus": "Bus",
     "capacity": "Dung lượng",
     "type": "Loại",
-    "family": "Loại",
-    "cpuCore": "Nhân",
-    "cpuThread": "Luồng",
-    "cpuClockSpeed": "Xung nhịp",
+    "family": "Dòng",
+    "cpuCore": "Nhân CPU",
+    "cpuThread": "Luồng CPU",
+    "cpuClockSpeed": "Xung nhịp CPU",
     "modular": "Loại Module",
     "efficiency": "Chuẩn hiệu suất",
-    "psuWattage": "Công suất",
-    "series": "Dòng",
-    "gpuClockSpeed": "Xung nhịp",
-    "formFactor": "Loại kích cỡ",
-    "compatibility": "Tính tương thích",
+    "psuWattage": "Công suất PSU",
+    "series": "Dòng sản phẩm",
+    "gpuClockSpeed": "Xung nhịp GPU",
+    "formFactor": "Kích thước",
+    "compatibility": "Tương thích",
     "manufacturer": "Nhà sản xuất",
     "enterMinPrice": "Nhập giá tối thiểu",
-    "enterMaxPrice": "Nhập giá tối đa"
+    "@enterMinPrice": {
+        "description": "Hint text for minimum price input"
+    },
+    "enterMaxPrice": "Nhập giá tối đa",
+    "@enterMaxPrice": {
+        "description": "Hint text for maximum price input"
+    },
+    "basicInformation": "Thông tin cơ bản",
+    "product": "Sản phẩm",
+    "statusInformation": "Thông tin trạng thái",
+    "stock": "Tồn kho",
+    "releaseDate": "Ngày phát hành",
+    "technicalSpecifications": "Thông số kỹ thuật",
+    "share": "Chia sẻ",
+    "addToWishlist": "Thêm vào yêu thích",
+    "quantity": "Số lượng",
+    "totalPrice": "Tổng tiền",
+    "productSpecifications": "Thông số kỹ thuật sản phẩm",
+    "memorySpecifications": "Thông số bộ nhớ",
+    "processorSpecifications": "Thông số bộ xử lý",
+    "powerSupplySpecifications": "Thông số nguồn",
+    "graphicsCardSpecifications": "Thông số card đồ họa",
+    "motherboardSpecifications": "Thông số bo mạch chủ",
+    "storageSpecifications": "Thông số lưu trữ",
+    "busSpeed": "Tốc độ bus",
+    "ramType": "Loại RAM",
+    "cores": "Số nhân",
+    "threads": "Số luồng",
+    "clockSpeed": "Tốc độ xung nhịp",
+    "wattage": "Công suất",
+    "memory": "Bộ nhớ",
+    "busWidth": "Độ rộng bus",
+    "driveType": "Loại ổ đĩa",
+    "findYourItem": "Tìm kiếm sản phẩm của bạn",
+    "@findYourItem": {
+        "description": "Search hint text in product screen"
+    },
+    "all": "Tất cả",
+    "@all": {
+        "description": "Label for all products tab"
+    },
+    "ram": "RAM",
+    "@ram": {
+        "description": "Label for RAM category"
+    },
+    "cpu": "CPU",
+    "@cpu": {
+        "description": "Label for CPU category"
+    },
+    "psu": "PSU",
+    "@psu": {
+        "description": "Label for PSU category"
+    },
+    "gpu": "GPU",
+    "@gpu": {
+        "description": "Label for GPU category"
+    },
+    "drive": "Ổ cứng",
+    "@drive": {
+        "description": "Label for Drive category"
+    },
+    "mainboard": "Bo mạch chủ",
+    "@mainboard": {
+        "description": "Label for Mainboard category"
+    },
+    "sortBy": "Sắp xếp theo:",
+    "@sortBy": {
+        "description": "Label for sort dropdown"
+    },
+    "noProductsFound": "Không tìm thấy sản phẩm",
+    "@noProductsFound": {
+        "description": "Message when no products are found"
+    },
+    "priceAscending": "Giá: Thấp đến cao",
+    "@priceAscending": {
+        "description": "Sort option for ascending price"
+    },
+    "priceDescending": "Giá: Cao đến thấp",
+    "@priceDescending": {
+        "description": "Sort option for descending price"
+    },
+    "nameAscending": "Tên: A đến Z",
+    "@nameAscending": {
+        "description": "Sort option for ascending name"
+    },
+    "nameDescending": "Tên: Z đến A",
+    "@nameDescending": {
+        "description": "Sort option for descending name"
+    },
+    "newest": "Mới nhất",
+    "@newest": {
+        "description": "Sort option for newest products"
+    },
+    "oldest": "Cũ nhất",
+    "@oldest": {
+        "description": "Sort option for oldest products"
+    },
+    "discountHighest": "Giảm giá: Cao nhất",
+    "@discountHighest": {
+        "description": "Label for highest discount sorting option"
+    },
+    "discountLowest": "Giảm giá: Thấp nhất",
+    "@discountLowest": {
+        "description": "Label for lowest discount sorting option"
+    },
+    "chooseProvince": "Chọn Tỉnh/Thành phố",
+    "@chooseProvince": {
+        "description": "Hint text for province selection"
+    },
+    "chooseDistrict": "Chọn Quận/Huyện",
+    "@chooseDistrict": {
+        "description": "Hint text for district selection"
+    },
+    "chooseWard": "Chọn Phường/Xã",
+    "@chooseWard": {
+        "description": "Hint text for ward selection"
+    },
+    "editAddress": "Sửa địa chỉ",
+    "@editAddress": {
+        "description": "Title for edit address screen"
+    },
+    "deleteAddress": "Xóa địa chỉ",
+    "@deleteAddress": {
+        "description": "Title for delete address action"
+    },
+    "deleteAddressConfirmation": "Bạn có chắc chắn muốn xóa địa chỉ này không?",
+    "@deleteAddressConfirmation": {
+        "description": "Confirmation message for address deletion"
+    },
+    "receiverNameRequired": "Vui lòng nhập tên người nhận",
+    "@receiverNameRequired": {
+        "description": "Error message when receiver name is empty"
+    },
+    "receiverPhoneRequired": "Vui lòng nhập số điện thoại người nhận",
+    "@receiverPhoneRequired": {
+        "description": "Error message when receiver phone is empty"
+    },
+    "invalidPhoneNumber": "Số điện thoại không hợp lệ",
+    "@invalidPhoneNumber": {
+        "description": "Error message when phone number is invalid"
+    },
+    "addressSaved": "Đã lưu địa chỉ thành công",
+    "@addressSaved": {
+        "description": "Success message when address is saved"
+    },
+    "addressDeleted": "Đã xóa địa chỉ thành công",
+    "@addressDeleted": {
+        "description": "Success message when address is deleted"
+    }
 } 

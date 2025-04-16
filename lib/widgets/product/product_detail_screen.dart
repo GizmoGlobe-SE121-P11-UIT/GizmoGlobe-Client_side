@@ -13,6 +13,7 @@ import '../../screens/cart/cart_screen/cart_screen_state.dart';
 import '../../screens/cart/cart_screen/cart_screen_view.dart';
 import '../general/gradient_icon_button.dart';
 import 'favorites/favorites_cubit.dart';
+import '../../generated/l10n.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -274,7 +275,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Quantity',
+                              S.of(context).quantity,
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .colorScheme
@@ -341,7 +342,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Total Price',
+                              S.of(context).totalPrice,
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .colorScheme
@@ -413,7 +414,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           }
                         },
                         child: Text(
-                          'Add to Cart',
+                          S.of(context).addToCart,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -438,7 +439,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       Padding(
         padding: const EdgeInsets.only(bottom: 16.0),
         child: Text(
-          'Product Specifications',
+          S.of(context).productSpecifications,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -447,9 +448,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       ),
       _buildSpecGroup(
-        'Basic Information',
+        S.of(context).basicInformation,
         [
-          _buildSpecRow(context, 'Manufacturer',
+          _buildSpecRow(context, S.of(context).manufacturer,
               widget.product.manufacturer.manufacturerName)
         ],
       ),
@@ -459,69 +460,82 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       case const (RAM):
         final ram = widget.product as RAM;
         specs.add(_buildSpecGroup(
-          'Memory Specifications',
+          S.of(context).memorySpecifications,
           [
-            _buildSpecRow(context, 'Bus Speed', '${ram.bus} MHz'),
-            _buildSpecRow(context, 'Capacity', '${ram.capacity} GB'),
-            _buildSpecRow(context, 'RAM Type', ram.ramType.toString()),
+            _buildSpecRow(context, S.of(context).busSpeed, '${ram.bus} MHz'),
+            _buildSpecRow(
+                context, S.of(context).capacity, '${ram.capacity} GB'),
+            _buildSpecRow(
+                context, S.of(context).ramType, ram.ramType.toString()),
           ],
         ));
         break;
       case const (CPU):
         final cpu = widget.product as CPU;
         specs.add(_buildSpecGroup(
-          'Processor Specifications',
+          S.of(context).processorSpecifications,
           [
-            _buildSpecRow(context, 'Family', cpu.family.toString()),
-            _buildSpecRow(context, 'Cores', '${cpu.core} Cores'),
-            _buildSpecRow(context, 'Threads', '${cpu.thread} Threads'),
-            _buildSpecRow(context, 'Clock Speed', '${cpu.clockSpeed} GHz'),
+            _buildSpecRow(context, S.of(context).family, cpu.family.toString()),
+            _buildSpecRow(context, S.of(context).cores,
+                '${cpu.core} ${S.of(context).cores}'),
+            _buildSpecRow(context, S.of(context).threads,
+                '${cpu.thread} ${S.of(context).threads}'),
+            _buildSpecRow(
+                context, S.of(context).clockSpeed, '${cpu.clockSpeed} GHz'),
           ],
         ));
         break;
       case const (PSU):
         final psu = widget.product as PSU;
         specs.add(_buildSpecGroup(
-          'Power Supply Specifications',
+          S.of(context).powerSupplySpecifications,
           [
-            _buildSpecRow(context, 'Wattage', psu.wattage.toString()),
-            _buildSpecRow(context, 'Efficiency', psu.efficiency.toString()),
-            _buildSpecRow(context, 'Modular', psu.modular.toString()),
+            _buildSpecRow(
+                context, S.of(context).wattage, psu.wattage.toString()),
+            _buildSpecRow(
+                context, S.of(context).efficiency, psu.efficiency.toString()),
+            _buildSpecRow(
+                context, S.of(context).modular, psu.modular.toString()),
           ],
         ));
         break;
       case const (GPU):
         final gpu = widget.product as GPU;
         specs.add(_buildSpecGroup(
-          'Graphics Card Specifications',
+          S.of(context).graphicsCardSpecifications,
           [
-            _buildSpecRow(context, 'Series', gpu.series.toString()),
-            _buildSpecRow(context, 'Memory', gpu.capacity.toString()),
-            _buildSpecRow(context, 'Bus Width', gpu.bus.toString()),
-            _buildSpecRow(context, 'Clock Speed', gpu.clockSpeed.toString()),
+            _buildSpecRow(context, S.of(context).series, gpu.series.toString()),
+            _buildSpecRow(
+                context, S.of(context).memory, gpu.capacity.toString()),
+            _buildSpecRow(context, S.of(context).busWidth, gpu.bus.toString()),
+            _buildSpecRow(
+                context, S.of(context).clockSpeed, gpu.clockSpeed.toString()),
           ],
         ));
         break;
       case const (Mainboard):
         final mainboard = widget.product as Mainboard;
         specs.add(_buildSpecGroup(
-          'Motherboard Specifications',
+          S.of(context).motherboardSpecifications,
           [
+            _buildSpecRow(context, S.of(context).formFactor,
+                mainboard.formFactor.toString()),
             _buildSpecRow(
-                context, 'Form Factor', mainboard.formFactor.toString()),
-            _buildSpecRow(context, 'Series', mainboard.series.toString()),
-            _buildSpecRow(
-                context, 'Compatibility', mainboard.compatibility.toString()),
+                context, S.of(context).series, mainboard.series.toString()),
+            _buildSpecRow(context, S.of(context).compatibility,
+                mainboard.compatibility.toString()),
           ],
         ));
         break;
       case const (Drive):
         final drive = widget.product as Drive;
         specs.add(_buildSpecGroup(
-          'Storage Specifications',
+          S.of(context).storageSpecifications,
           [
-            _buildSpecRow(context, 'Drive Type', drive.type.toString()),
-            _buildSpecRow(context, 'Capacity', drive.capacity.toString()),
+            _buildSpecRow(
+                context, S.of(context).driveType, drive.type.toString()),
+            _buildSpecRow(
+                context, S.of(context).capacity, drive.capacity.toString()),
           ],
         ));
         break;

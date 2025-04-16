@@ -8,6 +8,7 @@ import 'package:gizmoglobe_client/screens/product/product_screen/product_tab/pro
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../objects/product_related/product.dart';
+import '../../../generated/l10n.dart';
 
 class ProductScreen extends StatefulWidget {
   final List<Product>? initialProducts;
@@ -83,7 +84,7 @@ class _ProductScreenState extends State<ProductScreen>
               height: 40,
               controller: searchController,
               focusNode: searchFocusNode,
-              hintText: 'Find your item', // 'Tìm kiếm sản phẩm'
+              hintText: S.of(context).findYourItem,
               fillColor: Theme.of(context).colorScheme.surface,
               prefixIcon: Icon(
                 Icons.search,
@@ -109,13 +110,13 @@ class _ProductScreenState extends State<ProductScreen>
               isScrollable: true,
               indicator: const BoxDecoration(),
               tabs: [
-                const Tab(text: 'All'), // 'Tất cả'
-                ...CategoryEnum.values.map((category) => Tab(
-                      text: category
-                          .toString()
-                          .split('.')
-                          .last, // Các giá trị enum cần được dịch trong CategoryEnum
-                    )),
+                Tab(text: S.of(context).all),
+                Tab(text: S.of(context).ram),
+                Tab(text: S.of(context).cpu),
+                Tab(text: S.of(context).psu),
+                Tab(text: S.of(context).gpu),
+                Tab(text: S.of(context).drive),
+                Tab(text: S.of(context).mainboard),
               ],
             ),
           ),

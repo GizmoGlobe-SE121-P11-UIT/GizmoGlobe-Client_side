@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
@@ -63,8 +64,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
             },
             fillColor: Colors.transparent,
           ),
-          title:
-              const GradientText(text: 'Edit Address'), // 'Chỉnh sửa địa chỉ'
+          title: GradientText(text: S.of(context).editAddress),
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -76,7 +76,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                     children: [
                       FieldWithIcon(
                         controller: _receiverNameController,
-                        hintText: 'Receiver Name',
+                        hintText: S.of(context).receiverName,
                         onChanged: (value) {
                           cubit.updateAddress(receiverName: value);
                         },
@@ -94,7 +94,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                       const SizedBox(height: 8),
                       FieldWithIcon(
                         controller: _receiverPhoneController,
-                        hintText: 'Receiver Phone',
+                        hintText: S.of(context).receiverPhone,
                         onChanged: (value) {
                           cubit.updateAddress(receiverPhone: value);
                         },
@@ -126,7 +126,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                       const SizedBox(height: 8),
                       FieldWithIcon(
                         controller: _streetController,
-                        hintText: 'Street name, building, house no.',
+                        hintText: S.of(context).streetAddress,
                         onChanged: (value) {
                           cubit.updateAddress(street: value);
                         },
@@ -159,7 +159,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
                     child: Text(
-                      'Save',
+                      S.of(context).save,
                       style: AppTextStyle.buttonTextBold,
                     ),
                   ),
@@ -175,7 +175,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                       foregroundColor: Colors.white,
                     ),
                     child: Text(
-                      'Delete',
+                      S.of(context).deleteAddress,
                       style: AppTextStyle.buttonTextBold,
                     ),
                   ),

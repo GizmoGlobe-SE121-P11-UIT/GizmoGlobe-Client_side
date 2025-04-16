@@ -8,6 +8,7 @@ import '../../../objects/address_related/address.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import 'add_address_screen_cubit.dart';
 import '../../../widgets/general/address_picker.dart';
+import '../../../generated/l10n.dart';
 
 class AddAddressScreen extends StatefulWidget {
   const AddAddressScreen({super.key});
@@ -52,7 +53,7 @@ class _AddAddressScreen extends State<AddAddressScreen> {
             },
             fillColor: Colors.transparent,
           ),
-          title: const GradientText(text: 'Add Address'), // 'Thêm địa chỉ'
+          title: GradientText(text: S.of(context).addAddress),
           actions: [
             TextButton(
               onPressed: () {
@@ -68,8 +69,8 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   ),
                 );
               },
-              child: const Text('OK',
-                  style: TextStyle(color: Colors.white)), // 'Xác nhận'
+              child: Text(S.of(context).ok,
+                  style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -77,10 +78,20 @@ class _AddAddressScreen extends State<AddAddressScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  S.of(context).receiverName,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 FieldWithIcon(
                   controller: _receiverNameController,
-                  hintText: 'Receiver Name', // 'Tên người nhận'
+                  hintText: S.of(context).receiverName,
                   onChanged: (value) {
                     cubit.updateAddress(receiverName: value);
                   },
@@ -92,10 +103,19 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
+                Text(
+                  S.of(context).receiverPhone,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 FieldWithIcon(
                   controller: _receiverPhoneController,
-                  hintText: 'Receiver Phone', // 'Số điện thoại người nhận'
+                  hintText: S.of(context).receiverPhone,
                   onChanged: (value) {
                     cubit.updateAddress(receiverPhone: value);
                   },
@@ -108,7 +128,16 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   hintTextColor:
                       Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
+                Text(
+                  S.of(context).address,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 AddressPicker(
                   onAddressChanged: (province, district, ward) {
                     cubit.updateAddress(
@@ -119,11 +148,19 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                     FocusScope.of(context).unfocus();
                   },
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
+                Text(
+                  S.of(context).streetAddress,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 FieldWithIcon(
                   controller: _streetController,
-                  hintText:
-                      'Street name, building, house no.', // 'Tên đường, tòa nhà, số nhà'
+                  hintText: S.of(context).streetAddress,
                   onChanged: (value) {
                     cubit.updateAddress(street: value);
                   },
@@ -161,9 +198,9 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(
+                    child: Text(
+                      S.of(context).save,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

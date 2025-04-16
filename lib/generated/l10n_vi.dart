@@ -218,11 +218,9 @@ class SVI extends S {
   @override
   String get enterConfirmPassword => 'Xác nhận lại mật khẩu của bạn';
 
-  // Error messages
   @override
   String get emailAlreadyInUse => 'Email này đã được sử dụng.';
 
-  // Cart Screen
   @override
   String get cart => 'Giỏ hàng';
 
@@ -311,7 +309,6 @@ class SVI extends S {
   @override
   String get placeOrder => 'Đặt hàng';
 
-  // Address Screen
   @override
   String get address => 'Địa chỉ';
 
@@ -321,7 +318,33 @@ class SVI extends S {
   @override
   String get addAddress => 'Thêm địa chỉ';
 
-  // Chat Screen
+  @override
+  String get receiverName => 'Tên người nhận';
+
+  @override
+  String get receiverPhone => 'Số điện thoại người nhận';
+
+  @override
+  String get streetAddress => 'Tên đường, tòa nhà, số nhà';
+
+  @override
+  String get save => 'Lưu';
+
+  @override
+  String get receiverNameRequired => 'Vui lòng nhập tên người nhận';
+
+  @override
+  String get receiverPhoneRequired => 'Vui lòng nhập số điện thoại người nhận';
+
+  @override
+  String get invalidPhoneNumber => 'Số điện thoại không hợp lệ';
+
+  @override
+  String get addressSaved => 'Đã lưu địa chỉ thành công';
+
+  @override
+  String get addressDeleted => 'Đã xóa địa chỉ thành công';
+
   @override
   String get chatSupport => 'Hỗ trợ trò chuyện';
 
@@ -337,7 +360,6 @@ class SVI extends S {
   @override
   String get send => 'Gửi';
 
-  // Home Screen
   @override
   String get bestSellers => 'Bán chạy nhất';
 
@@ -353,7 +375,6 @@ class SVI extends S {
   @override
   String get chatButton => 'Hỗ trợ trò chuyện';
 
-  // Main Screen
   @override
   String get homeTab => 'Trang chủ';
 
@@ -366,7 +387,6 @@ class SVI extends S {
   @override
   String get userTab => 'Cá nhân';
 
-  // Filter Screen
   @override
   String get filter => 'Lọc';
 
@@ -386,16 +406,16 @@ class SVI extends S {
   String get type => 'Loại';
 
   @override
-  String get family => 'Loại';
+  String get family => 'Dòng';
 
   @override
-  String get cpuCore => 'Nhân';
+  String get cpuCore => 'Nhân CPU';
 
   @override
-  String get cpuThread => 'Luồng';
+  String get cpuThread => 'Luồng CPU';
 
   @override
-  String get cpuClockSpeed => 'Xung nhịp';
+  String get cpuClockSpeed => 'Xung nhịp CPU';
 
   @override
   String get modular => 'Loại Module';
@@ -404,17 +424,205 @@ class SVI extends S {
   String get efficiency => 'Chuẩn hiệu suất';
 
   @override
-  String get psuWattage => 'Công suất';
+  String get psuWattage => 'Công suất PSU';
 
   @override
-  String get series => 'Dòng';
+  String get series => 'Dòng sản phẩm';
 
   @override
-  String get gpuClockSpeed => 'Xung nhịp';
+  String get gpuClockSpeed => 'Xung nhịp GPU';
 
   @override
-  String get formFactor => 'Loại kích cỡ';
+  String get formFactor => 'Kích thước';
 
   @override
-  String get compatibility => 'Tính tương thích';
+  String get compatibility => 'Tương thích';
+
+  @override
+  String get manufacturer => 'Nhà sản xuất';
+
+  @override
+  String get enterMinPrice => 'Nhập giá tối thiểu';
+
+  @override
+  String get enterMaxPrice => 'Nhập giá tối đa';
+
+  @override
+  String get basicInformation => 'Thông tin cơ bản';
+
+  @override
+  String get product => 'Sản phẩm';
+
+  @override
+  String get statusInformation => 'Thông tin trạng thái';
+
+  @override
+  String get stock => 'Tồn kho';
+
+  @override
+  String get releaseDate => 'Ngày phát hành';
+
+  @override
+  String get technicalSpecifications => 'Thông số kỹ thuật';
+
+  @override
+  String get share => 'Chia sẻ';
+
+  @override
+  String get addToWishlist => 'Thêm vào yêu thích';
+
+  @override
+  String get quantity => 'Số lượng';
+
+  @override
+  String get totalPrice => 'Tổng tiền';
+
+  @override
+  String get addToCart => 'Thêm vào giỏ hàng';
+
+  @override
+  String get productSpecifications => 'Thông số kỹ thuật sản phẩm';
+
+  @override
+  String get memorySpecifications => 'Thông số bộ nhớ';
+
+  @override
+  String get processorSpecifications => 'Thông số bộ xử lý';
+
+  @override
+  String get powerSupplySpecifications => 'Thông số nguồn';
+
+  @override
+  String get graphicsCardSpecifications => 'Thông số card đồ họa';
+
+  @override
+  String get motherboardSpecifications => 'Thông số bo mạch chủ';
+
+  @override
+  String get storageSpecifications => 'Thông số lưu trữ';
+
+  @override
+  String get busSpeed => 'Tốc độ bus';
+
+  @override
+  String get ramType => 'Loại RAM';
+
+  @override
+  String get cores => 'Số nhân';
+
+  @override
+  String get threads => 'Số luồng';
+
+  @override
+  String get clockSpeed => 'Tốc độ xung nhịp';
+
+  @override
+  String get wattage => 'Công suất';
+
+  @override
+  String get memory => 'Bộ nhớ';
+
+  @override
+  String get busWidth => 'Độ rộng bus';
+
+  @override
+  String get driveType => 'Loại ổ đĩa';
+
+  @override
+  String get findYourItem => 'Tìm kiếm sản phẩm của bạn';
+
+  @override
+  String get all => 'Tất cả';
+
+  @override
+  String get ram => 'RAM';
+
+  @override
+  String get cpu => 'CPU';
+
+  @override
+  String get psu => 'PSU';
+
+  @override
+  String get gpu => 'GPU';
+
+  @override
+  String get drive => 'Ổ cứng';
+
+  @override
+  String get mainboard => 'Bo mạch chủ';
+
+  @override
+  String get sortBy => 'Sắp xếp theo:';
+
+  @override
+  String get noProductsFound => 'Không tìm thấy sản phẩm';
+
+  @override
+  String get priceAscending => 'Giá: Thấp đến cao';
+
+  @override
+  String get priceDescending => 'Giá: Cao đến thấp';
+
+  @override
+  String get nameAscending => 'Tên: A đến Z';
+
+  @override
+  String get nameDescending => 'Tên: Z đến A';
+
+  @override
+  String get newest => 'Mới nhất';
+
+  @override
+  String get oldest => 'Cũ nhất';
+
+  @override
+  String get discountHighest => 'Giảm giá: Cao nhất';
+
+  @override
+  String get discountLowest => 'Giảm giá: Thấp nhất';
+
+  @override
+  String get chooseProvince => 'Chọn Tỉnh/Thành phố';
+
+  @override
+  String get chooseDistrict => 'Chọn Quận/Huyện';
+
+  @override
+  String get chooseWard => 'Chọn Phường/Xã';
+
+  @override
+  String get editAddress => 'Sửa địa chỉ';
+
+  @override
+  String get deleteAddress => 'Xóa địa chỉ';
+
+  @override
+  String get deleteAddressConfirmation =>
+      'Bạn có chắc chắn muốn xóa địa chỉ này không?';
+
+  // Các getter không có trong lớp cha S
+  String get home => 'Trang chủ';
+  String get products => 'Sản phẩm';
+  String get profile => 'Cá nhân';
+  String get search => 'Tìm kiếm';
+  String get categories => 'Danh mục';
+  String get featuredProducts => 'Sản phẩm nổi bật';
+  String get newArrivals => 'Sản phẩm mới';
+  String get viewAll => 'Xem tất cả';
+  String get productDetails => 'Chi tiết sản phẩm';
+  String get description => 'Mô tả';
+  String get specifications => 'Thông số kỹ thuật';
+  String get reviews => 'Đánh giá';
+  String get relatedProducts => 'Sản phẩm liên quan';
+  String get shoppingCart => 'Giỏ hàng';
+  String get startShopping => 'Bắt đầu mua sắm';
+  String get userProfile => 'Thông tin cá nhân';
+  String get orders => 'Đơn hàng';
+  String get logout => 'Đăng xuất';
+  String get name => 'Họ tên';
+  String get version => 'Phiên bản';
+  String get appVersion => 'Phiên bản ứng dụng 1.0.0';
+  String get developers => 'Nhà phát triển';
+  String get meetDevelopers => 'Gặp gỡ đội ngũ phát triển';
 }

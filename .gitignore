@@ -143,3 +143,4 @@ app.*.symbols
 android/local.properties
 android/local.properties
 .env
+android/app/google-services.json

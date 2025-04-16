@@ -151,8 +151,7 @@ class S {
       'Payment was cancelled. Please try again or choose a different payment method.',
       name: 'paymentCancelled');
   String get tryAgain => Intl.message('Try Again', name: 'tryAgain');
-  String get quantity =>
-      Intl.message('x{count}', args: ['count'], name: 'quantity');
+  String get quantity => Intl.message('Quantity', name: 'quantity');
   String get shippingAddress =>
       Intl.message('Shipping Address', name: 'shippingAddress');
   String get chooseAddress =>
@@ -186,6 +185,29 @@ class S {
   String get noAddressFound =>
       Intl.message('No address found', name: 'noAddressFound');
   String get addAddress => Intl.message('Add Address', name: 'addAddress');
+  String get editAddress => Intl.message('Edit Address', name: 'editAddress');
+  String get deleteAddress =>
+      Intl.message('Delete Address', name: 'deleteAddress');
+  String get deleteAddressConfirmation =>
+      Intl.message('Are you sure you want to delete this address?',
+          name: 'deleteAddressConfirmation');
+  String get receiverNameRequired =>
+      Intl.message('Receiver name is required', name: 'receiverNameRequired');
+  String get receiverPhoneRequired =>
+      Intl.message('Receiver phone is required', name: 'receiverPhoneRequired');
+  String get invalidPhoneNumber =>
+      Intl.message('Invalid phone number', name: 'invalidPhoneNumber');
+  String get addressSaved =>
+      Intl.message('Address saved successfully', name: 'addressSaved');
+  String get addressDeleted =>
+      Intl.message('Address deleted successfully', name: 'addressDeleted');
+  String get receiverName =>
+      Intl.message('Receiver Name', name: 'receiverName');
+  String get receiverPhone =>
+      Intl.message('Receiver Phone', name: 'receiverPhone');
+  String get streetAddress =>
+      Intl.message('Street name, building, house no.', name: 'streetAddress');
+  String get save => Intl.message('Save', name: 'save');
 
   // Chat Screen
   String get chatSupport => Intl.message('Chat Support', name: 'chatSupport');
@@ -235,6 +257,100 @@ class S {
       Intl.message('Enter minimum price', name: 'enterMinPrice');
   String get enterMaxPrice =>
       Intl.message('Enter maximum price', name: 'enterMaxPrice');
+
+  // Option Filter Strings
+  String get fullModular => Intl.message('Full Modular', name: 'fullModular');
+  String get semiModular => Intl.message('Semi Modular', name: 'semiModular');
+  String get nonModular => Intl.message('Non Modular', name: 'nonModular');
+  String get ddr3 => Intl.message('DDR3', name: 'ddr3');
+  String get ddr4 => Intl.message('DDR4', name: 'ddr4');
+  String get ddr5 => Intl.message('DDR5', name: 'ddr5');
+  String get hdd => Intl.message('HDD', name: 'hdd');
+  String get ssd => Intl.message('SSD', name: 'ssd');
+  String get nvme => Intl.message('NVMe', name: 'nvme');
+  String get atx => Intl.message('ATX', name: 'atx');
+  String get microAtx => Intl.message('Micro ATX', name: 'microAtx');
+  String get miniItx => Intl.message('Mini ITX', name: 'miniItx');
+  String get eAtx => Intl.message('E-ATX', name: 'eAtx');
+
+  // Product Detail Screen
+  String get basicInformation =>
+      Intl.message('Basic Information', name: 'basicInformation');
+  String get product => Intl.message('Product', name: 'product');
+  String get statusInformation =>
+      Intl.message('Status Information', name: 'statusInformation');
+  String get stock => Intl.message('Stock', name: 'stock');
+  String get releaseDate => Intl.message('Release Date', name: 'releaseDate');
+  String get technicalSpecifications =>
+      Intl.message('Technical Specifications', name: 'technicalSpecifications');
+  String get share => Intl.message('Share', name: 'share');
+  String get addToWishlist =>
+      Intl.message('Add to Wishlist', name: 'addToWishlist');
+  String get totalPrice => Intl.message('Total Price', name: 'totalPrice');
+  String get addToCart => Intl.message('Add to Cart', name: 'addToCart');
+  String get productSpecifications =>
+      Intl.message('Product Specifications', name: 'productSpecifications');
+  String get memorySpecifications =>
+      Intl.message('Memory Specifications', name: 'memorySpecifications');
+  String get processorSpecifications =>
+      Intl.message('Processor Specifications', name: 'processorSpecifications');
+  String get powerSupplySpecifications =>
+      Intl.message('Power Supply Specifications',
+          name: 'powerSupplySpecifications');
+  String get graphicsCardSpecifications =>
+      Intl.message('Graphics Card Specifications',
+          name: 'graphicsCardSpecifications');
+  String get motherboardSpecifications =>
+      Intl.message('Motherboard Specifications',
+          name: 'motherboardSpecifications');
+  String get storageSpecifications =>
+      Intl.message('Storage Specifications', name: 'storageSpecifications');
+  String get busSpeed => Intl.message('Bus Speed', name: 'busSpeed');
+  String get ramType => Intl.message('RAM Type', name: 'ramType');
+  String get cores => Intl.message('Cores', name: 'cores');
+  String get threads => Intl.message('Threads', name: 'threads');
+  String get clockSpeed => Intl.message('Clock Speed', name: 'clockSpeed');
+  String get wattage => Intl.message('Wattage', name: 'wattage');
+  String get memory => Intl.message('Memory', name: 'memory');
+  String get busWidth => Intl.message('Bus Width', name: 'busWidth');
+  String get driveType => Intl.message('Drive Type', name: 'driveType');
+
+  // Product Screen
+  String get findYourItem =>
+      Intl.message('Find your item', name: 'findYourItem');
+  String get all => Intl.message('All', name: 'all');
+  String get ram => Intl.message('RAM', name: 'ram');
+  String get cpu => Intl.message('CPU', name: 'cpu');
+  String get psu => Intl.message('PSU', name: 'psu');
+  String get gpu => Intl.message('GPU', name: 'gpu');
+  String get drive => Intl.message('Drive', name: 'drive');
+  String get mainboard => Intl.message('Mainboard', name: 'mainboard');
+
+  // Product Tab Strings
+  String get sortBy => Intl.message('Sort by:', name: 'sortBy');
+  String get noProductsFound =>
+      Intl.message('No products found', name: 'noProductsFound');
+  String get priceAscending =>
+      Intl.message('Price: Low to High', name: 'priceAscending');
+  String get priceDescending =>
+      Intl.message('Price: High to Low', name: 'priceDescending');
+  String get nameAscending =>
+      Intl.message('Name: A to Z', name: 'nameAscending');
+  String get nameDescending =>
+      Intl.message('Name: Z to A', name: 'nameDescending');
+  String get newest => Intl.message('Newest', name: 'newest');
+  String get oldest => Intl.message('Oldest', name: 'oldest');
+  String get discountHighest =>
+      Intl.message('Discount: Highest', name: 'discountHighest');
+  String get discountLowest =>
+      Intl.message('Discount: Lowest', name: 'discountLowest');
+
+  // Address picker fields
+  String get chooseProvince =>
+      Intl.message('Choose Province', name: 'chooseProvince');
+  String get chooseDistrict =>
+      Intl.message('Choose District', name: 'chooseDistrict');
+  String get chooseWard => Intl.message('Choose Ward', name: 'chooseWard');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

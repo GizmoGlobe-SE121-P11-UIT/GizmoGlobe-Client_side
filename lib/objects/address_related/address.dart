@@ -27,23 +27,23 @@ class Address {
   });
 
   @override
-  String toString({bool isEnglish = true}) {
+  String toString({bool? isEnglish}) {
     return '$receiverName - $receiverPhone'
         '${street != null && street!.isNotEmpty ? ', $street' : ''}'
-        '${ward != null && ward!.fullNameEn.isNotEmpty ? ', ${isEnglish ? ward!.fullNameEn : ward!.fullName}' : ''}'
-        '${district != null && district!.fullNameEn.isNotEmpty ? ', ${isEnglish ? district!.fullNameEn : district!.fullName}' : ''}'
-        '${province != null && province!.fullNameEn.isNotEmpty ? ', ${isEnglish ? province!.fullNameEn : province!.fullName}' : ''}';
+        '${ward != null && ward!.fullNameEn.isNotEmpty ? ', ${isEnglish == true ? ward!.fullNameEn : ward!.fullName}' : ''}'
+        '${district != null && district!.fullNameEn.isNotEmpty ? ', ${isEnglish == true ? district!.fullNameEn : district!.fullName}' : ''}'
+        '${province != null && province!.fullNameEn.isNotEmpty ? ', ${isEnglish == true ? province!.fullNameEn : province!.fullName}' : ''}';
   }
 
   String firstLine() {
     return '$receiverName - $receiverPhone';
   }
 
-  String secondLine({bool isEnglish = true}) {
+  String secondLine({bool? isEnglish}) {
     return '${street != null && street!.isNotEmpty ? '$street, ' : ''}'
-        '${ward != null && ward!.fullNameEn.isNotEmpty ? '${isEnglish ? ward!.fullNameEn : ward!.fullName}, ' : ''}'
-        '${district != null && district!.fullNameEn.isNotEmpty ? '${isEnglish ? district!.fullNameEn : district!.fullName}, ' : ''}'
-        '${province != null && province!.fullNameEn.isNotEmpty ? (isEnglish ? province!.fullNameEn : province!.fullName) : ''}';
+        '${ward != null && ward!.fullNameEn.isNotEmpty ? '${isEnglish == true ? ward!.fullNameEn : ward!.fullName}, ' : ''}'
+        '${district != null && district!.fullNameEn.isNotEmpty ? '${isEnglish == true ? district!.fullNameEn : district!.fullName}, ' : ''}'
+        '${province != null && province!.fullNameEn.isNotEmpty ? (isEnglish == true ? province!.fullNameEn : province!.fullName) : ''}';
   }
 
   static Address nullAddress = Address(

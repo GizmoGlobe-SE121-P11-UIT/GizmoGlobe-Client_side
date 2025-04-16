@@ -4,6 +4,7 @@ import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:intl/intl.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 import '../../../objects/product_related/product.dart';
 
@@ -26,20 +27,6 @@ class ProductDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
           fillColor: Colors.transparent,
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              // Implement share functionality
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () {
-              // Implement wishlist functionality
-            },
-          ),
-        ],
         title: BlocBuilder<ProductDetailCubit, ProductDetailState>(
           builder: (context, state) => Text(
             state.product.productName,
@@ -93,7 +80,7 @@ class ProductDetailScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Basic Information',
+                                    S.of(context).basicInformation,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleLarge
@@ -108,14 +95,14 @@ class ProductDetailScreen extends StatelessWidget {
                               _buildInfoRow(
                                 context: context,
                                 icon: Icons.inventory_2,
-                                title: 'Product',
+                                title: S.of(context).product,
                                 value: product.productName,
                               ),
                               const SizedBox(height: 12),
                               _buildInfoRow(
                                 context: context,
                                 icon: Icons.category,
-                                title: 'Category',
+                                title: S.of(context).category,
                                 value:
                                     product.category.toString().split('.').last,
                               ),
@@ -123,7 +110,7 @@ class ProductDetailScreen extends StatelessWidget {
                               _buildInfoRow(
                                 context: context,
                                 icon: Icons.business,
-                                title: 'Manufacturer',
+                                title: S.of(context).manufacturer,
                                 value: product.manufacturer.manufacturerName,
                               ),
                               const SizedBox(height: 12),
@@ -157,7 +144,7 @@ class ProductDetailScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Status Information',
+                                    S.of(context).statusInformation,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleLarge
@@ -184,7 +171,7 @@ class ProductDetailScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Stock: ${product.stock}',
+                                    '${S.of(context).stock}: ${product.stock}',
                                     style: TextStyle(
                                       color: product.stock > 0
                                           ? Colors.green
@@ -198,7 +185,7 @@ class ProductDetailScreen extends StatelessWidget {
                               _buildInfoRow(
                                 context: context,
                                 icon: Icons.calendar_today,
-                                title: 'Release Date',
+                                title: S.of(context).releaseDate,
                                 value: DateFormat('dd/MM/yyyy')
                                     .format(product.release),
                               ),
@@ -227,7 +214,7 @@ class ProductDetailScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Technical Specifications',
+                                    S.of(context).technicalSpecifications,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleLarge
