@@ -266,5 +266,301 @@
   "addressDeleted": "Address deleted successfully",
   "@addressDeleted": {
     "description": "Success message when address is deleted"
+  },
+  "orders": "Orders",
+  "@orders": {
+    "description": "Title for orders screen"
+  },
+  "orderConfirmed": "Confirmed",
+  "@orderConfirmed": {
+    "description": "Title for order confirmation dialog"
+  },
+  "deliveryConfirmed": "The delivery has been confirmed.",
+  "@deliveryConfirmed": {
+    "description": "Message shown when delivery is confirmed"
+  },
+  "noOrdersToShip": "No order is waiting to be shipped.",
+  "@noOrdersToShip": {
+    "description": "Message shown when there are no orders to ship"
+  },
+  "noOrdersToReceive": "No order is waiting to be received.",
+  "@noOrdersToReceive": {
+    "description": "Message shown when there are no orders to receive"
+  },
+  "noCompletedOrders": "No order has been completed.",
+  "@noCompletedOrders": {
+    "description": "Message shown when there are no completed orders"
+  },
+  "toShip": "To Ship",
+  "@toShip": {
+    "description": "Tab title for orders to be shipped"
+  },
+  "toReceive": "To Receive",
+  "@toReceive": {
+    "description": "Tab title for orders to be received"
+  },
+  "completed": "Completed",
+  "@completed": {
+    "description": "Tab title for completed orders"
+  },
+  "totalItems": "Total {count} items: {total}",
+  "@totalItems": {
+    "description": "Total items and price in order",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      },
+      "total": {
+        "type": "String",
+        "example": "$300.99"
+      }
+    }
+  },
+  "orderProcessingStatus": "Your order is being processed.",
+  "@orderProcessingStatus": {
+    "description": "Status message for order being processed"
+  },
+  "accountSettings": "Account Settings",
+  "@accountSettings": {
+    "description": "Title for account settings section"
+  },
+  "editProfile": "Edit Profile",
+  "@editProfile": {
+    "description": "Title for edit profile section"
+  },
+  "updatePersonalInfo": "Update your personal information",
+  "@updatePersonalInfo": {
+    "description": "Description for edit profile section"
+  },
+  "myAddresses": "My Addresses",
+  "@myAddresses": {
+    "description": "Title for addresses section"
+  },
+  "manageDeliveryAddresses": "Manage your delivery addresses",
+  "@manageDeliveryAddresses": {
+    "description": "Description for addresses section"
+  },
+  "changePassword": "Change Password",
+  "@changePassword": {
+    "description": "Title for change password section"
+  },
+  "updateAccountSecurity": "Update your account security",
+  "@updateAccountSecurity": {
+    "description": "Description for change password section"
+  },
+  "passwordResetEmailSent": "Password Reset Email Sent",
+  "@passwordResetEmailSent": {
+    "description": "Title for password reset email sent dialog"
+  },
+  "passwordResetEmailContent": "A password reset link has been sent to {email}. Please check your email to reset your password.",
+  "@passwordResetEmailContent": {
+    "description": "Content for password reset email sent dialog",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "user@example.com"
+      }
+    }
+  },
+  "appSettings": "App Settings",
+  "@appSettings": {
+    "description": "Title for app settings section"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Title for language section"
+  },
+  "changeAppLanguage": "Change app language",
+  "@changeAppLanguage": {
+    "description": "Description for language section"
+  },
+  "theme": "Theme",
+  "@theme": {
+    "description": "Title for theme section"
+  },
+  "changeAppTheme": "Change app theme",
+  "@changeAppTheme": {
+    "description": "Description for theme section"
+  },
+  "themeSettings": "Theme Settings",
+  "@themeSettings": {
+    "description": "Title for theme settings section"
+  },
+  "lightMode": "Light Mode",
+  "@lightMode": {
+    "description": "Title for light mode option"
+  },
+  "darkMode": "Dark Mode",
+  "@darkMode": {
+    "description": "Title for dark mode option"
+  },
+  "about": "About",
+  "@about": {
+    "description": "Title for about section"
+  },
+  "version": "Version",
+  "@version": {
+    "description": "Title for version section"
+  },
+  "appVersion": "App version 1.0.0",
+  "@appVersion": {
+    "description": "Description for version section"
+  },
+  "developers": "Developers",
+  "@developers": {
+    "description": "Title for developers section"
+  },
+  "meetDevelopmentTeam": "Meet our development team",
+  "@meetDevelopmentTeam": {
+    "description": "Description for developers section"
+  },
+  "termsAndConditions": "Terms & Conditions",
+  "@termsAndConditions": {
+    "description": "Title for terms and conditions section"
+  },
+  "readTermsAndConditions": "Read our terms and conditions",
+  "@readTermsAndConditions": {
+    "description": "Description for terms and conditions section"
+  },
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Title for privacy policy section"
+  },
+  "readPrivacyPolicy": "Read our privacy policy",
+  "@readPrivacyPolicy": {
+    "description": "Description for privacy policy section"
+  },
+  "acceptanceOfTerms": "1. Acceptance of Terms",
+  "@acceptanceOfTerms": {
+    "description": "Title for acceptance of terms section"
+  },
+  "useLicense": "2. Use License",
+  "@useLicense": {
+    "description": "Title for use license section"
+  },
+  "disclaimer": "3. Disclaimer",
+  "@disclaimer": {
+    "description": "Title for disclaimer section"
+  },
+  "limitations": "4. Limitations",
+  "@limitations": {
+    "description": "Title for limitations section"
+  },
+  "informationWeCollect": "1. Information We Collect",
+  "@informationWeCollect": {
+    "description": "Title for information we collect section"
+  },
+  "howWeUseYourInformation": "2. How We Use Your Information",
+  "@howWeUseYourInformation": {
+    "description": "Title for how we use your information section"
+  },
+  "informationSharing": "3. Information Sharing",
+  "@informationSharing": {
+    "description": "Title for information sharing section"
+  },
+  "dataSecurity": "4. Data Security",
+  "@dataSecurity": {
+    "description": "Title for data security section"
+  },
+  "myOrders": "My Orders",
+  "@myOrders": {
+    "description": "Title for my orders section"
+  },
+  "ordersToShip": "Orders to Ship",
+  "@ordersToShip": {
+    "description": "Title for orders to ship section"
+  },
+  "ordersToReceive": "Orders to Receive",
+  "@ordersToReceive": {
+    "description": "Title for orders to receive section"
+  },
+  "ordersCompleted": "Orders Completed",
+  "@ordersCompleted": {
+    "description": "Title for completed orders section"
+  },
+  "appSettingsTitle": "App Settings",
+  "@appSettingsTitle": {
+    "description": "Title for app settings section"
+  },
+  "languageSettingsTitle": "Language Settings",
+  "@languageSettingsTitle": {
+    "description": "Title for language settings section"
+  },
+  "themeSettingsTitle": "Theme Settings",
+  "@themeSettingsTitle": {
+    "description": "Title for theme settings section"
+  },
+  "accountSettingsTitle": "Account Settings",
+  "@accountSettingsTitle": {
+    "description": "Title for account settings section"
+  },
+  "editProfileSettings": "Edit Profile",
+  "@editProfileSettings": {
+    "description": "Title for edit profile settings"
+  },
+  "myAddressesSettings": "My Addresses",
+  "@myAddressesSettings": {
+    "description": "Title for my addresses settings"
+  },
+  "changePasswordSettings": "Change Password",
+  "@changePasswordSettings": {
+    "description": "Title for change password settings"
+  },
+  "aboutTitle": "About",
+  "@aboutTitle": {
+    "description": "Title for about section"
+  },
+  "versionInfo": "Version",
+  "@versionInfo": {
+    "description": "Label for version information"
+  },
+  "developersInfo": "Developers",
+  "@developersInfo": {
+    "description": "Label for developers information"
+  },
+  "termsAndConditionsInfo": "Terms & Conditions",
+  "@termsAndConditionsInfo": {
+    "description": "Label for terms and conditions"
+  },
+  "privacyPolicyInfo": "Privacy Policy",
+  "@privacyPolicyInfo": {
+    "description": "Label for privacy policy"
+  },
+  "updateProfileDesc": "Update your personal information",
+  "@updateProfileDesc": {
+    "description": "Description for update profile action"
+  },
+  "manageAddressesDesc": "Manage your delivery addresses",
+  "@manageAddressesDesc": {
+    "description": "Description for manage addresses action"
+  },
+  "updateSecurityDesc": "Update your account security",
+  "@updateSecurityDesc": {
+    "description": "Description for update security action"
+  },
+  "changeLanguageDesc": "Change app language",
+  "@changeLanguageDesc": {
+    "description": "Description for change language action"
+  },
+  "changeThemeDesc": "Change app theme",
+  "@changeThemeDesc": {
+    "description": "Description for change theme action"
+  },
+  "meetTeamDesc": "Meet our development team",
+  "@meetTeamDesc": {
+    "description": "Description for meet team action"
+  },
+  "readTermsDesc": "Read our terms and conditions",
+  "@readTermsDesc": {
+    "description": "Description for read terms action"
+  },
+  "readPrivacyDesc": "Read our privacy policy",
+  "@readPrivacyDesc": {
+    "description": "Description for read privacy policy action"
+  },
+  "logOut": "Log Out",
+  "@logOut": {
+    "description": "Label for log out button"
   }
 }

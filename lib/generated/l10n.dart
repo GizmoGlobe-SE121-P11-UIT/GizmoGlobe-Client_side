@@ -351,6 +351,135 @@ class S {
   String get chooseDistrict =>
       Intl.message('Choose District', name: 'chooseDistrict');
   String get chooseWard => Intl.message('Choose Ward', name: 'chooseWard');
+
+  // New added getters
+  String get orders => Intl.message('Orders', name: 'orders');
+  String get orderConfirmed =>
+      Intl.message('Confirmed', name: 'orderConfirmed');
+  String get deliveryConfirmed =>
+      Intl.message('The delivery has been confirmed.',
+          name: 'deliveryConfirmed');
+  String get noOrdersToShip =>
+      Intl.message('No order is waiting to be shipped.',
+          name: 'noOrdersToShip');
+  String get noOrdersToReceive =>
+      Intl.message('No order is waiting to be received.',
+          name: 'noOrdersToReceive');
+  String get noCompletedOrders =>
+      Intl.message('No order has been completed.', name: 'noCompletedOrders');
+
+  String get toShip => Intl.message('To Ship', name: 'toShip');
+  String get toReceive => Intl.message('To Receive', name: 'toReceive');
+  String get completed => Intl.message('Completed', name: 'completed');
+
+  String totalItems(int count, String total) => Intl.message(
+        'Total $count items: $total',
+        name: 'totalItems',
+        args: [count, total],
+      );
+
+  String get orderProcessingStatus => Intl.message(
+        'Your order is being processed.',
+        name: 'orderProcessingStatus',
+      );
+
+  String get myAddresses => Intl.message('My Addresses', name: 'myAddresses');
+  String get manageDeliveryAddresses =>
+      Intl.message('Manage your delivery addresses',
+          name: 'manageDeliveryAddresses');
+  String get changePassword =>
+      Intl.message('Change Password', name: 'changePassword');
+  String get updateAccountSecurity =>
+      Intl.message('Update your account security',
+          name: 'updateAccountSecurity');
+  String get passwordResetEmailSent =>
+      Intl.message('Password Reset Email Sent', name: 'passwordResetEmailSent');
+  String passwordResetEmailContent(String email) => Intl.message(
+        'A password reset link has been sent to $email. Please check your email to reset your password.',
+        name: 'passwordResetEmailContent',
+        args: [email],
+      );
+  String get themeSettings =>
+      Intl.message('Theme Settings', name: 'themeSettings');
+  String get developers => Intl.message('Developers', name: 'developers');
+  String get termsAndConditions =>
+      Intl.message('Terms & Conditions', name: 'termsAndConditions');
+  String get privacyPolicy =>
+      Intl.message('Privacy Policy', name: 'privacyPolicy');
+  String get acceptanceOfTerms =>
+      Intl.message('1. Acceptance of Terms', name: 'acceptanceOfTerms');
+  String get useLicense => Intl.message('2. Use License', name: 'useLicense');
+  String get disclaimer => Intl.message('3. Disclaimer', name: 'disclaimer');
+  String get limitations => Intl.message('4. Limitations', name: 'limitations');
+  String get informationWeCollect =>
+      Intl.message('1. Information We Collect', name: 'informationWeCollect');
+  String get howWeUseYourInformation =>
+      Intl.message('2. How We Use Your Information',
+          name: 'howWeUseYourInformation');
+  String get informationSharing =>
+      Intl.message('3. Information Sharing', name: 'informationSharing');
+  String get dataSecurity =>
+      Intl.message('4. Data Security', name: 'dataSecurity');
+
+  // My Orders section
+  String get myOrders => Intl.message('My Orders', name: 'myOrders');
+  String get ordersToShip =>
+      Intl.message('Orders to Ship', name: 'ordersToShip');
+  String get ordersToReceive =>
+      Intl.message('Orders to Receive', name: 'ordersToReceive');
+  String get ordersCompleted =>
+      Intl.message('Orders Completed', name: 'ordersCompleted');
+
+  // App Settings section
+  String get appSettingsTitle =>
+      Intl.message('App Settings', name: 'appSettingsTitle');
+  String get languageSettingsTitle =>
+      Intl.message('Language Settings', name: 'languageSettingsTitle');
+  String get themeSettingsTitle =>
+      Intl.message('Theme Settings', name: 'themeSettingsTitle');
+
+  // Account Settings section
+  String get accountSettingsTitle =>
+      Intl.message('Account Settings', name: 'accountSettingsTitle');
+  String get editProfileSettings =>
+      Intl.message('Edit Profile', name: 'editProfileSettings');
+  String get myAddressesSettings =>
+      Intl.message('My Addresses', name: 'myAddressesSettings');
+  String get changePasswordSettings =>
+      Intl.message('Change Password', name: 'changePasswordSettings');
+
+  // About section
+  String get aboutTitle => Intl.message('About', name: 'aboutTitle');
+  String get versionInfo => Intl.message('Version', name: 'versionInfo');
+  String get developersInfo =>
+      Intl.message('Developers', name: 'developersInfo');
+  String get termsAndConditionsInfo =>
+      Intl.message('Terms & Conditions', name: 'termsAndConditionsInfo');
+  String get privacyPolicyInfo =>
+      Intl.message('Privacy Policy', name: 'privacyPolicyInfo');
+
+  // Descriptions
+  String get updateProfileDesc =>
+      Intl.message('Update your personal information',
+          name: 'updateProfileDesc');
+  String get manageAddressesDesc =>
+      Intl.message('Manage your delivery addresses',
+          name: 'manageAddressesDesc');
+  String get updateSecurityDesc =>
+      Intl.message('Update your account security', name: 'updateSecurityDesc');
+  String get changeLanguageDesc =>
+      Intl.message('Change app language', name: 'changeLanguageDesc');
+  String get changeThemeDesc =>
+      Intl.message('Change app theme', name: 'changeThemeDesc');
+  String get meetTeamDesc =>
+      Intl.message('Meet our development team', name: 'meetTeamDesc');
+  String get readTermsDesc =>
+      Intl.message('Read our terms and conditions', name: 'readTermsDesc');
+  String get readPrivacyDesc =>
+      Intl.message('Read our privacy policy', name: 'readPrivacyDesc');
+
+  // Logout
+  String get logOut => Intl.message('Log Out', name: 'logOut');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

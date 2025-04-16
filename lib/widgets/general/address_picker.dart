@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 import '../../data/database/database.dart';
 import '../../objects/address_related/district.dart';
@@ -45,6 +46,29 @@ class _AddressPickerState extends State<AddressPicker> {
     return locale.languageCode == 'en' ? fullNameEn : fullName;
   }
 
+  Widget _buildDropdownItem(BuildContext context, dynamic item, String hint) {
+    if (item == null) {
+      return Text(
+        hint,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          fontSize: 16,
+        ),
+      );
+    }
+    return Text(
+      _getLocalizedName(
+        context,
+        fullNameEn: item.fullNameEn,
+        fullName: item.fullName,
+      ),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontSize: 16,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -58,6 +82,11 @@ class _AddressPickerState extends State<AddressPicker> {
             fullNameEn: p.fullNameEn,
             fullName: p.fullName,
           ),
+          dropdownBuilder: (context, item) => _buildDropdownItem(
+            context,
+            item,
+            S.of(context).chooseProvince,
+          ),
           onChanged: (province) {
             setState(() {
               _provinceSelected = province;
@@ -67,7 +96,7 @@ class _AddressPickerState extends State<AddressPicker> {
             widget.onAddressChanged?.call(_provinceSelected, null, null);
           },
           selectedItem: _provinceSelected,
-          hintText: S.of(context).chooseProvince,
+          // hintText: S.of(context).chooseProvince,
         ),
         const SizedBox(height: 8),
         GradientDropdown<District>(
@@ -79,6 +108,11 @@ class _AddressPickerState extends State<AddressPicker> {
             fullNameEn: d.fullNameEn,
             fullName: d.fullName,
           ),
+          dropdownBuilder: (context, item) => _buildDropdownItem(
+            context,
+            item,
+            S.of(context).chooseDistrict,
+          ),
           onChanged: (district) {
             setState(() {
               _districtSelected = district;
@@ -88,7 +122,7 @@ class _AddressPickerState extends State<AddressPicker> {
                 ?.call(_provinceSelected, _districtSelected, null);
           },
           selectedItem: _districtSelected,
-          hintText: S.of(context).chooseDistrict,
+          // hintText: S.of(context).chooseDistrict,
         ),
         const SizedBox(height: 8),
         GradientDropdown<Ward>(
@@ -100,6 +134,11 @@ class _AddressPickerState extends State<AddressPicker> {
             fullNameEn: w.fullNameEn,
             fullName: w.fullName,
           ),
+          dropdownBuilder: (context, item) => _buildDropdownItem(
+            context,
+            item,
+            S.of(context).chooseWard,
+          ),
           onChanged: (ward) {
             setState(() {
               _wardSelected = ward;
@@ -108,7 +147,7 @@ class _AddressPickerState extends State<AddressPicker> {
                 ?.call(_provinceSelected, _districtSelected, _wardSelected);
           },
           selectedItem: _wardSelected,
-          hintText: S.of(context).chooseWard,
+          // hintText: S.of(context).chooseWard,
         ),
       ],
     );

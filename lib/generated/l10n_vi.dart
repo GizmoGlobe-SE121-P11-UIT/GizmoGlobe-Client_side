@@ -625,4 +625,179 @@ class SVI extends S {
   String get appVersion => 'Phiên bản ứng dụng 1.0.0';
   String get developers => 'Nhà phát triển';
   String get meetDevelopers => 'Gặp gỡ đội ngũ phát triển';
+  String get deliveryConfirmed => 'Đơn hàng đã được xác nhận giao thành công.';
+  String get noOrdersToShip => 'Không có đơn hàng nào đang chờ vận chuyển.';
+  String get noOrdersToReceive => 'Không có đơn hàng nào đang chờ nhận.';
+  String get noCompletedOrders => 'Không có đơn hàng nào đã hoàn thành.';
+
+  @override
+  String get toShip => 'Chờ giao';
+
+  @override
+  String get toReceive => 'Chờ nhận';
+
+  @override
+  String get completed => 'Hoàn thành';
+
+  @override
+  String totalItems(int count, String total) => 'Tổng $count sản phẩm: $total';
+
+  @override
+  String get orderProcessingStatus => 'Đơn hàng của bạn đang được xử lý.';
+
+  @override
+  String get myAddresses => 'Địa chỉ của tôi';
+
+  @override
+  String get manageDeliveryAddresses => 'Quản lý địa chỉ giao hàng';
+
+  @override
+  String get changePassword => 'Đổi mật khẩu';
+
+  @override
+  String get updateAccountSecurity => 'Cập nhật bảo mật tài khoản';
+
+  @override
+  String get passwordResetEmailSent => 'Đã gửi email đặt lại mật khẩu';
+
+  @override
+  String passwordResetEmailContent(String email) =>
+      'Một liên kết đặt lại mật khẩu đã được gửi đến $email. Vui lòng kiểm tra email của bạn để đặt lại mật khẩu.';
+
+  @override
+  String get themeSettings => 'Cài đặt giao diện';
+
+  @override
+  String get termsAndConditions => 'Điều khoản và điều kiện';
+
+  @override
+  String get privacyPolicy => 'Chính sách bảo mật';
+
+  @override
+  String get acceptanceOfTerms => '1. Chấp nhận điều khoản';
+
+  @override
+  String get useLicense => '2. Giấy phép sử dụng';
+
+  @override
+  String get disclaimer => '3. Tuyên bố miễn trừ trách nhiệm';
+
+  @override
+  String get limitations => '4. Giới hạn';
+
+  @override
+  String get informationWeCollect => '1. Thông tin chúng tôi thu thập';
+
+  @override
+  String get howWeUseYourInformation =>
+      '2. Cách chúng tôi sử dụng thông tin của bạn';
+
+  @override
+  String get informationSharing => '3. Chia sẻ thông tin';
+
+  @override
+  String get dataSecurity => '4. Bảo mật dữ liệu';
+
+  @override
+  String get lightMode => 'Chế độ sáng';
+
+  @override
+  String get darkMode => 'Chế độ tối';
+
+  @override
+  String get meetDevelopmentTeam => 'Gặp gỡ đội ngũ phát triển';
+
+  @override
+  String get readTermsAndConditions =>
+      'Đọc điều khoản và điều kiện của chúng tôi';
+
+  @override
+  String get readPrivacyPolicy => 'Đọc chính sách bảo mật của chúng tôi';
+
+  @override
+  String get changeAppLanguage => 'Thay đổi ngôn ngữ ứng dụng';
+
+  @override
+  String get changeAppTheme => 'Thay đổi giao diện ứng dụng';
+
+  // My Orders section
+  @override
+  String get myOrders => 'Đơn hàng của tôi';
+
+  @override
+  String get ordersToShip => 'Đơn hàng chờ giao';
+
+  @override
+  String get ordersToReceive => 'Đơn hàng chờ nhận';
+
+  @override
+  String get ordersCompleted => 'Đơn hàng đã hoàn thành';
+
+  // App Settings section
+  @override
+  String get appSettingsTitle => 'Cài đặt ứng dụng';
+
+  @override
+  String get languageSettingsTitle => 'Cài đặt ngôn ngữ';
+
+  @override
+  String get themeSettingsTitle => 'Cài đặt giao diện';
+
+  // Account Settings section
+  @override
+  String get accountSettingsTitle => 'Cài đặt tài khoản';
+
+  @override
+  String get editProfileSettings => 'Chỉnh sửa hồ sơ';
+
+  @override
+  String get myAddressesSettings => 'Địa chỉ của tôi';
+
+  @override
+  String get changePasswordSettings => 'Đổi mật khẩu';
+
+  // About section
+  @override
+  String get aboutTitle => 'Giới thiệu';
+
+  @override
+  String get versionInfo => 'Phiên bản';
+
+  @override
+  String get developersInfo => 'Nhà phát triển';
+
+  @override
+  String get termsAndConditionsInfo => 'Điều khoản và điều kiện';
+
+  @override
+  String get privacyPolicyInfo => 'Chính sách bảo mật';
+
+  // Descriptions
+  @override
+  String get updateProfileDesc => 'Cập nhật thông tin cá nhân';
+
+  @override
+  String get manageAddressesDesc => 'Quản lý địa chỉ giao hàng';
+
+  @override
+  String get updateSecurityDesc => 'Cập nhật bảo mật tài khoản';
+
+  @override
+  String get changeLanguageDesc => 'Thay đổi ngôn ngữ ứng dụng';
+
+  @override
+  String get changeThemeDesc => 'Thay đổi giao diện ứng dụng';
+
+  @override
+  String get meetTeamDesc => 'Gặp gỡ đội ngũ phát triển';
+
+  @override
+  String get readTermsDesc => 'Đọc điều khoản và điều kiện của chúng tôi';
+
+  @override
+  String get readPrivacyDesc => 'Đọc chính sách bảo mật của chúng tôi';
+
+  // Logout
+  @override
+  String get logOut => 'Đăng xuất';
 }

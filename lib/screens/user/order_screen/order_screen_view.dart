@@ -6,6 +6,7 @@ import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_cubit.d
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../enums/processing/process_state_enum.dart';
+import '../../../generated/l10n.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/app_text_style.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
@@ -30,6 +31,17 @@ class _OrderScreenState extends State<OrderScreen>
     with SingleTickerProviderStateMixin {
   OrderScreenCubit get cubit => context.read<OrderScreenCubit>();
   late TabController tabController;
+
+  String _getTabTitle(BuildContext context, OrderOption option) {
+    switch (option) {
+      case OrderOption.toShip:
+        return S.of(context).toShip;
+      case OrderOption.toReceive:
+        return S.of(context).toReceive;
+      case OrderOption.completed:
+        return S.of(context).completed;
+    }
+  }
 
   @override
   void initState() {
@@ -64,7 +76,7 @@ class _OrderScreenState extends State<OrderScreen>
             },
             fillColor: Colors.transparent,
           ),
-          title: const GradientText(text: 'Order'), // 'Đơn hàng'
+          title: GradientText(text: S.of(context).orders),
           bottom: TabBar(
             controller: tabController,
             labelColor: Theme.of(context).colorScheme.primary,
@@ -76,7 +88,7 @@ class _OrderScreenState extends State<OrderScreen>
             indicator: const BoxDecoration(),
             tabs: [
               ...OrderOption.values.map((option) => Tab(
-                    text: option.toString(),
+                    text: _getTabTitle(context, option),
                   )),
             ],
           ),
@@ -88,9 +100,8 @@ class _OrderScreenState extends State<OrderScreen>
                 showDialog(
                   context: context,
                   builder: (context) => InformationDialog(
-                    title: 'Confirmed', // 'Xác nhận'
-                    content:
-                        'The delivery has been confirmed.', // 'Đơn hàng đã được xác nhận giao thành công.'
+                    title: S.of(context).orderConfirmed,
+                    content: S.of(context).deliveryConfirmed,
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
@@ -112,10 +123,11 @@ class _OrderScreenState extends State<OrderScreen>
                   children: [
                     // Tab 1: To Ship List
                     state.toShipList.isEmpty
-                        ? const Center(
-                            child: Text('No order is waiting to be shipped.',
-                                style: AppTextStyle
-                                    .regularText), // 'Không có đơn hàng nào đang chờ vận chuyển.'
+                        ? Center(
+                            child: Text(
+                              S.of(context).noOrdersToShip,
+                              style: AppTextStyle.regularText,
+                            ),
                           )
                         : ListView.builder(
                             itemCount: state.toShipList.length,
@@ -129,10 +141,11 @@ class _OrderScreenState extends State<OrderScreen>
                           ),
                     // Tab 2: To Receive List
                     state.toReceiveList.isEmpty
-                        ? const Center(
-                            child: Text('No order is waiting to be received.',
-                                style: AppTextStyle
-                                    .regularText), // 'Không có đơn hàng nào đang chờ nhận.'
+                        ? Center(
+                            child: Text(
+                              S.of(context).noOrdersToReceive,
+                              style: AppTextStyle.regularText,
+                            ),
                           )
                         : ListView.builder(
                             itemCount: state.toReceiveList.length,
@@ -151,10 +164,11 @@ class _OrderScreenState extends State<OrderScreen>
                           ),
                     // Tab 3: Completed List
                     state.completedList.isEmpty
-                        ? const Center(
-                            child: Text('No order has been completed.',
-                                style: AppTextStyle
-                                    .regularText), // 'Không có đơn hàng nào đã hoàn thành.'
+                        ? Center(
+                            child: Text(
+                              S.of(context).noCompletedOrders,
+                              style: AppTextStyle.regularText,
+                            ),
                           )
                         : ListView.builder(
                             itemCount: state.completedList.length,

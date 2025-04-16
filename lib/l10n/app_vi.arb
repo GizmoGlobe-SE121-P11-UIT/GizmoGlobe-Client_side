@@ -24,6 +24,29 @@
     "startShopping": "Bắt đầu mua sắm",
     "userProfile": "Thông tin cá nhân",
     "orders": "Đơn hàng",
+    "@orders": {
+        "description": "Title for orders screen"
+    },
+    "orderConfirmed": "Xác nhận",
+    "@orderConfirmed": {
+        "description": "Title for order confirmation dialog"
+    },
+    "deliveryConfirmed": "Đơn hàng đã được xác nhận giao thành công.",
+    "@deliveryConfirmed": {
+        "description": "Message shown when delivery is confirmed"
+    },
+    "noOrdersToShip": "Không có đơn hàng nào đang chờ vận chuyển.",
+    "@noOrdersToShip": {
+        "description": "Message shown when there are no orders to ship"
+    },
+    "noOrdersToReceive": "Không có đơn hàng nào đang chờ nhận.",
+    "@noOrdersToReceive": {
+        "description": "Message shown when there are no orders to receive"
+    },
+    "noCompletedOrders": "Không có đơn hàng nào đã hoàn thành.",
+    "@noCompletedOrders": {
+        "description": "Message shown when there are no completed orders"
+    },
     "settings": "Cài đặt",
     "logout": "Đăng xuất",
     "login": "Đăng nhập",
@@ -48,18 +71,89 @@
     "themeDark": "Tối",
     "themeSystem": "Hệ thống",
     "accountSettings": "Cài đặt tài khoản",
-    "appSettings": "Cài đặt ứng dụng",
+    "@accountSettings": {
+        "description": "Title for account settings section"
+    },
     "editProfile": "Chỉnh sửa hồ sơ",
+    "@editProfile": {
+        "description": "Title for edit profile section"
+    },
     "updatePersonalInfo": "Cập nhật thông tin cá nhân",
+    "@updatePersonalInfo": {
+        "description": "Description for edit profile section"
+    },
     "changeLanguage": "Thay đổi ngôn ngữ ứng dụng",
     "changeTheme": "Thay đổi giao diện ứng dụng",
     "version": "Phiên bản",
+    "@version": {
+        "description": "Title for version section"
+    },
     "appVersion": "Phiên bản ứng dụng 1.0.0",
+    "@appVersion": {
+        "description": "Description for version section"
+    },
     "developers": "Nhà phát triển",
-    "meetDevelopers": "Gặp gỡ đội ngũ phát triển",
+    "@developers": {
+        "description": "Title for developers section"
+    },
+    "meetDevelopmentTeam": "Gặp gỡ đội ngũ phát triển",
+    "@meetDevelopmentTeam": {
+        "description": "Description for developers section"
+    },
+    "termsAndConditions": "Điều khoản và điều kiện",
+    "@termsAndConditions": {
+        "description": "Title for terms and conditions section"
+    },
+    "readTermsAndConditions": "Đọc điều khoản và điều kiện của chúng tôi",
+    "@readTermsAndConditions": {
+        "description": "Description for terms and conditions section"
+    },
+    "privacyPolicy": "Chính sách bảo mật",
+    "@privacyPolicy": {
+        "description": "Title for privacy policy section"
+    },
+    "readPrivacyPolicy": "Đọc chính sách bảo mật của chúng tôi",
+    "@readPrivacyPolicy": {
+        "description": "Description for privacy policy section"
+    },
+    "acceptanceOfTerms": "1. Chấp nhận điều khoản",
+    "@acceptanceOfTerms": {
+        "description": "Title for acceptance of terms section"
+    },
+    "useLicense": "2. Giấy phép sử dụng",
+    "@useLicense": {
+        "description": "Title for use license section"
+    },
+    "disclaimer": "3. Tuyên bố miễn trừ trách nhiệm",
+    "@disclaimer": {
+        "description": "Title for disclaimer section"
+    },
+    "limitations": "4. Giới hạn",
+    "@limitations": {
+        "description": "Title for limitations section"
+    },
+    "informationWeCollect": "1. Thông tin chúng tôi thu thập",
+    "@informationWeCollect": {
+        "description": "Title for information we collect section"
+    },
+    "howWeUseYourInformation": "2. Cách chúng tôi sử dụng thông tin của bạn",
+    "@howWeUseYourInformation": {
+        "description": "Title for how we use your information section"
+    },
+    "informationSharing": "3. Chia sẻ thông tin",
+    "@informationSharing": {
+        "description": "Title for information sharing section"
+    },
+    "dataSecurity": "4. Bảo mật dữ liệu",
+    "@dataSecurity": {
+        "description": "Title for data security section"
+    },
     "guestAccount": "Tài khoản khách",
     "createAccount": "Tạo tài khoản",
     "about": "Giới thiệu",
+    "@about": {
+        "description": "Title for about section"
+    },
     "confirm": "Xác nhận",
     "cancel": "Hủy",
     "ok": "OK",
@@ -281,5 +375,262 @@
     "addressDeleted": "Đã xóa địa chỉ thành công",
     "@addressDeleted": {
         "description": "Success message when address is deleted"
+    },
+    "toShip": "Chờ giao",
+    "@toShip": {
+        "description": "Tab title for orders to be shipped"
+    },
+    "toReceive": "Chờ nhận",
+    "@toReceive": {
+        "description": "Tab title for orders to be received"
+    },
+    "completed": "Hoàn thành",
+    "@completed": {
+        "description": "Tab title for completed orders"
+    },
+    "totalItems": "Tổng {count} sản phẩm: {total}",
+    "@totalItems": {
+        "description": "Total items and price in order",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "1"
+            },
+            "total": {
+                "type": "String",
+                "example": "$300.99"
+            }
+        }
+    },
+    "orderProcessingStatus": "Đơn hàng của bạn đang được xử lý.",
+    "myAddresses": "Địa chỉ của tôi",
+    "@myAddresses": {
+        "description": "Title for addresses section"
+    },
+    "manageDeliveryAddresses": "Quản lý địa chỉ giao hàng",
+    "@manageDeliveryAddresses": {
+        "description": "Description for addresses section"
+    },
+    "changePassword": "Đổi mật khẩu",
+    "@changePassword": {
+        "description": "Title for change password section"
+    },
+    "updateAccountSecurity": "Cập nhật bảo mật tài khoản",
+    "@updateAccountSecurity": {
+        "description": "Description for change password section"
+    },
+    "passwordResetEmailSent": "Đã gửi email đặt lại mật khẩu",
+    "@passwordResetEmailSent": {
+        "description": "Title for password reset email sent dialog"
+    },
+    "passwordResetEmailContent": "Một liên kết đặt lại mật khẩu đã được gửi đến {email}. Vui lòng kiểm tra email của bạn để đặt lại mật khẩu.",
+    "@passwordResetEmailContent": {
+        "description": "Content for password reset email sent dialog",
+        "placeholders": {
+            "email": {
+                "type": "String",
+                "example": "user@example.com"
+            }
+        }
+    },
+    "appSettings": "Cài đặt ứng dụng",
+    "@appSettings": {
+        "description": "Title for app settings section"
+    },
+    "language": "Ngôn ngữ",
+    "@language": {
+        "description": "Title for language section"
+    },
+    "changeAppLanguage": "Thay đổi ngôn ngữ ứng dụng",
+    "@changeAppLanguage": {
+        "description": "Description for language section"
+    },
+    "theme": "Giao diện",
+    "@theme": {
+        "description": "Title for theme section"
+    },
+    "changeAppTheme": "Thay đổi giao diện ứng dụng",
+    "@changeAppTheme": {
+        "description": "Description for theme section"
+    },
+    "themeSettings": "Cài đặt giao diện",
+    "@themeSettings": {
+        "description": "Title for theme settings section"
+    },
+    "lightMode": "Chế độ sáng",
+    "@lightMode": {
+        "description": "Title for light mode option"
+    },
+    "darkMode": "Chế độ tối",
+    "@darkMode": {
+        "description": "Title for dark mode option"
+    },
+    "about": "Giới thiệu",
+    "@about": {
+        "description": "Title for about section"
+    },
+    "version": "Phiên bản",
+    "@version": {
+        "description": "Title for version section"
+    },
+    "appVersion": "Phiên bản ứng dụng 1.0.0",
+    "@appVersion": {
+        "description": "Description for version section"
+    },
+    "developers": "Nhà phát triển",
+    "@developers": {
+        "description": "Title for developers section"
+    },
+    "meetDevelopmentTeam": "Gặp gỡ đội ngũ phát triển",
+    "@meetDevelopmentTeam": {
+        "description": "Description for developers section"
+    },
+    "termsAndConditions": "Điều khoản và điều kiện",
+    "@termsAndConditions": {
+        "description": "Title for terms and conditions section"
+    },
+    "readTermsAndConditions": "Đọc điều khoản và điều kiện của chúng tôi",
+    "@readTermsAndConditions": {
+        "description": "Description for terms and conditions section"
+    },
+    "privacyPolicy": "Chính sách bảo mật",
+    "@privacyPolicy": {
+        "description": "Title for privacy policy section"
+    },
+    "readPrivacyPolicy": "Đọc chính sách bảo mật của chúng tôi",
+    "@readPrivacyPolicy": {
+        "description": "Description for privacy policy section"
+    },
+    "acceptanceOfTerms": "1. Chấp nhận điều khoản",
+    "@acceptanceOfTerms": {
+        "description": "Title for acceptance of terms section"
+    },
+    "useLicense": "2. Giấy phép sử dụng",
+    "@useLicense": {
+        "description": "Title for use license section"
+    },
+    "disclaimer": "3. Tuyên bố miễn trừ trách nhiệm",
+    "@disclaimer": {
+        "description": "Title for disclaimer section"
+    },
+    "limitations": "4. Giới hạn",
+    "@limitations": {
+        "description": "Title for limitations section"
+    },
+    "informationWeCollect": "1. Thông tin chúng tôi thu thập",
+    "@informationWeCollect": {
+        "description": "Title for information we collect section"
+    },
+    "howWeUseYourInformation": "2. Cách chúng tôi sử dụng thông tin của bạn",
+    "@howWeUseYourInformation": {
+        "description": "Title for how we use your information section"
+    },
+    "informationSharing": "3. Chia sẻ thông tin",
+    "@informationSharing": {
+        "description": "Title for information sharing section"
+    },
+    "dataSecurity": "4. Bảo mật dữ liệu",
+    "@dataSecurity": {
+        "description": "Title for data security section"
+    },
+    "myOrders": "Đơn hàng của tôi",
+    "@myOrders": {
+        "description": "Title for my orders section"
+    },
+    "ordersToShip": "Đơn hàng chờ giao",
+    "@ordersToShip": {
+        "description": "Title for orders to ship section"
+    },
+    "ordersToReceive": "Đơn hàng chờ nhận",
+    "@ordersToReceive": {
+        "description": "Title for orders to receive section"
+    },
+    "ordersCompleted": "Đơn hàng đã hoàn thành",
+    "@ordersCompleted": {
+        "description": "Title for completed orders section"
+    },
+    "appSettingsTitle": "Cài đặt ứng dụng",
+    "@appSettingsTitle": {
+        "description": "Title for app settings section"
+    },
+    "languageSettingsTitle": "Cài đặt ngôn ngữ",
+    "@languageSettingsTitle": {
+        "description": "Title for language settings section"
+    },
+    "themeSettingsTitle": "Cài đặt giao diện",
+    "@themeSettingsTitle": {
+        "description": "Title for theme settings section"
+    },
+    "accountSettingsTitle": "Cài đặt tài khoản",
+    "@accountSettingsTitle": {
+        "description": "Title for account settings section"
+    },
+    "editProfileSettings": "Chỉnh sửa hồ sơ",
+    "@editProfileSettings": {
+        "description": "Title for edit profile settings"
+    },
+    "myAddressesSettings": "Địa chỉ của tôi",
+    "@myAddressesSettings": {
+        "description": "Title for my addresses settings"
+    },
+    "changePasswordSettings": "Đổi mật khẩu",
+    "@changePasswordSettings": {
+        "description": "Title for change password settings"
+    },
+    "aboutTitle": "Giới thiệu",
+    "@aboutTitle": {
+        "description": "Title for about section"
+    },
+    "versionInfo": "Phiên bản",
+    "@versionInfo": {
+        "description": "Label for version information"
+    },
+    "developersInfo": "Nhà phát triển",
+    "@developersInfo": {
+        "description": "Label for developers information"
+    },
+    "termsAndConditionsInfo": "Điều khoản và điều kiện",
+    "@termsAndConditionsInfo": {
+        "description": "Label for terms and conditions"
+    },
+    "privacyPolicyInfo": "Chính sách bảo mật",
+    "@privacyPolicyInfo": {
+        "description": "Label for privacy policy"
+    },
+    "updateProfileDesc": "Cập nhật thông tin cá nhân",
+    "@updateProfileDesc": {
+        "description": "Description for update profile action"
+    },
+    "manageAddressesDesc": "Quản lý địa chỉ giao hàng",
+    "@manageAddressesDesc": {
+        "description": "Description for manage addresses action"
+    },
+    "updateSecurityDesc": "Cập nhật bảo mật tài khoản",
+    "@updateSecurityDesc": {
+        "description": "Description for update security action"
+    },
+    "changeLanguageDesc": "Thay đổi ngôn ngữ ứng dụng",
+    "@changeLanguageDesc": {
+        "description": "Description for change language action"
+    },
+    "changeThemeDesc": "Thay đổi giao diện ứng dụng",
+    "@changeThemeDesc": {
+        "description": "Description for change theme action"
+    },
+    "meetTeamDesc": "Gặp gỡ đội ngũ phát triển",
+    "@meetTeamDesc": {
+        "description": "Description for meet team action"
+    },
+    "readTermsDesc": "Đọc điều khoản và điều kiện của chúng tôi",
+    "@readTermsDesc": {
+        "description": "Description for read terms action"
+    },
+    "readPrivacyDesc": "Đọc chính sách bảo mật của chúng tôi",
+    "@readPrivacyDesc": {
+        "description": "Description for read privacy policy action"
+    },
+    "logOut": "Đăng xuất",
+    "@logOut": {
+        "description": "Label for log out button"
     }
 } 

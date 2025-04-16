@@ -95,7 +95,7 @@ class _UserScreen extends State<UserScreen> {
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      "Account Settings",
+                      S.of(context).accountSettings,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -114,7 +114,7 @@ class _UserScreen extends State<UserScreen> {
                     children: [
                       _buildEnhancedSettingsItem(
                         context,
-                        'Edit Profile',
+                        S.of(context).editProfile,
                         Icons.person_outline,
                         'Update your personal information',
                         () async {
@@ -169,7 +169,7 @@ class _UserScreen extends State<UserScreen> {
                                             ),
                                             const SizedBox(width: 16),
                                             Text(
-                                              "Edit Profile",
+                                              S.of(context).editProfile,
                                               style: TextStyle(
                                                 fontSize: 24,
                                                 fontWeight: FontWeight.bold,
@@ -321,7 +321,7 @@ class _UserScreen extends State<UserScreen> {
                       ),
                       _buildEnhancedSettingsItem(
                         context,
-                        'My Addresses',
+                        S.of(context).myAddresses,
                         Icons.location_on_outlined,
                         'Manage your delivery addresses',
                         () => Navigator.push(
@@ -333,7 +333,7 @@ class _UserScreen extends State<UserScreen> {
                       ),
                       _buildEnhancedSettingsItem(
                         context,
-                        'Change Password',
+                        S.of(context).changePassword,
                         Icons.lock_outline,
                         'Update your account security',
                         () async {
@@ -346,7 +346,7 @@ class _UserScreen extends State<UserScreen> {
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: Text(
-                                    'Password Reset Email Sent',
+                                    S.of(context).passwordResetEmailSent,
                                     style: TextStyle(
                                       color:
                                           Theme.of(context).colorScheme.primary,
@@ -354,7 +354,9 @@ class _UserScreen extends State<UserScreen> {
                                     ),
                                   ),
                                   content: Text(
-                                    'A password reset link has been sent to ${user.email}. Please check your email to reset your password.',
+                                    S
+                                        .of(context)
+                                        .passwordResetEmailContent(user.email!),
                                   ),
                                   actions: [
                                     TextButton(
@@ -441,7 +443,7 @@ class _UserScreen extends State<UserScreen> {
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      "Account Settings",
+                      S.of(context).accountSettings,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -913,7 +915,7 @@ class _UserScreen extends State<UserScreen> {
                                                 ),
                                                 const SizedBox(width: 16),
                                                 Text(
-                                                  "App Settings",
+                                                  S.of(context).appSettings,
                                                   style: TextStyle(
                                                     fontSize: 24,
                                                     fontWeight: FontWeight.bold,
@@ -932,7 +934,7 @@ class _UserScreen extends State<UserScreen> {
                                               children: [
                                                 _buildEnhancedSettingsItem(
                                                   context,
-                                                  'Language',
+                                                  S.of(context).language,
                                                   Icons.language,
                                                   'Change app language',
                                                   () {
@@ -1095,7 +1097,9 @@ class _UserScreen extends State<UserScreen> {
                                                                       width:
                                                                           16),
                                                                   Text(
-                                                                    "Theme Settings",
+                                                                    S
+                                                                        .of(context)
+                                                                        .themeSettings,
                                                                     style:
                                                                         TextStyle(
                                                                       fontSize:
@@ -1186,7 +1190,7 @@ class _UserScreen extends State<UserScreen> {
                                     ),
                                     const SizedBox(width: 16),
                                     Text(
-                                      'App Settings',
+                                      S.of(context).appSettings,
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -1315,7 +1319,7 @@ class _UserScreen extends State<UserScreen> {
                                                 ),
                                                 _buildEnhancedSettingsItem(
                                                   context,
-                                                  'Developers',
+                                                  S.of(context).developers,
                                                   Icons.people_outline,
                                                   'Meet our development team',
                                                   () {
@@ -1326,7 +1330,9 @@ class _UserScreen extends State<UserScreen> {
                                                 ),
                                                 _buildEnhancedSettingsItem(
                                                   context,
-                                                  'Terms & Conditions',
+                                                  S
+                                                      .of(context)
+                                                      .termsAndConditions,
                                                   Icons.description_outlined,
                                                   'Read our terms and conditions',
                                                   () {
@@ -1336,7 +1342,7 @@ class _UserScreen extends State<UserScreen> {
                                                 ),
                                                 _buildEnhancedSettingsItem(
                                                   context,
-                                                  'Privacy Policy',
+                                                  S.of(context).privacyPolicy,
                                                   Icons.privacy_tip_outlined,
                                                   'Read our privacy policy',
                                                   () {
@@ -1373,7 +1379,7 @@ class _UserScreen extends State<UserScreen> {
                                     ),
                                     const SizedBox(width: 16),
                                     Text(
-                                      'About',
+                                      S.of(context).about,
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -1614,7 +1620,7 @@ class _UserScreen extends State<UserScreen> {
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      "Developers",
+                      S.of(context).developers,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -1704,7 +1710,7 @@ class _UserScreen extends State<UserScreen> {
                   ),
                   const SizedBox(width: 16),
                   Text(
-                    "Terms & Conditions",
+                    S.of(context).termsAndConditions,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -1720,22 +1726,22 @@ class _UserScreen extends State<UserScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildTermsSection(
-                    '1. Acceptance of Terms',
+                    S.of(context).acceptanceOfTerms,
                     'By accessing and using GizmoGlobe, you accept and agree to be bound by the terms and provision of this agreement.',
                   ),
                   const SizedBox(height: 16),
                   _buildTermsSection(
-                    '2. Use License',
+                    S.of(context).useLicense,
                     'Permission is granted to temporarily download one copy of the materials (information or software) on GizmoGlobe for personal, non-commercial transitory viewing only.',
                   ),
                   const SizedBox(height: 16),
                   _buildTermsSection(
-                    '3. Disclaimer',
+                    S.of(context).disclaimer,
                     'The materials on GizmoGlobe are provided on an \'as is\' basis. GizmoGlobe makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.',
                   ),
                   const SizedBox(height: 16),
                   _buildTermsSection(
-                    '4. Limitations',
+                    S.of(context).limitations,
                     'In no event shall GizmoGlobe or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on GizmoGlobe.',
                   ),
                 ],
@@ -1822,7 +1828,7 @@ class _UserScreen extends State<UserScreen> {
                   ),
                   const SizedBox(width: 16),
                   Text(
-                    "Privacy Policy",
+                    S.of(context).privacyPolicy,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -1838,22 +1844,22 @@ class _UserScreen extends State<UserScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildPrivacySection(
-                    '1. Information We Collect',
+                    S.of(context).informationWeCollect,
                     'We collect information that you provide directly to us, including when you create an account, make a purchase, or contact us for support.',
                   ),
                   const SizedBox(height: 16),
                   _buildPrivacySection(
-                    '2. How We Use Your Information',
+                    S.of(context).howWeUseYourInformation,
                     'We use the information we collect to provide, maintain, and improve our services, process your transactions, and communicate with you.',
                   ),
                   const SizedBox(height: 16),
                   _buildPrivacySection(
-                    '3. Information Sharing',
+                    S.of(context).informationSharing,
                     'We do not sell or share your personal information with third parties except as described in this policy or with your consent.',
                   ),
                   const SizedBox(height: 16),
                   _buildPrivacySection(
-                    '4. Data Security',
+                    S.of(context).dataSecurity,
                     'We take reasonable measures to help protect your personal information from loss, theft, misuse, unauthorized access, disclosure, alteration, and destruction.',
                   ),
                 ],
