@@ -389,6 +389,10 @@ class S {
           name: 'manageDeliveryAddresses');
   String get changePassword =>
       Intl.message('Change Password', name: 'changePassword');
+  String get resetPassword =>
+      Intl.message('Reset Password', name: 'resetPassword');
+  String get sendResetLink =>
+      Intl.message('Send Reset Link', name: 'sendResetLink');
   String get updateAccountSecurity =>
       Intl.message('Update your account security',
           name: 'updateAccountSecurity');
@@ -480,6 +484,64 @@ class S {
 
   // Logout
   String get logOut => Intl.message('Log Out', name: 'logOut');
+
+  String get lightMode => Intl.message('Light Mode', name: 'lightMode');
+  String get darkMode => Intl.message('Dark Mode', name: 'darkMode');
+  String get meetDevelopmentTeam =>
+      Intl.message('Meet Development Team', name: 'meetDevelopmentTeam');
+  String get signUpWithEmail =>
+      Intl.message('Sign Up with Email', name: 'signUpWithEmail');
+  String get createAccountUsingEmail =>
+      Intl.message('Create account using email',
+          name: 'createAccountUsingEmail');
+  String get alreadyHaveAccountQuestion =>
+      Intl.message('Already have an account?',
+          name: 'alreadyHaveAccountQuestion');
+  String get enterNewUsername =>
+      Intl.message('Enter new username', name: 'enterNewUsername');
+  String get developer => Intl.message('Developer', name: 'developer');
+  String get developerRole => Intl.message('Developer', name: 'developerRole');
+  String get termsAndConditionsContent => Intl.message(
+      'By accessing and using GizmoGlobe, you accept and agree to be bound by the terms and provision of this agreement.',
+      name: 'termsAndConditionsContent');
+  String get useLicenseContent => Intl.message(
+      'Permission is granted to temporarily download one copy of the materials (information or software) on GizmoGlobe for personal, non-commercial transitory viewing only.',
+      name: 'useLicenseContent');
+  String get disclaimerContent => Intl.message(
+      'The materials on GizmoGlobe are provided on an \'as is\' basis. GizmoGlobe makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.',
+      name: 'disclaimerContent');
+  String get limitationsContent => Intl.message(
+      'In no event shall GizmoGlobe or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on GizmoGlobe.',
+      name: 'limitationsContent');
+  String get informationWeCollectContent => Intl.message(
+      'We collect information that you provide directly to us, including when you create an account, make a purchase, or contact us for support.',
+      name: 'informationWeCollectContent');
+  String get howWeUseYourInformationContent => Intl.message(
+      'We use the information we collect to provide, maintain, and improve our services, process your transactions, and communicate with you.',
+      name: 'howWeUseYourInformationContent');
+  String get informationSharingContent => Intl.message(
+      'We do not sell or share your personal information with third parties except as described in this policy or with your consent.',
+      name: 'informationSharingContent');
+  String get dataSecurityContent => Intl.message(
+      'We take reasonable measures to help protect your personal information from loss, theft, misuse, unauthorized access, disclosure, alteration, and destruction.',
+      name: 'dataSecurityContent');
+  String get error =>
+      Intl.message('Error', name: 'error');
+  String get failedToSigninAsGuest =>
+      Intl.message('Failed to sign in as guest', name: 'failedToSigninAsGuest');
+  String get totalCost =>
+      Intl.message('Total Cost', name: 'totalCost');
+  String get aiWelcomeMessage => Intl.message(
+      'Hello! I am your AI assistant. How can I help you today?',
+      name: 'aiWelcomeMessage');
+  String get adminWelcomeMessage => Intl.message(
+      'Hello! This is admin contact channel. How can I assist you today?',
+      name: 'adminWelcomeMessage');
+  String get firstAdminResponse => Intl.message(
+      'Admin will reply to your message soon.',
+      name: 'firstAdminResponse');
+
+  String get signIn => Intl.message('Sign In', name: 'signIn');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

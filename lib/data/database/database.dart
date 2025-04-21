@@ -743,12 +743,18 @@ class Database {
     try {
       final String response = await rootBundle.loadString(filePath);
       if (response.isEmpty) {
+        if (kDebugMode) {
+          print('JSON file is empty');
+        }
         throw Exception('JSON file is empty');
         // throw Exception('Tệp JSON trống');
       }
 
       final List? jsonList = jsonDecode(response) as List<dynamic>?;
       if (jsonList == null) {
+        if (kDebugMode) {
+          print('Error parsing JSON data');
+        }
         throw Exception('Error parsing JSON data');
         // throw Exception('Lỗi khi phân tích dữ liệu JSON');
       }
@@ -756,6 +762,9 @@ class Database {
       List<Province> provinceList = jsonList.map((province) => Province.fromJson(province)).toList();
       return provinceList;
     } catch (e) {
+      if (kDebugMode) {
+        print('Error loading provinces from file: $e');
+      }
       throw Exception('Error loading provinces from file: $e');
       // throw Exception('Lỗi khi tải danh sách tỉnh thành từ tệp: $e');
     }

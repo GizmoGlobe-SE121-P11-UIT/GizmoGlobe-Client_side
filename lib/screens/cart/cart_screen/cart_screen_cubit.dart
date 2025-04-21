@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
 import '../../../objects/product_related/product.dart';
@@ -31,6 +32,9 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
       final user = _auth.currentUser;
       if (user == null) {
+        if (kDebugMode){
+          print('User not logged in');
+        }
         emit(state.copyWith(
             processState: ProcessState.failure, error: 'User not logged in'));
         return;
@@ -150,6 +154,9 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     try {
       final user = _auth.currentUser;
       if (user == null) {
+        if (kDebugMode) {
+          print('User not logged in');
+        }
         emit(state.copyWith(
             processState: ProcessState.failure, error: 'User not logged in.'));
         return;

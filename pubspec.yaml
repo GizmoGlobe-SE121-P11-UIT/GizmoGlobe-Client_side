@@ -52,7 +52,7 @@ dependencies:
   provider: ^6.1.1
   shared_preferences: ^2.2.2
   firebase_app_check: ^0.3.2+5
-  google_generative_ai: ^0.2.0
+  google_generative_ai: ^0.4.7
   flutter_dotenv: ^5.1.0
   http: ^1.2.0
   flutter_localizations:

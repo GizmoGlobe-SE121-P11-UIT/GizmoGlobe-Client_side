@@ -448,9 +448,9 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                   barrierDismissible: false,
                                   builder: (BuildContext context) =>
                                       InformationDialog(
-                                    title: 'Error',
+                                    title: S.of(context).error,
                                     content:
-                                        'Failed to sign in as guest. Please try again.',
+                                        S.of(context).failedToSigninAsGuest,
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },

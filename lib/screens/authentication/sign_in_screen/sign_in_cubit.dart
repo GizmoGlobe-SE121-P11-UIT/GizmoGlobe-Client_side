@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
@@ -129,6 +130,9 @@ class SignInCubit extends Cubit<SignInState> {
             .get();
 
         if (!userDoc.exists || !customerDoc.exists) {
+          if(kDebugMode) {
+            print('Failed to set up guest account data');
+          }
           throw Exception('Failed to set up guest account data');
         }
 
@@ -186,6 +190,9 @@ class SignInCubit extends Cubit<SignInState> {
       batch.set(_firestore.collection('customers').doc(user.uid), customerData);
       await batch.commit();
     } catch (e) {
+      if (kDebugMode) {
+        print('Error setting up user data: $e');
+      }
       throw Exception('Failed to set up user data: $e');
     }
   }

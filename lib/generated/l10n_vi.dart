@@ -134,52 +134,16 @@ class SVI extends S {
   String get resetPassword => 'Đặt lại mật khẩu';
 
   @override
-  String get sendResetLink => 'Gửi liên kết đặt lại';
-
-  @override
-  String get backToLogin => 'Quay lại đăng nhập';
-
-  @override
-  String get emailRequired => 'Vui lòng nhập email';
-
-  @override
   String get invalidEmail => 'Email không hợp lệ';
-
-  @override
-  String get passwordRequired => 'Vui lòng nhập mật khẩu';
 
   @override
   String get passwordTooShort => 'Mật khẩu phải có ít nhất 6 ký tự';
 
   @override
-  String get passwordsDoNotMatch => 'Mật khẩu không khớp';
-
-  @override
-  String get loginSuccess => 'Đăng nhập thành công';
-
-  @override
-  String get registerSuccess => 'Đăng ký thành công';
-
-  @override
-  String get resetPasswordSuccess => 'Đã gửi liên kết đặt lại mật khẩu';
-
-  @override
-  String get loginFailed => 'Đăng nhập thất bại';
-
-  @override
   String get registerFailed => 'Đăng ký thất bại';
 
   @override
-  String get resetPasswordFailed => 'Gửi liên kết đặt lại mật khẩu thất bại';
-
-  @override
   String get or => 'hoặc';
-
-  @override
-  String get continueWithGoogle => 'Tiếp tục với Google';
-
-  @override
-  String get continueWithFacebook => 'Tiếp tục với Facebook';
 
   @override
   String get dontHaveAccount => 'Chưa có tài khoản?';
@@ -707,19 +671,6 @@ class SVI extends S {
   @override
   String get meetDevelopmentTeam => 'Gặp gỡ đội ngũ phát triển';
 
-  @override
-  String get readTermsAndConditions =>
-      'Đọc điều khoản và điều kiện của chúng tôi';
-
-  @override
-  String get readPrivacyPolicy => 'Đọc chính sách bảo mật của chúng tôi';
-
-  @override
-  String get changeAppLanguage => 'Thay đổi ngôn ngữ ứng dụng';
-
-  @override
-  String get changeAppTheme => 'Thay đổi giao diện ứng dụng';
-
   // My Orders section
   @override
   String get myOrders => 'Đơn hàng của tôi';
@@ -800,4 +751,81 @@ class SVI extends S {
   // Logout
   @override
   String get logOut => 'Đăng xuất';
+
+  @override
+  String get signUpWithEmail => 'Đăng ký bằng email';
+
+  @override
+  String get createAccountUsingEmail => 'Tạo tài khoản bằng email';
+
+  @override
+  String get alreadyHaveAccountQuestion => 'Đã có tài khoản?';
+
+  @override
+  String get enterNewUsername => 'Nhập tên người dùng mới';
+
+  @override
+  String get fullName => 'Họ và tên';
+
+  @override
+  String get phoneNumber => 'Số điện thoại';
+
+  @override
+  String get developer => 'Nhà phát triển';
+
+  @override
+  String get developerRole => 'Lập trình viên';
+
+  @override
+  String get termsAndConditionsContent =>
+      'Bằng cách truy cập và sử dụng GizmoGlobe, bạn chấp nhận và đồng ý bị ràng buộc bởi các điều khoản và điều khoản của thỏa thuận này.';
+
+  @override
+  String get useLicenseContent =>
+      'Được cấp phép để tạm thời tải xuống một bản sao của các tài liệu (thông tin hoặc phần mềm) trên GizmoGlobe chỉ để xem cá nhân, phi thương mại tạm thời.';
+
+  @override
+  String get disclaimerContent =>
+      'Các tài liệu trên GizmoGlobe được cung cấp trên cơ sở "nguyên trạng". GizmoGlobe không đảm bảo, rõ ràng hay ngụ ý, và theo đây từ chối và phủ nhận tất cả các bảo đảm khác bao gồm, không giới hạn, các bảo đảm hoặc điều kiện ngụ ý về khả năng bán được, sự phù hợp cho một mục đích cụ thể, hoặc không vi phạm quyền sở hữu trí tuệ hoặc vi phạm các quyền khác.';
+
+  @override
+  String get limitationsContent =>
+      'Trong mọi trường hợp, GizmoGlobe hoặc các nhà cung cấp của nó sẽ không chịu trách nhiệm về bất kỳ thiệt hại nào (bao gồm, không giới hạn, thiệt hại do mất dữ liệu hoặc lợi nhuận, hoặc do gián đoạn kinh doanh) phát sinh từ việc sử dụng hoặc không thể sử dụng các tài liệu trên GizmoGlobe.';
+
+  @override
+  String get informationWeCollectContent =>
+      'Chúng tôi thu thập thông tin mà bạn cung cấp trực tiếp cho chúng tôi, bao gồm khi bạn tạo tài khoản, thực hiện mua hàng hoặc liên hệ với chúng tôi để được hỗ trợ.';
+
+  @override
+  String get howWeUseYourInformationContent =>
+      'Chúng tôi sử dụng thông tin thu thập được để cung cấp, duy trì và cải thiện dịch vụ của mình, xử lý giao dịch của bạn và liên lạc với bạn.';
+
+  @override
+  String get informationSharingContent =>
+      'Chúng tôi không bán hoặc chia sẻ thông tin cá nhân của bạn với bên thứ ba ngoại trừ như được mô tả trong chính sách này hoặc với sự đồng ý của bạn.';
+
+  @override
+  String get dataSecurityContent =>
+      'Chúng tôi thực hiện các biện pháp hợp lý để giúp bảo vệ thông tin cá nhân của bạn khỏi bị mất mát, trộm cắp, lạm dụng, truy cập trái phép, tiết lộ, thay đổi và phá hủy.';
+
+  @override
+  String get signIn => 'Đăng nhập';
+
+  @override
+  String get error => 'Lỗi';
+
+  @override
+  String get failedToSigninAsGuest => 'Đăng nhập với tư cách khách thất bại';
+
+  @override
+  String get totalCost => 'Tổng chi phí';
+
+  @override
+  String get aiWelcomeMessage => 'Chào mừng bạn đến với GizmoGlobe! Tôi là trợ lý AI của bạn. Bạn cần giúp gì?';
+
+  @override
+  String get adminWelcomeMessage => 'Chào mừng bạn đến với GizmoGlobe! Đây là kênh liên lạc giữa người bán - người mua. Bạn cần giúp gì?';
+
+  @override
+  String get firstAdminResponse => 'Admin/ Người bán sẽ trả lời bạn trong thời gian sớm nhất. Vui lòng đợi trong giây lát.';
 }

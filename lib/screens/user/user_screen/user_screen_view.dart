@@ -187,7 +187,8 @@ class _UserScreen extends State<UserScreen> {
                                         child: TextField(
                                           controller: nameController,
                                           decoration: InputDecoration(
-                                            hintText: 'Enter new username',
+                                            hintText:
+                                                S.of(context).enterNewUsername,
                                             hintStyle: TextStyle(
                                               color: Colors.grey[400],
                                               fontSize: 16,
@@ -460,9 +461,9 @@ class _UserScreen extends State<UserScreen> {
                   children: [
                     _buildEnhancedSettingsItem(
                       context,
-                      'Sign Up with Email',
+                      S.of(context).signUpWithEmail,
                       Icons.email_outlined,
-                      'Create account using email',
+                      S.of(context).createAccountUsingEmail,
                       () {
                         Navigator.pop(context);
                         // Đăng xuất tài khoản guest
@@ -480,9 +481,9 @@ class _UserScreen extends State<UserScreen> {
                     ),
                     _buildEnhancedSettingsItem(
                       context,
-                      'Sign In',
+                      S.of(context).signIn,
                       Icons.login,
-                      'Already have an account?',
+                      S.of(context).alreadyHaveAccountQuestion,
                       () {
                         Navigator.pop(context);
                         // Đăng xuất tài khoản guest
@@ -718,7 +719,7 @@ class _UserScreen extends State<UserScreen> {
                                       _buildEnhancedOrderStatus(
                                         context,
                                         FontAwesomeIcons.box,
-                                        'To Ship', // 'Chờ vận chuyển'
+                                        S.of(context).toShip,
                                         () {
                                           Navigator.push(
                                             context,
@@ -734,7 +735,7 @@ class _UserScreen extends State<UserScreen> {
                                       _buildEnhancedOrderStatus(
                                         context,
                                         Icons.local_shipping_outlined,
-                                        'To Receive', // 'Chờ nhận hàng'
+                                        S.of(context).toReceive,
                                         () {
                                           Navigator.push(
                                             context,
@@ -751,7 +752,7 @@ class _UserScreen extends State<UserScreen> {
                                       _buildEnhancedOrderStatus(
                                         context,
                                         FontAwesomeIcons.circleCheck,
-                                        'Completed', // 'Đã hoàn thành'
+                                        S.of(context).completed,
                                         () {
                                           Navigator.push(
                                             context,
@@ -969,7 +970,7 @@ class _UserScreen extends State<UserScreen> {
                                                                 children: [
                                                                   ListTile(
                                                                     title: Text(S
-                                                                        .of(context)!
+                                                                        .of(context)
                                                                         .languageEn),
                                                                     leading:
                                                                         const Text(
@@ -988,7 +989,7 @@ class _UserScreen extends State<UserScreen> {
                                                                   ),
                                                                   ListTile(
                                                                     title: Text(S
-                                                                        .of(context)!
+                                                                        .of(context)
                                                                         .languageVi),
                                                                     leading:
                                                                         const Text(
@@ -1125,7 +1126,9 @@ class _UserScreen extends State<UserScreen> {
                                                                   children: [
                                                                     _buildThemeOption(
                                                                       context,
-                                                                      'Light Mode',
+                                                                      S
+                                                                          .of(context)
+                                                                          .lightMode,
                                                                       Icons
                                                                           .light_mode_outlined,
                                                                       themeProvider
@@ -1138,7 +1141,9 @@ class _UserScreen extends State<UserScreen> {
                                                                     ),
                                                                     _buildThemeOption(
                                                                       context,
-                                                                      'Dark Mode',
+                                                                      S
+                                                                          .of(context)
+                                                                          .darkMode,
                                                                       Icons
                                                                           .dark_mode_outlined,
                                                                       themeProvider
@@ -1727,22 +1732,22 @@ class _UserScreen extends State<UserScreen> {
                 children: [
                   _buildTermsSection(
                     S.of(context).acceptanceOfTerms,
-                    'By accessing and using GizmoGlobe, you accept and agree to be bound by the terms and provision of this agreement.',
+                    S.of(context).termsAndConditionsContent,
                   ),
                   const SizedBox(height: 16),
                   _buildTermsSection(
                     S.of(context).useLicense,
-                    'Permission is granted to temporarily download one copy of the materials (information or software) on GizmoGlobe for personal, non-commercial transitory viewing only.',
+                    S.of(context).useLicenseContent,
                   ),
                   const SizedBox(height: 16),
                   _buildTermsSection(
                     S.of(context).disclaimer,
-                    'The materials on GizmoGlobe are provided on an \'as is\' basis. GizmoGlobe makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.',
+                    S.of(context).disclaimerContent,
                   ),
                   const SizedBox(height: 16),
                   _buildTermsSection(
                     S.of(context).limitations,
-                    'In no event shall GizmoGlobe or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on GizmoGlobe.',
+                    S.of(context).limitationsContent,
                   ),
                 ],
               ),
@@ -1845,22 +1850,22 @@ class _UserScreen extends State<UserScreen> {
                 children: [
                   _buildPrivacySection(
                     S.of(context).informationWeCollect,
-                    'We collect information that you provide directly to us, including when you create an account, make a purchase, or contact us for support.',
+                    S.of(context).informationWeCollectContent,
                   ),
                   const SizedBox(height: 16),
                   _buildPrivacySection(
                     S.of(context).howWeUseYourInformation,
-                    'We use the information we collect to provide, maintain, and improve our services, process your transactions, and communicate with you.',
+                    S.of(context).howWeUseYourInformationContent,
                   ),
                   const SizedBox(height: 16),
                   _buildPrivacySection(
                     S.of(context).informationSharing,
-                    'We do not sell or share your personal information with third parties except as described in this policy or with your consent.',
+                    S.of(context).informationSharingContent,
                   ),
                   const SizedBox(height: 16),
                   _buildPrivacySection(
                     S.of(context).dataSecurity,
-                    'We take reasonable measures to help protect your personal information from loss, theft, misuse, unauthorized access, disclosure, alteration, and destruction.',
+                    S.of(context).dataSecurityContent,
                   ),
                 ],
               ),

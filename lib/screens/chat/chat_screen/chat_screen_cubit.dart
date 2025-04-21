@@ -1,8 +1,12 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../enums/processing/process_state_enum.dart';
+import '../../../generated/l10n.dart';
 import '../../../objects/chat_related/chat_message.dart';
 import '../../../services/ai_service.dart';
 import 'chat_screen_state.dart';
@@ -59,7 +63,9 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       final isAIMode = prefs.getBool(_lastModeKey) ?? true;
       emit(state.copyWith(isAIMode: isAIMode));
     } catch (e) {
-      print('Error loading last mode: $e');
+      if (kDebugMode) {
+        print('Error loading last mode: $e');
+      }
     }
   }
 
@@ -68,7 +74,9 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_lastModeKey, isAIMode);
     } catch (e) {
-      print('Error saving last mode: $e');
+      if (kDebugMode) {
+        print('Error saving last mode: $e');
+      }
     }
   }
 
@@ -92,7 +100,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
         lastWelcomeTimeKey, DateTime.now().toIso8601String());
   }
 
-  void initialize() async {
+  void initialize(BuildContext context) async {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
 
@@ -100,6 +108,9 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
 
       final user = _auth.currentUser;
       if (user == null) {
+        if (kDebugMode) {
+          print('User not logged in');
+        }
         emit(state.copyWith(
           processState: ProcessState.failure,
           error: 'User not logged in',
@@ -141,7 +152,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       // Thêm tin nhắn chào mừng nếu cần
       if (mergedAiMessages.isEmpty) {
         final aiWelcomeMessage = ChatMessage.fromBot(
-          'Hello! How can I help you today?',
+          S.of(context).aiWelcomeMessage,
           true,
         );
         mergedAiMessages.insert(0, aiWelcomeMessage);
@@ -149,7 +160,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
 
       if (mergedAdminMessages.isEmpty) {
         final adminWelcomeMessage = ChatMessage.fromBot(
-          'Welcome to Admin support. Please wait for admin response.',
+          S.of(context).adminWelcomeMessage,
           false,
         );
         mergedAdminMessages.insert(0, adminWelcomeMessage);
@@ -194,6 +205,9 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
     try {
       final user = _auth.currentUser;
       if (user == null) {
+        if (kDebugMode) {
+          print('User not logged in');
+        }
         emit(state.copyWith(
           processState: ProcessState.failure,
           error: 'User not logged in',
@@ -214,6 +228,9 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       await messageRef.set(messageData);
       return true;
     } catch (e) {
+      if (kDebugMode) {
+        print('Error saving message: $e');
+      }
       emit(state.copyWith(
         processState: ProcessState.failure,
         error: 'Error saving message: ${e.toString()}',
@@ -222,12 +239,15 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
     }
   }
 
-  void sendMessage(String content) async {
+  void sendMessage(String content, BuildContext context) async {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
 
       final user = _auth.currentUser;
       if (user == null) {
+        if (kDebugMode) {
+          print('User not logged in');
+        }
         emit(state.copyWith(
           processState: ProcessState.failure,
           error: 'User not logged in',
@@ -268,7 +288,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
 
         // Chỉ hiển thị thông báo admin reply một lần
         if (!_hasShownAdminReplyMessage) {
-          final response = "Admin will reply to your message soon.";
+          final response = S.of(context).firstAdminResponse;
           _hasShownAdminReplyMessage = true;
           final botMessage = ChatMessage.fromBot(response, false);
           emit(state.copyWith(
@@ -305,7 +325,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       // Kiểm tra xem có nên hiển thị tin nhắn chào mừng cho chế độ AI không
       if (state.aiMessages.isEmpty || _shouldShowWelcomeMessage(true)) {
         final welcomeMessage = ChatMessage.fromBot(
-          'Hello! How can I help you today?',
+          S.of(context as BuildContext).aiWelcomeMessage,
           true,
         );
 
@@ -342,6 +362,9 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
 
       final user = _auth.currentUser;
       if (user == null) {
+        if (kDebugMode) {
+          print('User not logged in');
+        }
         emit(state.copyWith(
           processState: ProcessState.failure,
           error: 'User not logged in',
@@ -352,7 +375,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       // Kiểm tra xem có nên hiển thị tin nhắn chào mừng cho chế độ Admin không
       if (state.adminMessages.isEmpty || _shouldShowWelcomeMessage(false)) {
         final welcomeMessage = ChatMessage.fromBot(
-          'Welcome to Admin support. Please wait for admin response.',
+          S.of(context as BuildContext).adminWelcomeMessage,
           false,
         );
 

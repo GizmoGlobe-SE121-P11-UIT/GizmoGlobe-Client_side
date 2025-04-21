@@ -28,7 +28,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ChatScreenCubit>().initialize();
+    context.read<ChatScreenCubit>().initialize(context);
   }
 
   @override
@@ -213,7 +213,7 @@ class _ChatScreenState extends State<ChatScreen> {
               if (_messageController.text.isNotEmpty) {
                 context
                     .read<ChatScreenCubit>()
-                    .sendMessage(_messageController.text);
+                    .sendMessage(_messageController.text, context);
                 _messageController.clear();
               }
             },

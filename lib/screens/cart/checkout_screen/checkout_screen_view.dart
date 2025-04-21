@@ -293,7 +293,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Total cost',
+                          S.of(context).totalCost,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
