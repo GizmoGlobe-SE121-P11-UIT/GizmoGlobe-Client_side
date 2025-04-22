@@ -137,8 +137,6 @@ class MyApp extends StatelessWidget {
                     surface: Colors.white,
                     onSurface: const Color(0xFF2C3E50),
                     onSurfaceVariant: const Color(0xFF455A64),
-                    background: Colors.white,
-                    onBackground: const Color(0xFF2C3E50),
                     error: Colors.red[400]!,
                     onError: Colors.white,
                   ),
@@ -178,8 +176,6 @@ class MyApp extends StatelessWidget {
                     surface: Color(0xFF202046),
                     onSurface: Colors.white,
                     onSurfaceVariant: Colors.white70,
-                    background: Color(0xFF202046),
-                    onBackground: Colors.white,
                     error: Colors.red,
                     onError: Colors.white,
                   ),
@@ -202,7 +198,7 @@ class MyApp extends StatelessWidget {
                   navigationBarTheme: NavigationBarThemeData(
                     backgroundColor: const Color(0xFF323F73),
                     indicatorColor: const Color(0xFF2196F3).withOpacity(0.3),
-                    labelTextStyle: MaterialStateProperty.all(
+                    labelTextStyle: WidgetStateProperty.all(
                       const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),

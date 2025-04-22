@@ -3,14 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import '../../../enums/processing/process_state_enum.dart';
-import '../../../enums/processing/sort_enum.dart';
-import '../../../enums/processing/order_option_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
-import '../../product/product_screen/product_screen_view.dart';
 import '../../main/main_screen/main_screen_view.dart';
-import '../../user/order_screen/order_screen_view.dart';
 import 'cart_screen_cubit.dart';
 import 'cart_screen_state.dart';
 
@@ -70,7 +66,7 @@ class _CartScreen extends State<CartScreen> {
                   Text(
                     S.of(context).emptyCart,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onBackground,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
@@ -81,7 +77,7 @@ class _CartScreen extends State<CartScreen> {
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context)
                               .colorScheme
-                              .onBackground
+                              .onSurface
                               .withOpacity(0.7),
                         ),
                   ),

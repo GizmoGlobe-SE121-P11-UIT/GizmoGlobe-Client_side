@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/gestures.dart';
 import '../../../widgets/general/gradient_text.dart';
-import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../objects/chat_related/chat_message.dart';
 import '../../../screens/chat/chat_screen/chat_screen_cubit.dart';
 import '../../../screens/chat/chat_screen/chat_screen_state.dart';
@@ -112,7 +110,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ? S.of(context).aiAssistant
                       : S.of(context).adminSupport,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onBackground.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ],
@@ -167,7 +165,7 @@ class _ChatScreenState extends State<ChatScreen> {
         decoration: BoxDecoration(
           color: isUser
               ? theme.colorScheme.primaryContainer
-              : theme.colorScheme.surfaceVariant,
+              : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
         ),
         child: RichText(

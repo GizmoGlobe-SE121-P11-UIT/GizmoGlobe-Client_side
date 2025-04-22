@@ -581,26 +581,39 @@ class SVI extends S {
   String get shoppingCart => 'Giỏ hàng';
   String get startShopping => 'Bắt đầu mua sắm';
   String get userProfile => 'Thông tin cá nhân';
-  String get orders => 'Đơn hàng';
+
   String get logout => 'Đăng xuất';
   String get name => 'Họ tên';
   String get version => 'Phiên bản';
   String get appVersion => 'Phiên bản ứng dụng 1.0.0';
-  String get developers => 'Nhà phát triển';
   String get meetDevelopers => 'Gặp gỡ đội ngũ phát triển';
-  String get deliveryConfirmed => 'Đơn hàng đã được xác nhận giao thành công.';
-  String get noOrdersToShip => 'Không có đơn hàng nào đang chờ vận chuyển.';
-  String get noOrdersToReceive => 'Không có đơn hàng nào đang chờ nhận.';
-  String get noCompletedOrders => 'Không có đơn hàng nào đã hoàn thành.';
 
   @override
   String get toShip => 'Chờ giao';
+
+  @override
+  String get orders => 'Đơn hàng';
+
+  @override
+  String get developers => 'Nhà phát triển';
 
   @override
   String get toReceive => 'Chờ nhận';
 
   @override
   String get completed => 'Hoàn thành';
+
+  @override
+  String get deliveryConfirmed => 'Đơn hàng đã được xác nhận giao thành công.';
+
+  @override
+  String get noOrdersToShip => 'Không có đơn hàng nào đang chờ vận chuyển.';
+
+  @override
+  String get noOrdersToReceive => 'Không có đơn hàng nào đang chờ nhận.';
+
+  @override
+  String get noCompletedOrders => 'Không có đơn hàng nào đã hoàn thành.';
 
   @override
   String totalItems(int count, String total) => 'Tổng $count sản phẩm: $total';
@@ -730,7 +743,7 @@ class SVI extends S {
   String get manageAddressesDesc => 'Quản lý địa chỉ giao hàng';
 
   @override
-  String get updateSecurityDesc => 'Cập nhật bảo mật tài khoản';
+  String get updateSecurityDescription => 'Cập nhật bảo mật tài khoản';
 
   @override
   String get changeLanguageDescription => 'Thay đổi ngôn ngữ ứng dụng';
@@ -739,7 +752,7 @@ class SVI extends S {
   String get changeThemeDescription => 'Thay đổi giao diện ứng dụng';
 
   @override
-  String get meetTeamDesc => 'Gặp gỡ đội ngũ phát triển';
+  String get meetTeamDescription => 'Gặp gỡ đội ngũ phát triển';
 
   @override
   String get readTermsDesc => 'Đọc điều khoản và điều kiện của chúng tôi';

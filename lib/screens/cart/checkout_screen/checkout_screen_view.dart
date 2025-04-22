@@ -11,8 +11,6 @@ import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../user/order_screen/order_screen_view.dart';
-import '../../main/main_screen/main_screen_view.dart';
-import '../cart_screen/cart_screen_view.dart';
 import '../choose_address_screen/choose_address_screen_view.dart';
 import '../../../generated/l10n.dart';
 import 'checkout_screen_cubit.dart';
@@ -297,7 +295,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onBackground,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const Spacer(),

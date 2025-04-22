@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
-import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_button.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 

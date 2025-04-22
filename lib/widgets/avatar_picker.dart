@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:io' show Platform;
 import 'package:device_info_plus/device_info_plus.dart';
 import '../generated/l10n.dart';
 import '../services/storage_service.dart';
@@ -15,12 +14,12 @@ class AvatarPicker extends StatefulWidget {
   final bool isGuest;
 
   const AvatarPicker({
-    Key? key,
+    super.key,
     required this.userId,
     this.currentAvatarUrl,
     required this.onAvatarChanged,
     this.isGuest = false,
-  }) : super(key: key);
+  });
 
   @override
   _AvatarPickerState createState() => _AvatarPickerState();

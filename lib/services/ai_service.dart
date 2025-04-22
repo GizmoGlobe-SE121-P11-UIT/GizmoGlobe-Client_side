@@ -248,24 +248,34 @@ Current question: $userMessage
         // Tìm kiếm sản phẩm dựa trên phân tích câu hỏi
         final category = _detectProductCategory(processedMessage);
         final keywords = _extractSearchKeywords(processedMessage);
-        print('Detected category: $category');
-        print('Extracted keywords: $keywords');
+        if (kDebugMode) {
+          print('Detected category: $category');
+        }
+        if (kDebugMode) {
+          print('Extracted keywords: $keywords');
+        }
 
         QuerySnapshot? productsSnapshot;
         if (category != null) {
           productsSnapshot = await searchProducts(category: category);
-          print(
+          if (kDebugMode) {
+            print(
               'Found ${productsSnapshot.docs.length} products in category $category');
+          }
         } else if (keywords.isNotEmpty) {
           // Thử tìm với từ khóa đầu tiên
           productsSnapshot = await searchProducts(keyword: keywords.first);
-          print(
+          if (kDebugMode) {
+            print(
               'Found ${productsSnapshot.docs.length} products with keyword ${keywords.first}');
+          }
         } else {
           // Nếu không có category và keyword, tìm tất cả sản phẩm available
           productsSnapshot = await searchProducts();
-          print(
+          if (kDebugMode) {
+            print(
               'Found ${productsSnapshot.docs.length} total available products');
+          }
         }
 
         if (productsSnapshot.docs.isEmpty) {
@@ -311,7 +321,9 @@ Current question: $userMessage
 
       return response;
     } catch (e) {
-      print('Error in generateResponse: $e');
+      if (kDebugMode) {
+        print('Error in generateResponse: $e');
+      }
       return _isVietnamese(userMessage)
           ? 'Xin lỗi, hiện tại tôi không thể xử lý yêu cầu của bạn. Vui lòng thử lại sau.'
           : 'Sorry, I cannot process your request at the moment. Please try again later.';

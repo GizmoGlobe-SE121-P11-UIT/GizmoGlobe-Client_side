@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
-import '../../../widgets/dialog/confirmation_dialog.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/gradient_text.dart';
-import '../../../screens/main/main_screen/main_screen_view.dart';
 import 'sign_in_cubit.dart';
 import 'sign_in_state.dart';
 import '../../../widgets/general/app_logo.dart';

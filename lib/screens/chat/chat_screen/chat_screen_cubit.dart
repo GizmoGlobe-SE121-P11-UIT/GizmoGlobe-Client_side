@@ -144,10 +144,10 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       mergedAdminMessages.insertAll(0, localAdminMessages);
 
       // Sắp xếp theo thời gian
-      mergedAiMessages.sort((a, b) => (b.timestamp ?? DateTime.now())
-          .compareTo(a.timestamp ?? DateTime.now()));
-      mergedAdminMessages.sort((a, b) => (b.timestamp ?? DateTime.now())
-          .compareTo(a.timestamp ?? DateTime.now()));
+      mergedAiMessages.sort((a, b) => (b.timestamp)
+          .compareTo(a.timestamp));
+      mergedAdminMessages.sort((a, b) => (b.timestamp)
+          .compareTo(a.timestamp));
 
       // Thêm tin nhắn chào mừng nếu cần
       if (mergedAiMessages.isEmpty) {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../general/app_text_style.dart';
 import '../general/gradient_button.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 

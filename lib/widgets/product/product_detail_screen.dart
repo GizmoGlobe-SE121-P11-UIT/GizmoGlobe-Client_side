@@ -38,17 +38,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             favorites.contains(widget.product.productID);
 
         return Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           extendBodyBehindAppBar: true,
           appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.background,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             elevation: 0,
             leading: GradientIconButton(
               icon: Icons.chevron_left,
               onPressed: () {
                 Navigator.pop(context);
               },
-              fillColor: Theme.of(context).colorScheme.background,
+              fillColor: Theme.of(context).colorScheme.surface,
             ),
             actions: [
               Stack(
@@ -573,7 +573,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           decoration: BoxDecoration(
             color: Theme.of(context).brightness == Brightness.dark
                 ? Theme.of(context).colorScheme.surface.withOpacity(0.1)
-                : Theme.of(context).colorScheme.background,
+                : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.all(8),
@@ -593,7 +593,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       decoration: BoxDecoration(
         color: isDark
             ? Theme.of(context).colorScheme.surface.withOpacity(0.3)
-            : Theme.of(context).colorScheme.background,
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       margin: const EdgeInsets.symmetric(vertical: 4),

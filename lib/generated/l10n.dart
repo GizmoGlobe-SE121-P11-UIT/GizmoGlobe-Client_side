@@ -469,10 +469,10 @@ class S {
   String get manageAddressesDesc =>
       Intl.message('Manage your delivery addresses',
           name: 'manageAddressesDesc');
-  String get updateSecurityDesc =>
-      Intl.message('Update your account security', name: 'updateSecurityDesc');
+  String get updateSecurityDescription =>
+      Intl.message('Update your account security', name: 'updateSecurityDescription');
   String get changeLanguageDescription =>
-      Intl.message('Change app language', name: 'changeLanguageDesc');
+      Intl.message('Change app language', name: 'changeLanguageDescription');
   String get changeThemeDescription =>
       Intl.message('Change app theme', name: 'changeThemeDescription');
   String get meetTeamDescription =>

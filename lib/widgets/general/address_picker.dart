@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 
 import '../../data/database/database.dart';
 import '../../objects/address_related/district.dart';
