@@ -171,8 +171,8 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade300,
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                      foregroundColor: Theme.of(context).colorScheme.onError,
                     ),
                     child: Text(
                       S.of(context).deleteAddress,

@@ -58,7 +58,6 @@ class UserScreenCubit extends Cubit<UserScreenState> {
     } catch (e) {
       if (kDebugMode) {
         print('Error signing out: $e');
-        // print('Lỗi khi đăng xuất: $e');
       }
     }
   }

@@ -5,7 +5,6 @@ import 'package:gizmoglobe_client/objects/address_related/ward.dart';
 import '../../../objects/address_related/address.dart';
 import 'edit_address_screen_state.dart';
 
-
 class EditAddressScreenCubit extends Cubit<AddAddressScreenState> {
   EditAddressScreenCubit() : super(const AddAddressScreenState());
 

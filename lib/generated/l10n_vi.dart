@@ -569,7 +569,6 @@ class SVI extends S {
   String get home => 'Trang chủ';
   String get products => 'Sản phẩm';
   String get profile => 'Cá nhân';
-  String get search => 'Tìm kiếm';
   String get categories => 'Danh mục';
   String get featuredProducts => 'Sản phẩm nổi bật';
   String get newArrivals => 'Sản phẩm mới';
@@ -718,10 +717,10 @@ class SVI extends S {
   String get developersInfo => 'Nhà phát triển';
 
   @override
-  String get termsAndConditionsInfo => 'Điều khoản và điều kiện';
+  String get termsAndConditionsDescription => 'Xem điều khoản và điều kiện của chúng tôi';
 
   @override
-  String get privacyPolicyInfo => 'Chính sách bảo mật';
+  String get privacyPolicyDescription => 'Xem chính sách bảo mật của chúng tôi';
 
   // Descriptions
   @override
@@ -734,10 +733,10 @@ class SVI extends S {
   String get updateSecurityDesc => 'Cập nhật bảo mật tài khoản';
 
   @override
-  String get changeLanguageDesc => 'Thay đổi ngôn ngữ ứng dụng';
+  String get changeLanguageDescription => 'Thay đổi ngôn ngữ ứng dụng';
 
   @override
-  String get changeThemeDesc => 'Thay đổi giao diện ứng dụng';
+  String get changeThemeDescription => 'Thay đổi giao diện ứng dụng';
 
   @override
   String get meetTeamDesc => 'Gặp gỡ đội ngũ phát triển';
@@ -828,4 +827,28 @@ class SVI extends S {
 
   @override
   String get firstAdminResponse => 'Admin/ Người bán sẽ trả lời bạn trong thời gian sớm nhất. Vui lòng đợi trong giây lát.';
+
+  @override
+  String get editProfileDescription => 'Thay đổi thông tin cá nhân của bạn';
+
+  @override
+  String get manageAddressDescription => 'Quản lý địa chỉ giao hàng của bạn';
+
+  @override
+  String get changePasswordDescription => 'Thay đổi mật khẩu cho tài khoản của bạn';
+
+  @override
+  String get search => 'Tìm kiếm';
+
+  @override
+  String get chooseMonthandYear => 'Chọn tháng và năm';
+
+  @override
+  String get pickAvatar => 'Chọn ảnh đại diện';
+
+  @override
+  String get chooseFromGallery => 'Chọn từ thư viện';
+
+  @override
+  String get takeAPicture => 'Chụp ảnh mới';
 }

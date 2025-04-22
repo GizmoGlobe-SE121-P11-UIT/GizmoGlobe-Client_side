@@ -16,7 +16,7 @@ import '../../authentication/sign_in_screen/sign_in_view.dart';
 import '../../authentication/sign_up_screen/sign_up_view.dart';
 import '../../../providers/language_provider.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
-// Import the Firebase file
+
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -116,7 +116,7 @@ class _UserScreen extends State<UserScreen> {
                         context,
                         S.of(context).editProfile,
                         Icons.person_outline,
-                        'Update your personal information',
+                        S.of(context).editProfileDescription,
                         () async {
                           final newName = await showDialog<String>(
                             context: context,
@@ -129,7 +129,7 @@ class _UserScreen extends State<UserScreen> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(24),
                                 ),
-                                child: Container(
+                                child: SizedBox(
                                   width:
                                       MediaQuery.of(context).size.width * 0.85,
                                   child: Column(
@@ -255,7 +255,7 @@ class _UserScreen extends State<UserScreen> {
                                                         .error,
                                               ),
                                               child: Text(
-                                                'Cancel',
+                                                S.of(context).cancel,
                                                 style: TextStyle(
                                                   color: Theme.of(context)
                                                       .colorScheme
@@ -289,8 +289,8 @@ class _UserScreen extends State<UserScreen> {
                                                       BorderRadius.circular(16),
                                                 ),
                                               ),
-                                              child: const Text(
-                                                'Save',
+                                              child: Text(
+                                                S.of(context).save,
                                                 style: TextStyle(
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.bold,
@@ -324,7 +324,7 @@ class _UserScreen extends State<UserScreen> {
                         context,
                         S.of(context).myAddresses,
                         Icons.location_on_outlined,
-                        'Manage your delivery addresses',
+                        S.of(context).manageAddressDescription,
                         () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -336,7 +336,7 @@ class _UserScreen extends State<UserScreen> {
                         context,
                         S.of(context).changePassword,
                         Icons.lock_outline,
-                        'Update your account security',
+                        S.of(context).changePasswordDescription,
                         () async {
                           final User? user = FirebaseAuth.instance.currentUser;
                           if (user != null) {
@@ -363,7 +363,7 @@ class _UserScreen extends State<UserScreen> {
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
                                       child: Text(
-                                        'OK',
+                                        S.of(context).ok,
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .colorScheme
@@ -700,7 +700,7 @@ class _UserScreen extends State<UserScreen> {
                                       ),
                                       const SizedBox(width: 12),
                                       Text(
-                                        'My Orders', // 'Đơn hàng của tôi'
+                                        S.of(context).myOrders,
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
@@ -937,7 +937,7 @@ class _UserScreen extends State<UserScreen> {
                                                   context,
                                                   S.of(context).language,
                                                   Icons.language,
-                                                  'Change app language',
+                                                  S.of(context).changeLanguageDescription,
                                                   () {
                                                     showDialog(
                                                       context: context,
@@ -973,8 +973,9 @@ class _UserScreen extends State<UserScreen> {
                                                                         .of(context)
                                                                         .languageEn),
                                                                     leading:
-                                                                        const Text(
-                                                                            '🇺🇸'),
+                                                                        Text(
+                                                                            S.of(context).languageEn
+                                                                            ),
                                                                     onTap: () {
                                                                       languageProvider
                                                                           .setLanguage(
@@ -992,8 +993,9 @@ class _UserScreen extends State<UserScreen> {
                                                                         .of(context)
                                                                         .languageVi),
                                                                     leading:
-                                                                        const Text(
-                                                                            '🇻🇳'),
+                                                                        Text(
+                                                                            S.of(context).languageVi
+                                                                        ),
                                                                     onTap: () {
                                                                       languageProvider
                                                                           .setLanguage(
@@ -1018,9 +1020,9 @@ class _UserScreen extends State<UserScreen> {
                                                 ),
                                                 _buildEnhancedSettingsItem(
                                                   context,
-                                                  'Theme',
+                                                  S.of(context).changeTheme,
                                                   Icons.dark_mode_outlined,
-                                                  'Change app theme',
+                                                  S.of(context).changeThemeDescription,
                                                   () {
                                                     showModalBottomSheet(
                                                       context: context,
@@ -1316,17 +1318,9 @@ class _UserScreen extends State<UserScreen> {
                                               children: [
                                                 _buildEnhancedSettingsItem(
                                                   context,
-                                                  'Version',
-                                                  Icons.new_releases_outlined,
-                                                  'App version 1.0.0',
-                                                  null,
-                                                  showTopDivider: false,
-                                                ),
-                                                _buildEnhancedSettingsItem(
-                                                  context,
                                                   S.of(context).developers,
                                                   Icons.people_outline,
-                                                  'Meet our development team',
+                                                  S.of(context).meetDevelopmentTeam,
                                                   () {
                                                     Navigator.pop(context);
                                                     _showDevelopersInfo(
@@ -1339,7 +1333,7 @@ class _UserScreen extends State<UserScreen> {
                                                       .of(context)
                                                       .termsAndConditions,
                                                   Icons.description_outlined,
-                                                  'Read our terms and conditions',
+                                                  S.of(context).termsAndConditionsDescription,
                                                   () {
                                                     Navigator.pop(context);
                                                     _showTermsInfo(context);
@@ -1349,7 +1343,7 @@ class _UserScreen extends State<UserScreen> {
                                                   context,
                                                   S.of(context).privacyPolicy,
                                                   Icons.privacy_tip_outlined,
-                                                  'Read our privacy policy',
+                                                  S.of(context).privacyPolicyDescription,
                                                   () {
                                                     Navigator.pop(context);
                                                     _showPrivacyInfo(context);
@@ -1441,7 +1435,7 @@ class _UserScreen extends State<UserScreen> {
                                     ),
                                     const SizedBox(width: 16),
                                     Text(
-                                      'Log Out',
+                                      S.of(context).logOut,
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -1643,7 +1637,7 @@ class _UserScreen extends State<UserScreen> {
                       context,
                       'To Vinh Tien - Terry',
                       Icons.person_outline,
-                      'Developer',
+                      S.of(context).developer,
                       null,
                       showTopDivider: false,
                     ),
@@ -1651,7 +1645,7 @@ class _UserScreen extends State<UserScreen> {
                       context,
                       'Do Hong Quan',
                       Icons.groups_outlined,
-                      'Developer',
+                      S.of(context).developer,
                       null,
                     ),
                   ],

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -25,7 +26,10 @@ class AIService {
 
   AIService() : _firestore = FirebaseFirestore.instance {
     if (dotenv.env['GEMINI_API_KEY']?.isEmpty ?? true) {
-      throw Exception('GEMINI_API_KEY không được cấu hình trong file .env');
+      if (kDebugMode){
+        print('GEMINI_API_KEY is not configured in .env file');
+      }
+      throw Exception('GEMINI_API_KEY is not configured in .env file');
     }
   }
 
@@ -69,12 +73,16 @@ Current question: $userMessage
   Future<QuerySnapshot> searchProducts(
       {String? category, String? keyword}) async {
     try {
-      print('Original search params - category: $category, keyword: $keyword');
+      if (kDebugMode) {
+        print('Original search params - category: $category, keyword: $keyword');
+      }
 
       // Chuẩn hóa keyword nếu có
       if (keyword != null) {
         keyword = _normalizeProductName(keyword);
-        print('Normalized keyword: $keyword');
+        if (kDebugMode) {
+          print('Normalized keyword: $keyword');
+        }
       }
 
       final CollectionReference<Map<String, dynamic>> productsRef =
@@ -84,14 +92,18 @@ Current question: $userMessage
       if (category != null) {
         final standardCategory =
             CATEGORY_MAPPING[category.toLowerCase()] ?? category.toLowerCase();
-        print('Searching with standardized category: $standardCategory');
+        if (kDebugMode) {
+          print('Searching with standardized category: $standardCategory');
+        }
         query = query.where('category', isEqualTo: standardCategory);
       }
 
       if (keyword != null) {
         // Tách từ khóa thành các phần
         final parts = _extractProductParts(keyword);
-        print('Extracted product parts: $parts');
+        if (kDebugMode) {
+          print('Extracted product parts: $parts');
+        }
 
         if (parts.isNotEmpty) {
           // Tìm kiếm theo tên sản phẩm chuẩn hóa
@@ -106,10 +118,14 @@ Current question: $userMessage
       }
 
       final result = await query.get();
-      print('Found ${result.docs.length} products');
+      if (kDebugMode) {
+        print('Found ${result.docs.length} products');
+      }
       return result;
     } catch (e) {
-      print('Error in searchProducts: $e');
+      if (kDebugMode) {
+        print('Error in searchProducts: $e');
+      }
       rethrow;
     }
   }
@@ -197,10 +213,14 @@ Current question: $userMessage
     try {
       // Thử kết nối đến Firestore
       await _firestore.collection('products').limit(1).get();
-      print('Firebase connection successful');
+      if (kDebugMode) {
+        print('Firebase connection successful');
+      }
       return true;
     } catch (e) {
-      print('Firebase connection failed: $e');
+      if (kDebugMode) {
+        print('Firebase connection failed: $e');
+      }
       return false;
     }
   }
@@ -388,6 +408,7 @@ HƯỚNG DẪN TRẢ LỜI:
 3. KHÔNG đề cập đến website hoặc trang web
 4. Nhắc đến các ưu đãi trong ứng dụng
 5. Khuyến khích người dùng bật thông báo để nhận tin mới
+6. Khuyen khích người dùng đăng ký tài khoản để sử dụng các tính năng tốt hơn
 
 CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
 
@@ -412,6 +433,7 @@ RESPONSE GUIDELINES:
 3. DO NOT mention website or web pages
 4. Mention in-app promotions
 5. Encourage users to enable notifications for updates
+6. Encourage users to register for an account for better features
 
 CUSTOMER QUESTION: $userMessage
 
@@ -432,6 +454,7 @@ NHIỆM VỤ CỦA BẠN:
 3. Giữ giọng điệu lịch sự và thân thiện
 4. KHÔNG đề cập đến website hoặc trang web
 5. Tập trung vào các tính năng của ứng dụng di động
+6. Khuyến khích người dùng đăng ký tài khoản để sử dụng các tính năng tốt hơn
 
 CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
 
@@ -448,6 +471,7 @@ MY TASKS:
 3. Maintain a polite and friendly tone
 4. DO NOT mention website or web pages
 5. Focus on mobile app features
+6. Encourage users to register for an account for better features
 
 CUSTOMER QUESTION: $userMessage
 
@@ -456,7 +480,9 @@ Reply in English:
   }
 
   Future<String> _callGeminiAPI(String prompt) async {
-    print('Calling Gemini API...');
+    if (kDebugMode) {
+      print('Calling Gemini API...');
+    }
     final url = Uri.parse(
         '$_baseUrl/$_model:generateContent?key=${dotenv.env['GEMINI_API_KEY']}');
 
@@ -474,8 +500,12 @@ Reply in English:
       }),
     );
 
-    print('Gemini API response status: ${response.statusCode}');
-    print('Gemini API response body: ${response.body}');
+    if (kDebugMode) {
+      print('Gemini API response status: ${response.statusCode}');
+    }
+    if (kDebugMode) {
+      print('Gemini API response body: ${response.body}');
+    }
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
@@ -534,6 +564,7 @@ HƯỚNG DẪN TRẢ LỜI:
    - Sử dụng số liệu chính xác từ database
    - Không đưa ra thông tin chung chung
    - Tập trung vào sản phẩm cụ thể khách hàng đang hỏi
+   - Có thể đưa ra các thông tin lấy được về sản phẩm từ các nguồn uy tín trên internet.
 
 CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
 
@@ -574,6 +605,7 @@ RESPONSE GUIDELINES:
    - Use exact numbers from database
    - Avoid generic information
    - Focus on the specific product being asked about
+   - Can provide information obtained about the product from reputable sources on the internet.
 
 CUSTOMER QUESTION: $userMessage
 
@@ -595,7 +627,9 @@ Reply in English:
     for (var entry in categoryKeywords.entries) {
       if (entry.value
           .any((keyword) => lowercaseMessage.contains(keyword.toLowerCase()))) {
-        print('Detected category: ${entry.key} from keywords: ${entry.value}');
+        if (kDebugMode) {
+          print('Detected category: ${entry.key} from keywords: ${entry.value}');
+        }
         return entry.key;
       }
     }
@@ -629,7 +663,9 @@ Reply in English:
 
       return results;
     } catch (e) {
-      print('Error in _searchProductsByQuery: $e');
+      if (kDebugMode) {
+        print('Error in _searchProductsByQuery: $e');
+      }
       return [];
     }
   }
@@ -919,9 +955,6 @@ Reply in English:
                 '      • Efficiency: ${data['efficiency']?.toString() ?? 'N/A'}');
             buffer.writeln(
                 '      • Modular: ${data['modular']?.toString() ?? 'N/A'}');
-            buffer.writeln(
-                '      • Fan Size: ${data['fanSize'] != null ? '${data['fanSize']}mm' : 'N/A'}');
-            break;
           case 'drive':
             buffer
                 .writeln('      • Type: ${data['type']?.toString() ?? 'N/A'}');

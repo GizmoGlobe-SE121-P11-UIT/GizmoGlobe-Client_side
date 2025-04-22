@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 
 class StorageService {
@@ -11,7 +12,7 @@ class StorageService {
     try {
       // Kiểm tra người dùng đã đăng nhập chưa
       if (_auth.currentUser == null) {
-        throw Exception('Người dùng chưa đăng nhập');
+        throw Exception('User not logged in');
       }
 
       // Tạo tên file duy nhất
@@ -25,8 +26,10 @@ class StorageService {
       String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {
-      print('Error uploading image: $e');
-      throw e;
+      if (kDebugMode) {
+        print('Error uploading image: $e');
+      }
+      rethrow;
     }
   }
 
@@ -34,7 +37,7 @@ class StorageService {
     try {
       // Kiểm tra người dùng đã đăng nhập chưa
       if (_auth.currentUser == null) {
-        throw Exception('Người dùng chưa đăng nhập');
+        throw Exception('User not logged in');
       }
 
       // Lấy danh sách các file trong thư mục avatars của user
@@ -47,8 +50,10 @@ class StorageService {
         }
       }
     } catch (e) {
-      print('Error deleting avatar: $e');
-      throw e;
+      if (kDebugMode) {
+        print('Error deleting avatar: $e');
+      }
+      rethrow;
     }
   }
 }

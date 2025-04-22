@@ -1,6 +1,8 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 
+import '../../generated/l10n.dart';
+
 class GradientDropdown<T> extends StatelessWidget {
   final List<T> Function(String filter, dynamic infiniteScrollProps) items;
   final bool Function(T? d1, T? d2) compareFn;
@@ -70,7 +72,7 @@ class GradientDropdown<T> extends StatelessWidget {
                   ),
                 ),
                 filled: false,
-                hintText: 'Search',
+                hintText: S.of(context).search,
                 hintStyle: const TextStyle(color: Colors.grey),
               ),
             ),

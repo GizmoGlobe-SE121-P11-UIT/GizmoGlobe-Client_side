@@ -4,7 +4,6 @@ import '../../../data/database/database.dart';
 import '../../../objects/address_related/address.dart';
 import 'address_screen_state.dart';
 
-
 class AddressScreenCubit extends Cubit<AddressScreenState> {
   AddressScreenCubit() : super(const AddressScreenState());
 

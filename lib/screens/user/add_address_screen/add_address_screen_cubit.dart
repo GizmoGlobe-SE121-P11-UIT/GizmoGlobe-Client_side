@@ -4,7 +4,6 @@ import 'package:gizmoglobe_client/objects/address_related/province.dart';
 import 'package:gizmoglobe_client/objects/address_related/ward.dart';
 import 'add_address_screen_state.dart';
 
-
 class AddAddressScreenCubit extends Cubit<AddAddressScreenState> {
   AddAddressScreenCubit() : super(const AddAddressScreenState());
 

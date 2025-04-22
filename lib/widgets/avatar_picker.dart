@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io' show Platform;
 import 'package:device_info_plus/device_info_plus.dart';
+import '../generated/l10n.dart';
 import '../services/storage_service.dart';
 
 class AvatarPicker extends StatefulWidget {
@@ -69,7 +70,9 @@ class _AvatarPickerState extends State<AvatarPicker> {
 
       return false;
     } catch (e) {
-      print('Error checking permission: $e');
+      if (kDebugMode) {
+        print('Error checking permission: $e');
+      }
       return false;
     }
   }
@@ -78,13 +81,13 @@ class _AvatarPickerState extends State<AvatarPicker> {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Pick An Avatar'),
+        title: Text(S.of(context).pickAvatar),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from Gallery'), // 'Chọn từ thư viện'
+              title: Text(S.of(context).chooseFromGallery), // 'Chọn từ thư viện'
               onTap: () async {
                 Navigator.pop(context);
                 final hasPermission =
@@ -96,7 +99,7 @@ class _AvatarPickerState extends State<AvatarPicker> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Take a Picture'), // 'Chụp ảnh mới'
+              title: Text(S.of(context).takeAPicture), // 'Chụp ảnh mới'
               onTap: () async {
                 Navigator.pop(context);
                 final hasPermission =

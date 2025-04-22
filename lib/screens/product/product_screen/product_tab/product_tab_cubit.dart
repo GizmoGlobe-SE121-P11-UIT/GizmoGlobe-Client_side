@@ -68,7 +68,6 @@ abstract class TabCubit extends Cubit<TabState> {
     if (kDebugMode) {
       print('Apply filter');
     }
-    // print('Áp dụng bộ lọc');
     final filteredProducts = state.productList.where((product) {
       if (!product.productName.toLowerCase().contains(state.searchText.toLowerCase())) {
         return false;

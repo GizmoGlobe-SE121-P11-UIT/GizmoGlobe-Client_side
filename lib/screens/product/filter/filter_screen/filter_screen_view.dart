@@ -19,6 +19,7 @@ import '../../../../enums/product_related/mainboard_enums/mainboard_series.dart'
 import '../../../../enums/product_related/psu_enums/psu_efficiency.dart';
 import '../../../../enums/product_related/ram_enums/ram_type.dart';
 import '../../../../objects/manufacturer.dart';
+import '../../../../widgets/general/gradient_icon_button.dart';
 import '../manufacturer_filter/manufacturer_filter.dart';
 import '../option_filter/option_filter.dart';
 import '../range_filter/range_filter.dart';
@@ -112,11 +113,12 @@ class _FilterScreenState extends State<FilterScreen> {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+            leading: GradientIconButton(
+              icon: Icons.chevron_left,
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.pop(context);
               },
+              fillColor: Colors.transparent,
             ),
             title: Text(S.of(context).filter, style: AppTextStyle.biggerText),
             actions: [

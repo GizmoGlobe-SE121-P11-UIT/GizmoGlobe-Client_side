@@ -457,10 +457,10 @@ class S {
   String get versionInfo => Intl.message('Version', name: 'versionInfo');
   String get developersInfo =>
       Intl.message('Developers', name: 'developersInfo');
-  String get termsAndConditionsInfo =>
-      Intl.message('Terms & Conditions', name: 'termsAndConditionsInfo');
-  String get privacyPolicyInfo =>
-      Intl.message('Privacy Policy', name: 'privacyPolicyInfo');
+  String get termsAndConditionsDescription =>
+      Intl.message('Read our terms and conditions', name: 'termsAndConditionsDescription');
+  String get privacyPolicyDescription =>
+      Intl.message('Read our privacy policy', name: 'privacyPolicyDescription');
 
   // Descriptions
   String get updateProfileDesc =>
@@ -471,12 +471,12 @@ class S {
           name: 'manageAddressesDesc');
   String get updateSecurityDesc =>
       Intl.message('Update your account security', name: 'updateSecurityDesc');
-  String get changeLanguageDesc =>
+  String get changeLanguageDescription =>
       Intl.message('Change app language', name: 'changeLanguageDesc');
-  String get changeThemeDesc =>
-      Intl.message('Change app theme', name: 'changeThemeDesc');
-  String get meetTeamDesc =>
-      Intl.message('Meet our development team', name: 'meetTeamDesc');
+  String get changeThemeDescription =>
+      Intl.message('Change app theme', name: 'changeThemeDescription');
+  String get meetTeamDescription =>
+      Intl.message('Meet our development team', name: 'meetTeamDescription');
   String get readTermsDesc =>
       Intl.message('Read our terms and conditions', name: 'readTermsDesc');
   String get readPrivacyDesc =>
@@ -540,8 +540,33 @@ class S {
   String get firstAdminResponse => Intl.message(
       'Admin will reply to your message soon.',
       name: 'firstAdminResponse');
-
+  String get editProfileDescription => Intl.message(
+      'Update your personal information',
+      name: 'editProfileDescription');
+  String get manageAddressDescription => Intl.message(
+      'Manage your delivery addresses',
+      name: 'customizeAddressDescription');
+  String get changePasswordDescription => Intl.message(
+      'Update your account security',
+      name: 'changePasswordDescription');
+  String get search => Intl.message('Search', name: 'search');
   String get signIn => Intl.message('Sign In', name: 'signIn');
+  String get chooseMonthandYear => Intl.message(
+      'Choose Month and Year',
+      name: 'chooseMonthandYear',
+    );
+  String get pickAvatar => Intl.message(
+      'Pick Avatar',
+      name: 'pickAvatar',
+    );
+  String get chooseFromGallery => Intl.message(
+      'Choose from Gallery',
+      name: 'chooseFromGallery',
+    );
+  String get takeAPicture => Intl.message(
+      'Take a Picture',
+      name: 'takeAPicture',
+    );
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
