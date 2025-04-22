@@ -182,8 +182,6 @@ class ProductCard extends StatelessWidget {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
-      default:
-        return Icons.devices_other;
-    }
+      }
   }
 }

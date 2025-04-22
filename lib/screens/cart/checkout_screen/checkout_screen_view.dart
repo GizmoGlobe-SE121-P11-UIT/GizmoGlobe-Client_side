@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import '../../../enums/processing/process_state_enum.dart';
+import '../../../enums/processing/dialog_name_enum.dart';
+import '../../../enums/processing/order_option_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../objects/address_related/address.dart';
 import '../../../objects/product_related/product.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
-import '../cart_screen/cart_screen_view.dart';
+import '../../user/order_screen/order_screen_view.dart';
 import '../choose_address_screen/choose_address_screen_view.dart';
+import '../../../generated/l10n.dart';
 import 'checkout_screen_cubit.dart';
 import 'checkout_screen_state.dart';
 
@@ -22,10 +25,10 @@ class CheckoutScreen extends StatefulWidget {
   });
 
   static Widget newInstance({required List<Map<Product, int>> cartItems}) =>
-    BlocProvider(
-      create: (context) => CheckoutScreenCubit(),
-      child: CheckoutScreen(cartItems: cartItems),
-    );
+      BlocProvider(
+        create: (context) => CheckoutScreenCubit(),
+        child: CheckoutScreen(cartItems: cartItems),
+      );
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreen();
@@ -53,40 +56,59 @@ class _CheckoutScreen extends State<CheckoutScreen> {
           },
           fillColor: Theme.of(context).colorScheme.surface,
         ),
-        title: const GradientText(text: 'Checkout'), // 'Thanh toán'
+        title: GradientText(text: S.of(context).checkoutTitle),
       ),
       body: BlocConsumer<CheckoutScreenCubit, CheckoutScreenState>(
         listener: (context, state) {
           if (state.processState == ProcessState.success) {
-            {
-              showDialog(
-                context: context,
-                builder: (context) =>
-                    InformationDialog(
-                      title: 'Order Placed', // 'Đặt hàng thành công'
-                      content: 'Your order has been placed successfully', // 'Đơn hàng của bạn đã được đặt thành công'
-                      onPressed: () =>
-                      {
-                        Navigator.pop(context),
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CartScreen.newInstance(),
-                          ),
-                        ),
-                      },
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => InformationDialog(
+                title: S.of(context).orderPlaced,
+                content: S.of(context).orderPlacedSuccess,
+                dialogName: DialogName.success,
+                buttonText: S.of(context).viewOrder,
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderScreen.newInstance(
+                        orderOption: OrderOption.toShip,
+                      ),
                     ),
-              );
+                    (route) => false,
+                  );
+                },
+              ),
+            );
+          } else if (state.processState == ProcessState.failure) {
+            String errorMessage = S.of(context).errorCheckout;
+
+            if (state.error != null &&
+                (state.error!.toLowerCase().contains('payment failed') ||
+                    state.error!.toLowerCase().contains('stripe'))) {
+              errorMessage = S.of(context).paymentCancelled;
             }
+
+            showDialog(
+              context: context,
+              builder: (context) => InformationDialog(
+                title: S.of(context).paymentStatus,
+                content: errorMessage,
+                dialogName: DialogName.failure,
+                buttonText: S.of(context).tryAgain,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            );
           }
         },
         builder: (context, state) {
           if (state.processState == ProcessState.loading) {
             return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state.processState == ProcessState.failure) {
-            return Center(child: Text(state.error ?? 'Error loading checkout')); // 'Lỗi khi tải trang thanh toán'
           }
 
           return Column(
@@ -138,21 +160,25 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                 const SizedBox(height: 4),
                                 if (product.discount > 0) ...[
                                   Text(
-                                    '\$${(product.price*detail.quantity).toStringAsFixed(2)}',
+                                    '\$${(product.price * detail.quantity).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       decoration: TextDecoration.lineThrough,
-                                      color: Colors.grey[400],
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.6),
                                       fontSize: 14,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                 ],
                                 Text(
-                                  '\$${(detail.sellingPrice*detail.quantity).toStringAsFixed(2)}',
+                                  '\$${(detail.sellingPrice * detail.quantity).toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue[200],
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ],
@@ -188,15 +214,18 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Shipping Address', // 'Địa chỉ giao hàng'
+                      Text(
+                        S.of(context).shippingAddress,
                         style: AppTextStyle.boldText,
                       ),
                       GestureDetector(
                         onTap: () async {
                           Address address = await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ChooseAddressScreen.newInstance(address: state.salesInvoice!.address!)),
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ChooseAddressScreen.newInstance(
+                                        address: state.salesInvoice!.address!)),
                           );
 
                           if (address != Address.nullAddress) {
@@ -214,18 +243,21 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                state.salesInvoice?.address == Address.nullAddress ?
-                                const Center(
-                                  child: Text(
-                                    'Choose Address', // 'Chọn địa chỉ'
-                                    style: AppTextStyle.regularText,
-                                  ),
-                                ) :
-                                Text(
-                                  state.salesInvoice!.address!.firstLine(),
-                                  style: AppTextStyle.boldText,
-                                ),
-                                if (state.salesInvoice?.address != Address.nullAddress)
+                                state.salesInvoice?.address ==
+                                        Address.nullAddress
+                                    ? Center(
+                                        child: Text(
+                                          S.of(context).chooseAddress,
+                                          style: AppTextStyle.regularText,
+                                        ),
+                                      )
+                                    : Text(
+                                        state.salesInvoice!.address!
+                                            .firstLine(),
+                                        style: AppTextStyle.boldText,
+                                      ),
+                                if (state.salesInvoice?.address !=
+                                    Address.nullAddress)
                                   Text(
                                     state.salesInvoice!.address!.secondLine(),
                                     style: AppTextStyle.regularText,
@@ -258,31 +290,37 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
-                          children: [
-                            GradientText(text: 'Total cost'), // 'Tổng tiền'
-                          ],
+                        Text(
+                          S.of(context).totalCost,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
+                        const Spacer(),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            if (state.salesInvoice!.hasDiscount()) ...[
+                            if (state.salesInvoice != null &&
+                                state.salesInvoice!.getTotalBasedPrice() >
+                                    state.salesInvoice!.totalPrice)
                               Text(
-                                '\$${state.salesInvoice?.getTotalBasedPrice().toStringAsFixed(2)}',
+                                '\$${state.salesInvoice!.getTotalBasedPrice().toStringAsFixed(2)}',
                                 style: TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.grey[400],
                                   fontSize: 16,
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                            ],
                             Text(
                               '\$${state.salesInvoice?.totalPrice.toStringAsFixed(2)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ],
@@ -294,8 +332,11 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () async {
-                          if (state.salesInvoice?.address == Address.nullAddress) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please choose an address'))); // 'Vui lòng chọn địa chỉ'
+                          if (state.salesInvoice?.address ==
+                              Address.nullAddress) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content:
+                                    Text(S.of(context).addShippingAddress)));
                             return;
                           }
                           await cubit.checkout();
@@ -307,9 +348,9 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Place Order', // 'Đặt hàng'
-                          style: TextStyle(
+                        child: Text(
+                          S.of(context).placeOrder,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -341,8 +382,6 @@ class _CheckoutScreen extends State<CheckoutScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
-      default:
-        return Icons.devices_other;
     }
   }
 }

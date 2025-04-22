@@ -1,6 +1,8 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 
+import '../../generated/l10n.dart';
+
 class GradientDropdown<T> extends StatelessWidget {
   final List<T> Function(String filter, dynamic infiniteScrollProps) items;
   final bool Function(T? d1, T? d2) compareFn;
@@ -9,6 +11,7 @@ class GradientDropdown<T> extends StatelessWidget {
   final T? selectedItem;
   final String hintText;
   final double fontSize;
+  final Widget Function(BuildContext context, T? selectedItem)? dropdownBuilder;
 
   const GradientDropdown({
     super.key,
@@ -19,6 +22,7 @@ class GradientDropdown<T> extends StatelessWidget {
     required this.selectedItem,
     this.hintText = '',
     this.fontSize = 16,
+    this.dropdownBuilder,
   });
 
   @override
@@ -32,7 +36,10 @@ class GradientDropdown<T> extends StatelessWidget {
           color: Colors.transparent,
         ),
         gradient: LinearGradient(
-          colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.secondary
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -46,7 +53,7 @@ class GradientDropdown<T> extends StatelessWidget {
           items: items,
           compareFn: compareFn,
           itemAsString: itemAsString,
-          dropdownBuilder: (context, selectedItem) => _customDropdownBuilder(context, selectedItem?.toString() ?? ''),
+          dropdownBuilder: dropdownBuilder ?? _defaultDropdownBuilder,
           suffixProps: DropdownSuffixProps(
             dropdownButtonProps: DropdownButtonProps(
               iconClosed: const Icon(Icons.keyboard_arrow_down),
@@ -65,7 +72,7 @@ class GradientDropdown<T> extends StatelessWidget {
                   ),
                 ),
                 filled: false,
-                hintText: 'Search',
+                hintText: S.of(context).search,
                 hintStyle: const TextStyle(color: Colors.grey),
               ),
             ),
@@ -91,13 +98,13 @@ class GradientDropdown<T> extends StatelessWidget {
     );
   }
 
-  Widget _customDropdownBuilder(BuildContext context, String text) {
+  Widget _defaultDropdownBuilder(BuildContext context, T? item) {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.transparent,
       ),
       child: Text(
-        text,
+        item != null ? itemAsString(item) : hintText,
         style: TextStyle(
           color: Theme.of(context).colorScheme.onSurface,
           fontFamily: 'Montserrat',

@@ -56,7 +56,7 @@ class Ward {
   );
 
   @override
-  String toString() {
-    return fullNameEn;
+  String toString({bool isEnglish = true}) {
+    return isEnglish ? fullNameEn : fullName;
   }
 }

@@ -27,23 +27,23 @@ class Address {
   });
 
   @override
-  String toString() {
+  String toString({bool? isEnglish}) {
     return '$receiverName - $receiverPhone'
         '${street != null && street!.isNotEmpty ? ', $street' : ''}'
-        '${ward != null &&  ward!.fullNameEn.isNotEmpty ? ', ${ward!.fullNameEn}' : ''}'
-        '${district != null && district!.fullNameEn.isNotEmpty ? ', ${district!.fullNameEn}' : ''}'
-        '${province != null && province!.fullNameEn.isNotEmpty ? ', ${province!.fullNameEn}' : ''}';
+        '${ward != null && ward!.fullNameEn.isNotEmpty ? ', ${isEnglish == true ? ward!.fullNameEn : ward!.fullName}' : ''}'
+        '${district != null && district!.fullNameEn.isNotEmpty ? ', ${isEnglish == true ? district!.fullNameEn : district!.fullName}' : ''}'
+        '${province != null && province!.fullNameEn.isNotEmpty ? ', ${isEnglish == true ? province!.fullNameEn : province!.fullName}' : ''}';
   }
 
   String firstLine() {
     return '$receiverName - $receiverPhone';
   }
 
-  String secondLine() {
+  String secondLine({bool? isEnglish}) {
     return '${street != null && street!.isNotEmpty ? '$street, ' : ''}'
-        '${ward != null && ward!.fullNameEn.isNotEmpty ? '${ward!.fullNameEn}, ' : ''}'
-        '${district != null && district!.fullNameEn.isNotEmpty ? '${district!.fullNameEn}, ' : ''}'
-        '${province != null && province!.fullNameEn.isNotEmpty ? province!.fullNameEn : ''}';
+        '${ward != null && ward!.fullNameEn.isNotEmpty ? '${isEnglish == true ? ward!.fullNameEn : ward!.fullName}, ' : ''}'
+        '${district != null && district!.fullNameEn.isNotEmpty ? '${isEnglish == true ? district!.fullNameEn : district!.fullName}, ' : ''}'
+        '${province != null && province!.fullNameEn.isNotEmpty ? (isEnglish == true ? province!.fullNameEn : province!.fullName) : ''}';
   }
 
   static Address nullAddress = Address(
@@ -67,9 +67,16 @@ class Address {
   }
 
   static Address fromMap(Map<String, dynamic> map) {
-    final province = Database().provinceList.firstWhere((p) => p.code == map['provinceCode'], orElse: () => Province.nullProvince);
-    final district = province.districts?.firstWhere((d) => d.code == map['districtCode'], orElse: () => District.nullDistrict) ?? District.nullDistrict;
-    final ward = district.wards?.firstWhere((w) => w.code == map['wardCode'], orElse: () => Ward.nullWard) ?? Ward.nullWard;
+    final province = Database().provinceList.firstWhere(
+        (p) => p.code == map['provinceCode'],
+        orElse: () => Province.nullProvince);
+    final district = province.districts?.firstWhere(
+            (d) => d.code == map['districtCode'],
+            orElse: () => District.nullDistrict) ??
+        District.nullDistrict;
+    final ward = district.wards?.firstWhere((w) => w.code == map['wardCode'],
+            orElse: () => Ward.nullWard) ??
+        Ward.nullWard;
 
     return Address(
       addressID: map['addressID'],

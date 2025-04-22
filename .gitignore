@@ -76,7 +76,9 @@ android/local.properties
 .android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
+**/android/google-services.json
 *.jks
+**/android/app/.cxx
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
@@ -140,5 +142,5 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock
 !.vscode/settings.json
 android/local.properties
-android/local.properties
+.env
 android/app/google-services.json

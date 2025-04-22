@@ -51,9 +51,11 @@ class Province {
       administrativeUnitFullName: json['AdministrativeUnitFullName'],
       administrativeUnitShortNameEn: json['AdministrativeUnitShortNameEn'],
       administrativeUnitFullNameEn: json['AdministrativeUnitFullNameEn'],
-      districts: json['District'] == null ? <District>[] : (json['District'] as List<dynamic>)
-          .map((d) => District.fromJson(d))
-          .toList(),
+      districts: json['District'] == null
+          ? <District>[]
+          : (json['District'] as List<dynamic>)
+              .map((d) => District.fromJson(d))
+              .toList(),
     );
   }
 
@@ -76,7 +78,7 @@ class Province {
   );
 
   @override
-  String toString() {
-    return fullNameEn;
+  String toString({bool isEnglish = true}) {
+    return isEnglish ? fullNameEn : fullName;
   }
 }

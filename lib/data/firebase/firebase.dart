@@ -55,7 +55,7 @@ Future<void> pushProductSamplesToFirebase() async {
 
       // Thêm các thuộc tính đặc thù cho từng loại sản phẩm
       switch (product.runtimeType) {
-        case RAM _:
+        case const (RAM):
           final ram = product as RAM;
           productData.addAll({
             'bus': ram.bus.getName(),
@@ -64,7 +64,7 @@ Future<void> pushProductSamplesToFirebase() async {
           });
           break;
 
-        case CPU _:
+        case const (CPU):
           final cpu = product as CPU;
           productData.addAll({
             'family': cpu.family.getName(),
@@ -74,7 +74,7 @@ Future<void> pushProductSamplesToFirebase() async {
           });
           break;
 
-        case GPU _:
+        case const (GPU):
           final gpu = product as GPU;
           productData.addAll({
             'series': gpu.series.getName(),
@@ -84,7 +84,7 @@ Future<void> pushProductSamplesToFirebase() async {
           });
           break;
 
-        case Mainboard _:
+        case const (Mainboard):
           final mainboard = product as Mainboard;
           productData.addAll({
             'formFactor': mainboard.formFactor.getName(),
@@ -93,7 +93,7 @@ Future<void> pushProductSamplesToFirebase() async {
           });
           break;
 
-        case Drive _:
+        case const (Drive):
           final drive = product as Drive;
           productData.addAll({
             'type': drive.type.getName(),
@@ -101,7 +101,7 @@ Future<void> pushProductSamplesToFirebase() async {
           });
           break;
 
-        case PSU _:
+        case const (PSU):
           final psu = product as PSU;
           productData.addAll({
             'wattage': psu.wattage,
@@ -118,7 +118,6 @@ Future<void> pushProductSamplesToFirebase() async {
     if (kDebugMode) {
       print('Error pushing product samples to Firebase: $e');
     }
-    // print('Lỗi khi đẩy sản phẩm mẫu lên Firebase: $e');
   }
 }
 
@@ -142,18 +141,15 @@ class Firebase {
           if (kDebugMode) {
             print('Final attempt failed: $e');
           }
-          // print('Thất bại ở lần thử cuối: $e');
           rethrow;
         }
         if (kDebugMode) {
           print('Attempt $attempts failed, retrying in ${retryDelayMs}ms...');
         }
-        // print('Lần thử thứ $attempts thất bại, thử lại sau ${retryDelayMs}ms...');
         await Future.delayed(Duration(milliseconds: retryDelayMs * attempts));
       }
     }
     throw Exception('Retry operation failed after $maxRetries attempts');
-    // throw Exception('Thao tác thử lại thất bại sau $maxRetries lần thử');
   }
 
   factory Firebase() {
@@ -172,8 +168,6 @@ class Firebase {
         if (kDebugMode) {
           print('Adding to cart - UserID: $customerID, ProductID: $productID, Quantity: $quantity');
         }
-        // print('Thêm vào giỏ hàng - UserID: $customerID, ProductID: $productID, Số lượng: $quantity');
-
         // Check if user document exists
         final userDoc = await _firestore.collection('customers').doc(customerID).get();
         if (!userDoc.exists) {
@@ -188,9 +182,7 @@ class Firebase {
           if (kDebugMode) {
             print('Product not found: $productID');
           }
-          // print('Không tìm thấy sản phẩm: $productID');
           throw Exception('Product not found');
-          // throw Exception('Không tìm thấy sản phẩm');
         }
 
         final productData = productDoc.data()!;
@@ -210,14 +202,12 @@ class Firebase {
         if (kDebugMode) {
           print('Cart document exists: ${cartDoc.exists}');
         }
-        // print('Tồn tại sản phẩm trong giỏ hàng: ${cartDoc.exists}');
 
         if (!cartDoc.exists) {
           final subtotal = (discountedPrice * quantity).toStringAsFixed(2);
           if (kDebugMode) {
             print('Creating new cart item with subtotal: $subtotal');
           }
-          // print('Tạo mới sản phẩm trong giỏ hàng với tổng giá: $subtotal');
 
           await cartRef.set({
             'quantity': quantity,
@@ -232,20 +222,10 @@ class Firebase {
 
           if (kDebugMode) {
             print('Updating existing cart item:');
-          }
-          // print('Cập nhật sản phẩm trong giỏ hàng:');
-          if (kDebugMode) {
             print('Current quantity: $currentQuantity');
-          }
-          // print('Số lượng hiện tại: $currentQuantity');
-          if (kDebugMode) {
             print('New quantity: $newQuantity');
-          }
-          // print('Số lượng mới: $newQuantity');
-          if (kDebugMode) {
             print('New subtotal: $subtotal');
           }
-          // print('Tổng giá mới: $subtotal');
 
           await cartRef.update({
             'quantity': newQuantity,
@@ -259,7 +239,6 @@ class Firebase {
         if (kDebugMode) {
           print('Verification - Cart item data:');
         }
-        // print('Xác minh - Dữ liệu sản phẩm trong giỏ hàng:');
         if (kDebugMode) {
           print(verifyDoc.data());
         }
@@ -268,7 +247,6 @@ class Firebase {
         if (kDebugMode) {
           print('Error in addToCart operation: $e');
         }
-        // print('Lỗi trong thao tác thêm vào giỏ hàng: $e');
         rethrow;
       }
     });
@@ -280,7 +258,6 @@ class Firebase {
         if (kDebugMode) {
           print('Updating quantity - UserID: $customerID, ProductID: $productID, New Quantity: $newQuantity');
         }
-        // print('Cập nhật số lượng - UserID: $customerID, ProductID: $productID, Số lượng mới: $newQuantity');
         if (newQuantity <= 0) {
           await removeFromCart(customerID, productID);
           return;
@@ -291,9 +268,7 @@ class Firebase {
           if (kDebugMode) {
             print('Product not found: $productID');
           }
-          // print('Không tìm thấy sản phẩm: $productID');
           throw Exception('Product not found');
-          // throw Exception('Không tìm thấy sản phẩm');
         }
 
         final productData = productDoc.data()!;
@@ -310,17 +285,10 @@ class Firebase {
 
         if (kDebugMode) {
           print('Updating cart with:');
-        }
-        // print('Cập nhật giỏ hàng với:');
-        if (kDebugMode) {
           print('New quantity: $newQuantity');
-        }
-        // print('Số lượng mới: $newQuantity');
-        if (kDebugMode) {
           print('New subtotal: $subtotal');
         }
-        // print('Tổng giá mới: $subtotal');
-
+        // Update the cart item
         await cartRef.update({
           'quantity': newQuantity,
           'subtotal': double.parse(subtotal),
@@ -332,7 +300,6 @@ class Firebase {
         if (kDebugMode) {
           print('Verification - Updated cart item:');
         }
-        // print('Xác minh - Sản phẩm trong giỏ hàng đã cập nhật:');
         if (kDebugMode) {
           print(verifyDoc.data());
         }
@@ -341,7 +308,6 @@ class Firebase {
         if (kDebugMode) {
           print('Error in updateCartItemQuantity: $e');
         }
-        // print('Lỗi trong cập nhật số lượng sản phẩm trong giỏ hàng: $e');
         rethrow;
       }
     });
@@ -359,7 +325,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error removing from cart: $e');
       }
-      // print('Lỗi khi xóa sản phẩm khỏi giỏ hàng: $e');
       rethrow;
     }
   }
@@ -410,7 +375,6 @@ class Firebase {
         if (kDebugMode) {
           print('Error in getCartItems operation: $e');
         }
-        // print('Lỗi trong thao tác lấy sản phẩm trong giỏ hàng: $e');
         rethrow;
       }
     });
@@ -433,7 +397,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error clearing cart: $e');
       }
-      // print('Lỗi khi xóa giỏ hàng: $e');
       rethrow;
     }
   }
@@ -469,7 +432,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error creating new address: $e');
       }
-      // print('Lỗi khi tạo địa chỉ mới: $e');
       rethrow;
     }
   }
@@ -486,7 +448,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error updating address: $e');
       }
-      // print('Lỗi khi cập nhật địa chỉ: $e');
       rethrow;
     }
   }
@@ -507,7 +468,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error adding favorite: $e');
       }
-      // print('Lỗi khi thêm vào yêu thích: $e');
       rethrow;
     }
   }
@@ -525,7 +485,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error removing favorite: $e');
       }
-      // print('Lỗi khi xóa yêu thích: $e');
       rethrow;
     }
   }
@@ -543,7 +502,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error getting favorites: $e');
       }
-      // print('Lỗi khi lấy danh sách yêu thích: $e');
       rethrow;
     }
   }
@@ -566,7 +524,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error finding manufacturer by ID: $e');
       }
-      // print('Lỗi khi tìm nhà sản xuất theo ID: $e');
       rethrow;
     }
   }
@@ -588,7 +545,6 @@ class Firebase {
           if (kDebugMode) {
             print('Manufacturer not found for product ${doc.id}');
           }
-          // print('Không tìm thấy nhà sản xuất cho sản phẩm ${doc.id}');
           continue;
         }
 
@@ -714,7 +670,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error getting products: $e');
       }
-      // print('Lỗi khi lấy danh sách sản phẩm: $e');
       rethrow;
     }
   }
@@ -732,7 +687,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error changing product status: $e');
       }
-      // print('Lỗi khi thay đổi trạng thái sản phẩm: $e');
       rethrow;
     }
   }
@@ -752,7 +706,7 @@ class Firebase {
       };
 
       switch (product.runtimeType) {
-        case RAM _:
+        case const (RAM):
           final ram = product as RAM;
           productData.addAll({
             'bus': ram.bus.getName(),
@@ -761,7 +715,7 @@ class Firebase {
           });
           break;
 
-        case CPU _:
+        case const (CPU):
           final cpu = product as CPU;
           productData.addAll({
             'family': cpu.family.getName(),
@@ -771,7 +725,7 @@ class Firebase {
           });
           break;
 
-        case GPU _:
+        case const (GPU):
           final gpu = product as GPU;
           productData.addAll({
             'series': gpu.series.getName(),
@@ -781,7 +735,7 @@ class Firebase {
           });
           break;
 
-        case Mainboard _:
+        case const (Mainboard):
           final mainboard = product as Mainboard;
           productData.addAll({
             'formFactor': mainboard.formFactor.getName(),
@@ -790,7 +744,7 @@ class Firebase {
           });
           break;
 
-        case Drive _:
+        case const (Drive):
           final drive = product as Drive;
           productData.addAll({
             'type': drive.type.getName(),
@@ -798,7 +752,7 @@ class Firebase {
           });
           break;
 
-        case PSU _:
+        case const(PSU):
           final psu = product as PSU;
           productData.addAll({
             'wattage': psu.wattage,
@@ -819,7 +773,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error updating product: $e');
       }
-      // print('Lỗi khi cập nhật sản phẩm: $e');
       rethrow;
     }
   }
@@ -839,7 +792,7 @@ class Firebase {
       };
 
       switch (product.runtimeType) {
-        case RAM _:
+        case const (RAM):
           final ram = product as RAM;
           productData.addAll({
             'bus': ram.bus.getName(),
@@ -848,7 +801,7 @@ class Firebase {
           });
           break;
 
-        case CPU _:
+        case const (CPU):
           final cpu = product as CPU;
           productData.addAll({
             'family': cpu.family.getName(),
@@ -858,7 +811,7 @@ class Firebase {
           });
           break;
 
-        case GPU _:
+        case const (GPU):
           final gpu = product as GPU;
           productData.addAll({
             'series': gpu.series.getName(),
@@ -868,7 +821,7 @@ class Firebase {
           });
           break;
 
-        case Mainboard _:
+        case const (Mainboard):
           final mainboard = product as Mainboard;
           productData.addAll({
             'formFactor': mainboard.formFactor.getName(),
@@ -877,7 +830,7 @@ class Firebase {
           });
           break;
 
-        case Drive _:
+        case const (Drive):
           final drive = product as Drive;
           productData.addAll({
             'type': drive.type.getName(),
@@ -885,7 +838,7 @@ class Firebase {
           });
           break;
 
-        case PSU _:
+        case const (PSU):
           final psu = product as PSU;
           productData.addAll({
             'wattage': psu.wattage,
@@ -902,7 +855,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error adding product: $e');
       }
-      // print('Lỗi khi thêm sản phẩm: $e');
       rethrow;
     }
   }
@@ -935,7 +887,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error adding sales invoice: $e');
       }
-      // print('Lỗi khi thêm hóa đơn bán hàng: $e');
       rethrow;
     }
   }
@@ -980,7 +931,6 @@ class Firebase {
       if (kDebugMode) {
         print('Error getting sales invoices: $e');
       }
-      // print('Lỗi khi lấy danh sách hóa đơn bán hàng: $e');
       rethrow;
     }
   }

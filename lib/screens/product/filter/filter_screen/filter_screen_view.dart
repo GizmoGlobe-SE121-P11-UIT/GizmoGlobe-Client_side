@@ -9,6 +9,7 @@ import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_bus.dart';
 import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_capacity_enum.dart';
 import 'package:gizmoglobe_client/objects/product_related/filter_argument.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import '../../../../enums/product_related/drive_enums/drive_capacity.dart';
 import '../../../../enums/product_related/drive_enums/drive_type.dart';
 import '../../../../enums/product_related/gpu_enums/gpu_capacity.dart';
@@ -18,6 +19,7 @@ import '../../../../enums/product_related/mainboard_enums/mainboard_series.dart'
 import '../../../../enums/product_related/psu_enums/psu_efficiency.dart';
 import '../../../../enums/product_related/ram_enums/ram_type.dart';
 import '../../../../objects/manufacturer.dart';
+import '../../../../widgets/general/gradient_icon_button.dart';
 import '../manufacturer_filter/manufacturer_filter.dart';
 import '../option_filter/option_filter.dart';
 import '../range_filter/range_filter.dart';
@@ -42,11 +44,12 @@ class FilterScreen extends StatefulWidget {
     required manufacturerList,
   }) =>
       BlocProvider(
-        create: (context) => FilterScreenCubit()..initialize(
-          initialFilterValue: arguments,
-          selectedTabIndex: selectedTabIndex,
-          manufacturerList: manufacturerList,
-        ),
+        create: (context) => FilterScreenCubit()
+          ..initialize(
+            initialFilterValue: arguments,
+            selectedTabIndex: selectedTabIndex,
+            manufacturerList: manufacturerList,
+          ),
         child: FilterScreen(
           arguments: arguments,
           selectedTabIndex: selectedTabIndex,
@@ -68,14 +71,18 @@ class _FilterScreenState extends State<FilterScreen> {
   final TextEditingController maxCpuCoreController = TextEditingController();
   final TextEditingController minCpuThreadController = TextEditingController();
   final TextEditingController maxCpuThreadController = TextEditingController();
-  final TextEditingController minCpuClockSpeedController = TextEditingController();
-  final TextEditingController maxCpuClockSpeedController = TextEditingController();
+  final TextEditingController minCpuClockSpeedController =
+      TextEditingController();
+  final TextEditingController maxCpuClockSpeedController =
+      TextEditingController();
 
   final TextEditingController minPsuWattageController = TextEditingController();
   final TextEditingController maxPsuWattageController = TextEditingController();
 
-  final TextEditingController minGpuClockSpeedController = TextEditingController();
-  final TextEditingController maxGpuClockSpeedController = TextEditingController();
+  final TextEditingController minGpuClockSpeedController =
+      TextEditingController();
+  final TextEditingController maxGpuClockSpeedController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -106,21 +113,21 @@ class _FilterScreenState extends State<FilterScreen> {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+            leading: GradientIconButton(
+              icon: Icons.chevron_left,
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.pop(context);
               },
+              fillColor: Colors.transparent,
             ),
-            title: const Text('Filter', style: AppTextStyle.biggerText), //Lọc
+            title: Text(S.of(context).filter, style: AppTextStyle.biggerText),
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(
-                      state.filterArgument
-                  );
+                  Navigator.of(context).pop(state.filterArgument);
                 },
-                child: const Text('OK', style: TextStyle(color: Colors.white)),
+                child: Text(S.of(context).ok,
+                    style: const TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -136,7 +143,7 @@ class _FilterScreenState extends State<FilterScreen> {
                 ),
                 const SizedBox(height: 16.0),
                 RangeFilter(
-                  name: 'Price', //Giá
+                  name: S.of(context).price,
                   fromController: minPriceController,
                   toController: maxPriceController,
                   onFromValueChanged: (value) {
@@ -151,6 +158,8 @@ class _FilterScreenState extends State<FilterScreen> {
                   },
                   fromValue: state.filterArgument.minPrice,
                   toValue: state.filterArgument.maxPrice,
+                  fromHint: S.of(context).enterMinPrice,
+                  toHint: S.of(context).enterMaxPrice,
                 ),
                 const SizedBox(height: 16.0),
                 _buildTabSpecificUI(state, cubit),
@@ -188,11 +197,13 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Category', //Thể loại
+          name: S.of(context).category,
           enumValues: CategoryEnum.values,
-          selectedValues: List<CategoryEnum>.from(state.filterArgument.categoryList),
+          selectedValues:
+              List<CategoryEnum>.from(state.filterArgument.categoryList),
           onToggleSelection: (category) {
-            final selected = List<CategoryEnum>.from(state.filterArgument.categoryList);
+            final selected =
+                List<CategoryEnum>.from(state.filterArgument.categoryList);
 
             if (selected.contains(category)) {
               selected.remove(category);
@@ -214,7 +225,7 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Bus',
+          name: S.of(context).bus,
           enumValues: RAMBus.values,
           selectedValues: List<RAMBus>.from(state.filterArgument.ramBusList),
           onToggleSelection: (bus) {
@@ -232,13 +243,14 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         OptionFilter(
-          name: 'Capacity', //Dung lượng
+          name: S.of(context).capacity,
           enumValues: RAMCapacity.values,
-          selectedValues: List<RAMCapacity>.from(state.filterArgument.ramCapacityList),
+          selectedValues:
+              List<RAMCapacity>.from(state.filterArgument.ramCapacityList),
           onToggleSelection: (capacity) {
-            final selected = List<RAMCapacity>.from(state.filterArgument.ramCapacityList);
+            final selected =
+                List<RAMCapacity>.from(state.filterArgument.ramCapacityList);
 
             if (selected.contains(capacity)) {
               selected.remove(capacity);
@@ -252,13 +264,13 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         OptionFilter(
-          name: 'Type', //Loại
+          name: S.of(context).type,
           enumValues: RAMType.values,
           selectedValues: List<RAMType>.from(state.filterArgument.ramTypeList),
           onToggleSelection: (type) {
-            final selected = List<RAMType>.from(state.filterArgument.ramTypeList);
+            final selected =
+                List<RAMType>.from(state.filterArgument.ramTypeList);
 
             if (selected.contains(type)) {
               selected.remove(type);
@@ -280,11 +292,13 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Family', //Loại
+          name: S.of(context).family,
           enumValues: CPUFamily.values,
-          selectedValues: List<CPUFamily>.from(state.filterArgument.cpuFamilyList),
+          selectedValues:
+              List<CPUFamily>.from(state.filterArgument.cpuFamilyList),
           onToggleSelection: (family) {
-            final selected = List<CPUFamily>.from(state.filterArgument.cpuFamilyList);
+            final selected =
+                List<CPUFamily>.from(state.filterArgument.cpuFamilyList);
 
             if (selected.contains(family)) {
               selected.remove(family);
@@ -298,9 +312,8 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         RangeFilter(
-          name: 'CPU Core', //Nhân
+          name: S.of(context).cpuCore,
           fromController: minCpuCoreController,
           toController: maxCpuCoreController,
           onFromValueChanged: (value) {
@@ -317,9 +330,8 @@ class _FilterScreenState extends State<FilterScreen> {
           toValue: state.filterArgument.maxCpuCore,
         ),
         const SizedBox(height: 16.0),
-
         RangeFilter(
-          name: 'CPU Thread', //Luồng
+          name: S.of(context).cpuThread,
           fromController: minCpuThreadController,
           toController: maxCpuThreadController,
           onFromValueChanged: (value) {
@@ -336,9 +348,8 @@ class _FilterScreenState extends State<FilterScreen> {
           toValue: state.filterArgument.maxCpuThread,
         ),
         const SizedBox(height: 16.0),
-
         RangeFilter(
-          name: 'CPU Clock Speed', //Xung nhịp
+          name: S.of(context).cpuClockSpeed,
           fromController: minCpuClockSpeedController,
           toController: maxCpuClockSpeedController,
           onFromValueChanged: (value) {
@@ -363,11 +374,13 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Modular', //Loại Module
+          name: S.of(context).modular,
           enumValues: PSUModular.values,
-          selectedValues: List<PSUModular>.from(state.filterArgument.psuModularList),
+          selectedValues:
+              List<PSUModular>.from(state.filterArgument.psuModularList),
           onToggleSelection: (modular) {
-            final selected = List<PSUModular>.from(state.filterArgument.psuModularList);
+            final selected =
+                List<PSUModular>.from(state.filterArgument.psuModularList);
 
             if (selected.contains(modular)) {
               selected.remove(modular);
@@ -381,13 +394,14 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         OptionFilter(
-          name: 'Efficiency', //Chuẩn hiệu suất
+          name: S.of(context).efficiency,
           enumValues: PSUEfficiency.values,
-          selectedValues: List<PSUEfficiency>.from(state.filterArgument.psuEfficiencyList),
+          selectedValues:
+              List<PSUEfficiency>.from(state.filterArgument.psuEfficiencyList),
           onToggleSelection: (efficiency) {
-            final selected = List<PSUEfficiency>.from(state.filterArgument.psuEfficiencyList);
+            final selected = List<PSUEfficiency>.from(
+                state.filterArgument.psuEfficiencyList);
 
             if (selected.contains(efficiency)) {
               selected.remove(efficiency);
@@ -401,9 +415,8 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         RangeFilter(
-          name: 'PSU Wattage', //Công suất
+          name: S.of(context).psuWattage,
           fromController: minPsuWattageController,
           toController: maxPsuWattageController,
           onFromValueChanged: (value) {
@@ -428,7 +441,7 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Bus',
+          name: S.of(context).bus,
           enumValues: GPUBus.values,
           selectedValues: List<GPUBus>.from(state.filterArgument.gpuBusList),
           onToggleSelection: (bus) {
@@ -446,13 +459,14 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         OptionFilter(
-          name: 'Capacity', //Dung lượng
+          name: S.of(context).capacity,
           enumValues: GPUCapacity.values,
-          selectedValues: List<GPUCapacity>.from(state.filterArgument.gpuCapacityList),
+          selectedValues:
+              List<GPUCapacity>.from(state.filterArgument.gpuCapacityList),
           onToggleSelection: (capacity) {
-            final selected = List<GPUCapacity>.from(state.filterArgument.gpuCapacityList);
+            final selected =
+                List<GPUCapacity>.from(state.filterArgument.gpuCapacityList);
 
             if (selected.contains(capacity)) {
               selected.remove(capacity);
@@ -466,13 +480,14 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         OptionFilter(
-          name: 'Series', //Dòng
+          name: S.of(context).series,
           enumValues: GPUSeries.values,
-          selectedValues: List<GPUSeries>.from(state.filterArgument.gpuSeriesList),
+          selectedValues:
+              List<GPUSeries>.from(state.filterArgument.gpuSeriesList),
           onToggleSelection: (series) {
-            final selected = List<GPUSeries>.from(state.filterArgument.gpuSeriesList);
+            final selected =
+                List<GPUSeries>.from(state.filterArgument.gpuSeriesList);
 
             if (selected.contains(series)) {
               selected.remove(series);
@@ -486,9 +501,8 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         RangeFilter(
-          name: 'GPU Clock Speed', //Xung nhịp
+          name: S.of(context).gpuClockSpeed,
           fromController: minGpuClockSpeedController,
           toController: maxGpuClockSpeedController,
           onFromValueChanged: (value) {
@@ -513,11 +527,13 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Type', //Loại
+          name: S.of(context).type,
           enumValues: DriveType.values,
-          selectedValues: List<DriveType>.from(state.filterArgument.driveTypeList),
+          selectedValues:
+              List<DriveType>.from(state.filterArgument.driveTypeList),
           onToggleSelection: (type) {
-            final selected = List<DriveType>.from(state.filterArgument.driveTypeList);
+            final selected =
+                List<DriveType>.from(state.filterArgument.driveTypeList);
 
             if (selected.contains(type)) {
               selected.remove(type);
@@ -531,13 +547,14 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         OptionFilter(
-          name: 'Capacity', //Dung lượng
+          name: S.of(context).capacity,
           enumValues: DriveCapacity.values,
-          selectedValues: List<DriveCapacity>.from(state.filterArgument.driveCapacityList),
+          selectedValues:
+              List<DriveCapacity>.from(state.filterArgument.driveCapacityList),
           onToggleSelection: (capacity) {
-            final selected = List<DriveCapacity>.from(state.filterArgument.driveCapacityList);
+            final selected = List<DriveCapacity>.from(
+                state.filterArgument.driveCapacityList);
 
             if (selected.contains(capacity)) {
               selected.remove(capacity);
@@ -554,16 +571,19 @@ class _FilterScreenState extends State<FilterScreen> {
     );
   }
 
-  Widget _buildMainboardFilterUI(FilterScreenState state, FilterScreenCubit cubit) {
+  Widget _buildMainboardFilterUI(
+      FilterScreenState state, FilterScreenCubit cubit) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Form Factor', //Loại kích cỡ
+          name: S.of(context).formFactor,
           enumValues: MainboardFormFactor.values,
-          selectedValues: List<MainboardFormFactor>.from(state.filterArgument.mainboardFormFactorList),
+          selectedValues: List<MainboardFormFactor>.from(
+              state.filterArgument.mainboardFormFactorList),
           onToggleSelection: (formFactor) {
-            final selected = List<MainboardFormFactor>.from(state.filterArgument.mainboardFormFactorList);
+            final selected = List<MainboardFormFactor>.from(
+                state.filterArgument.mainboardFormFactorList);
 
             if (selected.contains(formFactor)) {
               selected.remove(formFactor);
@@ -577,13 +597,14 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         OptionFilter(
-          name: 'Series', //Dòng
+          name: S.of(context).series,
           enumValues: MainboardSeries.values,
-          selectedValues: List<MainboardSeries>.from(state.filterArgument.mainboardSeriesList),
+          selectedValues: List<MainboardSeries>.from(
+              state.filterArgument.mainboardSeriesList),
           onToggleSelection: (series) {
-            final selected = List<MainboardSeries>.from(state.filterArgument.mainboardSeriesList);
+            final selected = List<MainboardSeries>.from(
+                state.filterArgument.mainboardSeriesList);
 
             if (selected.contains(series)) {
               selected.remove(series);
@@ -597,13 +618,14 @@ class _FilterScreenState extends State<FilterScreen> {
           },
         ),
         const SizedBox(height: 16.0),
-
         OptionFilter(
-          name: 'Compatibility', //Tính tương thích
+          name: S.of(context).compatibility,
           enumValues: MainboardCompatibility.values,
-          selectedValues: List<MainboardCompatibility>.from(state.filterArgument.mainboardCompatibilityList),
+          selectedValues: List<MainboardCompatibility>.from(
+              state.filterArgument.mainboardCompatibilityList),
           onToggleSelection: (compatibility) {
-            final selected = List<MainboardCompatibility>.from(state.filterArgument.mainboardCompatibilityList);
+            final selected = List<MainboardCompatibility>.from(
+                state.filterArgument.mainboardCompatibilityList);
 
             if (selected.contains(compatibility)) {
               selected.remove(compatibility);
@@ -612,7 +634,8 @@ class _FilterScreenState extends State<FilterScreen> {
             }
 
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(mainboardCompatibilityList: selected),
+              state.filterArgument
+                  .copyWith(mainboardCompatibilityList: selected),
             );
           },
         ),

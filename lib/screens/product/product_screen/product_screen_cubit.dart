@@ -2,8 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_state.dart';
 import '../../../enums/processing/sort_enum.dart';
-// Import các enum cần thiết cho từng loại sản phẩm
-// ... thêm các import khác
 
 class ProductScreenCubit extends Cubit<ProductScreenState> {
   ProductScreenCubit() : super(const ProductScreenState());

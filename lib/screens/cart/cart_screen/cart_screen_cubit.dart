@@ -1,5 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
 import '../../../objects/product_related/product.dart';
@@ -9,34 +11,44 @@ import '../../../enums/processing/process_state_enum.dart';
 class CartScreenCubit extends Cubit<CartScreenState> {
   final Firebase _firebase = Firebase();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   CartScreenCubit() : super(const CartScreenState()) {
     // Load cart items when cubit is created
     loadCartItems();
   }
 
+  Future<bool> _isGuestUser() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final userDoc = await _firestore.collection('users').doc(user.uid).get();
+    return userDoc.exists && (userDoc.data()?['isGuest'] ?? false);
+  }
+
   Future<void> loadCartItems() async {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
-      
+
       final user = _auth.currentUser;
       if (user == null) {
+        if (kDebugMode){
+          print('User not logged in');
+        }
         emit(state.copyWith(
-          processState: ProcessState.failure,
-          error: 'User not logged in'
-        ));
+            processState: ProcessState.failure, error: 'User not logged in'));
         return;
       }
 
       final items = await _firebase.getCartItems(user.uid);
-      
+
       // Tính subtotal cho mỗi item
       final updatedItems = items.map((item) {
         final product = item['product'] as Map<String, dynamic>;
         final quantity = (item['quantity'] as num?)?.toDouble() ?? 0;
         final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
         final discount = (product['discount'] as num?)?.toDouble() ?? 0;
-        
+
         // Tính giá sau giảm giá
         final discountedPrice = price * (1 - discount / 100);
         final subtotal = discountedPrice * quantity;
@@ -53,9 +65,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       ));
     } catch (e) {
       emit(state.copyWith(
-        processState: ProcessState.failure,
-        error: e.toString()
-      ));
+          processState: ProcessState.failure, error: e.toString()));
     }
   }
 
@@ -90,9 +100,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       // Revert the state if the update call fails
       await loadCartItems();
       emit(state.copyWith(
-          processState: ProcessState.failure,
-          error: e.toString()
-      ));
+          processState: ProcessState.failure, error: e.toString()));
     }
   }
 
@@ -105,9 +113,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       await loadCartItems();
     } catch (e) {
       emit(state.copyWith(
-        processState: ProcessState.failure,
-        error: e.toString()
-      ));
+          processState: ProcessState.failure, error: e.toString()));
     }
   }
 
@@ -125,9 +131,8 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     if (state.isAllSelected) {
       emit(state.copyWith(selectedItems: {}));
     } else {
-      final allProductIds = state.items
-          .map((item) => item['productID'] as String)
-          .toSet();
+      final allProductIds =
+          state.items.map((item) => item['productID'] as String).toSet();
       emit(state.copyWith(selectedItems: allProductIds));
     }
   }
@@ -141,9 +146,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       await loadCartItems();
     } catch (e) {
       emit(state.copyWith(
-        processState: ProcessState.failure,
-        error: e.toString()
-      ));
+          processState: ProcessState.failure, error: e.toString()));
     }
   }
 
@@ -151,20 +154,19 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     try {
       final user = _auth.currentUser;
       if (user == null) {
+        if (kDebugMode) {
+          print('User not logged in');
+        }
         emit(state.copyWith(
-          processState: ProcessState.failure,
-          error: 'User not logged in.' //Người dùng chưa đăng nhập.
-        ));
+            processState: ProcessState.failure, error: 'User not logged in.'));
         return;
       }
 
       await _firebase.addToCart(user.uid, productID, quantity);
-      await loadCartItems(); // Reload cart items to get updated data
+      await loadCartItems();
     } catch (e) {
       emit(state.copyWith(
-        processState: ProcessState.failure,
-        error: e.toString()
-      ));
+          processState: ProcessState.failure, error: e.toString()));
     }
   }
 
@@ -176,7 +178,9 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       final quantity = item['quantity'] as int;
 
       if (state.selectedItems.contains(productID)) {
-        final product = Database().productList.firstWhere((product) => product.productID == productID);
+        final product = Database()
+            .productList
+            .firstWhere((product) => product.productID == productID);
         result.add({product: quantity});
       }
     }

@@ -12,23 +12,46 @@ import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
 import 'package:gizmoglobe_client/providers/cart_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:gizmoglobe_client/providers/theme_provider.dart';
+import 'package:gizmoglobe_client/providers/language_provider.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 import 'consts.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await _setup();
   try {
     await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.android,
+      options: DefaultFirebaseOptions.currentPlatform,
     );
+
+    // Initialize Firebase App Check with debug token and retry configuration
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+      appleProvider: AppleProvider.deviceCheck,
+    );
+
+    // Configure retry behavior for App Check
+    FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true);
+
     await Database().initialize();
+    await Permission.camera.request();
+    await Permission.photos.request();
     runApp(const MyApp());
   } catch (e) {
     if (kDebugMode) {
       runApp(MaterialApp(
         home: Scaffold(
           body: Center(
-            child: Text('Error initializing Firebase: $e'), // 'Lỗi khởi tạo Firebase: $e'
+            child: Text(
+                'Error initializing Firebase: $e'), // 'Lỗi khởi tạo Firebase: $e'
           ),
         ),
       ));
@@ -36,7 +59,7 @@ void main() async {
   }
 }
 
-Future<void> _setup () async {
+Future<void> _setup() async {
   WidgetsFlutterBinding.ensureInitialized();
   Stripe.publishableKey = stripePublishableKey;
 }
@@ -46,38 +69,158 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return MultiProvider(
       providers: [
-        BlocProvider(create: (context) => MainScreenCubit()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
       ],
-      child: CartProvider(
-        child: MaterialApp(
-          title: 'GizmoGlobe', // 'GizmoGlobe - Cửa hàng linh kiện máy tính'
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            colorScheme: const ColorScheme(
-              primary: Color(0xFF6CC4F4),
-              onPrimary: Color(0xFF4A94F1),
-              secondary: Color(0xFF6465F1),
-              onSecondary: Color(0xFF292B5C),
-              primaryContainer: Color(0xFF323F73),
-              secondaryContainer: Color(0xFF608BC1),
-              surface: Color(0xFF202046),
-              onSurface: Color(0xFFF3F3E0),
-              onSurfaceVariant: Color(0xFF202046),
-              error: Colors.red,
-              onError: Colors.white,
-              brightness: Brightness.light,
+      child: Consumer2<ThemeProvider, LanguageProvider>(
+        builder: (context, themeProvider, languageProvider, child) {
+          if (kDebugMode) {
+            print('Current locale: ${languageProvider.currentLocale}');
+            print('Supported locales: ${[Locale('en'), Locale('vi')]}');
+          }
+          return BlocProvider(
+            create: (context) => MainScreenCubit(),
+            child: CartProvider(
+              child: MaterialApp(
+                title: 'GizmoGlobe',
+                themeMode: themeProvider.themeMode,
+                locale: languageProvider.currentLocale,
+                supportedLocales: const [
+                  Locale('en'),
+                  Locale('vi'),
+                ],
+                localizationsDelegates: const [
+                  S.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                localeResolutionCallback: (locale, supportedLocales) {
+                  if (kDebugMode) {
+                    print('Locale resolution callback called');
+                    print('Requested locale: $locale');
+                    print('Supported locales: $supportedLocales');
+                  }
+                  // Nếu locale không được hỗ trợ, trả về tiếng Việt
+                  if (!supportedLocales.contains(locale)) {
+                    if (kDebugMode) {
+                      print('Locale not supported, returning Vietnamese');
+                    }
+                    return const Locale('vi');
+                  }
+                  return locale;
+                },
+                builder: (context, child) {
+                  if (kDebugMode) {
+                    print('MaterialApp builder called');
+                    print(
+                        'Current locale in builder: ${Localizations.localeOf(context)}');
+                  }
+                  return Localizations.override(
+                    context: context,
+                    locale: languageProvider.currentLocale,
+                    child: child!,
+                  );
+                },
+                theme: ThemeData(
+                  primarySwatch: Colors.blue,
+                  colorScheme: ColorScheme(
+                    brightness: Brightness.light,
+                    primary: const Color(0xFF2196F3),
+                    onPrimary: Colors.white,
+                    secondary: const Color(0xFF6465F1),
+                    onSecondary: const Color(0xFF292B5C),
+                    primaryContainer: const Color(0xFF64B5F6),
+                    secondaryContainer: const Color(0xFF64B5F6),
+                    surface: Colors.white,
+                    onSurface: const Color(0xFF2C3E50),
+                    onSurfaceVariant: const Color(0xFF455A64),
+                    error: Colors.red[400]!,
+                    onError: Colors.white,
+                  ),
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      backgroundColor: const Color(0xFF2196F3),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  scaffoldBackgroundColor: Colors.white,
+                  appBarTheme: const AppBarTheme(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Color(0xFF2C3E50),
+                    elevation: 0,
+                  ),
+                  textTheme: const TextTheme(
+                    bodyLarge: TextStyle(color: Color(0xFF2C3E50)),
+                    bodyMedium: TextStyle(color: Color(0xFF2C3E50)),
+                    titleLarge: TextStyle(color: Color(0xFF2C3E50)),
+                    titleMedium: TextStyle(color: Color(0xFF2C3E50)),
+                  ),
+                ),
+                darkTheme: ThemeData(
+                  primarySwatch: Colors.blue,
+                  colorScheme: const ColorScheme(
+                    brightness: Brightness.dark,
+                    primary: Color(0xFF2196F3),
+                    onPrimary: Colors.white,
+                    secondary: Color(0xFF6465F1),
+                    onSecondary: Color(0xFF292B5C),
+                    primaryContainer: Color(0xFF323F73),
+                    secondaryContainer: Color(0xFF608BC1),
+                    surface: Color(0xFF202046),
+                    onSurface: Colors.white,
+                    onSurfaceVariant: Colors.white70,
+                    error: Colors.red,
+                    onError: Colors.white,
+                  ),
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      backgroundColor: const Color(0xFF2196F3),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  scaffoldBackgroundColor: const Color(0xFF202046),
+                  appBarTheme: const AppBarTheme(
+                    backgroundColor: Color(0xFF202046),
+                    foregroundColor: Color(0xFFF3F3E0),
+                    elevation: 0,
+                  ),
+                  navigationBarTheme: NavigationBarThemeData(
+                    backgroundColor: const Color(0xFF323F73),
+                    indicatorColor: const Color(0xFF2196F3).withOpacity(0.3),
+                    labelTextStyle: WidgetStateProperty.all(
+                      const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ),
+                  textTheme: const TextTheme(
+                    bodyLarge: TextStyle(color: Color(0xFFF3F3E0)),
+                    bodyMedium: TextStyle(color: Color(0xFFF3F3E0)),
+                    titleLarge: TextStyle(color: Color(0xFFF3F3E0)),
+                    titleMedium: TextStyle(color: Color(0xFFF3F3E0)),
+                  ),
+                ),
+                routes: {
+                  '/sign-in': (context) => SignInScreen.newInstance(),
+                  '/sign-up': (context) => SignUpScreen.newInstance(),
+                  '/forget-password': (context) =>
+                      ForgetPasswordScreen.newInstance(),
+                  '/main': (context) => const MainScreen(),
+                },
+                home: const AuthWrapper(),
+              ),
             ),
-          ),
-          routes: {
-            '/sign-in': (context) => SignInScreen.newInstance(),
-            '/sign-up': (context) => SignUpScreen.newInstance(),
-            '/forget-password': (context) => ForgetPasswordScreen.newInstance(),
-            '/main': (context) => const MainScreen(),
-          },
-          home: const AuthWrapper(),
-        ),
+          );
+        },
       ),
     );
   }
@@ -92,11 +235,22 @@ class AuthWrapper extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator()); // 'Đang tải...'
+          return const Center(child: CircularProgressIndicator());
         }
+
+        // Get the current route name
+        final currentRoute = ModalRoute.of(context)?.settings.name;
+
+        // If we're on the sign-up screen, don't redirect
+        if (currentRoute == '/sign-up') {
+          return SignUpScreen.newInstance();
+        }
+
         if (snapshot.hasData) {
           return const MainScreen();
         }
+
+        // For all other cases, show sign in screen
         return SignInScreen.newInstance();
       },
     );

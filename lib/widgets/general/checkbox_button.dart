@@ -26,13 +26,14 @@ class CheckboxButton extends StatelessWidget {
       child: Container(
         padding: padding,
         decoration: BoxDecoration(
-          gradient: isSelected ? 
-            LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
-              ],
-            ) : null,
+          gradient: isSelected
+              ? LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.secondary,
+                  ],
+                )
+              : null,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? Colors.transparent : Colors.grey[400]!,
@@ -41,7 +42,9 @@ class CheckboxButton extends StatelessWidget {
         child: Text(
           text,
           style: textStyle.copyWith(
-            color: isSelected ? Colors.white : Colors.grey[600],
+            color: isSelected
+                ? Theme.of(context).colorScheme.onSurface
+                : Colors.grey[600],
           ),
         ),
       ),

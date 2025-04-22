@@ -68,7 +68,6 @@ abstract class TabCubit extends Cubit<TabState> {
     if (kDebugMode) {
       print('Apply filter');
     }
-    // print('Áp dụng bộ lọc');
     final filteredProducts = state.productList.where((product) {
       if (!product.productName.toLowerCase().contains(state.searchText.toLowerCase())) {
         return false;
@@ -200,9 +199,7 @@ abstract class TabCubit extends Cubit<TabState> {
         return filterArgument.psuModularList.contains(product.modular) &&
             filterArgument.psuEfficiencyList.contains(product.efficiency) &&
             matchesPsuWattage;
-      default:
-        return false;
-    }
+      }
   }
 }
 

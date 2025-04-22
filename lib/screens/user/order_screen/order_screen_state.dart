@@ -3,7 +3,6 @@ import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
 import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
 
-
 class OrderScreenState extends Equatable {
   final OrderOption orderOption;
   final List<SalesInvoice> toShipList;

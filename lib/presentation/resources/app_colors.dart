@@ -45,5 +45,4 @@ class AppColors {
 
   static Color expenseColor = Colors.red.shade600;
   static Color incomeColor = const Color(0xFF1bf176);
-
 }

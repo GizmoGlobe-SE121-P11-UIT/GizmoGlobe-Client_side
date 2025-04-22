@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
@@ -47,7 +48,10 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       result = await StripeServices.instance.makePayment(state.salesInvoice!.totalPrice);
 
       if (result == null) {
-        emit(state.copyWith(processState: ProcessState.failure, error: 'Payment failed')); //Thanh toán thất bại
+        if (kDebugMode) {
+          print('Payment failed');
+        }
+        emit(state.copyWith(processState: ProcessState.failure, error: 'Payment failed'));
         return;
       }
 

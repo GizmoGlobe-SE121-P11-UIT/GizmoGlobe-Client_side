@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_button.dart';
 import 'package:intl/intl.dart';
 
+import '../../generated/l10n.dart';
+
 
 class MonthPicker extends StatefulWidget {
   final DateTime selectedDate;
@@ -98,8 +100,8 @@ class _MonthPickerState extends State<MonthPicker> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text(
-                  'Choose month and year', //Chọn tháng - năm
+              title: Text(
+                  S.of(context).chooseMonthandYear, //Chọn tháng - năm
                   style: TextStyle(
                     fontSize: 24.0,
                     fontWeight: FontWeight.bold,
@@ -172,7 +174,7 @@ class _MonthPickerState extends State<MonthPicker> {
               ),
               actions: <Widget>[
                 GradientButton(
-                  text: 'OK',
+                  text: S.of(context).ok,
                   onPress: () {
                     Navigator.of(context).pop(tempPickedDate);
                   },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
@@ -15,9 +16,9 @@ class EditAddressScreen extends StatefulWidget {
   const EditAddressScreen({super.key, required this.address});
 
   static Widget newInstance(Address address) => BlocProvider(
-    create: (context) => EditAddressScreenCubit(),
-    child: EditAddressScreen(address: address),
-  );
+        create: (context) => EditAddressScreenCubit(),
+        child: EditAddressScreen(address: address),
+      );
 
   @override
   State<EditAddressScreen> createState() => _EditAddressScreen();
@@ -27,7 +28,8 @@ class _EditAddressScreen extends State<EditAddressScreen> {
   EditAddressScreenCubit get cubit => context.read<EditAddressScreenCubit>();
 
   final TextEditingController _receiverNameController = TextEditingController();
-  final TextEditingController _receiverPhoneController = TextEditingController();
+  final TextEditingController _receiverPhoneController =
+      TextEditingController();
   final TextEditingController _streetController = TextEditingController();
 
   @override
@@ -62,7 +64,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
             },
             fillColor: Colors.transparent,
           ),
-          title: const GradientText(text: 'Edit Address'), // 'Chỉnh sửa địa chỉ'
+          title: GradientText(text: S.of(context).editAddress),
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -74,20 +76,25 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                     children: [
                       FieldWithIcon(
                         controller: _receiverNameController,
-                        hintText: 'Receiver Name', // 'Tên người nhận'
+                        hintText: S.of(context).receiverName,
                         onChanged: (value) {
                           cubit.updateAddress(receiverName: value);
                         },
                         fillColor: Theme.of(context).colorScheme.surface,
+                        textColor: Theme.of(context).colorScheme.onSurface,
+                        hintTextColor: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5),
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z\s]')),
                         ],
                       ),
                       const SizedBox(height: 8),
-
                       FieldWithIcon(
                         controller: _receiverPhoneController,
-                        hintText: 'Receiver Phone', // 'Số điện thoại người nhận'
+                        hintText: S.of(context).receiverPhone,
                         onChanged: (value) {
                           cubit.updateAddress(receiverPhone: value);
                         },
@@ -96,9 +103,13 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         ],
                         keyboardType: TextInputType.phone,
                         fillColor: Theme.of(context).colorScheme.surface,
+                        textColor: Theme.of(context).colorScheme.onSurface,
+                        hintTextColor: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5),
                       ),
                       const SizedBox(height: 8),
-
                       AddressPicker(
                         provinceSelected: widget.address.province,
                         districtSelected: widget.address.district,
@@ -113,16 +124,21 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         },
                       ),
                       const SizedBox(height: 8),
-
                       FieldWithIcon(
                         controller: _streetController,
-                        hintText: 'Street name, building, house no.', // 'Tên đường, tòa nhà, số nhà'
+                        hintText: S.of(context).streetAddress,
                         onChanged: (value) {
                           cubit.updateAddress(street: value);
                         },
                         fillColor: Theme.of(context).colorScheme.surface,
+                        textColor: Theme.of(context).colorScheme.onSurface,
+                        hintTextColor: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5),
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s,-]')),
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z0-9\s,\-\./]')),
                         ],
                       ),
                     ],
@@ -138,8 +154,13 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         cubit.getAddresses(),
                       );
                     },
-                    child: Text('Save', // 'Lưu'
-                      style: AppTextStyle.buttonTextBold.copyWith(color: Theme.of(context).colorScheme.onSurface),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    child: Text(
+                      S.of(context).save,
+                      style: AppTextStyle.buttonTextBold,
                     ),
                   ),
                   ElevatedButton(
@@ -150,10 +171,12 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade300,
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                      foregroundColor: Theme.of(context).colorScheme.onError,
                     ),
-                    child: Text('Delete', // 'Xóa'
-                      style: AppTextStyle.buttonTextBold.copyWith(color: Theme.of(context).colorScheme.onSurface),
+                    child: Text(
+                      S.of(context).deleteAddress,
+                      style: AppTextStyle.buttonTextBold,
                     ),
                   ),
                 ],

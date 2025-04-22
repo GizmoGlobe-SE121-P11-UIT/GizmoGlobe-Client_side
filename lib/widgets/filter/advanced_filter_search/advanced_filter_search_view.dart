@@ -4,6 +4,7 @@ import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/widgets/filter/advanced_filter_search/advanced_filter_search_state.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
+import '../../../generated/l10n.dart';
 import '../manufacturer_filter/manufacturer_filter.dart';
 import '../option_filter/option_filter.dart';
 import '../range_filter/range_filter.dart';
@@ -61,7 +62,7 @@ class _AdvancedFilterSearchScreenState extends State<AdvancedFilterSearchScreen>
                 Navigator.of(context).pop();
               },
             ),
-            title: const Text('Filter', style: AppTextStyle.biggerText),
+            title: Text(S.of(context).filter, style: AppTextStyle.biggerText),
             actions: [
               TextButton(
                 onPressed: () {
@@ -74,7 +75,7 @@ class _AdvancedFilterSearchScreenState extends State<AdvancedFilterSearchScreen>
                     ),
                   );
                 },
-                child: const Text('OK', style: TextStyle(color: Colors.white)),
+                child: Text(S.of(context).ok, style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -84,7 +85,7 @@ class _AdvancedFilterSearchScreenState extends State<AdvancedFilterSearchScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 OptionFilterView<CategoryEnum>(
-                  name: 'Category', //Loại sản phẩm
+                  name: S.of(context).category, //Loại sản phẩm
                   enumValues: CategoryEnum.values,
                   selectedValues: state.selectedCategories,
                   onToggleSelection: cubit.toggleCategory,
@@ -98,7 +99,7 @@ class _AdvancedFilterSearchScreenState extends State<AdvancedFilterSearchScreen>
                 const SizedBox(height: 16.0),
 
                 RangeFilter(
-                  name: 'Price', //Giá
+                  name: S.of(context).price, //Giá
                   fromController: fromController,
                   toController: toController,
                   onFromValueChanged: (value) {
