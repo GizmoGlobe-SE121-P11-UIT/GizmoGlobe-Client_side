@@ -141,3 +141,4 @@ app.*.symbols
 !.vscode/settings.json
 android/local.properties
 android/local.properties
+android/app/google-services.json
