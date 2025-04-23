@@ -6,16 +6,27 @@ import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:intl/intl.dart';
 
 import '../../../objects/product_related/product.dart';
+import '../../cart/cart_screen/cart_screen_cubit.dart';
+import '../../cart/cart_screen/cart_screen_state.dart';
+import '../../cart/cart_screen/cart_screen_view.dart';
 
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   final Product product;
+
   const ProductDetailScreen({super.key, required this.product});
 
   static Widget newInstance(Product product) => BlocProvider(
         create: (context) => ProductDetailCubit(product),
         child: ProductDetailScreen(product: product),
       );
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  ProductDetailCubit get cubit => context.read<ProductDetailCubit>();
 
   @override
   Widget build(BuildContext context) {
@@ -28,25 +39,53 @@ class ProductDetailScreen extends StatelessWidget {
           fillColor: Colors.transparent,
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              // Implement share functionality
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () {
-              // Implement wishlist functionality
-            },
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.shopping_cart,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CartScreen.newInstance(),
+                    ),
+                  );
+                },
+              ),
+              BlocBuilder<CartScreenCubit, CartScreenState>(
+                builder: (context, state) {
+                  if (state.itemCount == 0) return const SizedBox();
+                  return Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        state.itemCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ],
-        title: BlocBuilder<ProductDetailCubit, ProductDetailState>(
-          builder: (context, state) => Text(
-            state.product.productName,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
-        ),
       ),
       body: BlocBuilder<ProductDetailCubit, ProductDetailState>(
         builder: (context, state) {
@@ -86,25 +125,25 @@ class ProductDetailScreen extends StatelessWidget {
                       _buildInfoRow(
                         icon: Icons.inventory_2,
                         title: 'Product', // 'Sản phẩm'
-                        value: product.productName,
+                        value: state.product.productName,
                       ),
                       
                       _buildInfoRow(
                         icon: Icons.category,
                         title: 'Category', // 'Danh mục'
-                        value: product.category.toString().split('.').last,
+                        value: state.product.category.toString().split('.').last,
                       ),
                       
                       _buildInfoRow(
                         icon: Icons.business,
                         title: 'Manufacturer', // 'Nhà sản xuất'
-                        value: product.manufacturer.manufacturerName,
+                        value: state.product.manufacturer.manufacturerName,
                       ),
                       
                       // Thêm thông tin về giá và discount
                       _buildPriceSection(
-                        sellingPrice: product.price,
-                        discount: product.discount,
+                        sellingPrice: state.product.price,
+                        discount: state.product.discount,
                       ),
                       
                       const SizedBox(height: 24),
@@ -121,18 +160,18 @@ class ProductDetailScreen extends StatelessWidget {
                       
                       Row(
                         children: [
-                          _buildStatusChip(product.status),
+                          _buildStatusChip(state.product.status),
                           const SizedBox(width: 16),
                           Icon(
-                            product.stock > 0 ? Icons.check_circle : Icons.error,
-                            color: product.stock > 0 ? Colors.green : Colors.red,
+                            state.product.stock > 0 ? Icons.check_circle : Icons.error,
+                            color: state.product.stock > 0 ? Colors.green : Colors.red,
                             size: 16,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Stock: ${product.stock}', // 'Tồn kho: ${product.stock}'
+                            'Stock: ${state.product.stock}', // 'Tồn kho: ${product.stock}'
                             style: TextStyle(
-                              color: product.stock > 0 ? Colors.green : Colors.red,
+                              color: state.product.stock > 0 ? Colors.green : Colors.red,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -143,7 +182,7 @@ class ProductDetailScreen extends StatelessWidget {
                       _buildInfoRow(
                         icon: Icons.calendar_today,
                         title: 'Release Date', // 'Ngày phát hành'
-                        value: DateFormat('dd/MM/yyyy').format(product.release),
+                        value: DateFormat('dd/MM/yyyy').format(state.product.release),
                       ),
                       
                       const SizedBox(height: 24),
@@ -158,7 +197,157 @@ class ProductDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       
-                      ..._buildProductSpecificDetails(context, product, state.technicalSpecs),
+                      ..._buildProductSpecificDetails(context, state.product, state.technicalSpecs),
+                    ],
+                  ),
+                ),
+
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Quantity', // 'Số lượng'
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.5)),
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildQuantityButton(
+                                      icon: Icons.remove,
+                                      onPressed: () => cubit.decrementQuantity(),
+
+                                    ),
+                                    Container(
+                                      width: 40,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        state.quantity.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                    _buildQuantityButton(
+                                      icon: Icons.add,
+                                      onPressed: () => cubit.incrementQuantity(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Total Price', // 'Tổng tiền'
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Text(
+                                    '\$${(widget.product.discountedPrice * state.quantity).toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColor,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (widget.product.productID != null) {
+                              context.read<CartScreenCubit>().addToCart(
+                                widget.product.productID!,
+                                state.quantity,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Added ${widget.product.productName} to cart', // 'Đã thêm ${widget.product.productName} vào giỏ hàng'
+                                  ),
+                                  backgroundColor: Theme.of(context).primaryColor,
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.all(16),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Cannot add product to cart'), // 'Không thể thêm sản phẩm vào giỏ hàng'
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                            elevation: 2,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Add to Cart', // 'Thêm vào giỏ'
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -345,6 +534,24 @@ class ProductDetailScreen extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: IconButton(
+        icon: Icon(icon, color: Theme.of(context).primaryColor),
+        onPressed: onPressed,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        iconSize: 18,
+        splashRadius: 20,
       ),
     );
   }

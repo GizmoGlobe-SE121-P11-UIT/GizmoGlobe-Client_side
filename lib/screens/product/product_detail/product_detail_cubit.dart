@@ -78,4 +78,18 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
 
     emit(state.copyWith(technicalSpecs: specs));
   }
+
+  void updateQuantity(int newQuantity) {
+    emit(state.copyWith(quantity: newQuantity));
+  }
+
+  void incrementQuantity() {
+    emit(state.copyWith(quantity: state.quantity + 1));
+  }
+
+  void decrementQuantity() {
+    if (state.quantity > 1) {
+      emit(state.copyWith(quantity: state.quantity - 1));
+    }
+  }
 }

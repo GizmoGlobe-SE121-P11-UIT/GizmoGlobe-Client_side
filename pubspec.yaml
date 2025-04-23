@@ -46,7 +46,8 @@ dependencies:
   equatable: ^2.0.5
   bloc: ^8.1.4
   dropdown_search: ^6.0.1
-  flutter_stripe: ^11.3.0
+  flutter_stripe: 11.4.0
+  stripe_platform_interface: 11.4.0
   dio: ^5.7.0
 
 dev_dependencies:

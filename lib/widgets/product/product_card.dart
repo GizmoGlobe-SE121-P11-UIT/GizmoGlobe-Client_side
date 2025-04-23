@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
 import '../../enums/product_related/category_enum.dart';
 import 'favorites/favorites_cubit.dart';
-import 'product_detail_screen.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -37,7 +37,7 @@ class ProductCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ProductDetailScreen(product: product),
+                      builder: (context) => ProductDetailScreen.newInstance(product)
                     ),
                   );
                 },
