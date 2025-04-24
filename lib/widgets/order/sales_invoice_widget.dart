@@ -40,7 +40,10 @@ class SalesInvoiceWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Total ${salesInvoice.getTotalItems()} items: \$${salesInvoice.totalPrice.toStringAsFixed(2)}',
+                      S.of(context).totalItems(
+                          salesInvoice.getTotalItems(),
+                          double.parse(salesInvoice.totalPrice.toStringAsFixed(2)) as String
+                      ),
                       style: AppTextStyle.regularText,
                     ),
                     const SizedBox(height: 8),
