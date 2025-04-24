@@ -22,11 +22,12 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final RegExp _productLinkRegex =
       RegExp(r'\[PRODUCT_LINK:([^\]]+)\]([^\[]+)\[/PRODUCT_LINK\]');
+  ChatScreenCubit get cubit => context.read<ChatScreenCubit>();
 
   @override
   void initState() {
     super.initState();
-    context.read<ChatScreenCubit>().initialize(context);
+    cubit.initialize(context);
   }
 
   @override
@@ -122,11 +123,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   state.isAIMode ? Icons.support_agent : Icons.smart_toy,
                   color: theme.colorScheme.primary,
                 ),
-                onPressed: () {
+                onPressed: () async {
                   if (state.isAIMode) {
-                    context.read<ChatScreenCubit>().switchToAdmin();
+                    await cubit.switchToAdmin(S.of(context).adminWelcomeMessage);
                   } else {
-                    context.read<ChatScreenCubit>().switchToAI();
+                    await cubit.switchToAI(S.of(context).aiWelcomeMessage);
                   }
                 },
               ),

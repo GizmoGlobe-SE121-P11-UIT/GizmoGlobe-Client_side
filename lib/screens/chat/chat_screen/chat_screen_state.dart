@@ -1,7 +1,9 @@
+import 'package:equatable/equatable.dart';
+
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../objects/chat_related/chat_message.dart';
 
-class ChatScreenState {
+class ChatScreenState extends Equatable {
   final bool isAIMode;
   final List<ChatMessage> aiMessages;
   final List<ChatMessage> adminMessages;
@@ -9,7 +11,7 @@ class ChatScreenState {
   final String? error;
   final String? modeNotification;
 
-  ChatScreenState({
+  const ChatScreenState({
     this.isAIMode = true,
     this.aiMessages = const [],
     this.adminMessages = const [],
@@ -19,6 +21,16 @@ class ChatScreenState {
   });
 
   List<ChatMessage> get messages => isAIMode ? aiMessages : adminMessages;
+
+  @override
+  List<Object?> get props => [
+        isAIMode,
+        aiMessages,
+        adminMessages,
+        processState,
+        error,
+        modeNotification,
+      ];
 
   ChatScreenState copyWith({
     bool? isAIMode,
@@ -33,8 +45,8 @@ class ChatScreenState {
       aiMessages: aiMessages ?? this.aiMessages,
       adminMessages: adminMessages ?? this.adminMessages,
       processState: processState ?? this.processState,
-      error: error,
-      modeNotification: modeNotification,
+      error: error ?? this.error,
+      modeNotification: modeNotification ?? this.modeNotification,
     );
   }
 }

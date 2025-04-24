@@ -53,33 +53,42 @@ class _HomeScreen extends State<HomeScreen> {
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                title: Center(
-                  child: Semantics(
-                    label: S.of(context).appLogo,
-                    child: const AppLogo(height: 50),
-                  ),
-                ),
-                actions: [
-                  Semantics(
-                    label: S.of(context).chatButton,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.chat,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 28,
+                title: Stack(
+                  children: [
+                    Center(
+                      child: Semantics(
+                        label: S.of(context).appLogo,
+                        child: const AppLogo(height: 50),
                       ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatScreen.newInstance(),
-                          ),
-                        );
-                      },
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
+
+                    Row(
+                      children: [
+                        Expanded(child: SizedBox()),
+
+                        Semantics(
+                          label: S.of(context).chatButton,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.chat,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 28,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatScreen.newInstance(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                  ]
+                ),
               ),
               body: Padding(
                 padding: const EdgeInsets.all(16.0),
