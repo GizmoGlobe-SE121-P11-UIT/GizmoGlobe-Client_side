@@ -308,7 +308,47 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
     }
   }
 
-  void switchToAI() async {
+  Future<void> switchToAdmin(String adminWelcomeMessage) async {
+    try {
+      emit(state.copyWith(processState: ProcessState.loading));
+      await _saveLastMode(false);
+
+      final user = _auth.currentUser;
+      if (user == null) {
+        emit(state.copyWith(
+          processState: ProcessState.failure,
+          error: 'User not logged in',
+        ));
+        return;
+      }
+
+      if (state.adminMessages.isEmpty || _shouldShowWelcomeMessage(false)) {
+        final welcomeMessage = ChatMessage.fromBot(adminWelcomeMessage, false);
+
+        await _updateLastWelcomeTime(false);
+
+        emit(state.copyWith(
+          isAIMode: false,
+          adminMessages: [welcomeMessage, ...state.adminMessages],
+          processState: ProcessState.success,
+        ));
+
+        await _saveMessagesToPrefs();
+      } else {
+        emit(state.copyWith(
+          isAIMode: false,
+          processState: ProcessState.success,
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        error: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> switchToAI(String aiWelcomeMessage) async {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
       await _saveLastMode(true);
@@ -322,14 +362,9 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
         return;
       }
 
-      // Kiểm tra xem có nên hiển thị tin nhắn chào mừng cho chế độ AI không
       if (state.aiMessages.isEmpty || _shouldShowWelcomeMessage(true)) {
-        final welcomeMessage = ChatMessage.fromBot(
-          S.of(context as BuildContext).aiWelcomeMessage,
-          true,
-        );
+        final welcomeMessage = ChatMessage.fromBot(aiWelcomeMessage, true);
 
-        // Cập nhật thời gian chào mừng cuối cùng cho AI mode
         await _updateLastWelcomeTime(true);
 
         emit(state.copyWith(
@@ -338,10 +373,8 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
           processState: ProcessState.success,
         ));
 
-        // Lưu messages vào SharedPreferences
         await _saveMessagesToPrefs();
       } else {
-        // Nếu chưa đủ 24 giờ, chỉ chuyển mode
         emit(state.copyWith(
           isAIMode: true,
           processState: ProcessState.success,
@@ -355,62 +388,12 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
     }
   }
 
-  void switchToAdmin() async {
-    try {
-      emit(state.copyWith(processState: ProcessState.loading));
-      await _saveLastMode(false);
-
-      final user = _auth.currentUser;
-      if (user == null) {
-        if (kDebugMode) {
-          print('User not logged in');
-        }
-        emit(state.copyWith(
-          processState: ProcessState.failure,
-          error: 'User not logged in',
-        ));
-        return;
-      }
-
-      // Kiểm tra xem có nên hiển thị tin nhắn chào mừng cho chế độ Admin không
-      if (state.adminMessages.isEmpty || _shouldShowWelcomeMessage(false)) {
-        final welcomeMessage = ChatMessage.fromBot(
-          S.of(context as BuildContext).adminWelcomeMessage,
-          false,
-        );
-
-        // Cập nhật thời gian chào mừng cuối cùng cho Admin mode
-        await _updateLastWelcomeTime(false);
-
-        emit(state.copyWith(
-          isAIMode: false,
-          adminMessages: [welcomeMessage, ...state.adminMessages],
-          processState: ProcessState.success,
-        ));
-
-        // Lưu messages vào SharedPreferences
-        await _saveMessagesToPrefs();
-      } else {
-        // Nếu chưa đủ 24 giờ, chỉ chuyển mode
-        emit(state.copyWith(
-          isAIMode: false,
-          processState: ProcessState.success,
-        ));
-      }
-    } catch (e) {
-      emit(state.copyWith(
-        processState: ProcessState.failure,
-        error: e.toString(),
-      ));
-    }
-  }
-
-  Future<void> toggleMode() async {
-    final newMode = !state.isAIMode;
-    if (newMode) {
-      switchToAI();
-    } else {
-      switchToAdmin();
-    }
-  }
+  // Future<void> toggleMode() async {
+  //   final newMode = !state.isAIMode;
+  //   if (newMode) {
+  //     switchToAI();
+  //   } else {
+  //     switchToAdmin();
+  //   }
+  // }
 }
