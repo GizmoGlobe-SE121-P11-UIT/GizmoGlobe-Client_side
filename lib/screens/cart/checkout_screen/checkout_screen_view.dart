@@ -68,7 +68,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                 title: S.of(context).orderPlaced,
                 content: S.of(context).orderPlacedSuccess,
                 dialogName: DialogName.success,
-                buttonText: S.of(context).viewOrder,
+                buttonText: S.of(context).ok,
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.pushAndRemoveUntil(
@@ -86,9 +86,8 @@ class _CheckoutScreen extends State<CheckoutScreen> {
           } else if (state.processState == ProcessState.failure) {
             String errorMessage = S.of(context).errorCheckout;
 
-            if (state.error != null &&
-                (state.error!.toLowerCase().contains('payment failed') ||
-                    state.error!.toLowerCase().contains('stripe'))) {
+            if ((state.message.toLowerCase().contains('payment failed') ||
+                    state.message.toLowerCase().contains('stripe'))) {
               errorMessage = S.of(context).paymentCancelled;
             }
 
@@ -337,7 +336,28 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content:
                                     Text(S.of(context).addShippingAddress)));
-                            return;
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => InformationDialog(
+                                title: S.of(context).chooseAddress,
+                                content: S.of(context).addShippingAddress,
+                                dialogName: DialogName.failure,
+                                buttonText: S.of(context).ok,
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => OrderScreen.newInstance(
+                                        orderOption: OrderOption.toShip,
+                                      ),
+                                    ),
+                                        (route) => false,
+                                  );
+                                },
+                              ),
+                            );
                           }
                           await cubit.checkout();
                         },

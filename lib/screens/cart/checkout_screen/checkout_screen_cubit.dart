@@ -51,7 +51,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         if (kDebugMode) {
           print('Payment failed');
         }
-        emit(state.copyWith(processState: ProcessState.failure, error: 'Payment failed'));
+        emit(state.copyWith(processState: ProcessState.failure, message: 'Payment failed'));
         return;
       }
 
@@ -59,7 +59,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       await saveSalesInvoice();
       emit(state.copyWith(processState: ProcessState.success));
     } catch (e) {
-      emit(state.copyWith(processState: ProcessState.failure, error: e.toString()));
+      emit(state.copyWith(processState: ProcessState.failure, message: e.toString()));
     }
   }
 
@@ -71,7 +71,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       }
 
     } catch (e) {
-      emit(state.copyWith(processState: ProcessState.failure, error: e.toString()));
+      emit(state.copyWith(processState: ProcessState.failure, message: e.toString()));
     }
   }
 

@@ -36,7 +36,9 @@ class CartScreenCubit extends Cubit<CartScreenState> {
           print('User not logged in');
         }
         emit(state.copyWith(
-            processState: ProcessState.failure, error: 'User not logged in'));
+            processState: ProcessState.failure,
+            error: 'User not logged in'
+        ));
         return;
       }
 
