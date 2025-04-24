@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import '../enums/processing/dialog_name_enum.dart';
 import '../generated/l10n.dart';
 import '../services/storage_service.dart';
+import 'dialog/information_dialog.dart';
 
 class AvatarPicker extends StatefulWidget {
   final String userId;
@@ -171,18 +173,36 @@ class _AvatarPickerState extends State<AvatarPicker> {
           }
 
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(errorMessage)),
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => InformationDialog(
+                title: S.of(context).error,
+                content: errorMessage,
+                dialogName: DialogName.failure,
+                buttonText: S.of(context).ok,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
             );
           }
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text('Error picking image: $e')), // 'Lỗi khi chọn ảnh: $e'
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => InformationDialog(
+            title: S.of(context).error,
+            content: 'Error picking image: $e',
+            dialogName: DialogName.failure,
+            buttonText: S.of(context).ok,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         );
       }
       if (kDebugMode) {

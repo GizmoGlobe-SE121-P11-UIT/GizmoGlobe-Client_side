@@ -333,9 +333,6 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                         onPressed: () async {
                           if (state.salesInvoice?.address ==
                               Address.nullAddress) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content:
-                                    Text(S.of(context).addShippingAddress)));
                             showDialog(
                               context: context,
                               barrierDismissible: false,
