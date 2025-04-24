@@ -33,21 +33,21 @@ class SalesInvoiceWidget extends StatelessWidget {
                   );
                 }).toList(),
               ),
-              // const SizedBox(height: 4),
-              // Align(
-              //   alignment: Alignment.centerRight,
-              //   child: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.end,
-              //     children: [
-              //       Text(
-              //         'Total ${salesInvoice.getTotalItems()} items: \$${salesInvoice.totalPrice.toStringAsFixed(2)}',
-              //         style: AppTextStyle.regularText,
-              //       ),
-              //       const SizedBox(height: 8),
-              //       _buildStatusWidget(context, salesInvoice, onPressed),
-              //     ],
-              //   ),
-              // ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Total ${salesInvoice.getTotalItems()} items: \$${salesInvoice.totalPrice.toStringAsFixed(2)}',
+                      style: AppTextStyle.regularText,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildStatusWidget(context, salesInvoice, onPressed),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

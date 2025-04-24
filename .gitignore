@@ -143,3 +143,5 @@ app.*.symbols
 !.vscode/settings.json
 .env
 android/app/google-services.json
+firebase.json
+lib/firebase_options.dart
