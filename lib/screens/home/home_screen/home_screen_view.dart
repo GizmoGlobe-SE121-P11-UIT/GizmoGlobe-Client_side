@@ -65,13 +65,12 @@ class _HomeScreen extends State<HomeScreen> {
                     Row(
                       children: [
                         Expanded(child: SizedBox()),
-
                         Semantics(
                           label: S.of(context).chatButton,
                           child: IconButton(
                             icon: Icon(
                               Icons.chat,
-                              color: Theme.of(context).colorScheme.primary,
+                              color: Theme.of(context).colorScheme.secondary,
                               size: 28,
                             ),
                             onPressed: () {
@@ -154,11 +153,22 @@ class _HomeScreen extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            GradientText(
-              text: title,
+            Text(
+              title,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             TextButton(
               onPressed: onSeeAll,
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.secondary,
+                textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
               child: Text(S.of(context).seeAll),
             ),
           ],

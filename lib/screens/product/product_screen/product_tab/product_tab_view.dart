@@ -184,9 +184,10 @@ class _ProductTabState extends State<ProductTab>
                         ),
                         const Spacer(),
                         Center(
-                          child: GradientIconButton(
-                            icon: Icons.filter_list_alt,
+                          child: IconButton(
+                            icon: const Icon(Icons.filter_list_alt),
                             iconSize: 28,
+                            color: Theme.of(context).colorScheme.secondary,
                             onPressed: () async {
                               final FilterArgument arguments = state
                                   .filterArgument

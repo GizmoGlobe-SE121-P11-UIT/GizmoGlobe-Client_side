@@ -125,25 +125,24 @@ class MyApp extends StatelessWidget {
                   );
                 },
                 theme: ThemeData(
-                  primarySwatch: Colors.blue,
                   colorScheme: ColorScheme(
                     brightness: Brightness.light,
-                    primary: const Color(0xFF2196F3),
+                    primary: const Color(0xFF0F4C81),
                     onPrimary: Colors.white,
-                    secondary: const Color(0xFF6465F1),
-                    onSecondary: const Color(0xFF292B5C),
-                    primaryContainer: const Color(0xFF64B5F6),
-                    secondaryContainer: const Color(0xFF64B5F6),
+                    secondary: const Color(0xFF638CC7),
+                    onSecondary: Colors.white,
+                    primaryContainer: const Color(0xFF638CC7),
+                    secondaryContainer: const Color(0xFF0F4C81),
                     surface: Colors.white,
-                    onSurface: const Color(0xFF2C3E50),
-                    onSurfaceVariant: const Color(0xFF455A64),
+                    onSurface: Colors.black,
+                    onSurfaceVariant: Colors.black87,
                     error: Colors.red[400]!,
                     onError: Colors.white,
                   ),
                   elevatedButtonTheme: ElevatedButtonThemeData(
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
-                      backgroundColor: const Color(0xFF2196F3),
+                      backgroundColor: const Color(0xFF0F4C81),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -153,27 +152,28 @@ class MyApp extends StatelessWidget {
                   scaffoldBackgroundColor: Colors.white,
                   appBarTheme: const AppBarTheme(
                     backgroundColor: Colors.white,
-                    foregroundColor: Color(0xFF2C3E50),
+                    foregroundColor: Colors.black,
                     elevation: 0,
                   ),
                   textTheme: const TextTheme(
-                    bodyLarge: TextStyle(color: Color(0xFF2C3E50)),
-                    bodyMedium: TextStyle(color: Color(0xFF2C3E50)),
-                    titleLarge: TextStyle(color: Color(0xFF2C3E50)),
-                    titleMedium: TextStyle(color: Color(0xFF2C3E50)),
+                    bodyLarge: TextStyle(color: Colors.black),
+                    bodyMedium: TextStyle(color: Colors.black),
+                    titleLarge: TextStyle(color: Colors.black),
+                    titleMedium: TextStyle(color: Colors.black),
                   ),
                 ),
                 darkTheme: ThemeData(
-                  primarySwatch: Colors.blue,
                   colorScheme: const ColorScheme(
                     brightness: Brightness.dark,
-                    primary: Color(0xFF2196F3),
+                    // primary: Color(0xFF638CC7),
+                    // onPrimary: Colors.black,
+                    primary: Color(0xFF0F4C81),
                     onPrimary: Colors.white,
-                    secondary: Color(0xFF6465F1),
-                    onSecondary: Color(0xFF292B5C),
-                    primaryContainer: Color(0xFF323F73),
-                    secondaryContainer: Color(0xFF608BC1),
-                    surface: Color(0xFF202046),
+                    secondary: Color(0xFF638CC7),
+                    onSecondary: Colors.black,
+                    primaryContainer: Color(0xFF0F4C81),
+                    secondaryContainer: Color(0xFF638CC7),
+                    surface: Color(0xFF121212),
                     onSurface: Colors.white,
                     onSurfaceVariant: Colors.white70,
                     error: Colors.red,
@@ -182,31 +182,32 @@ class MyApp extends StatelessWidget {
                   elevatedButtonTheme: ElevatedButtonThemeData(
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
-                      backgroundColor: const Color(0xFF2196F3),
+                      backgroundColor: const Color(0xFF0F4C81),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
-                  scaffoldBackgroundColor: const Color(0xFF202046),
+                  scaffoldBackgroundColor: Color(0xFF121212),
                   appBarTheme: const AppBarTheme(
-                    backgroundColor: Color(0xFF202046),
-                    foregroundColor: Color(0xFFF3F3E0),
+                    backgroundColor: Color(0xFF121212),
+                    foregroundColor: Colors.white,
                     elevation: 0,
                   ),
                   navigationBarTheme: NavigationBarThemeData(
-                    backgroundColor: const Color(0xFF323F73),
-                    indicatorColor: const Color(0xFF2196F3).withOpacity(0.3),
+                    backgroundColor: const Color(0xFF0F4C81),
+                    indicatorColor: const Color(0xFF638CC7).withOpacity(0.3),
                     labelTextStyle: WidgetStateProperty.all(
                       const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
                   textTheme: const TextTheme(
-                    bodyLarge: TextStyle(color: Color(0xFFF3F3E0)),
-                    bodyMedium: TextStyle(color: Color(0xFFF3F3E0)),
-                    titleLarge: TextStyle(color: Color(0xFFF3F3E0)),
-                    titleMedium: TextStyle(color: Color(0xFFF3F3E0)),
+                    bodyLarge: TextStyle(color: Colors.white),
+                    bodyMedium: TextStyle(color: Colors.white),
+                    titleLarge: TextStyle(color: Colors.white),
+                    titleMedium: TextStyle(color: Colors.white),
+                    labelLarge: TextStyle(color: Color(0xFF638CC7)),
                   ),
                 ),
                 routes: {
@@ -247,6 +248,7 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
+          // return const MainScreen();
           return const MainScreen();
         }
 

@@ -43,14 +43,15 @@ class ProductCard extends StatelessWidget {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.grey[200]!,
-                        Colors.grey[100]!,
-                      ],
-                    ),
+                    // gradient: LinearGradient(
+                    //   begin: Alignment.topCenter,
+                    //   end: Alignment.bottomCenter,
+                    //   colors: [
+                    //     Colors.grey[100]!,
+                    //     Colors.grey[100]!,
+                    //   ],
+                    // ),
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,10 +82,10 @@ class ProductCard extends StatelessWidget {
                                   product.productName,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
-                                    color: Colors.black,
+                                    color: Theme.of(context).colorScheme.onPrimary,
                                   ),
                                 ),
                               ),
@@ -94,23 +95,26 @@ class ProductCard extends StatelessWidget {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
+                                      const SizedBox(height: 2),
                                       if (product.discount > 0) ...[
                                         Text(
                                           '\$${product.price.toStringAsFixed(2)}',
                                           style: TextStyle(
                                             decoration: TextDecoration.lineThrough,
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
+                                            decorationColor: Theme.of(context).colorScheme.onSecondary,
+                                            decorationThickness: 2,
+                                            color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.9),
+                                            fontSize: 13,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
                                       ],
                                       Text(
                                         '\$${product.discountedPrice.toStringAsFixed(2)}',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.blue,
-                                          fontSize: 14,
+                                          color: Colors.greenAccent,
+                                          fontSize: 16,
                                         ),
                                       ),
                                     ],
@@ -122,13 +126,13 @@ class ProductCard extends StatelessWidget {
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.blue[100],
+                                        color: Theme.of(context).colorScheme.error,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
                                         '-${(product.discount*100).toStringAsFixed(0)}%',
                                         style: TextStyle(
-                                          color: Colors.blue[700],
+                                          color: Theme.of(context).colorScheme.onPrimary,
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
                                         ),

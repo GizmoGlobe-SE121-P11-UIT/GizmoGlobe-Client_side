@@ -61,14 +61,7 @@ class FieldWithIcon extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: Theme.of(context).colorScheme.secondary,
             borderRadius: borderRadius,
           ),
           padding: padding,

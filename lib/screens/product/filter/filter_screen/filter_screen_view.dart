@@ -113,21 +113,33 @@ class _FilterScreenState extends State<FilterScreen> {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            leading: GradientIconButton(
-              icon: Icons.chevron_left,
+            leading: IconButton(
+              // key: Icons.chevron_left,
               onPressed: () {
                 Navigator.pop(context);
               },
-              fillColor: Colors.transparent,
+              icon: const Icon(Icons.chevron_left),
+              iconSize: 40,
+              color: Theme.of(context).colorScheme.secondary,
+              // fillColor: Colors.transparent,
             ),
-            title: Text(S.of(context).filter, style: AppTextStyle.biggerText),
+            title: Text(
+              S.of(context).filter,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(state.filterArgument);
                 },
-                child: Text(S.of(context).ok,
-                    style: const TextStyle(color: Colors.white)),
+                child: Text(
+                  S.of(context).ok,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),

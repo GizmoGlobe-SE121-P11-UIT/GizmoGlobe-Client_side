@@ -26,14 +26,7 @@ class CheckboxButton extends StatelessWidget {
       child: Container(
         padding: padding,
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.secondary,
-                  ],
-                )
-              : null,
+          color: isSelected ? Theme.of(context).colorScheme.primary : null,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? Colors.transparent : Colors.grey[400]!,

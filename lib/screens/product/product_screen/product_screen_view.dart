@@ -88,9 +88,7 @@ class _ProductScreenState extends State<ProductScreen>
               fillColor: Theme.of(context).colorScheme.surface,
               prefixIcon: Icon(
                 Icons.search,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white70
-                    : Theme.of(context).primaryColor,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               onChanged: (value) {
                 cubit.updateSearchText(searchController.text);
@@ -101,9 +99,9 @@ class _ProductScreenState extends State<ProductScreen>
             ),
             bottom: TabBar(
               controller: tabController,
-              labelColor: Theme.of(context).colorScheme.primary,
+              labelColor: Theme.of(context).colorScheme.secondary,
               unselectedLabelColor:
-                  Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                  Theme.of(context).colorScheme.onSurface,
               labelPadding: const EdgeInsets.symmetric(horizontal: 16),
               indicatorColor: Theme.of(context).colorScheme.primary,
               tabAlignment: TabAlignment.start,

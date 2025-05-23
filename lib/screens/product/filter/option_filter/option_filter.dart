@@ -66,8 +66,8 @@ class OptionFilter<T> extends StatelessWidget {
       children: [
         Text(
           name,
-          style: AppTextStyle.biggerText.copyWith(
-            color: Theme.of(context).primaryColor,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontSize: 16.0,
           ),
         ),
         const SizedBox(height: 8.0),
