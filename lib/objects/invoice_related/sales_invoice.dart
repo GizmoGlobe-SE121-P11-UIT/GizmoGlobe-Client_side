@@ -4,6 +4,7 @@ import 'package:gizmoglobe_client/enums/invoice_related/sales_status.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
 import '../../data/database/database.dart';
 import '../address_related/address.dart';
+import '../voucher_related/voucher.dart';
 
 class SalesInvoice {
   String? salesInvoiceID;
@@ -16,6 +17,9 @@ class SalesInvoice {
   PaymentStatus paymentStatus;
   List<SalesInvoiceDetail> details;
 
+  final Voucher? voucher;
+  final double voucherDiscount;
+
   SalesInvoice({
     this.salesInvoiceID = '',
     required this.customerID,
@@ -26,7 +30,24 @@ class SalesInvoice {
     required this.totalPrice,
     required this.details,
     this.paymentStatus = PaymentStatus.unpaid,
+    this.voucher,
+    this.voucherDiscount = 0.0,
   });
+
+  @override
+  List<Object?> get props => [
+        salesInvoiceID,
+        customerID,
+        customerName,
+        address,
+        date,
+        salesStatus,
+        totalPrice,
+        details,
+        paymentStatus,
+        voucher,
+        voucherDiscount,
+      ];
 
   SalesInvoice copyWith({
     String? salesInvoiceID,
@@ -38,6 +59,8 @@ class SalesInvoice {
     double? totalPrice,
     List<SalesInvoiceDetail>? details,
     PaymentStatus? paymentStatus,
+    Voucher? voucher,
+    double? voucherDiscount,
   }) {
     return SalesInvoice(
       salesInvoiceID: salesInvoiceID ?? this.salesInvoiceID,
@@ -49,6 +72,8 @@ class SalesInvoice {
       totalPrice: totalPrice ?? this.totalPrice,
       details: details ?? this.details,
       paymentStatus: paymentStatus ?? this.paymentStatus,
+      voucher: voucher ?? this.voucher,
+      voucherDiscount: voucherDiscount ?? this.voucherDiscount,
     );
   }
 
@@ -62,6 +87,8 @@ class SalesInvoice {
       'paymentStatus': paymentStatus.getName(),
       'salesStatus': salesStatus.getName(),
       'totalPrice': totalPrice,
+      'voucherID': voucher?.voucherID,
+      'voucherDiscount': voucherDiscount,
     };
   }
 
@@ -94,7 +121,7 @@ class SalesInvoice {
   }
 
   double getTotalBasedPrice() {
-    return details.fold(0, (previousValue, detail) => previousValue + detail.product.price * detail.quantity);
+    return details.fold(0, (previousValue, element) => previousValue + element.subtotal);
   }
 
   int getTotalItems() {

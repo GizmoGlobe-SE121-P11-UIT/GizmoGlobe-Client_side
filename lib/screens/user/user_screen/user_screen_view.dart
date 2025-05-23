@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../data/database/database.dart';
 import '../../../enums/processing/order_option_enum.dart';
 import '../../../widgets/avatar_picker.dart';
+import '../../user/voucher/list/voucher_screen_view.dart';
 import '../address_screen/address_screen_view.dart';
 import '../order_screen/order_screen_view.dart';
 import 'user_screen_cubit.dart';
@@ -836,6 +837,59 @@ class _UserScreen extends State<UserScreen> {
                             ),
                           );
                         }),
+
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                          child: Card(
+                            elevation: 4,
+                            shadowColor: Colors.black12,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VoucherScreen.newInstance(),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(24),
+                              child: Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.card_giftcard,
+                                      color: Theme.of(context).colorScheme.primary,
+                                      size: 28,
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Text(
+                                      "My Vouchers",
+                                      style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      color: Theme.of(context).colorScheme.primary,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
 
                         // App Settings Card
                         Padding(

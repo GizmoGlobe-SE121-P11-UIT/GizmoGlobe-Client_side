@@ -31,6 +31,8 @@ import '../../objects/invoice_related/sales_invoice_detail.dart';
 import '../../objects/manufacturer.dart';
 import '../../objects/product_related/product.dart';
 import '../../objects/product_related/product_factory.dart';
+import '../../objects/voucher_related/voucher.dart';
+import '../../objects/voucher_related/voucher_factory.dart';
 
 Future<void> pushProductSamplesToFirebase() async {
   try {
@@ -947,6 +949,23 @@ class Firebase {
         print('Error confirming delivery: $e');
       }
       // print('Lỗi khi xác nhận giao hàng: $e');
+      rethrow;
+    }
+  }
+
+  List<Voucher> getVouchers() {
+    try {
+      // final QuerySnapshot snapshot = await FirebaseFirestore.instance
+      //     .collection('vouchers')
+      //     .get();
+
+      return Database().voucherDataList.map((map) {
+        return VoucherFactory.fromMap(map['voucherID'], map);
+      }).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting customers data : $e');
+      } // Lỗi khi lấy danh sách voucher
       rethrow;
     }
   }

@@ -27,6 +27,7 @@ import '../../enums/product_related/ram_enums/ram_capacity_enum.dart';
 import '../../enums/product_related/ram_enums/ram_type.dart';
 import '../../objects/address_related/province.dart';
 import '../../objects/product_related/product_factory.dart';
+import '../../objects/voucher_related/voucher.dart';
 import '../firebase/firebase.dart';
 
 class Database {
@@ -43,6 +44,109 @@ class Database {
   List<Product> favoriteProducts = [];
   List<Product> bestSellerProducts = [];
   List<SalesInvoice> salesInvoiceList = [];
+  List<Voucher> voucherList = [];
+
+  final List<Map<String, dynamic>> voucherDataList = [
+    {
+      'voucherID': 'voucher1',
+      'voucherName': 'Discount 10%',
+      'startTime': DateTime(2025, 5, 1),
+      'discountValue': 10.0,
+      'minimumPurchase': 0.0,
+      'maxUsagePerPerson': 1,
+      'isVisible': true,
+      'isEnabled': true,
+      'description': '',
+
+      'hasEndTime': true,
+      'endTime': DateTime(2025, 5, 31),
+
+      'isLimited': true,
+      'maximumUsage': 100,
+      'usageLeft': 0,
+
+      'isPercentage': true,
+      'maximumDiscountValue': 100.0,
+    },
+    {
+      'voucherID': 'voucher2',
+      'voucherName': 'Discount \$20',
+      'startTime': DateTime(2025, 6, 1),
+      'discountValue': 20.0,
+      'minimumPurchase': 50.0,
+      'maxUsagePerPerson': 1,
+      'isVisible': false,
+      'isEnabled': false,
+      'description': '\$20 off orders over \$50',
+
+      'hasEndTime': true,
+      'endTime': DateTime(2025, 6, 30),
+
+      'isLimited': false,
+
+      'isPercentage': false,
+    },
+    {
+      'voucherID': 'voucher3',
+      'voucherName': 'Discount 30%',
+      'startTime': DateTime(2025, 5, 1),
+      'discountValue': 30.0,
+      'minimumPurchase': 0.0,
+      'maxUsagePerPerson': 1,
+      'isVisible': true,
+      'isEnabled': true,
+      'description': '30% off, up to \$100',
+
+      'hasEndTime': false,
+
+      'isLimited': true,
+      'maximumUsage': 50,
+      'usageLeft': 10,
+
+      'isPercentage': true,
+      'maximumDiscountValue': 100.0,
+    },
+    {
+      'voucherID': 'voucher4',
+      'voucherName': 'Discount \$50',
+      'startTime': DateTime(2025, 6, 1),
+      'discountValue': 50.0,
+      'minimumPurchase': 100.0,
+      'maxUsagePerPerson': 1,
+      'isVisible': false,
+      'isEnabled': true,
+      'description': '\$50 off orders over \$100',
+
+      'hasEndTime': false,
+
+      'isLimited': true,
+      'maximumUsage': 5,
+      'usageLeft': 5,
+
+      'isPercentage': false,
+    },
+    {
+      'voucherID': 'voucher5',
+      'voucherName': 'Discount 15%',
+      'startTime': DateTime(2025, 4, 1),
+      'discountValue': 15.0,
+      'minimumPurchase': 0.0,
+      'maxUsagePerPerson': 1,
+      'isVisible': true,
+      'isEnabled': true,
+      'description': '15% off, up to \$100',
+
+      'hasEndTime': true,
+      'endTime': DateTime(2025, 4, 30),
+
+      'isLimited': true,
+      'maximumUsage': 5,
+      'usageLeft': 5,
+
+      'isPercentage': true,
+      'maximumDiscountValue': 100.0,
+    },
+  ];
 
   factory Database() {
     return _database;
@@ -150,6 +254,8 @@ class Database {
               ...specificData,
             },
           );
+
+
         } catch (e) {
           if (kDebugMode) {
             print('Error processing product ${doc.id}: $e');
@@ -164,6 +270,9 @@ class Database {
 
       bestSellerProducts = await fetchBestSellerProducts();
       favoriteProducts = await fetchFavoriteProducts(userID);
+
+      voucherList = Firebase().getVouchers();
+
       await fetchSalesInvoice();
     } catch (e) {
       if (kDebugMode) {

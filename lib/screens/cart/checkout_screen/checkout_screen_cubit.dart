@@ -8,6 +8,8 @@ import '../../../enums/invoice_related/payment_status.dart';
 import '../../../enums/invoice_related/sales_status.dart';
 import '../../../objects/address_related/address.dart';
 import '../../../objects/product_related/product.dart';
+import '../../../objects/voucher_related/percentage_interface.dart';
+import '../../../objects/voucher_related/voucher.dart';
 import '../../../services/stripe_services.dart';
 import 'checkout_screen_state.dart';
 import '../../../enums/processing/process_state_enum.dart';
@@ -77,5 +79,36 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
   void updateAddress(Address address) {
     emit(state.copyWith(salesInvoice: state.salesInvoice!.copyWith(address: address)));
+  }
+
+  void updateVoucher(Voucher voucher) {
+    if (state.salesInvoice == null) return;
+
+    final updatedInvoice = state.salesInvoice!.copyWith(
+      voucher: voucher,
+      voucherDiscount: _calculateVoucherDiscount(voucher),
+    );
+
+    // Recalculate total price with voucher discount
+    final totalAfterDiscount = updatedInvoice.getTotalBasedPrice() - updatedInvoice.voucherDiscount;
+    final finalInvoice = updatedInvoice.copyWith(
+      totalPrice: totalAfterDiscount > 0 ? totalAfterDiscount : 0,
+    );
+
+    emit(state.copyWith(salesInvoice: finalInvoice));
+  }
+
+  double _calculateVoucherDiscount(Voucher voucher) {
+    final totalBeforeDiscount = state.salesInvoice!.getTotalBasedPrice();
+
+    if (voucher.isPercentage) {
+      final calculatedDiscount = totalBeforeDiscount * (voucher.discountValue / 100);
+      final percentageVoucher = voucher as PercentageInterface;
+      return calculatedDiscount > percentageVoucher.maximumDiscountValue
+          ? percentageVoucher.maximumDiscountValue
+          : calculatedDiscount;
+    } else {
+      return voucher.discountValue > totalBeforeDiscount ? totalBeforeDiscount : voucher.discountValue;
+    }
   }
 }

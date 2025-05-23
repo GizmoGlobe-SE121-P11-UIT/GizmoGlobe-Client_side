@@ -13,6 +13,7 @@ import '../../../widgets/general/gradient_icon_button.dart';
 import '../../user/order_screen/order_screen_view.dart';
 import '../choose_address_screen/choose_address_screen_view.dart';
 import '../../../generated/l10n.dart';
+import '../choose_voucher_screen/choose_voucher_screen_view.dart';
 import 'checkout_screen_cubit.dart';
 import 'checkout_screen_state.dart';
 
@@ -202,6 +203,84 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                       ),
                     );
                   },
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Vouchers',
+                        style: AppTextStyle.boldText,
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          final voucher = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChooseVoucherScreen.newInstance(
+                                totalAmount: state.salesInvoice!.getTotalBasedPrice(),
+                                currentVoucher: state.salesInvoice!.voucher,
+                              ),
+                            ),
+                          );
+
+                          if (voucher != null) {
+                            cubit.updateVoucher(voucher);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.card_giftcard,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: state.salesInvoice?.voucher == null
+                                    ? Text(
+                                  'Add Voucher',
+                                  style: AppTextStyle.regularText,
+                                )
+                                    : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      state.salesInvoice!.voucher!.voucherName,
+                                      style: AppTextStyle.boldText,
+                                    ),
+                                    if (state.salesInvoice!.voucherDiscount > 0)
+                                      Text(
+                                        '- \$${state.salesInvoice!.voucherDiscount.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.chevron_right,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
