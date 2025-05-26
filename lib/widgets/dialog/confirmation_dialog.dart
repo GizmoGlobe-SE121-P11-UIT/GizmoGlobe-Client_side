@@ -88,7 +88,6 @@ class ConfirmationDialog extends StatelessWidget {
                   Expanded(
                     child: GradientButton(
                       onPress: onCancel ?? () => Navigator.pop(context),
-                      gradient: cancelGradient,
                       height: cancelHeight,
                       width: cancelWidth,
                       borderRadius: cancelBorderRadius,
@@ -102,7 +101,6 @@ class ConfirmationDialog extends StatelessWidget {
                   Expanded(
                     child: GradientButton(
                       onPress: onConfirm ?? () => Navigator.pop(context),
-                      gradient: confirmGradient,
                       height: confirmHeight,
                       width: confirmWidth,
                       borderRadius: confirmBorderRadius,

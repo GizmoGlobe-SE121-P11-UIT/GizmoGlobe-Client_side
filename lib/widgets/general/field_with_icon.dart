@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart';
 
 class FieldWithIcon extends StatelessWidget {
   final double height;
@@ -30,7 +31,7 @@ class FieldWithIcon extends StatelessWidget {
     this.height = 45,
     this.readOnly = false,
     this.hintText = '',
-    this.fillColor = Colors.white,
+    this.fillColor = Colors.transparent,
     this.onTap,
     this.prefixIcon,
     this.onPrefixIconPressed,
@@ -40,7 +41,7 @@ class FieldWithIcon extends StatelessWidget {
     this.inputFormatters,
     this.fontSize = 16,
     this.fontWeight = FontWeight.normal,
-    this.borderRadius = const BorderRadius.all(Radius.circular(10)),
+    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
     this.padding = const EdgeInsets.all(2),
     this.obscureText = false,
     this.onSubmitted,
@@ -61,65 +62,67 @@ class FieldWithIcon extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary,
+            color: fillColor,
             borderRadius: borderRadius,
-          ),
-          padding: padding,
-          child: Container(
-            decoration: BoxDecoration(
-              color: fillColor,
-              borderRadius: borderRadius,
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary,
+              width: 1.5,
             ),
-            child: TextFormField(
-              readOnly: readOnly,
-              textAlignVertical: TextAlignVertical.center,
-              onTap: onTap,
-              onFieldSubmitted: onSubmitted,
-              onChanged: onChanged,
-              controller: controller,
-              textInputAction: TextInputAction.done,
-              focusNode: focusNode,
-              decoration: InputDecoration(
-                filled: true,
-                isDense: true,
-                fillColor: Colors.transparent,
-                hintText: hintText,
-                hintStyle: TextStyle(
-                  color: hintTextColor,
-                  fontFamily: 'Montserrat',
-                  fontSize: fontSize,
-                  fontWeight: fontWeight,
-                ),
-                prefixIcon: prefixIcon != null
-                    ? InkWell(
-                        onTap: onPrefixIconPressed,
-                        child: prefixIcon,
-                      )
-                    : null,
-                suffixIcon: suffixIcon != null
-                    ? InkWell(
-                        onTap: onSuffixIconPressed,
-                        child: suffixIcon,
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: borderRadius,
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                    vertical: (height - fontSize) / 2, horizontal: 16),
-              ),
-              keyboardType: keyboardType,
-              inputFormatters: inputFormatters ??
-                  [FilteringTextInputFormatter.allow(RegExp(r'.*'))],
-              style: TextStyle(
+            // boxShadow: [
+            //   BoxShadow(
+            //     color: Colors.black.withOpacity(0.08),
+            //     blurRadius: 8,
+            //     offset: Offset(0, 2),
+            //   ),
+            // ],
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          child: TextFormField(
+            readOnly: readOnly,
+            textAlignVertical: TextAlignVertical.center,
+            onTap: onTap,
+            onFieldSubmitted: onSubmitted,
+            onChanged: onChanged,
+            controller: controller,
+            textInputAction: TextInputAction.done,
+            focusNode: focusNode,
+            decoration: InputDecoration(
+              filled: true,
+              isDense: true,
+              fillColor: Colors.transparent,
+              hintText: hintText,
+              hintStyle: TextStyle(
+                color: hintTextColor,
+                fontFamily: 'Montserrat',
                 fontSize: fontSize,
                 fontWeight: fontWeight,
-                color: textColor,
-                fontFamily: 'Montserrat',
               ),
-              obscureText: obscureText,
+              prefixIcon: prefixIcon != null
+                  ? InkWell(
+                      onTap: onPrefixIconPressed,
+                      child: prefixIcon,
+                    )
+                  : null,
+              suffixIcon: suffixIcon != null
+                  ? InkWell(
+                      onTap: onSuffixIconPressed,
+                      child: suffixIcon,
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                  vertical: (height - fontSize) / 2, horizontal: 8),
             ),
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters ??
+                [FilteringTextInputFormatter.allow(RegExp(r'.*'))],
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: fontWeight,
+              color: textColor,
+              fontFamily: 'Montserrat',
+            ),
+            obscureText: obscureText,
           ),
         ),
       ],

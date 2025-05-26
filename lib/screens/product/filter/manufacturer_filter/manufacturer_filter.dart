@@ -24,7 +24,8 @@ class ManufacturerFilter extends StatelessWidget {
         Text(
           S.of(context).manufacturer,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontSize: 16.0,
+            fontSize: 20.0,
+            color: Theme.of(context).colorScheme.primary,
           ),
         ),
         const SizedBox(height: 8.0),

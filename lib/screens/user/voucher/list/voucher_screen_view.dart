@@ -51,7 +51,7 @@ class _VoucherScreenState extends State<VoucherScreen>
             controller: tabController,
             labelColor: Theme.of(context).colorScheme.primary,
             unselectedLabelColor:
-            Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+            Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             labelPadding: const EdgeInsets.symmetric(horizontal: 8),
             indicatorColor: Theme.of(context).colorScheme.primary,
             tabAlignment: TabAlignment.fill,

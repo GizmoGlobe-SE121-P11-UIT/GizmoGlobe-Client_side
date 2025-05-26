@@ -18,41 +18,20 @@ class GradientIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLightMode = Theme.of(context).brightness == Brightness.light;
-
     return Center(
       child: Container(
         decoration: BoxDecoration(
           color: fillColor,
           borderRadius: borderRadius,
         ),
-        child: isLightMode
-            ? GestureDetector(
-                onTap: onPressed,
-                child: Icon(
-                  icon,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  size: iconSize,
-                ),
-              )
-            : ShaderMask(
-                shaderCallback: (bounds) => LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.secondary,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ).createShader(bounds),
-                child: GestureDetector(
-                  onTap: onPressed,
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: iconSize,
-                  ),
-                ),
-              ),
+        child: GestureDetector(
+          onTap: onPressed,
+          child: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+            size: iconSize,
+          ),
+        ),
       ),
     );
   }

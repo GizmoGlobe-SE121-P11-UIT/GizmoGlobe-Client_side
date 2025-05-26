@@ -187,7 +187,7 @@ class _ProductTabState extends State<ProductTab>
                           child: IconButton(
                             icon: const Icon(Icons.filter_list_alt),
                             iconSize: 28,
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.primary,
                             onPressed: () async {
                               final FilterArgument arguments = state
                                   .filterArgument
@@ -255,7 +255,7 @@ class _ProductTabState extends State<ProductTab>
                   children: [
                     ModalBarrier(
                         dismissible: false,
-                        color: Colors.black.withOpacity(0.5)),
+                        color: Colors.black.withValues(alpha: 0.5)),
                     const Center(child: CircularProgressIndicator()),
                   ],
                 );

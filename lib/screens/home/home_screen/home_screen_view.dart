@@ -70,7 +70,7 @@ class _HomeScreen extends State<HomeScreen> {
                           child: IconButton(
                             icon: Icon(
                               Icons.chat,
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.primary,
                               size: 28,
                             ),
                             onPressed: () {
@@ -157,13 +157,14 @@ class _HomeScreen extends State<HomeScreen> {
               title,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 fontSize: 24,
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),
             TextButton(
               onPressed: onSeeAll,
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.secondary,
+                foregroundColor: Theme.of(context).colorScheme.primaryContainer,
                 textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

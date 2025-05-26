@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 class GradientButton extends StatelessWidget {
   final VoidCallback onPress;
-  final Gradient? gradient;
   final double height;
   final double width;
   final double borderRadius;
@@ -14,7 +13,6 @@ class GradientButton extends StatelessWidget {
   const GradientButton({
     super.key,
     required this.onPress,
-    this.gradient,
     this.height = 48.0,
     this.width = double.infinity,
     this.borderRadius = 10.0,
@@ -26,27 +24,12 @@ class GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLightMode = Theme.of(context).brightness == Brightness.light;
-
     return SizedBox(
       width: width,
       height: height,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: isLightMode
-              ? null
-              : (gradient ??
-                  LinearGradient(
-                    colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  )),
-          color: isLightMode
-              ? Theme.of(context).colorScheme.primary
-              : Colors.transparent,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(borderRadius),
         ),
         child: TextButton(

@@ -161,7 +161,7 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
                         child: Text(
                           voucher.voucherName,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Colors.red,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

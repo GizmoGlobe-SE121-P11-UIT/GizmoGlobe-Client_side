@@ -85,7 +85,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         hintTextColor: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.5),
+                            .withValues(alpha: 0.5),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(
                               RegExp(r'[a-zA-Z\s]')),
@@ -107,7 +107,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         hintTextColor: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.5),
+                            .withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
                       AddressPicker(
@@ -135,7 +135,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         hintTextColor: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.5),
+                            .withValues(alpha: 0.5),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(
                               RegExp(r'[a-zA-Z0-9\s,\-\./]')),
@@ -175,7 +175,7 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                       foregroundColor: Theme.of(context).colorScheme.onError,
                     ),
                     child: Text(
-                      S.of(context).deleteAddress,
+                      S.of(context).remove,
                       style: AppTextStyle.buttonTextBold,
                     ),
                   ),

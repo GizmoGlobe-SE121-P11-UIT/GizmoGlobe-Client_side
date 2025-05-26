@@ -36,7 +36,7 @@ class _CartScreen extends State<CartScreen> {
           onPressed: () {
             Navigator.pop(context);
           },
-          fillColor: Theme.of(context).colorScheme.surface,
+          fillColor: Colors.transparent,
         ),
         title: GradientText(text: S.of(context).cart),
       ),
@@ -190,7 +190,7 @@ class _CartScreen extends State<CartScreen> {
                                 const SizedBox(height: 4),
                                 if (product['discount'] > 0) ...[
                                   Text(
-                                    '\$${(product['sellingPrice'] * item['quantity']).toStringAsFixed(2)}',
+                                    '\$${(product['sellingPrice']).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       decoration: TextDecoration.lineThrough,
                                       color: Theme.of(context)
@@ -203,12 +203,11 @@ class _CartScreen extends State<CartScreen> {
                                   const SizedBox(width: 4),
                                 ],
                                 Text(
-                                  '\$${(product['sellingPrice'] * (1 - (product['discount'] ?? 0)) * item['quantity']).toStringAsFixed(2)}',
+                                  '\$${(product['sellingPrice'] * (1 - (product['discount'] ?? 0))).toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                    color: Colors.green,
                                   ),
                                 ),
                               ],
@@ -429,7 +428,7 @@ class _CartScreen extends State<CartScreen> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onSurface,
+                                color: Colors.green,
                               ),
                             ),
                           ],
@@ -454,7 +453,7 @@ class _CartScreen extends State<CartScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),

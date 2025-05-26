@@ -29,71 +29,57 @@ class GradientDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          width: 2,
+          width: 1.5,
           style: BorderStyle.solid,
-          color: Colors.transparent,
-        ),
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.secondary
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Theme.of(context).colorScheme.surface,
+      child: DropdownSearch<T>(
+        items: items,
+        compareFn: compareFn,
+        itemAsString: itemAsString,
+        dropdownBuilder: dropdownBuilder ?? _defaultDropdownBuilder,
+        suffixProps: DropdownSuffixProps(
+          dropdownButtonProps: DropdownButtonProps(
+            iconClosed: const Icon(Icons.keyboard_arrow_down),
+            iconOpened: const Icon(Icons.keyboard_arrow_up),
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
-        child: DropdownSearch<T>(
-          items: items,
-          compareFn: compareFn,
-          itemAsString: itemAsString,
-          dropdownBuilder: dropdownBuilder ?? _defaultDropdownBuilder,
-          suffixProps: DropdownSuffixProps(
-            dropdownButtonProps: DropdownButtonProps(
-              iconClosed: const Icon(Icons.keyboard_arrow_down),
-              iconOpened: const Icon(Icons.keyboard_arrow_up),
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          popupProps: PopupProps.menu(
-            showSearchBox: true,
-            searchFieldProps: TextFieldProps(
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                border: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                filled: false,
-                hintText: S.of(context).search,
-                hintStyle: const TextStyle(color: Colors.grey),
-              ),
-            ),
-          ),
-          decoratorProps: DropDownDecoratorProps(
+        popupProps: PopupProps.menu(
+          showSearchBox: true,
+          searchFieldProps: TextFieldProps(
             decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(
-                color: Colors.grey,
-                fontFamily: 'Montserrat',
-                fontSize: fontSize,
-              ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              border: InputBorder.none,
-              fillColor: Colors.transparent,
+              border: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              filled: false,
+              hintText: S.of(context).search,
+              hintStyle: const TextStyle(color: Colors.grey),
             ),
-            textAlignVertical: TextAlignVertical.center,
           ),
-          onChanged: onChanged,
-          selectedItem: selectedItem,
         ),
+        decoratorProps: DropDownDecoratorProps(
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: TextStyle(
+              color: Colors.grey,
+              fontFamily: 'Montserrat',
+              fontSize: fontSize,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+            border: InputBorder.none,
+            fillColor: Colors.transparent,
+          ),
+          textAlignVertical: TextAlignVertical.center,
+        ),
+        onChanged: onChanged,
+        selectedItem: selectedItem,
       ),
     );
   }

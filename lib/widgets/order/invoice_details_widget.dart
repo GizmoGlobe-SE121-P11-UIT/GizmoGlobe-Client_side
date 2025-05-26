@@ -47,16 +47,17 @@ class InvoiceDetailsWidget extends StatelessWidget {
               children: [
                 Text(
                   detail.product.productName,
-                  style: AppTextStyle.regularText,
+                  style: AppTextStyle.regularText
+                      .copyWith(fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '\$${(detail.sellingPrice * detail.quantity).toStringAsFixed(2)}',
+                  '\$${(detail.sellingPrice).toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue[200],
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
               ],

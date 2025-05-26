@@ -88,7 +88,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
             String errorMessage = S.of(context).errorCheckout;
 
             if ((state.message.toLowerCase().contains('payment failed') ||
-                    state.message.toLowerCase().contains('stripe'))) {
+                state.message.toLowerCase().contains('stripe'))) {
               errorMessage = S.of(context).paymentCancelled;
             }
 
@@ -160,7 +160,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                 const SizedBox(height: 4),
                                 if (product.discount > 0) ...[
                                   Text(
-                                    '\$${(product.price * detail.quantity).toStringAsFixed(2)}',
+                                    '\$${(product.price).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       decoration: TextDecoration.lineThrough,
                                       color: Theme.of(context)
@@ -173,7 +173,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                   const SizedBox(height: 2),
                                 ],
                                 Text(
-                                  '\$${(detail.sellingPrice * detail.quantity).toStringAsFixed(2)}',
+                                  '\$${(detail.sellingPrice).toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -216,15 +216,21 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                     children: [
                       Text(
                         'Vouchers',
-                        style: AppTextStyle.boldText,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 18,
+                        ),
                       ),
                       GestureDetector(
                         onTap: () async {
                           final voucher = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ChooseVoucherScreen.newInstance(
-                                totalAmount: state.salesInvoice!.getTotalBasedPrice(),
+                              builder: (context) =>
+                                  ChooseVoucherScreen.newInstance(
+                                totalAmount:
+                                    state.salesInvoice!.getTotalBasedPrice(),
                                 currentVoucher: state.salesInvoice!.voucher,
                               ),
                             ),
@@ -250,30 +256,37 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                               Expanded(
                                 child: state.salesInvoice?.voucher == null
                                     ? Text(
-                                  'Add Voucher',
-                                  style: AppTextStyle.regularText,
-                                )
+                                        'Add Voucher',
+                                        style: AppTextStyle.regularText,
+                                      )
                                     : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      state.salesInvoice!.voucher!.voucherName,
-                                      style: AppTextStyle.boldText,
-                                    ),
-                                    if (state.salesInvoice!.voucherDiscount > 0)
-                                      Text(
-                                        '- \$${state.salesInvoice!.voucherDiscount.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            state.salesInvoice!.voucher!
+                                                .voucherName,
+                                            style: AppTextStyle.boldText,
+                                          ),
+                                          if (state.salesInvoice!
+                                                  .voucherDiscount >
+                                              0)
+                                            Text(
+                                              '- \$${state.salesInvoice!.voucherDiscount.toStringAsFixed(2)}',
+                                              style: TextStyle(
+                                                color: Colors.green,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                        ],
                                       ),
-                                  ],
-                                ),
                               ),
                               Icon(
                                 Icons.chevron_right,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withOpacity(0.5),
                               ),
                             ],
                           ),
@@ -294,7 +307,11 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                     children: [
                       Text(
                         S.of(context).shippingAddress,
-                        style: AppTextStyle.boldText,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 18,
+                        ),
                       ),
                       GestureDetector(
                         onTap: () async {
@@ -425,11 +442,12 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                   Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => OrderScreen.newInstance(
+                                      builder: (context) =>
+                                          OrderScreen.newInstance(
                                         orderOption: OrderOption.toShip,
                                       ),
                                     ),
-                                        (route) => false,
+                                    (route) => false,
                                   );
                                 },
                               ),

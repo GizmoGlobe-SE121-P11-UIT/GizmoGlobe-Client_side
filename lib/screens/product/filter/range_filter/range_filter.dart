@@ -35,7 +35,8 @@ class RangeFilter extends StatelessWidget {
         Text(
           name,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontSize: 16.0,
+            fontSize: 20.0,
+            color: Theme.of(context).colorScheme.primary,
           ),
         ),
         const SizedBox(height: 8.0),
@@ -48,7 +49,8 @@ class RangeFilter extends StatelessWidget {
                   Text(
                     S.of(context).from,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).textTheme.bodySmall ?.color,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 16.0,
                     ),
                   ),
                   const SizedBox(height: 4.0),
@@ -70,7 +72,7 @@ class RangeFilter extends StatelessWidget {
                   Text(
                     S.of(context).to,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).textTheme.bodySmall ?.color,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 4.0),

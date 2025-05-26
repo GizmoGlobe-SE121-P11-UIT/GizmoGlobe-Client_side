@@ -20,6 +20,8 @@ class InvisibleGradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
@@ -28,34 +30,22 @@ class InvisibleGradientButton extends StatelessWidget {
           borderRadius: BorderRadius.zero,
         ),
       ),
-      child: ShaderMask(
-        shaderCallback: (bounds) {
-          return LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.secondary,
-            ],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ).createShader(bounds);
-        },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (prefixIcon != null) Icon(prefixIcon, color: Colors.white),
-            if (prefixIcon != null) const SizedBox(width: 8.0),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: fontSize,
-                color: Colors.white,
-                fontWeight: fontWeight,
-              ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (prefixIcon != null) Icon(prefixIcon, color: primaryColor),
+          if (prefixIcon != null) const SizedBox(width: 8.0),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: fontSize,
+              color: primaryColor,
+              fontWeight: fontWeight,
             ),
-            if (suffixIcon != null) const SizedBox(width: 8.0),
-            if (suffixIcon != null) Icon(suffixIcon, color: Colors.white),
-          ],
-        ),
+          ),
+          if (suffixIcon != null) const SizedBox(width: 8.0),
+          if (suffixIcon != null) Icon(suffixIcon, color: primaryColor),
+        ],
       ),
     );
   }

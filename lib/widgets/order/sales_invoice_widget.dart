@@ -19,7 +19,7 @@ class SalesInvoiceWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       child: Card(
-        color: Theme.of(context).colorScheme.primaryContainer,
+        color: Theme.of(context).colorScheme.primary,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -40,10 +40,8 @@ class SalesInvoiceWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      S.of(context).totalItems(
-                          salesInvoice.getTotalItems(),
-                          double.parse(salesInvoice.totalPrice.toStringAsFixed(2)) as String
-                      ),
+                      S.of(context).totalItems(salesInvoice.getTotalItems(),
+                          '\$${salesInvoice.totalPrice.toStringAsFixed(2)}'),
                       style: AppTextStyle.regularText,
                     ),
                     const SizedBox(height: 8),
@@ -67,7 +65,7 @@ class SalesInvoiceWidget extends StatelessWidget {
           children: [
             Text(
               S.of(context).orderProcessing,
-              style: AppTextStyle.bigText,
+              style: AppTextStyle.regularText,
             ),
           ],
         );
@@ -78,7 +76,7 @@ class SalesInvoiceWidget extends StatelessWidget {
           children: [
             Text(
               S.of(context).orderPreparing,
-              style: AppTextStyle.bigText,
+              style: AppTextStyle.regularText,
             ),
           ],
         );
@@ -88,7 +86,7 @@ class SalesInvoiceWidget extends StatelessWidget {
           children: [
             Text(
               S.of(context).orderShipping,
-              style: AppTextStyle.bigText,
+              style: AppTextStyle.regularText,
             ),
           ],
         );
@@ -98,12 +96,12 @@ class SalesInvoiceWidget extends StatelessWidget {
           children: [
             Text(
               S.of(context).orderDelivered,
-              style: AppTextStyle.bigText,
+              style: AppTextStyle.regularText,
             ),
             const SizedBox(height: 4),
             Text(
               S.of(context).pleaseConfirmDelivery,
-              style: AppTextStyle.bigText,
+              style: AppTextStyle.regularText,
             ),
             const SizedBox(height: 8),
             ElevatedButton(

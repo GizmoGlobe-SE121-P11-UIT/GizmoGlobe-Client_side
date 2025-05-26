@@ -14,28 +14,12 @@ class SelectableGradientIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return isSelected
-        ? ShaderMask(
-      shaderCallback: (bounds) {
-        return LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.secondary,
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ).createShader(bounds);
-      },
-      child: Icon(
-        icon,
-        size: size,
-        color: Colors.white,
-      ),
-    )
-        : Icon(
+    return Icon(
       icon,
       size: size,
-      color: Theme.of(context).colorScheme.onPrimary,
+      color: isSelected
+          ? Theme.of(context).colorScheme.secondaryContainer
+          : Theme.of(context).colorScheme.onPrimary,
     );
   }
 }

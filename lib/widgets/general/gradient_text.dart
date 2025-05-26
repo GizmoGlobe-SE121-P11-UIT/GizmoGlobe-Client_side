@@ -12,38 +12,15 @@ class GradientText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLightMode = Theme.of(context).brightness == Brightness.light;
-
-    return isLightMode
-        ? Text(
-            text,
-            style: TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-              overflow: TextOverflow.ellipsis,
-            ),
-          )
-        : ShaderMask(
-            shaderCallback: (bounds) => LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.secondary,
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ).createShader(bounds),
-            child: Text(
-              text,
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontSize: fontSize,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          );
+    return Text(
+      text,
+      style: TextStyle(
+        fontFamily: 'Montserrat',
+        fontSize: fontSize,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
   }
 }

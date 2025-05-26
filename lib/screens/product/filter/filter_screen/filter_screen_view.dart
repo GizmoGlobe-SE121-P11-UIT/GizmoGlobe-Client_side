@@ -7,9 +7,9 @@ import 'package:gizmoglobe_client/enums/product_related/mainboard_enums/mainboar
 import 'package:gizmoglobe_client/enums/product_related/psu_enums/psu_modular.dart';
 import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_bus.dart';
 import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_capacity_enum.dart';
-import 'package:gizmoglobe_client/objects/product_related/filter_argument.dart';
-import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/objects/product_related/filter_argument.dart';
+
 import '../../../../enums/product_related/drive_enums/drive_capacity.dart';
 import '../../../../enums/product_related/drive_enums/drive_type.dart';
 import '../../../../enums/product_related/gpu_enums/gpu_capacity.dart';
@@ -19,7 +19,6 @@ import '../../../../enums/product_related/mainboard_enums/mainboard_series.dart'
 import '../../../../enums/product_related/psu_enums/psu_efficiency.dart';
 import '../../../../enums/product_related/ram_enums/ram_type.dart';
 import '../../../../objects/manufacturer.dart';
-import '../../../../widgets/general/gradient_icon_button.dart';
 import '../manufacturer_filter/manufacturer_filter.dart';
 import '../option_filter/option_filter.dart';
 import '../range_filter/range_filter.dart';
@@ -120,15 +119,15 @@ class _FilterScreenState extends State<FilterScreen> {
               },
               icon: const Icon(Icons.chevron_left),
               iconSize: 40,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.primary,
               // fillColor: Colors.transparent,
             ),
             title: Text(
               S.of(context).filter,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
             actions: [
               TextButton(
@@ -137,8 +136,8 @@ class _FilterScreenState extends State<FilterScreen> {
                 },
                 child: Text(
                   S.of(context).ok,
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
                 ),
               ),
             ],

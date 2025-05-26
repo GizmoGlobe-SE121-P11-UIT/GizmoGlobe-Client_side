@@ -27,18 +27,16 @@ class GradientCheckbox extends StatelessWidget {
             width: 2,
             color: Colors.transparent,
           ),
-          gradient: LinearGradient(
-            colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          )
+          color: Theme.of(context).colorScheme.primary,
         ),
         child: Container(
           width: size - 8,
           height: size - 8,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
-            color: value ? Colors.transparent : Theme.of(context).colorScheme.surface,
+            color: value
+                ? Colors.transparent
+                : Theme.of(context).colorScheme.surface,
           ),
           child: Checkbox(
             value: value,

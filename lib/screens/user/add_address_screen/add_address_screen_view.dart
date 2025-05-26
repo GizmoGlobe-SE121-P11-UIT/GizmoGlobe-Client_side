@@ -97,8 +97,10 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   },
                   fillColor: Theme.of(context).colorScheme.surface,
                   textColor: Theme.of(context).colorScheme.onSurface,
-                  hintTextColor:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  hintTextColor: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
                   ],
@@ -198,12 +200,19 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: Text(
-                      S.of(context).save,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.save, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          S.of(context).save,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
