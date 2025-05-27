@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-
-import '../consts.dart';
 
 class StripeServices {
   StripeServices._();
@@ -12,16 +11,17 @@ class StripeServices {
 
   Future<String?> makePayment(double amount) async {
     try {
-      String? paymentIntentClientSecret = await _createPaymentMethod(amount, "usd");
+      String? paymentIntentClientSecret =
+          await _createPaymentMethod(amount, "usd");
       if (paymentIntentClientSecret == null) {
         return null;
       }
       await Stripe.instance.initPaymentSheet(
           paymentSheetParameters: SetupPaymentSheetParameters(
-            paymentIntentClientSecret: paymentIntentClientSecret,
-            style: ThemeMode.dark,
-            merchantDisplayName: 'Gizmo Globe',
-          ));
+        paymentIntentClientSecret: paymentIntentClientSecret,
+        style: ThemeMode.dark,
+        merchantDisplayName: 'Gizmo Globe',
+      ));
       String? result = await _processPayment(paymentIntentClientSecret);
       if (result != null) {
         return result;
@@ -43,17 +43,15 @@ class StripeServices {
         "currency": currency,
       };
 
-      var response = await dio.post(
-        "https://api.stripe.com/v1/payment_intents",
-        data: data,
-        options: Options(
-          contentType: Headers.formUrlEncodedContentType,
-          headers: {
-            "Authorization": "Bearer $stripeSecretKey",
-            "Content-Type": 'application/x-www-form-urlencoded',
-          },
-        )
-      );
+      var response = await dio.post("https://api.stripe.com/v1/payment_intents",
+          data: data,
+          options: Options(
+            contentType: Headers.formUrlEncodedContentType,
+            headers: {
+              "Authorization": "Bearer ${dotenv.env['STRIPE_SECRET_KEY']}",
+              "Content-Type": 'application/x-www-form-urlencoded',
+            },
+          ));
 
       if (response.data != null) {
         if (kDebugMode) {
@@ -62,19 +60,20 @@ class StripeServices {
         return response.data['client_secret'];
       }
       return null;
-
     } catch (e) {
       if (kDebugMode) {
         print(e);
       }
-      throw Exception('Payment method creation failed'); //Khởi tạo phương thức thanh toán thất bại
+      throw Exception(
+          'Payment method creation failed'); //Khởi tạo phương thức thanh toán thất bại
     }
   }
 
   Future<String?> _processPayment(String paymentIntentClientSecret) async {
     try {
       await Stripe.instance.presentPaymentSheet();
-      final paymentIntent = await Stripe.instance.retrievePaymentIntent(paymentIntentClientSecret);
+      final paymentIntent = await Stripe.instance
+          .retrievePaymentIntent(paymentIntentClientSecret);
       if (paymentIntent.status == PaymentIntentsStatus.Succeeded) {
         return paymentIntent.id;
       }
@@ -83,12 +82,13 @@ class StripeServices {
       if (kDebugMode) {
         print(e);
       }
-      throw Exception('Payment processing failed'); //Quá trình thanh toán thất bại
+      throw Exception(
+          'Payment processing failed'); //Quá trình thanh toán thất bại
     }
   }
 
   String _calculateAmount(double amount) {
-    final int amountInCents = (amount*100).toInt();
+    final int amountInCents = (amount * 100).toInt();
     return amountInCents.toString();
   }
 }
