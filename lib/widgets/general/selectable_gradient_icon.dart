@@ -18,8 +18,8 @@ class SelectableGradientIcon extends StatelessWidget {
       icon,
       size: size,
       color: isSelected
-          ? Theme.of(context).colorScheme.secondaryContainer
-          : Theme.of(context).colorScheme.onPrimary,
+          ? Theme.of(context).colorScheme.onPrimary
+          : Theme.of(context).colorScheme.secondaryContainer,
     );
   }
 }

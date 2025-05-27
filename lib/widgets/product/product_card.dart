@@ -21,8 +21,8 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<FavoritesCubit, Set<String>>(
       builder: (context, favorites) {
-        final isFavorite = product.productID != null &&
-            favorites.contains(product.productID);
+        final isFavorite =
+            product.productID != null && favorites.contains(product.productID);
 
         return Card(
           elevation: 4,
@@ -37,7 +37,8 @@ class ProductCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ProductDetailScreen.newInstance(product),
+                      builder: (context) =>
+                          ProductDetailScreen.newInstance(product),
                     ),
                   );
                 },
@@ -85,25 +86,34 @@ class ProductCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
-                                    color: Theme.of(context).colorScheme.onPrimary,
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
                                   ),
                                 ),
                               ),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const SizedBox(height: 2),
                                       if (product.discount > 0) ...[
                                         Text(
                                           '\$${product.price.toStringAsFixed(2)}',
                                           style: TextStyle(
-                                            decoration: TextDecoration.lineThrough,
-                                            decorationColor: Theme.of(context).colorScheme.onSecondary,
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            decorationColor: Theme.of(context)
+                                                .colorScheme
+                                                .onSecondary,
                                             decorationThickness: 2,
-                                            color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.9),
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onPrimary
+                                                .withValues(alpha: 0.9),
                                             fontSize: 13,
                                           ),
                                         ),
@@ -113,31 +123,44 @@ class ProductCard extends StatelessWidget {
                                         '\$${product.discountedPrice.toStringAsFixed(2)}',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.greenAccent,
+                                          color: Theme.of(context).brightness ==
+                                                  Brightness.light
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
                                           fontSize: 16,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  product.discount > 0 ?
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.error,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        '-${(product.discount*100).toStringAsFixed(0)}%',
-                                        style: TextStyle(
-                                          color: Theme.of(context).colorScheme.onPrimary,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ) : const SizedBox(),
+                                  product.discount > 0
+                                      ? Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .error,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            '-${(product.discount * 100).toStringAsFixed(0)}%',
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onError,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        )
+                                      : const SizedBox(),
                                 ],
                               ),
                             ],
@@ -159,8 +182,8 @@ class ProductCard extends StatelessWidget {
                   onPressed: () {
                     if (product.productID != null) {
                       context.read<FavoritesCubit>().toggleFavorite(
-                        product.productID!,
-                      );
+                            product.productID!,
+                          );
                     }
                   },
                 ),
@@ -186,6 +209,6 @@ class ProductCard extends StatelessWidget {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
-      }
+    }
   }
 }

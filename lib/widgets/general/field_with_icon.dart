@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart';
 
 class FieldWithIcon extends StatelessWidget {
   final double height;
@@ -58,74 +57,80 @@ class FieldWithIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: fillColor,
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: fillColor,
+        borderRadius: borderRadius,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+      child: TextFormField(
+        readOnly: readOnly,
+        textAlignVertical: TextAlignVertical.center,
+        onTap: onTap,
+        onFieldSubmitted: onSubmitted,
+        onChanged: onChanged,
+        controller: controller,
+        textInputAction: TextInputAction.done,
+        focusNode: focusNode,
+        decoration: InputDecoration(
+          filled: true,
+          isDense: true,
+          fillColor: Colors.transparent,
+          hintText: hintText,
+          hintStyle: TextStyle(
+            color: hintTextColor,
+            fontFamily: 'Montserrat',
+            fontSize: fontSize,
+            fontWeight: fontWeight,
+          ),
+          prefixIcon: prefixIcon != null
+              ? InkWell(
+                  onTap: onPrefixIconPressed,
+                  child: prefixIcon,
+                )
+              : null,
+          suffixIcon: suffixIcon != null
+              ? InkWell(
+                  onTap: onSuffixIconPressed,
+                  child: suffixIcon,
+                )
+              : null,
+          border: OutlineInputBorder(
             borderRadius: borderRadius,
-            border: Border.all(
+            borderSide: BorderSide(
               color: Theme.of(context).colorScheme.primary,
               width: 1.5,
             ),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: Colors.black.withOpacity(0.08),
-            //     blurRadius: 8,
-            //     offset: Offset(0, 2),
-            //   ),
-            // ],
           ),
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          child: TextFormField(
-            readOnly: readOnly,
-            textAlignVertical: TextAlignVertical.center,
-            onTap: onTap,
-            onFieldSubmitted: onSubmitted,
-            onChanged: onChanged,
-            controller: controller,
-            textInputAction: TextInputAction.done,
-            focusNode: focusNode,
-            decoration: InputDecoration(
-              filled: true,
-              isDense: true,
-              fillColor: Colors.transparent,
-              hintText: hintText,
-              hintStyle: TextStyle(
-                color: hintTextColor,
-                fontFamily: 'Montserrat',
-                fontSize: fontSize,
-                fontWeight: fontWeight,
-              ),
-              prefixIcon: prefixIcon != null
-                  ? InkWell(
-                      onTap: onPrefixIconPressed,
-                      child: prefixIcon,
-                    )
-                  : null,
-              suffixIcon: suffixIcon != null
-                  ? InkWell(
-                      onTap: onSuffixIconPressed,
-                      child: suffixIcon,
-                    )
-                  : null,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                  vertical: (height - fontSize) / 2, horizontal: 8),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: borderRadius,
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+              width: 1.5,
             ),
-            keyboardType: keyboardType,
-            inputFormatters: inputFormatters ??
-                [FilteringTextInputFormatter.allow(RegExp(r'.*'))],
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: fontWeight,
-              color: textColor,
-              fontFamily: 'Montserrat',
-            ),
-            obscureText: obscureText,
           ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: borderRadius,
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+              vertical: (height - fontSize) / 2, horizontal: 8),
         ),
-      ],
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters ??
+            [FilteringTextInputFormatter.allow(RegExp(r'.*'))],
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+          color: textColor,
+          fontFamily: 'Montserrat',
+        ),
+        obscureText: obscureText,
+      ),
     );
   }
 }

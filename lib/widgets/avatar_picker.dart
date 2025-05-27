@@ -231,17 +231,17 @@ class _AvatarPickerState extends State<AvatarPicker> {
                 end: Alignment.bottomRight,
                 colors: [
                   Colors.white,
-                  Colors.white.withOpacity(0.95),
+                  Colors.white.withValues(alpha: 0.95),
                 ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                   blurRadius: 15,
                   spreadRadius: 2,
                 ),
@@ -282,7 +282,7 @@ class _AvatarPickerState extends State<AvatarPicker> {
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(

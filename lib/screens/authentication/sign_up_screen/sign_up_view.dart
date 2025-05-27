@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
-import '../../../widgets/dialog/information_dialog.dart';
-import '../../../widgets/general/gradient_text.dart';
-import '../../../widgets/general/field_with_icon.dart';
-import '../../../widgets/general/app_logo.dart';
+
 import '../../../enums/processing/process_state_enum.dart';
+import '../../../widgets/dialog/information_dialog.dart';
+import '../../../widgets/general/app_logo.dart';
+import '../../../widgets/general/field_with_icon.dart';
+import '../../../widgets/general/gradient_text.dart';
 import 'sign_up_cubit.dart';
 import 'sign_up_state.dart';
 
@@ -46,14 +47,16 @@ class _SignUpScreen extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/sign-in',
-          (route) => false,
-        );
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/sign-in',
+            (route) => false,
+          );
+        }
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
@@ -90,8 +93,8 @@ class _SignUpScreen extends State<SignUpScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: theme.brightness == Brightness.light
-                                  ? Colors.black.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.2),
+                                  ? Colors.black.withValues(alpha: 0.05)  
+                                  : Colors.black.withValues(alpha: 0.2),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -118,8 +121,8 @@ class _SignUpScreen extends State<SignUpScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: theme.brightness == Brightness.light
-                                  ? Colors.black.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.2),
+                                  ? Colors.black.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.2),  
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -146,8 +149,8 @@ class _SignUpScreen extends State<SignUpScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: theme.brightness == Brightness.light
-                                  ? Colors.black.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.2),
+                                  ? Colors.black.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.2),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -175,8 +178,8 @@ class _SignUpScreen extends State<SignUpScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: theme.brightness == Brightness.light
-                                  ? Colors.black.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.2),
+                                  ? Colors.black.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.2),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -204,8 +207,8 @@ class _SignUpScreen extends State<SignUpScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: theme.brightness == Brightness.light
-                                  ? Colors.black.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.2),
+                                  ? Colors.black.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.2),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -354,13 +357,14 @@ class _SignUpScreen extends State<SignUpScreen> {
                           },
                           style: TextButton.styleFrom(
                             foregroundColor:
-                                theme.colorScheme.primary.withOpacity(0.8),
+                                theme.colorScheme.primary.withValues(alpha: 0.8),
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
                           child: Text(
                             S.of(context).login,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.primary.withOpacity(0.8),
+                              color:
+                                  theme.colorScheme.primary.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),

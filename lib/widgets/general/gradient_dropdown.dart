@@ -28,14 +28,11 @@ class GradientDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          width: 1.5,
-          style: BorderStyle.solid,
-          color: Theme.of(context).colorScheme.primary,
-        ),
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
       child: DropdownSearch<T>(
         items: items,
         compareFn: compareFn,
@@ -73,7 +70,27 @@ class GradientDropdown<T> extends StatelessWidget {
               fontSize: fontSize,
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-            border: InputBorder.none,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 1.5,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 1.5,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
+            ),
             fillColor: Colors.transparent,
           ),
           textAlignVertical: TextAlignVertical.center,

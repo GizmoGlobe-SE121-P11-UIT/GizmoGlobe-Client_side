@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:gizmoglobe_client/widgets/general/invisible_gradient_button.dart';
+
 import '../../../objects/address_related/address.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../user/add_address_screen/add_address_screen_view.dart';
 import 'choose_address_screen_cubit.dart';
 import 'choose_address_screen_state.dart';
-import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class ChooseAddressScreen extends StatefulWidget {
   final Address address;
@@ -73,14 +74,15 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
                                 title: Container(
                                   margin: const EdgeInsets.only(bottom: 8),
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
+                                      horizontal: 16, vertical: 16),
                                   decoration: BoxDecoration(
                                     color:
                                         Theme.of(context).colorScheme.surface,
                                     borderRadius: BorderRadius.circular(8),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
+                                        color:
+                                            Colors.black.withValues(alpha: 0.3),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),

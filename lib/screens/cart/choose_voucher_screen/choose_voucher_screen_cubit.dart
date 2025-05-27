@@ -5,7 +5,6 @@ import '../../../enums/voucher_related/voucher_status.dart';
 import '../../../objects/voucher_related/percentage_interface.dart';
 import '../../../objects/voucher_related/voucher.dart';
 import 'choose_voucher_screen_state.dart';
-import 'package:intl/intl.dart';
 
 class ChooseVoucherScreenCubit extends Cubit<ChooseVoucherScreenState> {
   ChooseVoucherScreenCubit() : super(const ChooseVoucherScreenState());

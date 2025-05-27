@@ -105,19 +105,14 @@ class SignUpCubit extends Cubit<SignUpState> {
         message: NotifyMessage.msg6,
       ));
     } on FirebaseAuthException catch (e) {
-      String errorMessage;
       switch (e.code) {
         case 'weak-password':
-          errorMessage = S.current.passwordTooShort;
           break;
         case 'email-already-in-use':
-          errorMessage = S.current.emailAlreadyInUse;
           break;
         case 'invalid-email':
-          errorMessage = S.current.invalidEmail;
           break;
         default:
-          errorMessage = S.current.registerFailed;
       }
 
       emit(state.copyWith(

@@ -80,8 +80,10 @@ class _OrderScreenState extends State<OrderScreen>
           bottom: TabBar(
             controller: tabController,
             labelColor: Theme.of(context).colorScheme.primary,
-            unselectedLabelColor:
-                Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+            unselectedLabelColor: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withValues(alpha: 0.3),
             labelPadding: const EdgeInsets.symmetric(horizontal: 16),
             indicatorColor: Theme.of(context).colorScheme.primary,
             tabAlignment: TabAlignment.fill,

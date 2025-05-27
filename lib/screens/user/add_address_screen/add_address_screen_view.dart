@@ -127,8 +127,10 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   keyboardType: TextInputType.phone,
                   fillColor: Theme.of(context).colorScheme.surface,
                   textColor: Theme.of(context).colorScheme.onSurface,
-                  hintTextColor:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  hintTextColor: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -168,8 +170,10 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                   },
                   fillColor: Theme.of(context).colorScheme.surface,
                   textColor: Theme.of(context).colorScheme.onSurface,
-                  hintTextColor:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  hintTextColor: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(
                         RegExp(r'[a-zA-Z0-9\s,\-\./]')),

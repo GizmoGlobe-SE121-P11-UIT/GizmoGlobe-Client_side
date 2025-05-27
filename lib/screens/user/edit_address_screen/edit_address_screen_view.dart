@@ -69,11 +69,22 @@ class _EditAddressScreen extends State<EditAddressScreen> {
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        S.of(context).receiverName,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       FieldWithIcon(
                         controller: _receiverNameController,
                         hintText: S.of(context).receiverName,
@@ -92,6 +103,15 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
+                      Text(
+                        S.of(context).receiverPhone,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       FieldWithIcon(
                         controller: _receiverPhoneController,
                         hintText: S.of(context).receiverPhone,
@@ -110,6 +130,15 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                             .withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 8),
+                      Text(
+                        S.of(context).address,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       AddressPicker(
                         provinceSelected: widget.address.province,
                         districtSelected: widget.address.district,
@@ -124,6 +153,15 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                         },
                       ),
                       const SizedBox(height: 8),
+                      Text(
+                        S.of(context).streetAddress,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       FieldWithIcon(
                         controller: _streetController,
                         hintText: S.of(context).streetAddress,
@@ -150,21 +188,6 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop(
-                        cubit.getAddresses(),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                    child: Text(
-                      S.of(context).save,
-                      style: AppTextStyle.buttonTextBold,
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
                       cubit.updateAddress(hidden: true);
                       Navigator.of(context).pop(
                         cubit.getAddresses(),
@@ -174,9 +197,38 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                       backgroundColor: Theme.of(context).colorScheme.error,
                       foregroundColor: Theme.of(context).colorScheme.onError,
                     ),
-                    child: Text(
-                      S.of(context).remove,
-                      style: AppTextStyle.buttonTextBold,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.delete_outline),
+                        const SizedBox(width: 8),
+                        Text(
+                          S.of(context).remove,
+                          style: AppTextStyle.buttonTextBold,
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(
+                        cubit.getAddresses(),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.save_outlined),
+                        const SizedBox(width: 8),
+                        Text(
+                          S.of(context).save,
+                          style: AppTextStyle.buttonTextBold,
+                        ),
+                      ],
                     ),
                   ),
                 ],

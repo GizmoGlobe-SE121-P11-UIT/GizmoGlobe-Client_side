@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/percentage_interface.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/voucher.dart';
@@ -7,8 +6,7 @@ import '../../functions/helper.dart';
 import '../../widgets/general/app_text_style.dart';
 import '../voucher_related/limited_interface.dart';
 
-class LimitedPercentageVoucherWithoutEndTime
-    extends Voucher
+class LimitedPercentageVoucherWithoutEndTime extends Voucher
     implements LimitedInterface, PercentageInterface {
   int _maximumUsage;
   int _usageLeft;
@@ -24,16 +22,13 @@ class LimitedPercentageVoucherWithoutEndTime
     required super.isVisible,
     required super.isEnabled,
     super.description,
-
     super.isPercentage = true,
     super.hasEndTime = false,
     super.isLimited = true,
-
     required int maximumUsage,
     required int usageLeft,
     required double maximumDiscountValue,
-  }) :
-        _maximumUsage = maximumUsage,
+  })  : _maximumUsage = maximumUsage,
         _usageLeft = usageLeft,
         _maximumDiscountValue = maximumDiscountValue;
 
@@ -63,7 +58,6 @@ class LimitedPercentageVoucherWithoutEndTime
     bool? isVisible,
     bool? isEnabled,
     String? description,
-
     int? maximumUsage,
     int? usageLeft,
     double? maximumDiscountValue,
@@ -82,7 +76,8 @@ class LimitedPercentageVoucherWithoutEndTime
 
     this.maximumUsage = maximumUsage ?? this.maximumUsage;
     this.usageLeft = usageLeft ?? this.usageLeft;
-    this.maximumDiscountValue = maximumDiscountValue ?? this.maximumDiscountValue;
+    this.maximumDiscountValue =
+        maximumDiscountValue ?? this.maximumDiscountValue;
   }
 
   @override
@@ -90,35 +85,28 @@ class LimitedPercentageVoucherWithoutEndTime
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-            voucherName,
-            style: AppTextStyle.regularTitle
-        ),
+        Text(voucherName, style: AppTextStyle.regularTitle),
         const SizedBox(height: 4),
-
         Text(
           'Discount $discountValue% maximum discount \$$maximumDiscountValue',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
-
         Text(
           'Minimum purchase: \$$minimumPurchase',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
-
-        usageLeft > 0 ?
-        Text(
-          'Usage left: $usageLeft/$maximumUsage',
-          style: AppTextStyle.regularText,
-        ) :
-        Text(
-          'Ran out',
-          style: AppTextStyle.regularText.copyWith(color: Colors.red),
-        ),
+        usageLeft > 0
+            ? Text(
+                'Usage left: $usageLeft/$maximumUsage',
+                style: AppTextStyle.regularText,
+              )
+            : Text(
+                'Ran out',
+                style: AppTextStyle.regularText.copyWith(color: Colors.red),
+              ),
         const SizedBox(height: 4),
-
         Text(
           Helper.getShortVoucherTimeWithoutEnd(startTime),
           style: AppTextStyle.regularText,

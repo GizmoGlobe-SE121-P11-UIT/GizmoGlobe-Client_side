@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
-import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 
 class RangeFilter extends StatelessWidget {
   final String name;
@@ -35,9 +34,9 @@ class RangeFilter extends StatelessWidget {
         Text(
           name,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontSize: 20.0,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+                fontSize: 20.0,
+                color: Theme.of(context).colorScheme.primary,
+              ),
         ),
         const SizedBox(height: 8.0),
         Row(
@@ -49,9 +48,9 @@ class RangeFilter extends StatelessWidget {
                   Text(
                     S.of(context).from,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontSize: 16.0,
-                    ),
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 16.0,
+                        ),
                   ),
                   const SizedBox(height: 4.0),
                   FieldWithIcon(
@@ -72,8 +71,8 @@ class RangeFilter extends StatelessWidget {
                   Text(
                     S.of(context).to,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                   ),
                   const SizedBox(height: 4.0),
                   FieldWithIcon(

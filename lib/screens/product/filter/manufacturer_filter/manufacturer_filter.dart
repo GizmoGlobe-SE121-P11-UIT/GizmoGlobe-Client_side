@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
-import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
-import 'package:gizmoglobe_client/widgets/general/checkbox_button.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/widgets/general/checkbox_button.dart';
 
 class ManufacturerFilter extends StatelessWidget {
   final List<Manufacturer> selectedManufacturers;
@@ -24,9 +23,9 @@ class ManufacturerFilter extends StatelessWidget {
         Text(
           S.of(context).manufacturer,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontSize: 20.0,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+                fontSize: 20.0,
+                color: Theme.of(context).colorScheme.primary,
+              ),
         ),
         const SizedBox(height: 8.0),
         Wrap(

@@ -28,7 +28,7 @@ class InformationDialog extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: theme.colorScheme.surface.withOpacity(0.9),
+            color: theme.colorScheme.surface.withValues(alpha: 0.9),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -62,7 +62,7 @@ class InformationDialog extends StatelessWidget {
               Text(
                 content,
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.9),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
                 ),
                 textAlign: TextAlign.center,
               ),

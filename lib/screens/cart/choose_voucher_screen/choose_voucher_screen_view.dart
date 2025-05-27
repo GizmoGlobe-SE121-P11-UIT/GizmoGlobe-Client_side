@@ -6,7 +6,7 @@ import 'package:gizmoglobe_client/objects/voucher_related/voucher.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
-import 'package:intl/intl.dart';
+
 import '../../user/voucher/voucher_detail/voucher_detail_view.dart';
 import 'choose_voucher_screen_cubit.dart';
 import 'choose_voucher_screen_state.dart';
@@ -38,7 +38,8 @@ class ChooseVoucherScreen extends StatefulWidget {
 }
 
 class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
-  ChooseVoucherScreenCubit get cubit => context.read<ChooseVoucherScreenCubit>();
+  ChooseVoucherScreenCubit get cubit =>
+      context.read<ChooseVoucherScreenCubit>();
 
   @override
   void initState() {
@@ -57,7 +58,7 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
           },
           fillColor: Colors.transparent,
         ),
-        title: GradientText(text: 'Choose Voucher'),
+        title: GradientText(text: S.of(context).chooseVoucher),
       ),
       body: BlocBuilder<ChooseVoucherScreenCubit, ChooseVoucherScreenState>(
         builder: (context, state) {
@@ -70,7 +71,7 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 60.0),
                 child: Text(
-                  "No vouchers available",
+                  S.of(context).noVouchersAvailable,
                   style: AppTextStyle.regularText,
                 ),
               ),
@@ -82,8 +83,10 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
             itemCount: state.availableVouchers.length,
             itemBuilder: (context, index) {
               final voucher = state.availableVouchers[index];
-              final isSelected = widget.currentVoucher?.voucherID == voucher.voucherID;
-              final discount = cubit.calculateDiscount(voucher, widget.totalAmount);
+              final isSelected =
+                  widget.currentVoucher?.voucherID == voucher.voucherID;
+              final discount =
+                  cubit.calculateDiscount(voucher, widget.totalAmount);
 
               return GestureDetector(
                 onTap: () {
@@ -94,15 +97,19 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                        ? Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.1)
                         : Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
                     border: isSelected
-                        ? Border.all(color: Theme.of(context).colorScheme.primary)
+                        ? Border.all(
+                            color: Theme.of(context).colorScheme.primary)
                         : null,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -131,19 +138,22 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              "Min. purchase: \$${voucher.minimumPurchase.toStringAsFixed(2)}",
+                              "${S.of(context).minimumPurchaseAmount}: \$${voucher.minimumPurchase.toStringAsFixed(2)}",
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.7),
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               "- \$${discount.toStringAsFixed(2)}",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
-                                color: Colors.green,
+                                color: Theme.of(context).colorScheme.tertiary,
                               ),
                             ),
                           ],
@@ -154,7 +164,8 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => VoucherDetailScreen.newInstance(voucher),
+                              builder: (context) =>
+                                  VoucherDetailScreen.newInstance(voucher),
                             ),
                           );
                         },

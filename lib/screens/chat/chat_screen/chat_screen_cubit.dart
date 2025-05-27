@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../generated/l10n.dart';
@@ -144,10 +143,8 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       mergedAdminMessages.insertAll(0, localAdminMessages);
 
       // Sắp xếp theo thời gian
-      mergedAiMessages.sort((a, b) => (b.timestamp)
-          .compareTo(a.timestamp));
-      mergedAdminMessages.sort((a, b) => (b.timestamp)
-          .compareTo(a.timestamp));
+      mergedAiMessages.sort((a, b) => (b.timestamp).compareTo(a.timestamp));
+      mergedAdminMessages.sort((a, b) => (b.timestamp).compareTo(a.timestamp));
 
       // Thêm tin nhắn chào mừng nếu cần
       if (mergedAiMessages.isEmpty) {

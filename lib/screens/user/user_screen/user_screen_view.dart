@@ -3,21 +3,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:provider/provider.dart';
+
 import '../../../data/database/database.dart';
 import '../../../enums/processing/order_option_enum.dart';
+import '../../../providers/language_provider.dart';
+import '../../../providers/theme_provider.dart';
 import '../../../widgets/avatar_picker.dart';
+import '../../authentication/sign_in_screen/sign_in_view.dart';
+import '../../authentication/sign_up_screen/sign_up_view.dart';
 import '../../user/voucher/list/voucher_screen_view.dart';
 import '../address_screen/address_screen_view.dart';
 import '../order_screen/order_screen_view.dart';
 import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
-import 'package:provider/provider.dart';
-import '../../../providers/theme_provider.dart';
-import '../../authentication/sign_in_screen/sign_in_view.dart';
-import '../../authentication/sign_up_screen/sign_up_view.dart';
-import '../../../providers/language_provider.dart';
-import 'package:gizmoglobe_client/generated/l10n.dart';
-
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -73,7 +73,10 @@ class _UserScreen extends State<UserScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withOpacity(0.3),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surface
+                      .withValues(alpha: 0.3),
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
@@ -85,7 +88,7 @@ class _UserScreen extends State<UserScreen> {
                         color: Theme.of(context)
                             .colorScheme
                             .primary
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
@@ -143,7 +146,7 @@ class _UserScreen extends State<UserScreen> {
                                           color: Theme.of(context)
                                               .colorScheme
                                               .primary
-                                              .withOpacity(0.1),
+                                              .withValues(alpha: 0.1),
                                           borderRadius:
                                               const BorderRadius.vertical(
                                                   top: Radius.circular(24)),
@@ -156,7 +159,7 @@ class _UserScreen extends State<UserScreen> {
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .primary
-                                                    .withOpacity(0.1),
+                                                    .withValues(alpha: 0.1),
                                                 borderRadius:
                                                     BorderRadius.circular(16),
                                               ),
@@ -422,7 +425,10 @@ class _UserScreen extends State<UserScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withOpacity(0.3),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surface
+                      .withValues(alpha: 0.3),
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
@@ -434,7 +440,7 @@ class _UserScreen extends State<UserScreen> {
                         color: Theme.of(context)
                             .colorScheme
                             .primary
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
@@ -590,7 +596,8 @@ class _UserScreen extends State<UserScreen> {
                                                               .brightness ==
                                                           Brightness.light
                                                       ? const Color(0xFF2C3E50)
-                                                          .withOpacity(0.7)
+                                                          .withValues(
+                                                              alpha: 0.7)
                                                       : Colors.white70,
                                                 ),
                                                 maxLines: 1,
@@ -643,12 +650,13 @@ class _UserScreen extends State<UserScreen> {
                                           vertical: 8,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.15),
+                                          color: Colors.white
+                                              .withValues(alpha: 0.15),
                                           borderRadius:
                                               BorderRadius.circular(20),
                                           border: Border.all(
-                                            color:
-                                                Colors.white.withOpacity(0.3),
+                                            color: Colors.white
+                                                .withValues(alpha: 0.3),
                                             width: 1,
                                           ),
                                         ),
@@ -797,7 +805,7 @@ class _UserScreen extends State<UserScreen> {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .primary
-                                        .withOpacity(0.1),
+                                        .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(24),
                                   ),
                                   child: Row(
@@ -851,7 +859,8 @@ class _UserScreen extends State<UserScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => VoucherScreen.newInstance(),
+                                    builder: (context) =>
+                                        VoucherScreen.newInstance(),
                                   ),
                                 );
                               },
@@ -859,14 +868,18 @@ class _UserScreen extends State<UserScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(24),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: Row(
                                   children: [
                                     Icon(
                                       Icons.card_giftcard,
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                       size: 28,
                                     ),
                                     const SizedBox(width: 16),
@@ -875,13 +888,16 @@ class _UserScreen extends State<UserScreen> {
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                       ),
                                     ),
                                     const Spacer(),
                                     Icon(
                                       Icons.arrow_forward_ios,
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                       size: 20,
                                     ),
                                   ],
@@ -941,7 +957,7 @@ class _UserScreen extends State<UserScreen> {
                                               color: Theme.of(context)
                                                   .colorScheme
                                                   .surface
-                                                  .withOpacity(0.3),
+                                                  .withValues(alpha: 0.3),
                                               borderRadius:
                                                   const BorderRadius.vertical(
                                                       top: Radius.circular(24)),
@@ -955,7 +971,7 @@ class _UserScreen extends State<UserScreen> {
                                                     color: Theme.of(context)
                                                         .colorScheme
                                                         .primary
-                                                        .withOpacity(0.1),
+                                                        .withValues(alpha: 0.1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             16),
@@ -991,7 +1007,9 @@ class _UserScreen extends State<UserScreen> {
                                                   context,
                                                   S.of(context).language,
                                                   Icons.language,
-                                                  S.of(context).changeLanguageDescription,
+                                                  S
+                                                      .of(context)
+                                                      .changeLanguageDescription,
                                                   () {
                                                     showDialog(
                                                       context: context,
@@ -1026,10 +1044,9 @@ class _UserScreen extends State<UserScreen> {
                                                                     title: Text(S
                                                                         .of(context)
                                                                         .languageEn),
-                                                                    leading:
-                                                                        Text(
-                                                                            S.of(context).languageEn
-                                                                            ),
+                                                                    leading: Text(S
+                                                                        .of(context)
+                                                                        .languageEn),
                                                                     onTap: () {
                                                                       languageProvider
                                                                           .setLanguage(
@@ -1046,10 +1063,9 @@ class _UserScreen extends State<UserScreen> {
                                                                     title: Text(S
                                                                         .of(context)
                                                                         .languageVi),
-                                                                    leading:
-                                                                        Text(
-                                                                            S.of(context).languageVi
-                                                                        ),
+                                                                    leading: Text(S
+                                                                        .of(context)
+                                                                        .languageVi),
                                                                     onTap: () {
                                                                       languageProvider
                                                                           .setLanguage(
@@ -1076,7 +1092,9 @@ class _UserScreen extends State<UserScreen> {
                                                   context,
                                                   S.of(context).changeTheme,
                                                   Icons.dark_mode_outlined,
-                                                  S.of(context).changeThemeDescription,
+                                                  S
+                                                      .of(context)
+                                                      .changeThemeDescription,
                                                   () {
                                                     showModalBottomSheet(
                                                       context: context,
@@ -1134,8 +1152,8 @@ class _UserScreen extends State<UserScreen> {
                                                                               context)
                                                                           .colorScheme
                                                                           .primary
-                                                                          .withOpacity(
-                                                                              0.1),
+                                                                          .withValues(
+                                                                              alpha: 0.1),
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               16),
@@ -1238,7 +1256,7 @@ class _UserScreen extends State<UserScreen> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .primary
-                                      .withOpacity(0.1),
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: Row(
@@ -1324,7 +1342,7 @@ class _UserScreen extends State<UserScreen> {
                                               color: Theme.of(context)
                                                   .colorScheme
                                                   .surface
-                                                  .withOpacity(0.3),
+                                                  .withValues(alpha: 0.3),
                                               borderRadius:
                                                   const BorderRadius.vertical(
                                                       top: Radius.circular(24)),
@@ -1338,7 +1356,7 @@ class _UserScreen extends State<UserScreen> {
                                                     color: Theme.of(context)
                                                         .colorScheme
                                                         .primary
-                                                        .withOpacity(0.1),
+                                                        .withValues(alpha: 0.1),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             16),
@@ -1374,7 +1392,9 @@ class _UserScreen extends State<UserScreen> {
                                                   context,
                                                   S.of(context).developers,
                                                   Icons.people_outline,
-                                                  S.of(context).meetDevelopmentTeam,
+                                                  S
+                                                      .of(context)
+                                                      .meetDevelopmentTeam,
                                                   () {
                                                     Navigator.pop(context);
                                                     _showDevelopersInfo(
@@ -1387,7 +1407,9 @@ class _UserScreen extends State<UserScreen> {
                                                       .of(context)
                                                       .termsAndConditions,
                                                   Icons.description_outlined,
-                                                  S.of(context).termsAndConditionsDescription,
+                                                  S
+                                                      .of(context)
+                                                      .termsAndConditionsDescription,
                                                   () {
                                                     Navigator.pop(context);
                                                     _showTermsInfo(context);
@@ -1397,7 +1419,9 @@ class _UserScreen extends State<UserScreen> {
                                                   context,
                                                   S.of(context).privacyPolicy,
                                                   Icons.privacy_tip_outlined,
-                                                  S.of(context).privacyPolicyDescription,
+                                                  S
+                                                      .of(context)
+                                                      .privacyPolicyDescription,
                                                   () {
                                                     Navigator.pop(context);
                                                     _showPrivacyInfo(context);
@@ -1419,7 +1443,7 @@ class _UserScreen extends State<UserScreen> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .primary
-                                      .withOpacity(0.1),
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: Row(
@@ -1476,7 +1500,7 @@ class _UserScreen extends State<UserScreen> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .error
-                                      .withOpacity(0.1),
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: Row(
@@ -1540,7 +1564,10 @@ class _UserScreen extends State<UserScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
@@ -1650,7 +1677,10 @@ class _UserScreen extends State<UserScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withOpacity(0.3),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surface
+                      .withValues(alpha: 0.3),
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
@@ -1662,7 +1692,7 @@ class _UserScreen extends State<UserScreen> {
                         color: Theme.of(context)
                             .colorScheme
                             .primary
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
@@ -1740,7 +1770,10 @@ class _UserScreen extends State<UserScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.3),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surface
+                    .withValues(alpha: 0.3),
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(24)),
               ),
@@ -1752,7 +1785,7 @@ class _UserScreen extends State<UserScreen> {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
@@ -1823,7 +1856,8 @@ class _UserScreen extends State<UserScreen> {
           content,
           style: TextStyle(
             fontSize: 14,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
           ),
         ),
       ],
@@ -1858,7 +1892,10 @@ class _UserScreen extends State<UserScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.3),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surface
+                    .withValues(alpha: 0.3),
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(24)),
               ),
@@ -1870,7 +1907,7 @@ class _UserScreen extends State<UserScreen> {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
@@ -1941,7 +1978,8 @@ class _UserScreen extends State<UserScreen> {
           content,
           style: TextStyle(
             fontSize: 14,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
           ),
         ),
       ],
@@ -1961,7 +1999,7 @@ class _UserScreen extends State<UserScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
               : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
         ),

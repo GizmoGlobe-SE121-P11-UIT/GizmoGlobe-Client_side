@@ -181,8 +181,8 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                           boxShadow: [
                             BoxShadow(
                               color: theme.brightness == Brightness.light
-                                  ? Colors.black.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.2),
+                                  ? Colors.black.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.2),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -209,8 +209,8 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                           boxShadow: [
                             BoxShadow(
                               color: theme.brightness == Brightness.light
-                                  ? Colors.black.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.2),
+                                  ? Colors.black.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.2),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -238,13 +238,13 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                           },
                           style: TextButton.styleFrom(
                             foregroundColor:
-                                theme.colorScheme.primary.withOpacity(0.8),
+                                theme.colorScheme.primary.withValues(alpha: 0.8),
                             padding: EdgeInsets.zero,
                           ),
                           child: Text(
                             S.of(context).forgotPassword,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.primary.withOpacity(0.8),
+                              color: theme.colorScheme.primary.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -379,7 +379,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                               },
                               style: TextButton.styleFrom(
                                 foregroundColor:
-                                    theme.colorScheme.primary.withOpacity(0.8),
+                                    theme.colorScheme.primary.withValues(alpha: 0.8),
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 8),
                               ),
@@ -387,7 +387,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 S.of(context).register,
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.colorScheme.primary
-                                      .withOpacity(0.8),
+                                      .withValues(alpha: 0.8),
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
                                 ),
@@ -401,7 +401,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                             Expanded(
                               child: Divider(
                                 color: theme.colorScheme.onSurfaceVariant
-                                    .withOpacity(0.3),
+                                    .withValues(alpha: 0.3),
                                 thickness: 1,
                               ),
                             ),
@@ -420,7 +420,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                             Expanded(
                               child: Divider(
                                 color: theme.colorScheme.onSurfaceVariant
-                                    .withOpacity(0.3),
+                                    .withValues(alpha: 0.3),
                                 thickness: 1,
                               ),
                             ),
@@ -458,13 +458,14 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                           },
                           style: TextButton.styleFrom(
                             foregroundColor:
-                                theme.colorScheme.primary.withOpacity(0.8),
+                                theme.colorScheme.primary.withValues(alpha: 0.8),
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
                           child: Text(
                             S.of(context).continueAsGuest,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.primary.withOpacity(0.8),
+                              color:
+                                  theme.colorScheme.primary.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),

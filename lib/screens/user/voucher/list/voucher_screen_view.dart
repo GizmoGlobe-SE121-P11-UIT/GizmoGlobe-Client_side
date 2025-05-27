@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_state.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_view.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
+
 import '../../../../enums/processing/process_state_enum.dart';
+import '../../../../objects/voucher_related/voucher.dart';
 import '../../../../widgets/dialog/information_dialog.dart';
 import '../../../../widgets/general/app_text_style.dart';
 import '../../../../widgets/voucher/voucher_widget.dart';
@@ -13,9 +16,9 @@ class VoucherScreen extends StatefulWidget {
   const VoucherScreen({super.key});
 
   static Widget newInstance() => BlocProvider(
-    create: (context) => VoucherScreenCubit(),
-    child: const VoucherScreen(),
-  );
+        create: (context) => VoucherScreenCubit(),
+        child: const VoucherScreen(),
+      );
 
   @override
   State<VoucherScreen> createState() => _VoucherScreenState();
@@ -46,19 +49,19 @@ class _VoucherScreenState extends State<VoucherScreen>
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
-          title: const GradientText(text: "Voucher"),
+          title: GradientText(text: S.of(context).voucher),
           bottom: TabBar(
             controller: tabController,
             labelColor: Theme.of(context).colorScheme.primary,
             unselectedLabelColor:
-            Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             labelPadding: const EdgeInsets.symmetric(horizontal: 8),
             indicatorColor: Theme.of(context).colorScheme.primary,
             tabAlignment: TabAlignment.fill,
             indicator: const BoxDecoration(),
-            tabs: const [
-              Tab(text: 'Ongoing'),
-              Tab(text: 'Upcoming'),
+            tabs: [
+              Tab(text: S.of(context).ongoing),
+              Tab(text: S.of(context).upcoming),
             ],
           ),
         ),
@@ -74,8 +77,9 @@ class _VoucherScreenState extends State<VoucherScreen>
                     onPressed: () {
                       Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => VoucherScreen.newInstance())
-                      );
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  VoucherScreen.newInstance()));
                     },
                   ),
                 );
@@ -89,61 +93,58 @@ class _VoucherScreenState extends State<VoucherScreen>
                   children: [
                     // Tab 1: Ongoing voucher list
                     state.ongoingList.isEmpty
-                        ? const Center(
-                      child: Text(
-                        'No vouchers available',
-                        style: AppTextStyle.regularText,
-                      ),
-                    )
+                        ? Center(
+                            child: Text(
+                              S.of(context).noVouchersAvailable,
+                              style: AppTextStyle.regularText,
+                            ),
+                          )
                         : ListView.builder(
-                      itemCount: state.ongoingList.length,
-                      itemBuilder: (context, index) {
-                        final voucher = state.ongoingList[index];
-                        return VoucherWidget(
-                          voucher: voucher,
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VoucherDetailScreen.newInstance(voucher),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                            itemCount: state.ongoingList.length,
+                            itemBuilder: (context, index) {
+                              final voucher = state.ongoingList[index];
+                              return VoucherWidget(
+                                voucher: voucher,
+                                onPressed: () =>
+                                    _onVoucherTap(context, voucher),
+                              );
+                            },
+                          ),
 
                     // Tab 2: Upcoming voucher list
                     state.upcomingList.isEmpty
-                        ? const Center(
-                      child: Text(
-                        'No vouchers available',
-                        style: AppTextStyle.regularText,
-                      ),
-                    )
+                        ? Center(
+                            child: Text(
+                              S.of(context).noVouchersAvailable,
+                              style: AppTextStyle.regularText,
+                            ),
+                          )
                         : ListView.builder(
-                      itemCount: state.upcomingList.length,
-                      itemBuilder: (context, index) {
-                        final voucher = state.upcomingList[index];
-                        return VoucherWidget(
-                          voucher: voucher,
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VoucherDetailScreen.newInstance(voucher),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                            itemCount: state.upcomingList.length,
+                            itemBuilder: (context, index) {
+                              final voucher = state.upcomingList[index];
+                              return VoucherWidget(
+                                voucher: voucher,
+                                onPressed: () =>
+                                    _onVoucherTap(context, voucher),
+                              );
+                            },
+                          ),
                   ],
                 ),
               );
             },
           ),
         ),
+      ),
+    );
+  }
+
+  void _onVoucherTap(BuildContext context, Voucher voucher) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VoucherDetailScreen.newInstance(voucher),
       ),
     );
   }

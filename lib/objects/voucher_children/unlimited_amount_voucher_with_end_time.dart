@@ -4,7 +4,6 @@ import '../../enums/voucher_related/voucher_status.dart';
 import '../../functions/helper.dart';
 import '../../widgets/general/app_text_style.dart';
 import '../voucher_related/end_time_interface.dart';
-import '../voucher_related/limited_interface.dart';
 
 class UnlimitedAmountVoucherWithEndTime
     extends Voucher

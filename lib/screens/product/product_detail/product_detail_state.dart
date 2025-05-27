@@ -2,9 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 
 import '../../../enums/processing/dialog_name_enum.dart';
-import '../../../enums/processing/notify_message_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
-
 
 class ProductDetailState extends Equatable {
   final Product product;
@@ -28,7 +26,16 @@ class ProductDetailState extends Equatable {
   });
 
   @override
-  List<Object?> get props => [product, technicalSpecs, quantity, dialogName, message, processState, favorites, isFavorite];
+  List<Object?> get props => [
+        product,
+        technicalSpecs,
+        quantity,
+        dialogName,
+        message,
+        processState,
+        favorites,
+        isFavorite
+      ];
 
   ProductDetailState copyWith({
     Product? product,

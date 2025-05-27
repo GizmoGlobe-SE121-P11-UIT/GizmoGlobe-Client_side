@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'l10n_vi.dart';
 
 class S {
@@ -458,7 +459,8 @@ class S {
   String get developersInfo =>
       Intl.message('Developers', name: 'developersInfo');
   String get termsAndConditionsDescription =>
-      Intl.message('Read our terms and conditions', name: 'termsAndConditionsDescription');
+      Intl.message('Read our terms and conditions',
+          name: 'termsAndConditionsDescription');
   String get privacyPolicyDescription =>
       Intl.message('Read our privacy policy', name: 'privacyPolicyDescription');
 
@@ -470,7 +472,8 @@ class S {
       Intl.message('Manage your delivery addresses',
           name: 'manageAddressesDesc');
   String get updateSecurityDescription =>
-      Intl.message('Update your account security', name: 'updateSecurityDescription');
+      Intl.message('Update your account security',
+          name: 'updateSecurityDescription');
   String get changeLanguageDescription =>
       Intl.message('Change app language', name: 'changeLanguageDescription');
   String get changeThemeDescription =>
@@ -525,48 +528,65 @@ class S {
   String get dataSecurityContent => Intl.message(
       'We take reasonable measures to help protect your personal information from loss, theft, misuse, unauthorized access, disclosure, alteration, and destruction.',
       name: 'dataSecurityContent');
-  String get error =>
-      Intl.message('Error', name: 'error');
+  String get error => Intl.message('Error', name: 'error');
   String get failedToSigninAsGuest =>
       Intl.message('Failed to sign in as guest', name: 'failedToSigninAsGuest');
-  String get totalCost =>
-      Intl.message('Total Cost', name: 'totalCost');
-  String get aiWelcomeMessage => Intl.message(
-      'Hello! I am your AI assistant. How can I help you today?',
-      name: 'aiWelcomeMessage');
+  String get totalCost => Intl.message('Total Cost', name: 'totalCost');
+  String get aiWelcomeMessage =>
+      Intl.message('Hello! I am your AI assistant. How can I help you today?',
+          name: 'aiWelcomeMessage');
   String get adminWelcomeMessage => Intl.message(
       'Hello! This is admin contact channel. How can I assist you today?',
       name: 'adminWelcomeMessage');
-  String get firstAdminResponse => Intl.message(
-      'Admin will reply to your message soon.',
-      name: 'firstAdminResponse');
-  String get editProfileDescription => Intl.message(
-      'Update your personal information',
-      name: 'editProfileDescription');
-  String get manageAddressDescription => Intl.message(
-      'Manage your delivery addresses',
-      name: 'customizeAddressDescription');
-  String get changePasswordDescription => Intl.message(
-      'Update your account security',
-      name: 'changePasswordDescription');
+  String get firstAdminResponse =>
+      Intl.message('Admin will reply to your message soon.',
+          name: 'firstAdminResponse');
+  String get editProfileDescription =>
+      Intl.message('Update your personal information',
+          name: 'editProfileDescription');
+  String get manageAddressDescription =>
+      Intl.message('Manage your delivery addresses',
+          name: 'customizeAddressDescription');
+  String get changePasswordDescription =>
+      Intl.message('Update your account security',
+          name: 'changePasswordDescription');
   String get search => Intl.message('Search', name: 'search');
   String get signIn => Intl.message('Sign In', name: 'signIn');
   String get chooseMonthandYear => Intl.message(
-      'Choose Month and Year',
-      name: 'chooseMonthandYear',
-    );
+        'Choose Month and Year',
+        name: 'chooseMonthandYear',
+      );
   String get pickAvatar => Intl.message(
-      'Pick Avatar',
-      name: 'pickAvatar',
-    );
+        'Pick Avatar',
+        name: 'pickAvatar',
+      );
   String get chooseFromGallery => Intl.message(
-      'Choose from Gallery',
-      name: 'chooseFromGallery',
-    );
+        'Choose from Gallery',
+        name: 'chooseFromGallery',
+      );
   String get takeAPicture => Intl.message(
-      'Take a Picture',
-      name: 'takeAPicture',
-    );
+        'Take a Picture',
+        name: 'takeAPicture',
+      );
+  String get chooseVoucher => Intl.message(
+        'Choose Voucher',
+        name: 'chooseVoucher',
+      );
+  String get noVouchersAvailable =>
+      Intl.message('No vouchers available', name: 'noVouchersAvailable');
+
+  String get voucher => Intl.message('Vouchers', name: 'voucher');
+  String get addVoucher => Intl.message('Add Voucher', name: 'addVoucher');
+  String get minimumPurchaseAmount =>
+      Intl.message('Minimum purchase amount', name: 'minimumPurchaseAmount');
+  String get ongoing => Intl.message('Ongoing', name: 'ongoing');
+  String get upcoming => Intl.message('Upcoming', name: 'upcoming');
+  String get startTime => Intl.message('Start time', name: 'startTime');
+  String get endTime => Intl.message('End time', name: 'endTime');
+  String get usage => Intl.message('Usage', name: 'usage');
+  String get minimumPurchase =>
+      Intl.message('Minimum purchase', name: 'minimumPurchase');
+  String get discount => Intl.message('Discount', name: 'discount');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

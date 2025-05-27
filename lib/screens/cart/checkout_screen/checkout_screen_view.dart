@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
-import '../../../enums/processing/process_state_enum.dart';
+
 import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/order_option_enum.dart';
+import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
+import '../../../generated/l10n.dart';
 import '../../../objects/address_related/address.dart';
 import '../../../objects/product_related/product.dart';
 import '../../../widgets/dialog/information_dialog.dart';
-import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
+import '../../../widgets/general/gradient_text.dart';
 import '../../user/order_screen/order_screen_view.dart';
 import '../choose_address_screen/choose_address_screen_view.dart';
-import '../../../generated/l10n.dart';
 import '../choose_voucher_screen/choose_voucher_screen_view.dart';
 import 'checkout_screen_cubit.dart';
 import 'checkout_screen_state.dart';
@@ -55,7 +56,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
           onPressed: () {
             Navigator.pop(context);
           },
-          fillColor: Theme.of(context).colorScheme.surface,
+          fillColor: Colors.transparent,
         ),
         title: GradientText(text: S.of(context).checkoutTitle),
       ),
@@ -166,7 +167,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
-                                          .withOpacity(0.6),
+                                          .withValues(alpha: 0.6),
                                       fontSize: 14,
                                     ),
                                   ),
@@ -178,7 +179,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color:
-                                        Theme.of(context).colorScheme.primary,
+                                        Theme.of(context).colorScheme.tertiary,
                                   ),
                                 ),
                               ],
@@ -215,7 +216,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Vouchers',
+                        S.of(context).voucher,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -256,7 +257,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                               Expanded(
                                 child: state.salesInvoice?.voucher == null
                                     ? Text(
-                                        'Add Voucher',
+                                        S.of(context).addVoucher,
                                         style: AppTextStyle.regularText,
                                       )
                                     : Column(
@@ -286,7 +287,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onSurface
-                                    .withOpacity(0.5),
+                                    .withValues(alpha: 0.5),
                               ),
                             ],
                           ),
@@ -374,7 +375,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                   color: Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, -2),
                     ),
@@ -415,7 +416,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
+                                color: Theme.of(context).colorScheme.tertiary,
                               ),
                             ),
                           ],

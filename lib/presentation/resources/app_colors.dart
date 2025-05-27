@@ -1,3 +1,4 @@
+// This file contains color constants only. For theme data, see app_theme.dart.
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -25,7 +26,7 @@ class AppColors {
 
   // Màu pie chart.
   static List<Color> pieChartCategoryColors = [
-    const Color(0xFFcf3f1f).withOpacity(0.5),
+    const Color(0xFFcf3f1f).withValues(alpha: 0.5),
     const Color(0xFF23cc1f),
     const Color(0xFF2981d9),
     const Color(0xFFe3b82b),

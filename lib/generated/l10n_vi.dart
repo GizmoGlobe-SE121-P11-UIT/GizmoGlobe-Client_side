@@ -556,7 +556,7 @@ class SVI extends S {
   String get chooseWard => 'Chọn Phường/Xã';
 
   @override
-  String get editAddress => 'Sửa địa chỉ';
+  String get editAddress => 'Cập nhật địa chỉ';
 
   @override
   String get deleteAddress => 'Xóa địa chỉ';
@@ -730,7 +730,8 @@ class SVI extends S {
   String get developersInfo => 'Nhà phát triển';
 
   @override
-  String get termsAndConditionsDescription => 'Xem điều khoản và điều kiện của chúng tôi';
+  String get termsAndConditionsDescription =>
+      'Xem điều khoản và điều kiện của chúng tôi';
 
   @override
   String get privacyPolicyDescription => 'Xem chính sách bảo mật của chúng tôi';
@@ -833,13 +834,16 @@ class SVI extends S {
   String get totalCost => 'Tổng chi phí';
 
   @override
-  String get aiWelcomeMessage => 'Chào mừng bạn đến với GizmoGlobe! Tôi là trợ lý AI của bạn. Bạn cần giúp gì?';
+  String get aiWelcomeMessage =>
+      'Chào mừng bạn đến với GizmoGlobe! Tôi là trợ lý AI của bạn. Bạn cần giúp gì?';
 
   @override
-  String get adminWelcomeMessage => 'Chào mừng bạn đến với GizmoGlobe! Đây là kênh liên lạc giữa người bán - người mua. Bạn cần giúp gì?';
+  String get adminWelcomeMessage =>
+      'Chào mừng bạn đến với GizmoGlobe! Đây là kênh liên lạc giữa người bán - người mua. Bạn cần giúp gì?';
 
   @override
-  String get firstAdminResponse => 'Admin/ Người bán sẽ trả lời bạn trong thời gian sớm nhất. Vui lòng đợi trong giây lát.';
+  String get firstAdminResponse =>
+      'Admin/ Người bán sẽ trả lời bạn trong thời gian sớm nhất. Vui lòng đợi trong giây lát.';
 
   @override
   String get editProfileDescription => 'Thay đổi thông tin cá nhân của bạn';
@@ -848,7 +852,8 @@ class SVI extends S {
   String get manageAddressDescription => 'Quản lý địa chỉ giao hàng của bạn';
 
   @override
-  String get changePasswordDescription => 'Thay đổi mật khẩu cho tài khoản của bạn';
+  String get changePasswordDescription =>
+      'Thay đổi mật khẩu cho tài khoản của bạn';
 
   @override
   String get search => 'Tìm kiếm';
@@ -864,4 +869,40 @@ class SVI extends S {
 
   @override
   String get takeAPicture => 'Chụp ảnh mới';
+
+  @override
+  String get chooseVoucher => 'Chọn voucher';
+
+  @override
+  String get noVouchersAvailable => 'Không có voucher nào có sẵn';
+
+  @override
+  String get voucher => 'Mã giảm giá';
+
+  @override
+  String get addVoucher => 'Chọn mã giảm giá';
+
+  @override
+  String get minimumPurchaseAmount => 'Mua tối thiểu';
+
+  @override
+  String get ongoing => 'Đang diễn ra';
+
+  @override
+  String get upcoming => 'Sắp diễn ra';
+
+  @override
+  String get startTime => 'Thời gian bắt đầu';
+
+  @override
+  String get endTime => 'Thời gian kết thúc';
+
+  @override
+  String get usage => 'Đã dùng';
+
+  @override
+  String get minimumPurchase => 'Mua tối thiểu';
+
+  @override
+  String get discount => 'Giảm giá';
 }

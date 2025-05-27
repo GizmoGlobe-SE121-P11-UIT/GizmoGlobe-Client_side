@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
-import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
-import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
-import 'package:gizmoglobe_client/widgets/product/product_card.dart';
+import 'package:gizmoglobe_client/screens/chat/chat_screen/chat_screen_view.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_state.dart';
+import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
+import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
-import 'package:gizmoglobe_client/screens/chat/chat_screen/chat_screen_view.dart';
-import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/widgets/product/product_card.dart';
 
 import '../../../enums/processing/sort_enum.dart';
 
@@ -53,41 +52,38 @@ class _HomeScreen extends State<HomeScreen> {
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                title: Stack(
-                  children: [
-                    Center(
-                      child: Semantics(
-                        label: S.of(context).appLogo,
-                        child: const AppLogo(height: 50),
-                      ),
+                title: Stack(children: [
+                  Center(
+                    child: Semantics(
+                      label: S.of(context).appLogo,
+                      child: const AppLogo(height: 50),
                     ),
-
-                    Row(
-                      children: [
-                        Expanded(child: SizedBox()),
-                        Semantics(
-                          label: S.of(context).chatButton,
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.chat,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 28,
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatScreen.newInstance(),
-                                ),
-                              );
-                            },
+                  ),
+                  Row(
+                    children: [
+                      Expanded(child: SizedBox()),
+                      Semantics(
+                        label: S.of(context).chatButton,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.chat,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 28,
                           ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatScreen.newInstance(),
+                              ),
+                            );
+                          },
                         ),
-                        const SizedBox(width: 8),
-                      ],
-                    ),
-                  ]
-                ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  ),
+                ]),
               ),
               body: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -156,15 +152,15 @@ class _HomeScreen extends State<HomeScreen> {
             Text(
               title,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontSize: 24,
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
+                    fontSize: 24,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             TextButton(
               onPressed: onSeeAll,
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.primaryContainer,
+                foregroundColor: Theme.of(context).colorScheme.secondary,
                 textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

@@ -111,7 +111,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ? S.of(context).aiAssistant
                       : S.of(context).adminSupport,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],

@@ -34,7 +34,6 @@ class SalesInvoice {
     this.voucherDiscount = 0.0,
   });
 
-  @override
   List<Object?> get props => [
         salesInvoiceID,
         customerID,

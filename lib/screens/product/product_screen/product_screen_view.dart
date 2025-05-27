@@ -6,9 +6,10 @@ import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_state.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_tab/product_tab_view.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
+
 import '../../../enums/product_related/category_enum.dart';
-import '../../../objects/product_related/product.dart';
 import '../../../generated/l10n.dart';
+import '../../../objects/product_related/product.dart';
 
 class ProductScreen extends StatefulWidget {
   final List<Product>? initialProducts;
@@ -61,18 +62,23 @@ class _ProductScreenState extends State<ProductScreen>
     cubit.updateSelectedTabIndex(index);
   }
 
-  Future<bool> _onWillPop() async {
-    if (searchFocusNode.hasFocus) {
-      searchFocusNode.unfocus();
-      return Future.value(false);
-    }
-    return Future.value(true);
-  }
+  // Future<bool> _onWillPop() async {
+  //   if (searchFocusNode.hasFocus) {
+  //     searchFocusNode.unfocus();
+  //     return Future.value(false);
+  //   }
+  //   return Future.value(true);
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: !searchFocusNode.hasFocus,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          searchFocusNode.unfocus();
+        }
+      },
       child: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
@@ -88,7 +94,10 @@ class _ProductScreenState extends State<ProductScreen>
               fillColor: Theme.of(context).colorScheme.surface,
               prefixIcon: Icon(
                 Icons.search,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6),
               ),
               onChanged: (value) {
                 cubit.updateSearchText(searchController.text);
@@ -100,8 +109,10 @@ class _ProductScreenState extends State<ProductScreen>
             bottom: TabBar(
               controller: tabController,
               labelColor: Theme.of(context).colorScheme.primary,
-              unselectedLabelColor:
-                  Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              unselectedLabelColor: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
               labelPadding: const EdgeInsets.symmetric(horizontal: 16),
               indicatorColor: Theme.of(context).colorScheme.primary,
               tabAlignment: TabAlignment.start,

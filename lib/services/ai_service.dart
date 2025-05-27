@@ -26,7 +26,7 @@ class AIService {
 
   AIService() : _firestore = FirebaseFirestore.instance {
     if (dotenv.env['GEMINI_API_KEY']?.isEmpty ?? true) {
-      if (kDebugMode){
+      if (kDebugMode) {
         print('GEMINI_API_KEY is not configured in .env file');
       }
       throw Exception('GEMINI_API_KEY is not configured in .env file');
@@ -74,7 +74,8 @@ Current question: $userMessage
       {String? category, String? keyword}) async {
     try {
       if (kDebugMode) {
-        print('Original search params - category: $category, keyword: $keyword');
+        print(
+            'Original search params - category: $category, keyword: $keyword');
       }
 
       // Chuẩn hóa keyword nếu có
@@ -260,21 +261,21 @@ Current question: $userMessage
           productsSnapshot = await searchProducts(category: category);
           if (kDebugMode) {
             print(
-              'Found ${productsSnapshot.docs.length} products in category $category');
+                'Found ${productsSnapshot.docs.length} products in category $category');
           }
         } else if (keywords.isNotEmpty) {
           // Thử tìm với từ khóa đầu tiên
           productsSnapshot = await searchProducts(keyword: keywords.first);
           if (kDebugMode) {
             print(
-              'Found ${productsSnapshot.docs.length} products with keyword ${keywords.first}');
+                'Found ${productsSnapshot.docs.length} products with keyword ${keywords.first}');
           }
         } else {
           // Nếu không có category và keyword, tìm tất cả sản phẩm available
           productsSnapshot = await searchProducts();
           if (kDebugMode) {
             print(
-              'Found ${productsSnapshot.docs.length} total available products');
+                'Found ${productsSnapshot.docs.length} total available products');
           }
         }
 
@@ -536,7 +537,7 @@ Reply in English:
 
   String _createPromptWithProducts(
       String userMessage, QuerySnapshot productsSnapshot, bool isVietnamese) {
-    final category = _detectProductCategory(userMessage);
+    _detectProductCategory(userMessage);
     final formattedProducts =
         _formatProductsInfo(productsSnapshot.docs, isVietnamese);
 
@@ -640,7 +641,8 @@ Reply in English:
       if (entry.value
           .any((keyword) => lowercaseMessage.contains(keyword.toLowerCase()))) {
         if (kDebugMode) {
-          print('Detected category: ${entry.key} from keywords: ${entry.value}');
+          print(
+              'Detected category: ${entry.key} from keywords: ${entry.value}');
         }
         return entry.key;
       }

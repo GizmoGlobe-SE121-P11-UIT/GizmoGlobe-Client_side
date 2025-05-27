@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
+
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
-import '../../../widgets/general/gradient_text.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
+import '../../../widgets/general/gradient_text.dart';
 import '../../main/main_screen/main_screen_view.dart';
 import 'cart_screen_cubit.dart';
 import 'cart_screen_state.dart';
@@ -59,8 +60,10 @@ class _CartScreen extends State<CartScreen> {
                   Icon(
                     Icons.shopping_cart_outlined,
                     size: 64,
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -78,7 +81,7 @@ class _CartScreen extends State<CartScreen> {
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.7),
+                              .withValues(alpha: 0.7),
                         ),
                   ),
                   const SizedBox(height: 24),
@@ -146,7 +149,7 @@ class _CartScreen extends State<CartScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.5),
+                                  .withValues(alpha: 0.5),
                               width: 1.5,
                             ),
                           ),
@@ -196,7 +199,7 @@ class _CartScreen extends State<CartScreen> {
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
-                                          .withOpacity(0.6),
+                                          .withValues(alpha: 0.6),
                                       fontSize: 14,
                                     ),
                                   ),
@@ -207,7 +210,8 @@ class _CartScreen extends State<CartScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.green,
+                                    color:
+                                        Theme.of(context).colorScheme.tertiary,
                                   ),
                                 ),
                               ],
@@ -225,7 +229,7 @@ class _CartScreen extends State<CartScreen> {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onSurface
-                                        .withOpacity(0.2),
+                                        .withValues(alpha: 0.2),
                                   ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -259,7 +263,7 @@ class _CartScreen extends State<CartScreen> {
                                                 : Theme.of(context)
                                                     .colorScheme
                                                     .onSurface
-                                                    .withOpacity(0.3),
+                                                    .withValues(alpha: 0.3),
                                       ),
                                     ),
                                     Container(
@@ -364,7 +368,7 @@ class _CartScreen extends State<CartScreen> {
                   color: Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 8,
                       offset: const Offset(0, -4),
                     ),
@@ -392,7 +396,7 @@ class _CartScreen extends State<CartScreen> {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onSurface
-                                    .withOpacity(0.5),
+                                    .withValues(alpha: 0.5),
                                 width: 1.5,
                               ),
                             ),
@@ -417,25 +421,25 @@ class _CartScreen extends State<CartScreen> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSurface
-                                      .withOpacity(0.6),
+                                      .withValues(alpha: 0.6),
                                   fontSize: 14,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              // const SizedBox(height: 2),
                             ],
                             Text(
                               '\$${state.totalAmount.toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.green,
+                                color: Theme.of(context).colorScheme.tertiary,
                               ),
                             ),
                           ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -453,7 +457,8 @@ class _CartScreen extends State<CartScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),

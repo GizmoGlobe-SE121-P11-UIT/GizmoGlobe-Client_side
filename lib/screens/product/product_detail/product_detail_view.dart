@@ -128,7 +128,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           child: Text(
                             state.itemCount.toString(),
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 10,
                             ),
                             textAlign: TextAlign.center,
@@ -166,7 +166,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                         ? Theme.of(context)
                                             .colorScheme
                                             .surface
-                                            .withOpacity(0.1)
+                                            .withValues(alpha: 0.1)
                                         : Colors.grey[300],
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -179,7 +179,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           ? Theme.of(context)
                                               .colorScheme
                                               .primary
-                                              .withOpacity(0.7)
+                                              .withValues(alpha: 0.7)
                                           : Colors.grey[600],
                                     ),
                                   ),
@@ -281,7 +281,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           ?.copyWith(
                                             color: Theme.of(context)
                                                 .colorScheme
-                                                .secondary,
+                                                .tertiary,
                                             fontWeight: FontWeight.bold,
                                           ),
                                     ),
@@ -303,7 +303,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       color: Theme.of(context).colorScheme.surface,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, -4),
                         ),
@@ -319,7 +319,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Quantity', // 'Số lượng'
+                                  S.of(context).quantity, // 'Số lượng'
                                   style: TextStyle(
                                     color:
                                         Theme.of(context).colorScheme.primary,
@@ -379,7 +379,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Total Price', // 'Tổng tiền'
+                                  S.of(context).totalPrice, // 'Tổng tiền'
                                   style: TextStyle(
                                     color:
                                         Theme.of(context).colorScheme.primary,
@@ -395,7 +395,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .onSurface.withValues(alpha: 0.6),
+                                            .onSurface
+                                            .withValues(alpha: 0.6),
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         decoration: TextDecoration.lineThrough,
@@ -411,7 +412,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .secondary,
+                                            .tertiary,
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -436,7 +437,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).primaryColor,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
                               foregroundColor: Colors.white,
                               elevation: 2,
                               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -495,8 +497,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           S.of(context).memorySpecifications,
           [
             _buildSpecRow(context, S.of(context).busSpeed, '${ram.bus}'),
-            _buildSpecRow(
-                context, S.of(context).capacity, '${ram.capacity}'),
+            _buildSpecRow(context, S.of(context).capacity, '${ram.capacity}'),
             _buildSpecRow(
                 context, S.of(context).ramType, ram.ramType.toString()),
           ],
@@ -508,10 +509,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           S.of(context).processorSpecifications,
           [
             _buildSpecRow(context, S.of(context).family, cpu.family.toString()),
-            _buildSpecRow(context, S.of(context).cores,
-                '${cpu.core}'),
-            _buildSpecRow(context, S.of(context).threads,
-                '${cpu.thread}'),
+            _buildSpecRow(context, S.of(context).cores, '${cpu.core}'),
+            _buildSpecRow(context, S.of(context).threads, '${cpu.thread}'),
             _buildSpecRow(
                 context, S.of(context).clockSpeed, '${cpu.clockSpeed} GHz'),
           ],
@@ -522,8 +521,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         specs.add(_buildSpecGroup(
           S.of(context).powerSupplySpecifications,
           [
-            _buildSpecRow(
-                context, S.of(context).wattage, '${psu.wattage}W'),
+            _buildSpecRow(context, S.of(context).wattage, '${psu.wattage}W'),
             _buildSpecRow(
                 context, S.of(context).efficiency, psu.efficiency.toString()),
             _buildSpecRow(
@@ -540,8 +538,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             _buildSpecRow(
                 context, S.of(context).memory, gpu.capacity.toString()),
             _buildSpecRow(context, S.of(context).busWidth, gpu.bus.toString()),
-            _buildSpecRow(
-                context, S.of(context).clockSpeed, '${gpu.clockSpeed.toString()}GHz'),
+            _buildSpecRow(context, S.of(context).clockSpeed,
+                '${gpu.clockSpeed.toString()}GHz'),
           ],
         ));
         break;
@@ -575,9 +573,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Theme.of(context).colorScheme.surface.withOpacity(0.1)
-            : Theme.of(context).colorScheme.primary.withOpacity(0.05),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.01),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(16),
@@ -597,15 +593,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Theme.of(context).colorScheme.surface.withOpacity(0.1)
-                : Theme.of(context).colorScheme.surface,
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.01),
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.all(8),
@@ -619,13 +615,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildSpecRow(BuildContext context, String label, String value) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       decoration: BoxDecoration(
-        color: isDark
-            ? Theme.of(context).colorScheme.surface.withOpacity(0.3)
-            : Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8),
       ),
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -686,7 +679,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Text(
               '\$${discountedPrice.toStringAsFixed(2)}',
               style: TextStyle(
-                color: Colors.green[300],
+                color: Theme.of(context).colorScheme.tertiary,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -695,7 +688,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -745,7 +738,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       width: 32,
       height: 32,
       child: IconButton(
-        icon: Icon(icon, color: Theme.of(context).primaryColor),
+        icon: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
         onPressed: onPressed,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
