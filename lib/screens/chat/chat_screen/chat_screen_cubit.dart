@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../generated/l10n.dart';
 import '../../../objects/chat_related/chat_message.dart';
@@ -19,18 +20,28 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
   static const String _adminMessagesKey = 'admin_messages';
   static const String _lastAIWelcomeTimeKey = 'last_ai_welcome_time';
   static const String _lastAdminWelcomeTimeKey = 'last_admin_welcome_time';
+  static const String _hasShownAdminReminderKey = 'has_shown_admin_reminder';
   SharedPreferences? _prefs;
   bool _hasShownModeNotification = false;
   bool _hasShownAdminReplyMessage = false;
+  StreamSubscription? _adminMessagesSubscription;
 
   ChatScreenCubit() : super(ChatScreenState()) {
     _initPrefs();
+  }
+
+  @override
+  Future<void> close() {
+    _adminMessagesSubscription?.cancel();
+    return super.close();
   }
 
   Future<void> _initPrefs() async {
     _prefs = await SharedPreferences.getInstance();
     _hasShownModeNotification =
         _prefs?.getBool('hasShownModeNotification') ?? false;
+    _hasShownAdminReplyMessage =
+        _prefs?.getBool(_hasShownAdminReminderKey) ?? false;
 
     // Khôi phục tin nhắn từ SharedPreferences
     final aiMessagesJson = _prefs?.getStringList(_aiMessagesKey) ?? [];
@@ -117,36 +128,31 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
         return;
       }
 
+      // Set up real-time listener for admin messages
+      _setupAdminMessagesListener(user.uid);
+
       // Load messages from Firebase
       final firebaseAiMessages = await _loadMessages(user.uid, true);
       final firebaseAdminMessages = await _loadMessages(user.uid, false);
 
-      // Khôi phục tin nhắn từ SharedPreferences chỉ để lấy tin nhắn bot
+      // Get local messages from SharedPreferences
       final aiMessagesJson = _prefs?.getStringList(_aiMessagesKey) ?? [];
       final adminMessagesJson = _prefs?.getStringList(_adminMessagesKey) ?? [];
 
-      final localAiMessages = aiMessagesJson
-          .map((json) => ChatMessage.fromJson(json))
-          .where((msg) => msg.isBot) // Chỉ lấy tin nhắn bot
-          .toList();
-      final localAdminMessages = adminMessagesJson
-          .map((json) => ChatMessage.fromJson(json))
-          .where((msg) => msg.isBot) // Chỉ lấy tin nhắn bot
-          .toList();
+      final localAiMessages =
+          aiMessagesJson.map((json) => ChatMessage.fromJson(json)).toList();
+      final localAdminMessages =
+          adminMessagesJson.map((json) => ChatMessage.fromJson(json)).toList();
 
-      // Kết hợp tin nhắn
-      final List<ChatMessage> mergedAiMessages = [...firebaseAiMessages];
-      final List<ChatMessage> mergedAdminMessages = [...firebaseAdminMessages];
+      // Merge messages, prioritizing Firebase messages for new messages
+      final List<ChatMessage> mergedAiMessages =
+          _mergeMessagesWithFirebasePriority(
+              localAiMessages, firebaseAiMessages);
+      final List<ChatMessage> mergedAdminMessages =
+          _mergeMessagesWithFirebasePriority(
+              localAdminMessages, firebaseAdminMessages);
 
-      // Thêm tin nhắn bot từ local vào đầu danh sách
-      mergedAiMessages.insertAll(0, localAiMessages);
-      mergedAdminMessages.insertAll(0, localAdminMessages);
-
-      // Sắp xếp theo thời gian
-      mergedAiMessages.sort((a, b) => (b.timestamp).compareTo(a.timestamp));
-      mergedAdminMessages.sort((a, b) => (b.timestamp).compareTo(a.timestamp));
-
-      // Thêm tin nhắn chào mừng nếu cần
+      // Add welcome messages if needed
       if (mergedAiMessages.isEmpty) {
         final aiWelcomeMessage = ChatMessage.fromBot(
           S.of(context).aiWelcomeMessage,
@@ -169,7 +175,6 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
         processState: ProcessState.success,
       ));
 
-      // Lưu messages vào SharedPreferences
       await _saveMessagesToPrefs();
     } catch (e) {
       emit(state.copyWith(
@@ -179,23 +184,96 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
     }
   }
 
-  Future<List<ChatMessage>> _loadMessages(String userId, bool isAIMode) async {
-    final messagesSnapshot = await _firestore
-        .collection('users')
+  void _setupAdminMessagesListener(String userId) {
+    _adminMessagesSubscription?.cancel();
+    _adminMessagesSubscription = _firestore
+        .collection('chats')
         .doc(userId)
-        .collection(isAIMode ? 'ai_messages' : 'admin_messages')
-        .orderBy('timestamp', descending: true)
-        .limit(50)
-        .get();
+        .snapshots()
+        .listen((snapshot) async {
+      if (!snapshot.exists) return;
 
-    return messagesSnapshot.docs
-        .map((doc) => ChatMessage.fromMap(doc.data()))
-        .toList();
+      final data = snapshot.data() as Map<String, dynamic>;
+      final messages = data['messages'] as List<dynamic>? ?? [];
+
+      final adminMessages = messages
+          .map((msg) => ChatMessage.fromMap(msg as Map<String, dynamic>))
+          .where((msg) => !msg.isAIMode && msg.isFromBot)
+          .toList();
+
+      if (adminMessages.isNotEmpty) {
+        final currentAdminMessages = state.adminMessages;
+        final newMessages = adminMessages
+            .where((msg) => !currentAdminMessages.any((existing) =>
+                existing.content == msg.content &&
+                existing.timestamp == msg.timestamp))
+            .toList();
+
+        if (newMessages.isNotEmpty) {
+          final updatedMessages = [...newMessages, ...currentAdminMessages];
+          updatedMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+          emit(state.copyWith(
+            adminMessages: updatedMessages,
+          ));
+
+          await _saveMessagesToPrefs();
+
+          // Show admin response reminder only once per conversation
+          if (!_hasShownAdminReplyMessage) {
+            _hasShownAdminReplyMessage = true;
+            await _prefs?.setBool(_hasShownAdminReminderKey, true);
+            emit(state.copyWith(
+              modeNotification: 'Admin will respond to your message shortly...',
+            ));
+          }
+        }
+      }
+    });
+  }
+
+  List<ChatMessage> _mergeMessagesWithFirebasePriority(
+      List<ChatMessage> localMessages, List<ChatMessage> firebaseMessages) {
+    final Map<String, ChatMessage> messageMap = {};
+
+    // Add local messages first
+    for (var message in localMessages) {
+      messageMap[message.content] = message;
+    }
+
+    // Add Firebase messages, overwriting local messages if they exist
+    for (var message in firebaseMessages) {
+      messageMap[message.content] = message;
+    }
+
+    // Convert map values to list and sort by timestamp
+    final mergedMessages = messageMap.values.toList();
+    mergedMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    return mergedMessages;
+  }
+
+  Future<List<ChatMessage>> _loadMessages(String userId, bool isAIMode) async {
+    final messagesSnapshot =
+        await _firestore.collection('chats').doc(userId).get();
+
+    if (!messagesSnapshot.exists) {
+      return [];
+    }
+
+    final data = messagesSnapshot.data() as Map<String, dynamic>;
+    final messages = data['messages'] as List<dynamic>? ?? [];
+
+    return messages
+        .map((msg) => ChatMessage.fromMap(msg as Map<String, dynamic>))
+        .where((msg) => msg.isAIMode == isAIMode)
+        .toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   Future<bool> _saveMessageToFirebase(ChatMessage message) async {
-    // Không lưu tin nhắn của bot vào Firebase
-    if (message.isBot) {
+    // Only save user messages and AI responses
+    if (message.isFromBot && !message.isAIMode) {
       return true;
     }
 
@@ -212,17 +290,17 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
         return false;
       }
 
-      final messageRef = _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection(state.isAIMode ? 'ai_messages' : 'admin_messages')
-          .doc();
-
+      final userRef = _firestore.collection('chats').doc(user.uid);
       final messageData = message.toMap();
-      messageData['messageId'] = messageRef.id;
-      messageData['timestamp'] = FieldValue.serverTimestamp();
+      final timestamp = DateTime.now();
+      messageData['messageId'] = timestamp.millisecondsSinceEpoch.toString();
+      messageData['userId'] = user.uid;
+      messageData['timestamp'] = Timestamp.fromDate(timestamp);
 
-      await messageRef.set(messageData);
+      await userRef.set({
+        'messages': FieldValue.arrayUnion([messageData])
+      }, SetOptions(merge: true));
+
       return true;
     } catch (e) {
       if (kDebugMode) {
@@ -258,45 +336,68 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
         state.isAIMode,
       );
 
-      // Save user message to Firebase
-      final savedUserMessage = await _saveMessageToFirebase(userMessage);
-      if (!savedUserMessage) return;
+      // Check if message already exists in local storage
+      final existingMessages =
+          state.isAIMode ? state.aiMessages : state.adminMessages;
+      final isDuplicate = existingMessages.any((msg) => msg.content == content);
 
-      // Update UI with user message
-      if (state.isAIMode) {
-        emit(state.copyWith(
-          aiMessages: [userMessage, ...state.aiMessages],
-          processState: ProcessState.loading,
-        ));
+      if (!isDuplicate) {
+        // Save user message to Firebase
+        final savedUserMessage = await _saveMessageToFirebase(userMessage);
+        if (!savedUserMessage) return;
 
-        // Gọi AI để tạo câu trả lời
-        final response = await _aiService.generateResponse(content);
-        final botMessage = ChatMessage.fromBot(response, true);
-
-        emit(state.copyWith(
-          aiMessages: [botMessage, ...state.aiMessages],
-          processState: ProcessState.success,
-        ));
-      } else {
-        emit(state.copyWith(
-          adminMessages: [userMessage, ...state.adminMessages],
-          processState: ProcessState.loading,
-        ));
-
-        // Chỉ hiển thị thông báo admin reply một lần
-        if (!_hasShownAdminReplyMessage) {
-          final response = S.of(context).firstAdminResponse;
-          _hasShownAdminReplyMessage = true;
-          final botMessage = ChatMessage.fromBot(response, false);
+        // Update UI with user message
+        if (state.isAIMode) {
           emit(state.copyWith(
-            adminMessages: [botMessage, ...state.adminMessages],
+            aiMessages: [userMessage, ...state.aiMessages],
+            processState: ProcessState.loading,
+          ));
+
+          // Get AI response
+          final response =
+              await _aiService.generateResponse(content, userId: user.uid);
+          final botMessage = ChatMessage.fromBot(
+            response,
+            true,
+            receiverId: user.uid,
+          );
+
+          // Save AI response to Firebase
+          await _saveMessageToFirebase(botMessage);
+
+          emit(state.copyWith(
+            aiMessages: [botMessage, ...state.aiMessages],
             processState: ProcessState.success,
           ));
-        }
-      }
+        } else {
+          emit(state.copyWith(
+            adminMessages: [userMessage, ...state.adminMessages],
+            processState: ProcessState.loading,
+          ));
 
-      // Lưu messages vào SharedPreferences sau mỗi lần gửi tin nhắn
-      await _saveMessagesToPrefs();
+          if (!_hasShownAdminReplyMessage) {
+            final response = S.of(context).firstAdminResponse;
+            _hasShownAdminReplyMessage = true;
+            final botMessage = ChatMessage.fromBot(
+              response,
+              false,
+              receiverId: user.uid,
+            );
+            emit(state.copyWith(
+              adminMessages: [botMessage, ...state.adminMessages],
+              processState: ProcessState.success,
+            ));
+          } else {
+            emit(state.copyWith(
+              processState: ProcessState.success,
+            ));
+          }
+        }
+
+        await _saveMessagesToPrefs();
+      } else {
+        emit(state.copyWith(processState: ProcessState.success));
+      }
     } catch (e) {
       emit(state.copyWith(
         processState: ProcessState.failure,

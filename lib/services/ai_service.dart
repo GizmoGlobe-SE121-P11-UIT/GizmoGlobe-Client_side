@@ -45,10 +45,7 @@ class AIService {
         _conversationHistory.remove(userId);
         return userMessage;
       }
-    }
 
-    // Nếu có lịch sử, thêm ngữ cảnh vào câu hỏi
-    if (history != null) {
       final lastQuestion = history['question'] as String;
       final lastAnswer = history['answer'] as String;
       return '''
@@ -135,24 +132,20 @@ Current question: $userMessage
     // Loại bỏ các ký tự đặc biệt và khoảng trắng thừa
     var normalized = input.replaceAll(RegExp(r'[^\w\s-]'), ' ').trim();
 
-    // Chuẩn hóa tên CPU
-    final intelPattern = RegExp(r'(?i)intel\s+');
-    final amdPattern = RegExp(r'(?i)amd\s+');
-    final cpuPattern = RegExp(r'(?i)cpu\s+');
-    final processorPattern = RegExp(r'(?i)processor\s+');
+    final patterns = {
+      RegExp(r'(?i)intel\s+'): '',
+      RegExp(r'(?i)amd\s+'): '',
+      RegExp(r'(?i)cpu\s+'): '',
+      RegExp(r'(?i)processor\s+'): '',
+      RegExp(r'(?i)core\s+'): '',
+      RegExp(r'(?i)ryzen\s+'): 'ryzen-'
+    };
 
-    normalized = normalized
-        .replaceAll(intelPattern, '')
-        .replaceAll(amdPattern, '')
-        .replaceAll(cpuPattern, '')
-        .replaceAll(processorPattern, '');
+    patterns.forEach((pattern, replacement) {
+      normalized = normalized.replaceAll(pattern, replacement);
+    });
 
-    // Chuẩn hóa Core i3/i5/i7/i9
-    final corePattern = RegExp(r'(?i)core\s+');
     final iSeriesPattern = RegExp(r'(?i)i([3579])\s*-?\s*(\d+)');
-    normalized = normalized.replaceAll(corePattern, '');
-
-    // Xử lý i3/i5/i7/i9 series
     var matches = iSeriesPattern.allMatches(normalized);
     for (var match in matches) {
       var series = match.group(1);
@@ -160,12 +153,7 @@ Current question: $userMessage
       normalized = normalized.replaceAll(match.group(0)!, 'i$series-$number');
     }
 
-    // Chuẩn hóa Ryzen
-    final ryzenPattern = RegExp(r'(?i)ryzen\s+');
     final rSeriesPattern = RegExp(r'(?i)r([3579])\s+(\d+)');
-    normalized = normalized.replaceAll(ryzenPattern, 'ryzen-');
-
-    // Xử lý Ryzen series
     matches = rSeriesPattern.allMatches(normalized);
     for (var match in matches) {
       var series = match.group(1);
@@ -401,95 +389,11 @@ Current question: $userMessage
   }
 
   String _createPromptWithoutProducts(String userMessage, bool isVietnamese) {
-    return isVietnamese
-        ? '''
-Bạn là trợ lý AI của GizmoGlobe, một ứng dụng di động bán linh kiện máy tính.
-
-THÔNG TIN VỀ GIZMOGLOBE:
-- Ứng dụng di động chuyên về linh kiện máy tính
-- Cam kết chất lượng và giá cả cạnh tranh
-- Đội ngũ tư vấn chuyên nghiệp
-- Chính sách bảo hành và hỗ trợ sau bán hàng tốt
-- Nhiều ưu đãi và khuyến mãi hấp dẫn
-
-HƯỚNG DẪN TRẢ LỜI:
-1. Trả lời thân thiện và chuyên nghiệp
-2. Hướng dẫn người dùng sử dụng các tính năng trong ứng dụng:
-   - Thanh tìm kiếm ở trên cùng để tìm sản phẩm
-   - Menu danh mục để duyệt theo loại sản phẩm
-   - Bộ lọc để tìm sản phẩm theo yêu cầu cụ thể
-3. KHÔNG đề cập đến website hoặc trang web
-4. Nhắc đến các ưu đãi trong ứng dụng
-5. Khuyến khích người dùng bật thông báo để nhận tin mới
-6. Khuyen khích người dùng đăng ký tài khoản để sử dụng các tính năng tốt hơn
-
-CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
-
-Trả lời bằng Tiếng Việt:
-'''
-        : '''
-I am the AI assistant of GizmoGlobe, a mobile app for computer parts.
-
-ABOUT GIZMOGLOBE:
-- Mobile app specializing in computer parts
-- Committed to quality and competitive pricing
-- Professional consulting team
-- Excellent warranty and after-sales support
-- Attractive promotions and discounts
-
-RESPONSE GUIDELINES:
-1. Respond in a friendly and professional manner
-2. Guide users on app features:
-   - Search bar at the top for finding products
-   - Category menu for browsing by product type
-   - Filters for specific requirements
-3. DO NOT mention website or web pages
-4. Mention in-app promotions
-5. Encourage users to enable notifications for updates
-6. Encourage users to register for an account for better features
-
-CUSTOMER QUESTION: $userMessage
-
-Reply in English:
-''';
+    return '${_createBasePrompt(isVietnamese)}\n\nCUSTOMER QUESTION: $userMessage\n\n${isVietnamese ? 'Trả lời bằng Tiếng Việt:' : 'Reply in English:'}';
   }
 
   String _createGeneralPrompt(String userMessage, bool isVietnamese) {
-    return isVietnamese
-        ? '''
-Bạn là trợ lý AI của GizmoGlobe, một ứng dụng di động bán linh kiện máy tính.
-
-NHIỆM VỤ CỦA BẠN:
-1. Trả lời câu hỏi một cách thân thiện và chuyên nghiệp
-2. Nếu câu hỏi không liên quan đến sản phẩm:
-   - Trả lời ngắn gọn và hữu ích
-   - Sau đó hướng dẫn người dùng khám phá các tính năng trong ứng dụng
-3. Giữ giọng điệu lịch sự và thân thiện
-4. KHÔNG đề cập đến website hoặc trang web
-5. Tập trung vào các tính năng của ứng dụng di động
-6. Khuyến khích người dùng đăng ký tài khoản để sử dụng các tính năng tốt hơn
-
-CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
-
-Trả lời bằng Tiếng Việt:
-'''
-        : '''
-I am the AI assistant of GizmoGlobe, a mobile app for computer parts.
-
-MY TASKS:
-1. Answer questions in a friendly and professional manner
-2. For non-product related questions:
-   - Provide brief and helpful answers
-   - Then guide users to explore app features
-3. Maintain a polite and friendly tone
-4. DO NOT mention website or web pages
-5. Focus on mobile app features
-6. Encourage users to register for an account for better features
-
-CUSTOMER QUESTION: $userMessage
-
-Reply in English:
-''';
+    return '${_createBasePrompt(isVietnamese)}\n\nCUSTOMER QUESTION: $userMessage\n\n${isVietnamese ? 'Trả lời bằng Tiếng Việt:' : 'Reply in English:'}';
   }
 
   Future<String> _callGeminiAPI(String prompt) async {
@@ -537,92 +441,82 @@ Reply in English:
 
   String _createPromptWithProducts(
       String userMessage, QuerySnapshot productsSnapshot, bool isVietnamese) {
-    _detectProductCategory(userMessage);
     final formattedProducts =
         _formatProductsInfo(productsSnapshot.docs, isVietnamese);
+    final basePrompt = _createBasePrompt(isVietnamese);
 
     return isVietnamese
         ? '''
-Bạn là trợ lý AI của GizmoGlobe, một ứng dụng di động bán linh kiện máy tính. Hãy trả lời dựa trên thông tin sản phẩm sau:
+$basePrompt
 
 DANH SÁCH SẢN PHẨM:
 $formattedProducts
 
 HƯỚNG DẪN TRẢ LỜI:
-1. Phân tích yêu cầu của khách hàng:
-   - Xác định sản phẩm cụ thể khách hàng đang hỏi
-   - Xác định các thông số kỹ thuật quan trọng
-   - Xác định mức giá (nếu có)
-
-2. Cung cấp thông tin chi tiết:
-   - Giá bán chính xác của sản phẩm
-   - Thông số kỹ thuật đầy đủ
-   - Tình trạng hàng (còn hàng hay không)
-   - So sánh với các sản phẩm tương tự (nếu có)
-
-3. Đề xuất sản phẩm:
-   - Nêu rõ ưu điểm của sản phẩm
-   - So sánh giá/hiệu năng
-   - Đề xuất các sản phẩm đi kèm phù hợp
-
-4. Hướng dẫn mua hàng trong ứng dụng:
-   - Chỉ dẫn cách thêm vào giỏ hàng
-   - Nhắc về các khuyến mãi đang áp dụng
-   - Hướng dẫn các bước thanh toán
-   - KHÔNG đề cập đến website
-
-5. Quy tắc trả lời:
-   - LUÔN đề cập đến giá cụ thể nếu có sản phẩm
-   - LUÔN đề cập đến tình trạng hàng
-   - Sử dụng số liệu chính xác từ database
-   - Không đưa ra thông tin chung chung
-   - Tập trung vào sản phẩm cụ thể khách hàng đang hỏi
-   - Có thể đưa ra các thông tin lấy được về sản phẩm từ các nguồn uy tín trên internet.
+1. Phân tích yêu cầu của khách hàng
+2. Cung cấp thông tin chi tiết về sản phẩm
+3. Đề xuất sản phẩm phù hợp
+4. Hướng dẫn mua hàng trong ứng dụng
+5. LUÔN đề cập đến giá và tình trạng hàng
 
 CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
 
 Trả lời bằng Tiếng Việt:
 '''
         : '''
-I am the AI assistant of GizmoGlobe, a mobile app for computer parts. I will answer based on the following product information:
+$basePrompt
 
 PRODUCT LIST:
 $formattedProducts
 
 RESPONSE GUIDELINES:
-1. Analyze Customer Request:
-   - Identify the specific product being asked about
-   - Identify important technical specifications
-   - Identify price point (if any)
-
-2. Provide Detailed Information:
-   - Exact selling price
-   - Complete technical specifications
-   - Stock availability
-   - Comparison with similar products (if available)
-
-3. Product Recommendations:
-   - Highlight product advantages
-   - Price/performance comparison
-   - Suggest compatible accompanying products
-
-4. In-App Purchase Guide:
-   - Guide how to add to cart
-   - Mention current promotions
-   - Explain payment steps
-   - DO NOT mention website
-
-5. Response Rules:
-   - ALWAYS mention specific prices if product exists
-   - ALWAYS mention stock availability
-   - Use exact numbers from database
-   - Avoid generic information
-   - Focus on the specific product being asked about
-   - Can provide information obtained about the product from reputable sources on the internet.
+1. Analyze customer request
+2. Provide detailed product information
+3. Suggest suitable products
+4. Guide in-app purchase
+5. ALWAYS mention price and stock availability
 
 CUSTOMER QUESTION: $userMessage
 
 Reply in English:
+''';
+  }
+
+  String _createBasePrompt(bool isVietnamese) {
+    return isVietnamese
+        ? '''
+Bạn là trợ lý AI của GizmoGlobe, một ứng dụng di động bán linh kiện máy tính.
+
+THÔNG TIN VỀ GIZMOGLOBE:
+- Ứng dụng di động chuyên về linh kiện máy tính
+- Cam kết chất lượng và giá cả cạnh tranh
+- Đội ngũ tư vấn chuyên nghiệp
+- Chính sách bảo hành và hỗ trợ sau bán hàng tốt
+- Nhiều ưu đãi và khuyến mãi hấp dẫn
+
+HƯỚNG DẪN TRẢ LỜI:
+1. Trả lời thân thiện và chuyên nghiệp
+2. Hướng dẫn người dùng sử dụng các tính năng trong ứng dụng
+3. KHÔNG đề cập đến website hoặc trang web
+4. Nhắc đến các ưu đãi trong ứng dụng
+5. Khuyến khích người dùng bật thông báo và đăng ký tài khoản
+'''
+        : '''
+I am the AI assistant of GizmoGlobe, a mobile app for computer parts.
+
+ABOUT GIZMOGLOBE:
+- Mobile app specializing in computer parts
+- Committed to quality and competitive pricing
+- Professional consulting team
+- Excellent warranty and after-sales support
+- Attractive promotions and discounts
+
+RESPONSE GUIDELINES:
+1. Respond in a friendly and professional manner
+2. Guide users on app features
+3. DO NOT mention website or web pages
+4. Mention in-app promotions
+5. Encourage users to enable notifications and register for an account
 ''';
   }
 
@@ -650,42 +544,7 @@ Reply in English:
     return null;
   }
 
-  Future<List<QuerySnapshot>> _searchProductsByQuery(String userMessage) async {
-    final category = _detectProductCategory(userMessage);
-    final keywords = _extractSearchKeywords(userMessage);
-    final results = <QuerySnapshot>[];
-
-    try {
-      // Tìm theo category nếu có
-      if (category != null) {
-        final categoryResult = await searchProducts(category: category);
-        if (categoryResult.docs.isNotEmpty) {
-          results.add(categoryResult);
-        }
-      }
-
-      // Tìm theo từ khóa trong tên sản phẩm và nhà sản xuất
-      for (var keyword in keywords) {
-        if (keyword != category) {
-          // Tránh tìm lại với category
-          final keywordResult = await searchProducts(keyword: keyword);
-          if (keywordResult.docs.isNotEmpty) {
-            results.add(keywordResult);
-          }
-        }
-      }
-
-      return results;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error in _searchProductsByQuery: $e');
-      }
-      return [];
-    }
-  }
-
   List<String> _extractSearchKeywords(String message) {
-    // Loại bỏ các từ không cần thiết và tách thành các từ khóa tìm kiếm
     final stopWords = {
       'what',
       'is',
@@ -716,195 +575,9 @@ Reply in English:
         .toList();
   }
 
-  String _formatCapacity(dynamic value) {
-    if (value == null) return 'N/A';
-
-    // Xử lý format cho GPU capacity
-    if (value is String) {
-      final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value);
-      if (match != null) {
-        final unit = match.group(1)!.toUpperCase();
-        final number = match.group(2);
-        return '$number $unit';
-      }
-    }
-
-    // Nếu là enum GPUCapacity
-    if (value.toString().contains('GPUCapacity')) {
-      return value.toString();
-    }
-
-    return value.toString().toUpperCase();
-  }
-
-  String _formatMemorySpeed(dynamic value) {
-    if (value == null) return 'N/A';
-
-    // Xử lý format cho RAM bus speed
-    if (value is String) {
-      final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value);
-      if (match != null) {
-        final number = match.group(2);
-        return '$number MHz';
-      }
-    }
-
-    // Nếu là enum RAMBus
-    if (value.toString().contains('RAMBus')) {
-      return value.toString();
-    }
-
-    return value.toString();
-  }
-
-  String _formatBusWidth(dynamic value) {
-    if (value == null) return 'N/A';
-
-    // Xử lý format cho GPU bus width
-    if (value is String) {
-      final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value);
-      if (match != null) {
-        final number = match.group(2);
-        return '$number-bit';
-      }
-    }
-
-    // Nếu là enum GPUBus
-    if (value.toString().contains('GPUBus')) {
-      return value.toString();
-    }
-
-    return value.toString();
-  }
-
-  String _formatClockSpeed(dynamic value) {
-    if (value == null) return 'N/A';
-
-    // Xử lý format cho CPU clock speed
-    if (value is num) {
-      return '${value.toStringAsFixed(1)} GHz';
-    }
-
-    // Nếu là String, thử parse thành số
-    if (value is String) {
-      final numericValue = double.tryParse(value);
-      if (numericValue != null) {
-        return '${numericValue.toStringAsFixed(1)} GHz';
-      }
-    }
-
-    return value.toString();
-  }
-
-  String _formatSpeed(dynamic value) {
-    if (value == null) return 'N/A';
-    if (value is num) {
-      return '${value.toStringAsFixed(0)} MB/s';
-    }
-    return '${value.toString()} MB/s';
-  }
-
-  String _formatModular(dynamic value) {
-    if (value == null) return 'N/A';
-    // Capitalize first letter
-    final str = value.toString();
-    return str.isEmpty
-        ? 'N/A'
-        : str[0].toUpperCase() + str.substring(1).toLowerCase();
-  }
-
-  String _formatStock(dynamic value) {
-    if (value == null) return 'Stock status unknown';
-    if (value is! num) return 'Stock status unknown';
-
-    final stock = value as int;
-    if (stock > 0) {
-      return 'In Stock ($stock units)';
-    }
-    return 'Out of Stock';
-  }
-
-  String _formatWarranty(dynamic months) {
-    if (months == null) return 'N/A';
-    if (months is! num) return months.toString();
-
-    if (months >= 12) {
-      final years = months ~/ 12;
-      final remainingMonths = months % 12;
-      if (remainingMonths == 0) {
-        return '$years year${years > 1 ? 's' : ''}';
-      }
-      return '$years year${years > 1 ? 's' : ''} and $remainingMonths month${remainingMonths > 1 ? 's' : ''}';
-    }
-    return '$months months';
-  }
-
-  String _formatMemorySupport(dynamic value) {
-    if (value == null) return 'N/A';
-    // Format memory support string to be more readable
-    return value
-        .toString()
-        .toUpperCase()
-        .replaceAll('DDR', 'DDR ')
-        .replaceAll('MHZ', ' MHz');
-  }
-
-  String _formatPrice(dynamic price) {
-    if (price == null) return 'Price not available';
-
-    // Xử lý giá có format **Price:**\$579.99
-    if (price is String) {
-      final match = RegExp(r'\$?(\d+\.?\d*)').firstMatch(price);
-      if (match != null) {
-        final numericPrice = double.tryParse(match.group(1)!);
-        if (numericPrice != null) {
-          return numericPrice.toStringAsFixed(2);
-        }
-      }
-      return price.toString();
-    }
-
-    // Xử lý giá là số
-    if (price is num) {
-      return '\$${price.toStringAsFixed(2)}';
-    }
-
-    return 'Price not available';
-  }
-
-  String _formatPriceWithDiscount(dynamic price, dynamic discount) {
-    if (price == null) return 'Price not available';
-    if (price is! num) return _formatPrice(price);
-
-    // Nếu không có discount, chỉ trả về giá gốc
-    if (discount == null || discount == 0) {
-      return _formatPrice(price);
-    }
-
-    // Tính giá sau giảm giá
-    final discountAmount = price * (discount as num);
-    final finalPrice = price - discountAmount;
-
-    // Trả về giá đã giảm và giá gốc
-    return '${_formatPrice(finalPrice)} (Original: ${_formatPrice(price)})';
-  }
-
-  String _formatGPUSeries(dynamic value) {
-    if (value == null) return 'N/A';
-
-    // Nếu là enum GPUSeries
-    if (value.toString().contains('GPUSeries')) {
-      return value.toString().toUpperCase();
-    }
-
-    return value.toString().toUpperCase();
-  }
-
   String _formatProductsInfo(
       List<QueryDocumentSnapshot> products, bool isVietnamese) {
     final buffer = StringBuffer();
-
-    // Nhóm sản phẩm theo category
     final Map<String, List<Map<String, dynamic>>> groupedProducts = {};
 
     for (final doc in products) {
@@ -916,7 +589,6 @@ Reply in English:
       groupedProducts[category]!.add({...data, 'id': doc.id});
     }
 
-    // In thông tin theo category
     var productCount = 1;
     groupedProducts.forEach((category, productList) {
       buffer.writeln('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -938,11 +610,11 @@ Reply in English:
             buffer.writeln(
                 '      • Series: ${data['series']?.toString() ?? 'N/A'}');
             buffer.writeln(
-                '      • Memory: ${data['capacity']?.toString() ?? 'N/A'}');
+                '      • Memory: ${_formatValue(data['capacity'], 'capacity')}');
             buffer.writeln(
-                '      • Bus Width: ${data['bus']?.toString() ?? 'N/A'}');
+                '      • Bus Width: ${_formatValue(data['bus'], 'bus')}');
             buffer.writeln(
-                '      • Clock Speed: ${_formatClockSpeed(data['clockSpeed'])}');
+                '      • Clock Speed: ${_formatValue(data['clockSpeed'], 'clock')}');
             break;
           case 'cpu':
             buffer.writeln(
@@ -952,15 +624,15 @@ Reply in English:
             buffer.writeln(
                 '      • Threads: ${data['thread']?.toString() ?? 'N/A'} threads');
             buffer.writeln(
-                '      • Clock Speed: ${_formatClockSpeed(data['clockSpeed'])}');
+                '      • Clock Speed: ${_formatValue(data['clockSpeed'], 'clock')}');
             break;
           case 'ram':
             buffer.writeln(
                 '      • Type: ${data['ramType']?.toString() ?? 'N/A'}');
             buffer.writeln(
-                '      • Capacity: ${data['capacity']?.toString() ?? 'N/A'}');
-            buffer
-                .writeln('      • Speed: ${data['bus']?.toString() ?? 'N/A'}');
+                '      • Capacity: ${_formatValue(data['capacity'], 'capacity')}');
+            buffer.writeln(
+                '      • Speed: ${_formatValue(data['bus'], 'speed')}');
             break;
           case 'psu':
             buffer.writeln(
@@ -968,12 +640,12 @@ Reply in English:
             buffer.writeln(
                 '      • Efficiency: ${data['efficiency']?.toString() ?? 'N/A'}');
             buffer.writeln(
-                '      • Modular: ${data['modular']?.toString() ?? 'N/A'}');
+                '      • Modular: ${_formatValue(data['modular'], 'modular')}');
           case 'drive':
             buffer
                 .writeln('      • Type: ${data['type']?.toString() ?? 'N/A'}');
             buffer.writeln(
-                '      • Capacity: ${data['capacity']?.toString() ?? 'N/A'}');
+                '      • Capacity: ${_formatValue(data['capacity'], 'capacity')}');
             break;
           case 'mainboard':
             buffer.writeln(
@@ -987,7 +659,7 @@ Reply in English:
 
         buffer.writeln(
             '\n   🏭 Manufacturer: ${data['manufacturerID'] ?? 'N/A'}');
-        buffer.writeln('   📦 ${_formatStock(data['stock'])}');
+        buffer.writeln('   📦 ${_formatValue(data['stock'], 'stock')}');
 
         // Thêm mô tả sản phẩm nếu có
         if (data['description'] != null) {
@@ -1024,7 +696,8 @@ Reply in English:
         for (var i = 0; i < rams.length; i++) {
           final productName = rams[i]['productName'] ?? 'Unknown Product';
           buffer.writeln('${i + 1}. [PRODUCT_NAME:$productName]');
-          buffer.writeln('   • ${_formatCapacity(rams[i]['capacity'])}');
+          buffer
+              .writeln('   • ${_formatValue(rams[i]['capacity'], 'capacity')}');
         }
         buffer.writeln();
 
@@ -1033,7 +706,7 @@ Reply in English:
         for (var i = 0; i < rams.length; i++) {
           final productName = rams[i]['productName'] ?? 'Unknown Product';
           buffer.writeln('${i + 1}. [PRODUCT_NAME:$productName]');
-          buffer.writeln('   • ${_formatMemorySpeed(rams[i]['bus'])}');
+          buffer.writeln('   • ${_formatValue(rams[i]['bus'], 'speed')}');
         }
         buffer.writeln();
 
@@ -1052,7 +725,7 @@ Reply in English:
         for (var i = 0; i < rams.length; i++) {
           final productName = rams[i]['productName'] ?? 'Unknown Product';
           buffer.writeln('${i + 1}. [PRODUCT_NAME:$productName]');
-          buffer.writeln('   • ${_formatStock(rams[i]['stock'])}');
+          buffer.writeln('   • ${_formatValue(rams[i]['stock'], 'stock')}');
         }
         buffer.writeln();
 
@@ -1079,5 +752,88 @@ Reply in English:
     }
 
     return buffer.toString();
+  }
+
+  String _formatValue(dynamic value, String type) {
+    if (value == null) return 'N/A';
+
+    switch (type) {
+      case 'capacity':
+        if (value is String) {
+          final match = RegExp(r'([a-zA-Z]+)(\d+)').firstMatch(value);
+          if (match != null) {
+            final unit = match.group(1)!.toUpperCase();
+            final number = match.group(2);
+            return '$number $unit';
+          }
+        }
+        return value.toString().toUpperCase();
+      case 'speed':
+        if (value is num) {
+          return '${value.toStringAsFixed(0)} MB/s';
+        }
+        return '${value.toString()} MB/s';
+      case 'clock':
+        if (value is num) {
+          return '${value.toStringAsFixed(1)} GHz';
+        }
+        if (value is String) {
+          final numericValue = double.tryParse(value);
+          if (numericValue != null) {
+            return '${numericValue.toStringAsFixed(1)} GHz';
+          }
+        }
+        return value.toString();
+      case 'price':
+        if (value is num) {
+          return '\$${value.toStringAsFixed(2)}';
+        }
+        if (value is String) {
+          final match = RegExp(r'\$?(\d+\.?\d*)').firstMatch(value);
+          if (match != null) {
+            final numericPrice = double.tryParse(match.group(1)!);
+            if (numericPrice != null) {
+              return numericPrice.toStringAsFixed(2);
+            }
+          }
+        }
+        return 'Price not available';
+      case 'stock':
+        if (value is num) {
+          final stock = value as int;
+          return stock > 0 ? 'In Stock ($stock units)' : 'Out of Stock';
+        }
+        return 'Stock status unknown';
+      case 'warranty':
+        if (value is num) {
+          final months = value as int;
+          if (months >= 12) {
+            final years = months ~/ 12;
+            final remainingMonths = months % 12;
+            if (remainingMonths == 0) {
+              return '$years year${years > 1 ? 's' : ''}';
+            }
+            return '$years year${years > 1 ? 's' : ''} and $remainingMonths month${remainingMonths > 1 ? 's' : ''}';
+          }
+          return '$months months';
+        }
+        return value.toString();
+      default:
+        return value.toString();
+    }
+  }
+
+  String _formatPriceWithDiscount(dynamic price, dynamic discount) {
+    if (price == null) return 'Price not available';
+    if (price is! num) return _formatValue(price, 'price');
+
+    if (discount == null || discount == 0) {
+      return _formatValue(price, 'price');
+    }
+
+    final discountAmount = price * (discount as num);
+    final finalPrice = price - discountAmount;
+
+    return '${_formatValue(finalPrice, 'price')} (Original: ${_formatValue(price, 'price')})';
   }
 }

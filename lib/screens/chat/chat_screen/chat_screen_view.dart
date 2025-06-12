@@ -49,8 +49,8 @@ class _ChatScreenState extends State<ChatScreen> {
           style: TextStyle(
             fontSize: 16,
             color: isUser
-                ? theme.colorScheme.onPrimaryContainer
-                : theme.colorScheme.onSurfaceVariant,
+                ? theme.colorScheme.onPrimary
+                : theme.colorScheme.onSecondary,
           ),
         ));
       }
@@ -64,7 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
             fontSize: 16,
             color: isUser
                 ? theme.colorScheme.onPrimaryContainer
-                : theme.colorScheme.onSurfaceVariant,
+                : theme.colorScheme.onSecondary,
           ),
         ),
       );
@@ -80,7 +80,7 @@ class _ChatScreenState extends State<ChatScreen> {
           fontSize: 16,
           color: isUser
               ? theme.colorScheme.onPrimaryContainer
-              : theme.colorScheme.onSurfaceVariant,
+              : theme.colorScheme.onSecondary,
         ),
       ));
     }
@@ -125,7 +125,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 onPressed: () async {
                   if (state.isAIMode) {
-                    await cubit.switchToAdmin(S.of(context).adminWelcomeMessage);
+                    await cubit
+                        .switchToAdmin(S.of(context).adminWelcomeMessage);
                   } else {
                     await cubit.switchToAI(S.of(context).aiWelcomeMessage);
                   }
@@ -157,7 +158,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageBubble(ChatMessage message, ThemeData theme) {
-    final isUser = !message.isBot;
+    final isUser = !message.isFromBot;
+    final isAdmin = !message.isAIMode && message.isFromBot;
+
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -166,12 +169,18 @@ class _ChatScreenState extends State<ChatScreen> {
         decoration: BoxDecoration(
           color: isUser
               ? theme.colorScheme.primaryContainer
-              : theme.colorScheme.surfaceContainerHighest,
+              : isAdmin
+                  ? theme.colorScheme.secondaryContainer
+                  : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
         ),
         child: RichText(
           text: TextSpan(
-            children: _buildMessageSpans(message.content, isUser, theme),
+            children: _buildMessageSpans(
+              message.content,
+              isUser,
+              theme,
+            ),
           ),
         ),
       ),

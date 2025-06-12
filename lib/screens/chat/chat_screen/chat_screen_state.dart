@@ -10,6 +10,7 @@ class ChatScreenState extends Equatable {
   final ProcessState processState;
   final String? error;
   final String? modeNotification;
+  final bool isAdminChatSaved;
 
   const ChatScreenState({
     this.isAIMode = true,
@@ -18,6 +19,7 @@ class ChatScreenState extends Equatable {
     this.processState = ProcessState.idle,
     this.error,
     this.modeNotification,
+    this.isAdminChatSaved = false,
   });
 
   List<ChatMessage> get messages => isAIMode ? aiMessages : adminMessages;
@@ -30,6 +32,7 @@ class ChatScreenState extends Equatable {
         processState,
         error,
         modeNotification,
+        isAdminChatSaved,
       ];
 
   ChatScreenState copyWith({
@@ -39,6 +42,7 @@ class ChatScreenState extends Equatable {
     ProcessState? processState,
     String? error,
     String? modeNotification,
+    bool? isAdminChatSaved,
   }) {
     return ChatScreenState(
       isAIMode: isAIMode ?? this.isAIMode,
@@ -47,6 +51,7 @@ class ChatScreenState extends Equatable {
       processState: processState ?? this.processState,
       error: error ?? this.error,
       modeNotification: modeNotification ?? this.modeNotification,
+      isAdminChatSaved: isAdminChatSaved ?? this.isAdminChatSaved,
     );
   }
 }
