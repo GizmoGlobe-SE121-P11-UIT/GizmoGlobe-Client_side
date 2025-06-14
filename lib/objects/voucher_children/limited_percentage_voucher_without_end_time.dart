@@ -21,7 +21,8 @@ class LimitedPercentageVoucherWithoutEndTime extends Voucher
     required super.maxUsagePerPerson,
     required super.isVisible,
     required super.isEnabled,
-    super.description,
+    super.enDescription,
+    super.viDescription,
     super.isPercentage = true,
     super.hasEndTime = false,
     super.isLimited = true,
@@ -57,7 +58,8 @@ class LimitedPercentageVoucherWithoutEndTime extends Voucher
     int? maxUsagePerPerson,
     bool? isVisible,
     bool? isEnabled,
-    String? description,
+    String? enDescription,
+    String? viDescription,
     int? maximumUsage,
     int? usageLeft,
     double? maximumDiscountValue,
@@ -71,7 +73,8 @@ class LimitedPercentageVoucherWithoutEndTime extends Voucher
       maxUsagePerPerson: maxUsagePerPerson,
       isVisible: isVisible,
       isEnabled: isEnabled,
-      description: description,
+      enDescription: enDescription,
+      viDescription: viDescription,
     );
 
     this.maximumUsage = maximumUsage ?? this.maximumUsage;

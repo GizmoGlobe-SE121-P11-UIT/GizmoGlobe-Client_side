@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import '../../functions/converter.dart';
 import '../../objects/voucher_related/end_time_interface.dart';
 import '../../objects/voucher_related/limited_interface.dart';
@@ -33,18 +33,18 @@ class VoucherWidget extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  colorScheme.primaryContainer,
-                  colorScheme.primaryContainer.withValues(alpha: 0.8),
+                  colorScheme.primary,
+                  colorScheme.primary.withOpacity(0.8),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: colorScheme.outline.withValues(alpha: 0.2),
+                color: colorScheme.outline.withOpacity(0.2),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: colorScheme.shadow.withValues(alpha: 0.1),
+                  color: colorScheme.shadow.withOpacity(0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -76,9 +76,9 @@ class VoucherWidget extends StatelessWidget {
                     const SizedBox(height: 12),
                     // Discount information
                     Text(
-                      _getDiscountText(),
+                      _getDiscountText(context),
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
+                        color: colorScheme.onPrimaryContainer.withOpacity(0.8),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -92,14 +92,14 @@ class VoucherWidget extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Min. purchase:',
+                          '${S.of(context).minimumPurchase}:',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onPrimaryContainer
-                                .withValues(alpha: 0.7),
+                            color:
+                                colorScheme.onPrimaryContainer.withOpacity(0.7),
                           ),
                         ),
                         Text(
-                          Converter.formatDouble(voucher.minimumPurchase), 
+                          ' \$${Converter.formatDouble(voucher.minimumPurchase)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.tertiary,
                             fontWeight: FontWeight.w600,
@@ -135,24 +135,24 @@ class VoucherWidget extends StatelessWidget {
     Color backgroundColor;
     Color textColor;
     if (!voucher.isEnabled) {
-      statusText = 'Disabled';
-      backgroundColor = colorScheme.error.withValues(alpha: 0.2);
+      statusText = S.of(context).disabled;
+      backgroundColor = colorScheme.error.withOpacity(0.2);
       textColor = colorScheme.error;
     } else if (voucher.isLimited &&
         (voucher as LimitedInterface).usageLeft <= 0) {
-      statusText = 'Ran out';
-      backgroundColor = colorScheme.error.withValues(alpha: 0.2);
+      statusText = S.of(context).ranOut;
+      backgroundColor = colorScheme.error.withOpacity(0.2);
       textColor = colorScheme.error;
     } else if (voucher.hasEndTime &&
         voucher is EndTimeInterface &&
         (voucher as EndTimeInterface).endTime.isBefore(DateTime.now())) {
-      statusText = 'Expired';
-      backgroundColor = colorScheme.error.withValues(alpha: 0.2);
+      statusText = S.of(context).expired;
+      backgroundColor = colorScheme.error.withOpacity(0.2);
       textColor = colorScheme.error;
     } else {
-      statusText = 'Available';
-      backgroundColor = colorScheme.tertiary.withValues(alpha: 0.2);
-      textColor = colorScheme.tertiary;
+      statusText = S.of(context).available;
+      backgroundColor = colorScheme.tertiary.withOpacity(0.2);
+      textColor = Colors.green;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -183,7 +183,7 @@ class VoucherWidget extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            'No expiry',
+            S.of(context).noExpiry,
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.tertiary,
               fontWeight: FontWeight.w500,
@@ -204,17 +204,17 @@ class VoucherWidget extends StatelessWidget {
           size: 16,
           color: isUrgent
               ? colorScheme.error
-              : colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+              : colorScheme.onPrimaryContainer.withOpacity(0.7),
         ),
         const SizedBox(width: 4),
         Text(
           daysLeft <= 0
-              ? 'Expired'
-              : 'Expires in $daysLeft day${daysLeft == 1 ? '' : 's'}',
+              ? S.of(context).expired
+              : S.of(context).expiresIn(daysLeft),
           style: theme.textTheme.bodySmall?.copyWith(
             color: isUrgent
                 ? colorScheme.error
-                : colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                : colorScheme.onPrimaryContainer.withOpacity(0.7),
             fontWeight: isUrgent ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -231,25 +231,25 @@ class VoucherWidget extends StatelessWidget {
         Icon(
           Icons.people_outline,
           size: 16,
-          color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+          color: colorScheme.onPrimaryContainer.withOpacity(0.7),
         ),
         const SizedBox(width: 4),
         Text(
           '${limited.usageLeft}/${limited.maximumUsage}',
           style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+            color: colorScheme.onPrimaryContainer.withOpacity(0.7),
           ),
         ),
       ],
     );
   }
 
-  String _getDiscountText() {
+  String _getDiscountText(BuildContext context) {
     if (voucher.isPercentage && voucher is PercentageInterface) {
       final percentage = voucher as PercentageInterface;
-      return 'Discount ${Converter.formatDouble(voucher.discountValue)}% maximum discount ${Converter.formatDouble(percentage.maximumDiscountValue)}';
+      return '${S.of(context).discount} ${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} \$${Converter.formatDouble(percentage.maximumDiscountValue)}';
     } else {
-      return 'Discount ${Converter.formatDouble(voucher.discountValue)}';
+      return '${S.of(context).discount} \$${Converter.formatDouble(voucher.discountValue)}';
     }
   }
 }

@@ -106,15 +106,17 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
                           voucher.hasEndTime
                               ? DateFormat('dd/MM/yyyy hh:mm:ss')
                                   .format((voucher as EndTimeInterface).endTime)
-                              : 'No end time',
+                              : S.of(context).noEndTime,
                         ),
                         const SizedBox(height: 12),
-                        _buildTextField(context, 'Max. usage per person',
+                        _buildTextField(
+                            context,
+                            S.of(context).maxUsagePerPerson,
                             '${voucher.maxUsagePerPerson}'),
-                        if (voucher.description != null) ...[
+                        if (voucher.getDescription(context) != null) ...[
                           const SizedBox(height: 12),
-                          _buildTextField(
-                              context, 'Description', voucher.description!),
+                          _buildTextField(context, S.of(context).description,
+                              voucher.getDescription(context)!),
                         ],
                       ],
                     ),

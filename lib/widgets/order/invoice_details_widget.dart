@@ -47,8 +47,10 @@ class InvoiceDetailsWidget extends StatelessWidget {
               children: [
                 Text(
                   detail.product.productName,
-                  style: AppTextStyle.regularText
-                      .copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
@@ -73,7 +75,10 @@ class InvoiceDetailsWidget extends StatelessWidget {
                 child: Text(
                   'x${detail.quantity}',
                   textAlign: TextAlign.center,
-                  style: AppTextStyle.regularText,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                 ),
               ),
             ],

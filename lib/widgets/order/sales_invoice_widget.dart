@@ -42,7 +42,10 @@ class SalesInvoiceWidget extends StatelessWidget {
                     Text(
                       S.of(context).totalItems(salesInvoice.getTotalItems(),
                           '\$${salesInvoice.totalPrice.toStringAsFixed(2)}'),
-                      style: AppTextStyle.regularText,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     _buildStatusWidget(context, salesInvoice, onPressed),

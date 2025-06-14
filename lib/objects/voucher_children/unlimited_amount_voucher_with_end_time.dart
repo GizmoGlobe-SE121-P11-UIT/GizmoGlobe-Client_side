@@ -19,7 +19,8 @@ class UnlimitedAmountVoucherWithEndTime
     required super.maxUsagePerPerson,
     required super.isVisible,
     required super.isEnabled,
-    super.description,
+    super.enDescription,
+    super.viDescription,
 
     super.isPercentage = false,
     super.hasEndTime = true,
@@ -44,7 +45,8 @@ class UnlimitedAmountVoucherWithEndTime
     int? maxUsagePerPerson,
     bool? isVisible,
     bool? isEnabled,
-    String? description,
+    String? enDescription,
+    String? viDescription,
 
     DateTime? endTime,
   }) {
@@ -57,7 +59,8 @@ class UnlimitedAmountVoucherWithEndTime
       maxUsagePerPerson: maxUsagePerPerson,
       isVisible: isVisible,
       isEnabled: isEnabled,
-      description: description,
+      enDescription: enDescription,
+      viDescription: viDescription,
     );
 
     this.endTime = endTime ?? this.endTime;

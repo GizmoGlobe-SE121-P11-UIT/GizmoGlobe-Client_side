@@ -40,7 +40,10 @@ Future<void> pushProductSamplesToFirebase() async {
 
     // Database().generateSampleData();
     for (var manufacturer in Database().manufacturerList) {
-      await firestore.collection('manufacturers').doc(manufacturer.manufacturerID).set({
+      await firestore
+          .collection('manufacturers')
+          .doc(manufacturer.manufacturerID)
+          .set({
         'manufacturerID': manufacturer.manufacturerID,
         'manufacturerName': manufacturer.manufacturerName,
       });
@@ -164,14 +167,17 @@ class Firebase {
   FirebaseFirestore get firestore => _firestore;
 
   // Thêm sản phẩm vào giỏ hàng
-  Future<void> addToCart(String customerID, String productID, int quantity) async {
+  Future<void> addToCart(
+      String customerID, String productID, int quantity) async {
     await _retryOperation(() async {
       try {
         if (kDebugMode) {
-          print('Adding to cart - UserID: $customerID, ProductID: $productID, Quantity: $quantity');
+          print(
+              'Adding to cart - UserID: $customerID, ProductID: $productID, Quantity: $quantity');
         }
         // Check if user document exists
-        final userDoc = await _firestore.collection('customers').doc(customerID).get();
+        final userDoc =
+            await _firestore.collection('customers').doc(customerID).get();
         if (!userDoc.exists) {
           await _firestore.collection('customers').doc(customerID).set({
             'createdAt': FieldValue.serverTimestamp(),
@@ -179,7 +185,8 @@ class Firebase {
         }
 
         // Get product information
-        final productDoc = await _firestore.collection('products').doc(productID).get();
+        final productDoc =
+            await _firestore.collection('products').doc(productID).get();
         if (!productDoc.exists) {
           if (kDebugMode) {
             print('Product not found: $productID');
@@ -218,7 +225,8 @@ class Firebase {
             'addedAt': FieldValue.serverTimestamp(),
           });
         } else {
-          final currentQuantity = (cartDoc.data()?['quantity'] as num?)?.toInt() ?? 0;
+          final currentQuantity =
+              (cartDoc.data()?['quantity'] as num?)?.toInt() ?? 0;
           final newQuantity = currentQuantity + quantity;
           final subtotal = (discountedPrice * newQuantity).toStringAsFixed(2);
 
@@ -244,7 +252,6 @@ class Firebase {
         if (kDebugMode) {
           print(verifyDoc.data());
         }
-
       } catch (e) {
         if (kDebugMode) {
           print('Error in addToCart operation: $e');
@@ -253,19 +260,23 @@ class Firebase {
       }
     });
   }
+
   // Cập nhật số lượng sản phẩm trong giỏ hàng
-  Future<void> updateCartItemQuantity(String customerID, String productID, int newQuantity) async {
+  Future<void> updateCartItemQuantity(
+      String customerID, String productID, int newQuantity) async {
     await _retryOperation(() async {
       try {
         if (kDebugMode) {
-          print('Updating quantity - UserID: $customerID, ProductID: $productID, New Quantity: $newQuantity');
+          print(
+              'Updating quantity - UserID: $customerID, ProductID: $productID, New Quantity: $newQuantity');
         }
         if (newQuantity <= 0) {
           await removeFromCart(customerID, productID);
           return;
         }
 
-        final productDoc = await _firestore.collection('products').doc(productID).get();
+        final productDoc =
+            await _firestore.collection('products').doc(productID).get();
         if (!productDoc.exists) {
           if (kDebugMode) {
             print('Product not found: $productID');
@@ -305,7 +316,6 @@ class Firebase {
         if (kDebugMode) {
           print(verifyDoc.data());
         }
-
       } catch (e) {
         if (kDebugMode) {
           print('Error in updateCartItemQuantity: $e');
@@ -314,6 +324,7 @@ class Firebase {
       }
     });
   }
+
   // Xóa sản phẩm khỏi giỏ hàng
   Future<void> removeFromCart(String customerID, String productID) async {
     try {
@@ -348,10 +359,8 @@ class Firebase {
           final cartData = doc.data();
 
           // Lấy thông tin sản phẩm
-          final productDoc = await _firestore
-              .collection('products')
-              .doc(productID)
-              .get();
+          final productDoc =
+              await _firestore.collection('products').doc(productID).get();
 
           if (productDoc.exists) {
             final productData = productDoc.data()!;
@@ -359,7 +368,8 @@ class Firebase {
 
             // Tính lại subtotal
             final price = (productData['sellingPrice'] as num).toDouble();
-            final discount = (productData['discount'] as num?)?.toDouble() ?? 0.0;
+            final discount =
+                (productData['discount'] as num?)?.toDouble() ?? 0.0;
             final discountedPrice = price * (1 - discount / 100);
             final subtotal = discountedPrice * quantity;
 
@@ -532,9 +542,8 @@ class Firebase {
 
   Future<List<Product>> getProducts() async {
     try {
-      final QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('products')
-          .get();
+      final QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('products').get();
 
       List<Product> products = [];
       for (var doc in snapshot.docs) {
@@ -552,7 +561,7 @@ class Firebase {
 
         // Chuyển đổi category string thành enum
         CategoryEnum category = CategoryEnum.values.firstWhere(
-              (e) => e.getName() == data['category'],
+          (e) => e.getName() == data['category'],
           orElse: () => CategoryEnum.ram,
         );
 
@@ -568,7 +577,7 @@ class Firebase {
           'sales': data['sales'] as int,
           'stock': data['stock'] as int,
           'status': ProductStatusEnum.values.firstWhere(
-                (e) => e.getName() == data['status'],
+            (e) => e.getName() == data['status'],
             orElse: () => ProductStatusEnum.active,
           ),
         };
@@ -578,15 +587,15 @@ class Firebase {
           case CategoryEnum.ram:
             productProps.addAll({
               'bus': RAMBus.values.firstWhere(
-                    (e) => e.getName() == data['bus'],
+                (e) => e.getName() == data['bus'],
                 orElse: () => RAMBus.mhz3200,
               ),
               'capacity': RAMCapacity.values.firstWhere(
-                    (e) => e.getName() == data['capacity'],
+                (e) => e.getName() == data['capacity'],
                 orElse: () => RAMCapacity.gb8,
               ),
               'ramType': RAMType.values.firstWhere(
-                    (e) => e.getName() == data['ramType'],
+                (e) => e.getName() == data['ramType'],
                 orElse: () => RAMType.ddr4,
               ),
             });
@@ -594,7 +603,7 @@ class Firebase {
           case CategoryEnum.cpu:
             productProps.addAll({
               'family': CPUFamily.values.firstWhere(
-                    (e) => e.getName() == data['family'],
+                (e) => e.getName() == data['family'],
                 orElse: () => CPUFamily.corei3Ultra3,
               ),
               'core': data['core'] as int,
@@ -605,15 +614,15 @@ class Firebase {
           case CategoryEnum.gpu:
             productProps.addAll({
               'series': GPUSeries.values.firstWhere(
-                    (e) => e.getName() == data['series'],
+                (e) => e.getName() == data['series'],
                 orElse: () => GPUSeries.rtx,
               ),
               'capacity': GPUCapacity.values.firstWhere(
-                    (e) => e.getName() == data['capacity'],
+                (e) => e.getName() == data['capacity'],
                 orElse: () => GPUCapacity.gb8,
               ),
               'busWidth': GPUBus.values.firstWhere(
-                    (e) => e.getName() == data['busWidth'],
+                (e) => e.getName() == data['busWidth'],
                 orElse: () => GPUBus.bit128,
               ),
               'clockSpeed': (data['clockSpeed'] as num).toDouble(),
@@ -622,15 +631,15 @@ class Firebase {
           case CategoryEnum.mainboard:
             productProps.addAll({
               'formFactor': MainboardFormFactor.values.firstWhere(
-                    (e) => e.getName() == data['formFactor'],
+                (e) => e.getName() == data['formFactor'],
                 orElse: () => MainboardFormFactor.atx,
               ),
               'series': MainboardSeries.values.firstWhere(
-                    (e) => e.getName() == data['series'],
+                (e) => e.getName() == data['series'],
                 orElse: () => MainboardSeries.h,
               ),
               'compatibility': MainboardCompatibility.values.firstWhere(
-                    (e) => e.getName() == data['compatibility'],
+                (e) => e.getName() == data['compatibility'],
                 orElse: () => MainboardCompatibility.intel,
               ),
             });
@@ -638,11 +647,11 @@ class Firebase {
           case CategoryEnum.drive:
             productProps.addAll({
               'type': DriveType.values.firstWhere(
-                    (e) => e.getName() == data['type'],
+                (e) => e.getName() == data['type'],
                 orElse: () => DriveType.sataSSD,
               ),
               'capacity': DriveCapacity.values.firstWhere(
-                    (e) => e.getName() == data['capacity'],
+                (e) => e.getName() == data['capacity'],
                 orElse: () => DriveCapacity.gb256,
               ),
             });
@@ -651,11 +660,11 @@ class Firebase {
             productProps.addAll({
               'wattage': data['wattage'] as int,
               'efficiency': PSUEfficiency.values.firstWhere(
-                    (e) => e.getName() == data['efficiency'],
+                (e) => e.getName() == data['efficiency'],
                 orElse: () => PSUEfficiency.gold,
               ),
               'modular': PSUModular.values.firstWhere(
-                    (e) => e.getName() == data['modular'],
+                (e) => e.getName() == data['modular'],
                 orElse: () => PSUModular.fullModular,
               ),
             });
@@ -676,7 +685,8 @@ class Firebase {
     }
   }
 
-  Future<void> changeProductStatus(String productId, ProductStatusEnum status) async {
+  Future<void> changeProductStatus(
+      String productId, ProductStatusEnum status) async {
     try {
       await FirebaseFirestore.instance
           .collection('products')
@@ -754,7 +764,7 @@ class Firebase {
           });
           break;
 
-        case const(PSU):
+        case const (PSU):
           final psu = product as PSU;
           productData.addAll({
             'wattage': psu.wattage,
@@ -863,7 +873,9 @@ class Firebase {
 
   Future<void> addSalesInvoice(SalesInvoice salesInvoice) async {
     try {
-      final salesInvoiceRef = await _firestore.collection('sales_invoices').add(salesInvoice.toMap());
+      final salesInvoiceRef = await _firestore
+          .collection('sales_invoices')
+          .add(salesInvoice.toMap());
 
       String salesInvoiceID = salesInvoiceRef.id;
       salesInvoice.salesInvoiceID = salesInvoiceID;
@@ -881,7 +893,9 @@ class Firebase {
       });
 
       for (SalesInvoiceDetail detail in salesInvoice.details) {
-        await _firestore.collection('sales_invoice_details').add(detail.toMap(salesInvoiceID));
+        await _firestore
+            .collection('sales_invoice_details')
+            .add(detail.toMap(salesInvoiceID));
       }
 
       await Database().fetchSalesInvoice();
@@ -901,7 +915,8 @@ class Firebase {
           .get();
 
       return await Future.wait(snapshot.docs.map((doc) async {
-        SalesInvoice salesInvoice = SalesInvoice.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+        SalesInvoice salesInvoice =
+            SalesInvoice.fromMap(doc.id, doc.data() as Map<String, dynamic>);
 
         final QuerySnapshot detailsSnapshot = await FirebaseFirestore.instance
             .collection('sales_invoice_details')
@@ -914,8 +929,9 @@ class Firebase {
 
           final product = Database().productList.firstWhere(
                 (product) => product.productID == productID,
-            orElse: () => throw Exception('Product not found for ID: $productID'),
-          );
+                orElse: () =>
+                    throw Exception('Product not found for ID: $productID'),
+              );
 
           return SalesInvoiceDetail(
             salesInvoiceDetailID: detailDoc.id,
@@ -939,8 +955,10 @@ class Firebase {
 
   Future<void> confirmDelivery(SalesInvoice salesInvoice) async {
     try {
-      await _firestore.collection('sales_invoices')
-          .doc(salesInvoice.salesInvoiceID).update({
+      await _firestore
+          .collection('sales_invoices')
+          .doc(salesInvoice.salesInvoiceID)
+          .update({
         'salesStatus': SalesStatus.completed.getName(),
       });
       await Database().fetchSalesInvoice();
@@ -953,19 +971,53 @@ class Firebase {
     }
   }
 
-  List<Voucher> getVouchers() {
+  Future<List<Voucher>> getVouchers() async {
     try {
-      // final QuerySnapshot snapshot = await FirebaseFirestore.instance
-      //     .collection('vouchers')
-      //     .get();
+      final QuerySnapshot snapshot =
+          await _firestore.collection('vouchers').get();
 
-      return Database().voucherDataList.map((map) {
-        return VoucherFactory.fromMap(map['voucherID'], map);
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['voucherID'] = doc.id;
+
+        // Debug logging
+        if (kDebugMode) {
+          print('Raw startTime type: ${data['startTime'].runtimeType}');
+          print('Raw startTime value: ${data['startTime']}');
+          if (data['hasEndTime'] == true) {
+            print('Raw endTime type: ${data['endTime'].runtimeType}');
+            print('Raw endTime value: ${data['endTime']}');
+          }
+        }
+
+        // Convert date to DateTime
+        if (data['startTime'] is Timestamp) {
+          data['startTime'] = (data['startTime'] as Timestamp).toDate();
+        } else if (data['startTime'] is String) {
+          data['startTime'] = DateTime.parse(data['startTime'] as String);
+        }
+
+        if (data['hasEndTime'] == true) {
+          if (data['endTime'] is Timestamp) {
+            data['endTime'] = (data['endTime'] as Timestamp).toDate();
+          } else if (data['endTime'] is String) {
+            data['endTime'] = DateTime.parse(data['endTime'] as String);
+          }
+        }
+
+        // Handle localized descriptions
+        if (data['description'] != null) {
+          // If there's only one description, use it for both languages
+          data['enDescription'] = data['description'];
+          data['viDescription'] = data['description'];
+        }
+
+        return VoucherFactory.fromMap(doc.id, data);
       }).toList();
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting customers data : $e');
-      } // Lỗi khi lấy danh sách voucher
+        print('Error getting vouchers data: $e');
+      }
       rethrow;
     }
   }

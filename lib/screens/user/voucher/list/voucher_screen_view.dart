@@ -37,7 +37,16 @@ class _VoucherScreenState extends State<VoucherScreen>
       vsync: this,
       initialIndex: 0,
     );
-    cubit.initialize();
+    cubit.initialize().catchError((error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading vouchers: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
   }
 
   @override

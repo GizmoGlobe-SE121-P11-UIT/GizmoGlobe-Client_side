@@ -905,4 +905,37 @@ class SVI extends S {
 
   @override
   String get discount => 'Giảm giá';
+
+  @override
+  String get myVouchers => 'Mã giảm giá của tôi';
+
+  @override
+  String get disabled => 'Vô hiệu hóa';
+
+  @override
+  String get ranOut => 'Hết';
+
+  @override
+  String get expired => 'Hết hạn';
+
+  @override
+  String get available => 'Sẵn sàng';
+
+  @override
+  String get noExpiry => 'Không có hạn sử dụng';
+
+  @override
+  String expiresIn(int days) => 'Hết hạn sau $days ngày';
+
+  @override
+  String get maximumDiscount => 'Giảm giá tối đa';
+
+  @override
+  String get voucherDetail => 'Chi tiết mã giảm giá';
+
+  @override
+  String get maxUsagePerPerson => 'Số lần sử dụng tối đa mỗi người';
+
+  @override
+  String get noEndTime => 'Không có thời gian kết thúc';
 }

@@ -587,6 +587,18 @@ class S {
   String get minimumPurchase =>
       Intl.message('Minimum purchase', name: 'minimumPurchase');
   String get discount => Intl.message('Discount', name: 'discount');
+  String get myVouchers => Intl.message('My Vouchers', name: 'MyVouchers');
+  String get disabled => Intl.message('Disabled', name: 'disabled');
+  String get ranOut => Intl.message('Ran out', name: 'ranOut');
+  String get expired => Intl.message('Expired', name: 'expired');
+  String get available => Intl.message('Available', name: 'available');
+  String get noExpiry => Intl.message('No expiry', name: 'noExpiry');
+  String expiresIn(int days) => Intl.message('Expires in $days days', name: 'expiresIn', args: [days]);
+  String get maximumDiscount => Intl.message('Maximum discount', name: 'maximumDiscount');
+  String get voucherDetail => Intl.message('Voucher Details', name: 'voucherDetail');
+  String get maxUsagePerPerson => Intl.message('Max. usage per person', name: 'maxUsagePerPerson');
+  String get description => Intl.message('Description', name: 'description');
+  String get noEndTime => Intl.message('No end time', name: 'noEndTime');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -6,8 +6,7 @@ import '../../functions/helper.dart';
 import '../../widgets/general/app_text_style.dart';
 import '../voucher_related/end_time_interface.dart';
 
-class UnlimitedPercentageVoucherWithEndTime
-    extends Voucher
+class UnlimitedPercentageVoucherWithEndTime extends Voucher
     implements EndTimeInterface, PercentageInterface {
   double _maximumDiscountValue;
   DateTime _endTime;
@@ -21,16 +20,14 @@ class UnlimitedPercentageVoucherWithEndTime
     required super.maxUsagePerPerson,
     required super.isVisible,
     required super.isEnabled,
-    super.description,
-
+    super.enDescription,
+    super.viDescription,
     super.isPercentage = false,
     super.hasEndTime = true,
     super.isLimited = false,
-
     required DateTime endTime,
     required double maximumDiscountValue,
-  }) :
-        _endTime = endTime,
+  })  : _endTime = endTime,
         _maximumDiscountValue = maximumDiscountValue;
 
   @override
@@ -53,8 +50,8 @@ class UnlimitedPercentageVoucherWithEndTime
     int? maxUsagePerPerson,
     bool? isVisible,
     bool? isEnabled,
-    String? description,
-
+    String? enDescription,
+    String? viDescription,
     DateTime? endTime,
     double? maximumDiscountValue,
   }) {
@@ -67,11 +64,13 @@ class UnlimitedPercentageVoucherWithEndTime
       maxUsagePerPerson: maxUsagePerPerson,
       isVisible: isVisible,
       isEnabled: isEnabled,
-      description: description,
+      enDescription: enDescription,
+      viDescription: viDescription,
     );
 
     this.endTime = endTime ?? this.endTime;
-    this.maximumDiscountValue = maximumDiscountValue ?? this.maximumDiscountValue;
+    this.maximumDiscountValue =
+        maximumDiscountValue ?? this.maximumDiscountValue;
   }
 
   @override
@@ -81,27 +80,23 @@ class UnlimitedPercentageVoucherWithEndTime
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-            voucherName,
-            style: AppTextStyle.regularTitle
-        ),
+        Text(voucherName, style: AppTextStyle.regularTitle),
         const SizedBox(height: 4),
-
         Text(
           'Discount $discountValue% maximum discount \$$maximumDiscountValue',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
-
         Text(
           'Minimum purchase: \$$minimumPurchase',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
-
         Text(
           Helper.getShortVoucherTimeWithEnd(startTime, endTime),
-          style: time == 'Expired' ? AppTextStyle.regularText.copyWith(color: Colors.red) : AppTextStyle.regularText,
+          style: time == 'Expired'
+              ? AppTextStyle.regularText.copyWith(color: Colors.red)
+              : AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
       ],

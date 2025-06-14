@@ -884,7 +884,7 @@ class _UserScreen extends State<UserScreen> {
                                     ),
                                     const SizedBox(width: 16),
                                     Text(
-                                      "My Vouchers",
+                                      S.of(context).myVouchers,
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,

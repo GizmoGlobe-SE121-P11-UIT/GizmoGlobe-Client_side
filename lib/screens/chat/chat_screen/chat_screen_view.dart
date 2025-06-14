@@ -50,7 +50,7 @@ class _ChatScreenState extends State<ChatScreen> {
             fontSize: 16,
             color: isUser
                 ? theme.colorScheme.onPrimary
-                : theme.colorScheme.onSecondary,
+                : theme.colorScheme.onSurface,
           ),
         ));
       }
@@ -63,8 +63,8 @@ class _ChatScreenState extends State<ChatScreen> {
           style: TextStyle(
             fontSize: 16,
             color: isUser
-                ? theme.colorScheme.onPrimaryContainer
-                : theme.colorScheme.onSecondary,
+                ? theme.colorScheme.onPrimary
+                : theme.colorScheme.onSurface,
           ),
         ),
       );
@@ -79,8 +79,8 @@ class _ChatScreenState extends State<ChatScreen> {
         style: TextStyle(
           fontSize: 16,
           color: isUser
-              ? theme.colorScheme.onPrimaryContainer
-              : theme.colorScheme.onSecondary,
+              ? theme.colorScheme.onPrimary
+              : theme.colorScheme.onSurface,
         ),
       ));
     }
@@ -168,10 +168,10 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
           color: isUser
-              ? theme.colorScheme.primaryContainer
+              ? theme.colorScheme.primary
               : isAdmin
-                  ? theme.colorScheme.secondaryContainer
-                  : theme.colorScheme.surfaceContainerHighest,
+                  ? theme.colorScheme.secondary
+                  : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: RichText(

@@ -22,7 +22,8 @@ class LimitedAmountVoucherWithEndTime
     required super.maxUsagePerPerson,
     required super.isVisible,
     required super.isEnabled,
-    super.description,
+    super.enDescription,
+    super.viDescription,
 
     super.isPercentage = false,
     super.hasEndTime = true,
@@ -61,7 +62,8 @@ class LimitedAmountVoucherWithEndTime
     int? maxUsagePerPerson,
     bool? isVisible,
     bool? isEnabled,
-    String? description,
+    String? enDescription,
+    String? viDescription,
 
     int? maximumUsage,
     int? usageLeft,
@@ -76,7 +78,8 @@ class LimitedAmountVoucherWithEndTime
       minimumPurchase: minimumPurchase,
       maxUsagePerPerson: maxUsagePerPerson,
       isVisible: isVisible,
-      description: description,
+      enDescription: enDescription,
+      viDescription: viDescription,
     );
 
     this.maximumUsage = maximumUsage ?? this.maximumUsage;

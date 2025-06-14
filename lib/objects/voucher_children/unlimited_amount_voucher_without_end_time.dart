@@ -4,8 +4,7 @@ import '../../enums/voucher_related/voucher_status.dart';
 import '../../functions/helper.dart';
 import '../../widgets/general/app_text_style.dart';
 
-class UnlimitedAmountVoucherWithoutEndTime
-    extends Voucher {
+class UnlimitedAmountVoucherWithoutEndTime extends Voucher {
   UnlimitedAmountVoucherWithoutEndTime({
     super.voucherID,
     required super.voucherName,
@@ -15,8 +14,8 @@ class UnlimitedAmountVoucherWithoutEndTime
     required super.maxUsagePerPerson,
     required super.isVisible,
     required super.isEnabled,
-    super.description,
-
+    super.enDescription,
+    super.viDescription,
     super.isPercentage = false,
     super.hasEndTime = true,
     super.isLimited = false,
@@ -32,8 +31,8 @@ class UnlimitedAmountVoucherWithoutEndTime
     int? maxUsagePerPerson,
     bool? isVisible,
     bool? isEnabled,
-    String? description,
-
+    String? enDescription,
+    String? viDescription,
     DateTime? endTime,
   }) {
     super.updateVoucher(
@@ -45,7 +44,8 @@ class UnlimitedAmountVoucherWithoutEndTime
       maxUsagePerPerson: maxUsagePerPerson,
       isVisible: isVisible,
       isEnabled: isEnabled,
-      description: description,
+      enDescription: enDescription,
+      viDescription: viDescription,
     );
   }
 
@@ -54,24 +54,18 @@ class UnlimitedAmountVoucherWithoutEndTime
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-            voucherName,
-            style: AppTextStyle.regularTitle
-        ),
+        Text(voucherName, style: AppTextStyle.regularTitle),
         const SizedBox(height: 4),
-
         Text(
           'Discount \$$discountValue',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
-
         Text(
           'Minimum purchase: \$$minimumPurchase',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
-
         Text(
           Helper.getShortVoucherTimeWithoutEnd(startTime),
           style: AppTextStyle.regularText,

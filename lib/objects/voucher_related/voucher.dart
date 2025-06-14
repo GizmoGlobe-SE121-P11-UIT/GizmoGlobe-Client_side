@@ -11,7 +11,8 @@ abstract class Voucher {
   int maxUsagePerPerson;
   bool isVisible;
   bool isEnabled;
-  String? description;
+  String? enDescription;
+  String? viDescription;
 
   bool isPercentage;
   bool hasEndTime;
@@ -26,8 +27,8 @@ abstract class Voucher {
     required this.maxUsagePerPerson,
     required this.isVisible,
     required this.isEnabled,
-    this.description,
-
+    this.enDescription,
+    this.viDescription,
     required this.isPercentage,
     required this.hasEndTime,
     required this.isLimited,
@@ -40,8 +41,8 @@ abstract class Voucher {
     double? minimumPurchase,
     int? maxUsagePerPerson,
     DateTime? startTime,
-
-    String? description,
+    String? enDescription,
+    String? viDescription,
     bool? isVisible,
     bool? isEnabled,
   }) {
@@ -53,11 +54,23 @@ abstract class Voucher {
     this.maxUsagePerPerson = maxUsagePerPerson ?? this.maxUsagePerPerson;
     this.isVisible = isVisible ?? this.isVisible;
     this.isEnabled = isEnabled ?? this.isEnabled;
-    this.description = description ?? this.description;
+    this.enDescription = enDescription ?? this.enDescription;
+    this.viDescription = viDescription ?? this.viDescription;
+  }
+
+  String? getDescription(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    print('Current locale: ${locale.languageCode}');
+    if (locale.languageCode == 'vi') {
+      print('Returning Vietnamese description: $viDescription');
+      return viDescription;
+    } else {
+      print('Returning English description: $enDescription');
+      return enDescription;
+    }
   }
 
   VoucherTimeStatus get voucherTimeStatus;
   bool get voucherRanOut;
   Widget detailsWidget(BuildContext context);
 }
-

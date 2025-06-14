@@ -5,8 +5,7 @@ import '../../functions/helper.dart';
 import '../../widgets/general/app_text_style.dart';
 import '../voucher_related/limited_interface.dart';
 
-class LimitedAmountVoucherWithoutEndTime
-    extends Voucher
+class LimitedAmountVoucherWithoutEndTime extends Voucher
     implements LimitedInterface {
   int _maximumUsage;
   int _usageLeft;
@@ -20,16 +19,14 @@ class LimitedAmountVoucherWithoutEndTime
     required super.maxUsagePerPerson,
     required super.isVisible,
     required super.isEnabled,
-    super.description,
-
+    super.enDescription,
+    super.viDescription,
     super.isPercentage = false,
     super.hasEndTime = false,
     super.isLimited = true,
-
     required int maximumUsage,
     required int usageLeft,
-  }) :
-        _maximumUsage = maximumUsage,
+  })  : _maximumUsage = maximumUsage,
         _usageLeft = usageLeft;
 
   @override
@@ -52,8 +49,8 @@ class LimitedAmountVoucherWithoutEndTime
     int? maxUsagePerPerson,
     bool? isVisible,
     bool? isEnabled,
-    String? description,
-
+    String? enDescription,
+    String? viDescription,
     int? maximumUsage,
     int? usageLeft,
   }) {
@@ -66,7 +63,8 @@ class LimitedAmountVoucherWithoutEndTime
       maxUsagePerPerson: maxUsagePerPerson,
       isVisible: isVisible,
       isEnabled: isEnabled,
-      description: description,
+      enDescription: enDescription,
+      viDescription: viDescription,
     );
 
     this.maximumUsage = maximumUsage ?? this.maximumUsage;
@@ -94,35 +92,28 @@ class LimitedAmountVoucherWithoutEndTime
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-            voucherName,
-            style: AppTextStyle.regularTitle
-        ),
+        Text(voucherName, style: AppTextStyle.regularTitle),
         const SizedBox(height: 4),
-
         Text(
           'Discount \$$discountValue',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
-
         Text(
           'Minimum purchase: \$$minimumPurchase',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
-
-        usageLeft > 0 ?
-        Text(
-          'Usage left: $usageLeft/$maximumUsage',
-          style: AppTextStyle.regularText,
-        ) :
-        Text(
-          'Ran out',
-          style: AppTextStyle.regularText.copyWith(color: Colors.red),
-        ),
+        usageLeft > 0
+            ? Text(
+                'Usage left: $usageLeft/$maximumUsage',
+                style: AppTextStyle.regularText,
+              )
+            : Text(
+                'Ran out',
+                style: AppTextStyle.regularText.copyWith(color: Colors.red),
+              ),
         const SizedBox(height: 4),
-
         Text(
           Helper.getShortVoucherTimeWithoutEnd(startTime),
           style: AppTextStyle.regularText,
