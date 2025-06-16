@@ -336,68 +336,59 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
         state.isAIMode,
       );
 
-      // Check if message already exists in local storage
-      final existingMessages =
-          state.isAIMode ? state.aiMessages : state.adminMessages;
-      final isDuplicate = existingMessages.any((msg) => msg.content == content);
+      // Save user message to Firebase
+      final savedUserMessage = await _saveMessageToFirebase(userMessage);
+      if (!savedUserMessage) return;
 
-      if (!isDuplicate) {
-        // Save user message to Firebase
-        final savedUserMessage = await _saveMessageToFirebase(userMessage);
-        if (!savedUserMessage) return;
+      // Update UI with user message
+      if (state.isAIMode) {
+        emit(state.copyWith(
+          aiMessages: [userMessage, ...state.aiMessages],
+          processState: ProcessState.loading,
+        ));
 
-        // Update UI with user message
-        if (state.isAIMode) {
-          emit(state.copyWith(
-            aiMessages: [userMessage, ...state.aiMessages],
-            processState: ProcessState.loading,
-          ));
+        // Get AI response
+        final response =
+            await _aiService.generateResponse(content, userId: user.uid);
+        final botMessage = ChatMessage.fromBot(
+          response,
+          true,
+          receiverId: user.uid,
+        );
 
-          // Get AI response
-          final response =
-              await _aiService.generateResponse(content, userId: user.uid);
+        // Save AI response to Firebase
+        await _saveMessageToFirebase(botMessage);
+
+        emit(state.copyWith(
+          aiMessages: [botMessage, ...state.aiMessages],
+          processState: ProcessState.success,
+        ));
+      } else {
+        emit(state.copyWith(
+          adminMessages: [userMessage, ...state.adminMessages],
+          processState: ProcessState.loading,
+        ));
+
+        if (!_hasShownAdminReplyMessage) {
+          final response = S.of(context).firstAdminResponse;
+          _hasShownAdminReplyMessage = true;
           final botMessage = ChatMessage.fromBot(
             response,
-            true,
+            false,
             receiverId: user.uid,
           );
-
-          // Save AI response to Firebase
-          await _saveMessageToFirebase(botMessage);
-
           emit(state.copyWith(
-            aiMessages: [botMessage, ...state.aiMessages],
+            adminMessages: [botMessage, ...state.adminMessages],
             processState: ProcessState.success,
           ));
         } else {
           emit(state.copyWith(
-            adminMessages: [userMessage, ...state.adminMessages],
-            processState: ProcessState.loading,
+            processState: ProcessState.success,
           ));
-
-          if (!_hasShownAdminReplyMessage) {
-            final response = S.of(context).firstAdminResponse;
-            _hasShownAdminReplyMessage = true;
-            final botMessage = ChatMessage.fromBot(
-              response,
-              false,
-              receiverId: user.uid,
-            );
-            emit(state.copyWith(
-              adminMessages: [botMessage, ...state.adminMessages],
-              processState: ProcessState.success,
-            ));
-          } else {
-            emit(state.copyWith(
-              processState: ProcessState.success,
-            ));
-          }
         }
-
-        await _saveMessagesToPrefs();
-      } else {
-        emit(state.copyWith(processState: ProcessState.success));
       }
+
+      await _saveMessagesToPrefs();
     } catch (e) {
       emit(state.copyWith(
         processState: ProcessState.failure,

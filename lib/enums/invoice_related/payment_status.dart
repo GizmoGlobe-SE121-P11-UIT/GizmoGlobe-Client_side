@@ -1,18 +1,23 @@
 enum PaymentStatus {
-  paid('Paid'),
-  unpaid('Unpaid');
+  paid('Paid', 'Đã thanh toán'),
+  unpaid('Unpaid', 'Chưa thanh toán');
 
-  final String description;
+  final String enDescription;
+  final String viDescription;
 
-  const PaymentStatus(this.description);
+  const PaymentStatus(this.enDescription, this.viDescription);
 
   String getName() {
     return name;
   }
 
+  String getLocalizedDescription(bool isVietnamese) {
+    return isVietnamese ? viDescription : enDescription;
+  }
+
   @override
   String toString() {
-    return description;
+    return enDescription;
   }
 }
 
