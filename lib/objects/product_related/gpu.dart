@@ -25,5 +25,8 @@ class GPU extends Product {
     required this.capacity,
     required this.bus,
     required this.clockSpeed,
+    super.enDescription,
+    super.viDescription,
+    super.imageUrl,
   });
 }

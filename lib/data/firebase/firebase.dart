@@ -576,6 +576,9 @@ class Firebase {
           'release': (data['release'] as Timestamp).toDate(),
           'sales': data['sales'] as int,
           'stock': data['stock'] as int,
+          'enDescription': data['enDescription'] as String?,
+          'viDescription': data['viDescription'] as String?,
+          'imageUrl': data['imageUrl'] as String?,
           'status': ProductStatusEnum.values.firstWhere(
             (e) => e.getName() == data['status'],
             orElse: () => ProductStatusEnum.active,
@@ -715,6 +718,9 @@ class Firebase {
         'status': product.status.getName(),
         'manufacturerID': product.manufacturer.manufacturerID,
         'category': product.category.getName(),
+        'enDescription': product.enDescription,
+        'viDescription': product.viDescription,
+        'imageUrl': product.imageUrl,
       };
 
       switch (product.runtimeType) {
@@ -801,6 +807,9 @@ class Firebase {
         'status': product.status.getName(),
         'manufacturerID': product.manufacturer.manufacturerID,
         'category': product.category.getName(),
+        'enDescription': product.enDescription,
+        'viDescription': product.viDescription,
+        'imageUrl': product.imageUrl,
       };
 
       switch (product.runtimeType) {

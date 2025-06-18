@@ -42,36 +42,50 @@ class ProductCard extends StatelessWidget {
                     ),
                   );
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    // gradient: LinearGradient(
-                    //   begin: Alignment.topCenter,
-                    //   end: Alignment.bottomCenter,
-                    //   colors: [
-                    //     Colors.grey[100]!,
-                    //     Colors.grey[100]!,
-                    //   ],
-                    // ),
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Container(
-                          color: Colors.grey[300],
-                          child: Center(
-                            child: Icon(
-                              _getCategoryIcon(),
-                              size: 36,
-                              color: Colors.grey[600],
-                            ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Theme.of(context)
+                                .colorScheme
+                                .surface
+                                .withValues(alpha: 0.1)
+                              : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12),
+                            image: product.imageUrl != null
+                              ? DecorationImage(
+                                  image: NetworkImage(
+                                  product.imageUrl!),
+                                  fit: BoxFit.contain,
+                                )
+                              : null,
                           ),
-                        ),
+                          child: product.imageUrl == null ?
+                            Center(
+                              child: Icon(
+                                _getCategoryIcon(),
+                                size: 100,
+                                color: Theme.of(context).brightness ==
+                                    Brightness.dark
+                                    ? Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.7)
+                                    : Colors.grey[600],
+                              ),
+                            ) : null
                       ),
-                      Expanded(
-                        flex: 2,
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(6.0),
                           child: Column(
@@ -167,8 +181,8 @@ class ProductCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               Positioned(

@@ -23,6 +23,9 @@ class ProductFactory {
           stock: properties['stock'],
           sales: properties['sales'],
           status: properties['status'],
+          enDescription: properties['enDescription'],
+          viDescription: properties['viDescription'],
+          imageUrl: properties['imageUrl'],
         )..productID = properties['productID'];
       case CategoryEnum.cpu:
         return CPU(
@@ -38,6 +41,9 @@ class ProductFactory {
           stock: properties['stock'],
           sales: properties['sales'],
           status: properties['status'],
+          enDescription: properties['enDescription'],
+          viDescription: properties['viDescription'],
+          imageUrl: properties['imageUrl'],
         )..productID = properties['productID'];
       case CategoryEnum.psu:
         return PSU(
@@ -52,6 +58,9 @@ class ProductFactory {
           sales: properties['sales'],
           stock: properties['stock'],
           status: properties['status'],
+          enDescription: properties['enDescription'],
+          viDescription: properties['viDescription'],
+          imageUrl: properties['imageUrl'],
         )..productID = properties['productID'];
       case CategoryEnum.gpu:
         return GPU(
@@ -67,6 +76,9 @@ class ProductFactory {
           sales: properties['sales'],
           stock: properties['stock'],
           status: properties['status'],
+          enDescription: properties['enDescription'],
+          viDescription: properties['viDescription'],
+          imageUrl: properties['imageUrl'],
         )..productID = properties['productID'];
       case CategoryEnum.mainboard:
         return Mainboard(
@@ -81,6 +93,9 @@ class ProductFactory {
           sales: properties['sales'],
           stock: properties['stock'],
           status: properties['status'],
+          enDescription: properties['enDescription'],
+          viDescription: properties['viDescription'],
+          imageUrl: properties['imageUrl'],
         )..productID = properties['productID'];
       case CategoryEnum.drive:
         return Drive(
@@ -94,6 +109,9 @@ class ProductFactory {
           stock: properties['stock'],
           sales: properties['sales'],
           status: properties['status'],
+          enDescription: properties['enDescription'],
+          viDescription: properties['viDescription'],
+          imageUrl: properties['imageUrl'],
         )..productID = properties['productID'];
       }
   }

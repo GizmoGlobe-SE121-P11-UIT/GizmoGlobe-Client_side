@@ -23,5 +23,8 @@ class Mainboard extends Product {
     required this.formFactor,
     required this.series,
     required this.compatibility,
+    super.enDescription,
+    super.viDescription,
+    super.imageUrl,
   });
 }

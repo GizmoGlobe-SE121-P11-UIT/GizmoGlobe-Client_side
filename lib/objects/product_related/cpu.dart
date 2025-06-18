@@ -23,5 +23,8 @@ class CPU extends Product {
     required this.core,
     required this.thread,
     required this.clockSpeed,
+    super.enDescription,
+    super.viDescription,
+    super.imageUrl
   });
 }

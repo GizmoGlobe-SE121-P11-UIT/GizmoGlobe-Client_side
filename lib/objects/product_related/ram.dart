@@ -23,5 +23,8 @@ class RAM extends Product {
     required this.bus,
     required this.capacity,
     required this.ramType,
+    super.enDescription,
+    super.viDescription,
+    super.imageUrl,
   });
 }

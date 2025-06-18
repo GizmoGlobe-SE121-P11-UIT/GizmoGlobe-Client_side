@@ -13,6 +13,7 @@ import '../../../../generated/l10n.dart';
 import '../../../../objects/voucher_related/end_time_interface.dart';
 import '../../../../objects/voucher_related/percentage_interface.dart';
 import '../../../../objects/voucher_related/voucher.dart';
+import '../../../../widgets/general/multi_field_with_icon.dart';
 
 class VoucherDetailScreen extends StatefulWidget {
   final Voucher voucher;
@@ -113,16 +114,16 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
                             context,
                             S.of(context).maxUsagePerPerson,
                             '${voucher.maxUsagePerPerson}'),
-                        if (voucher.getDescription(context) != null) ...[
-                          const SizedBox(height: 12),
-                          _buildTextField(context, S.of(context).description,
-                              voucher.getDescription(context)!),
-                        ],
                       ],
                     ),
                   ),
                 ],
               ),
+              if (voucher.getDescription(context) != null) ...[
+                const SizedBox(height: 12),
+                _buildMultiTextField(context, S.of(context).description,
+                    voucher.getDescription(context)!),
+              ],
             ],
           ),
         ),
@@ -145,6 +146,30 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
         ),
         const SizedBox(height: 4),
         FieldWithIcon(
+          controller: controller,
+          readOnly: true,
+          hintText: value,
+          textColor: Theme.of(context).colorScheme.onSurface,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMultiTextField(BuildContext context, String label, String value) {
+    final controller = TextEditingController(text: value);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 4),
+        MultiFieldWithIcon(
           controller: controller,
           readOnly: true,
           hintText: value,

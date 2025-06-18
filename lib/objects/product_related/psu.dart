@@ -22,5 +22,8 @@ class PSU extends Product {
     required this.wattage,
     required this.efficiency,
     required this.modular,
+    super.enDescription,
+    super.viDescription,
+    super.imageUrl,
   });
 }

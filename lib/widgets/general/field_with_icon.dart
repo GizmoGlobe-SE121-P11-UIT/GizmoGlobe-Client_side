@@ -117,6 +117,10 @@ class FieldWithIcon extends StatelessWidget {
               width: 2,
             ),
           ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: borderRadius,
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5), width: 1.2),
+          ),
           contentPadding: EdgeInsets.symmetric(
               vertical: (height - fontSize) / 2, horizontal: 8),
         ),

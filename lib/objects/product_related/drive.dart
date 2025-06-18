@@ -20,5 +20,8 @@ class Drive extends Product {
     super.category = CategoryEnum.drive,
     required this.type,
     required this.capacity,
+    super.enDescription,
+    super.viDescription,
+    super.imageUrl,
   });
 }
