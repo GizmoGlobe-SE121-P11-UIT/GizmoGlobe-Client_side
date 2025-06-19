@@ -7,6 +7,7 @@ import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 
+import '../../../enums/processing/process_state_enum.dart';
 import '../../user/voucher/voucher_detail/voucher_detail_view.dart';
 import 'choose_voucher_screen_cubit.dart';
 import 'choose_voucher_screen_state.dart';
@@ -62,7 +63,7 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
       ),
       body: BlocBuilder<ChooseVoucherScreenCubit, ChooseVoucherScreenState>(
         builder: (context, state) {
-          if (state.isLoading) {
+          if (state.processState == ProcessState.loading) {
             return const Center(child: CircularProgressIndicator());
           }
 

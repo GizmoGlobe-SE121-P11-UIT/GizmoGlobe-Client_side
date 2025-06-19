@@ -1,6 +1,7 @@
 // lib/screens/cart/choose_voucher_screen/choose_voucher_screen_cubit.dart
 import 'package:bloc/bloc.dart';
 import '../../../data/database/database.dart';
+import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/voucher_related/voucher_status.dart';
 import '../../../objects/voucher_related/percentage_interface.dart';
 import '../../../objects/voucher_related/voucher.dart';
@@ -10,26 +11,26 @@ class ChooseVoucherScreenCubit extends Cubit<ChooseVoucherScreenState> {
   ChooseVoucherScreenCubit() : super(const ChooseVoucherScreenState());
 
   void initialize(double totalAmount) {
-    emit(state.copyWith(isLoading: true));
+    toLoading();
     loadAvailableVouchers(totalAmount);
   }
 
-  void loadAvailableVouchers(double totalAmount) {
-    final vouchers = Database().voucherList.where((voucher) {
-      if (!voucher.isVisible || !voucher.isEnabled) return false;
+  void toLoading() {
+    emit(state.copyWith(processState: ProcessState.loading, errorMessage: null));
+  }
 
+  Future<void> loadAvailableVouchers(double totalAmount) async {
+    toLoading();
+
+    await Database().updateVoucherLists();
+    final vouchers = Database().getOngoingVouchers().where((voucher) {
       if (voucher.minimumPurchase > totalAmount) return false;
-
-      if (voucher.voucherTimeStatus == VoucherTimeStatus.ongoing) {
-        return true;
-      }
-
-      return false;
+      return true;
     }).toList();
 
     emit(state.copyWith(
       availableVouchers: vouchers,
-      isLoading: false,
+      processState: ProcessState.success,
     ));
   }
 

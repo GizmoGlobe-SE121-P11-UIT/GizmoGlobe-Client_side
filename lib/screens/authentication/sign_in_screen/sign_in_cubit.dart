@@ -196,4 +196,11 @@ class SignInCubit extends Cubit<SignInState> {
       throw Exception('Failed to set up user data: $e');
     }
   }
+
+  void toIdle() {
+    emit(state.copyWith(
+      processState: ProcessState.idle,
+      message: NotifyMessage.empty,
+    ));
+  }
 }

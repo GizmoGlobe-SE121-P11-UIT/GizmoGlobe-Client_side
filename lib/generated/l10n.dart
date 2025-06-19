@@ -596,9 +596,11 @@ class S {
   String expiresIn(int days) => Intl.message('Expires in $days days', name: 'expiresIn', args: [days]);
   String get maximumDiscount => Intl.message('Maximum discount', name: 'maximumDiscount');
   String get voucherDetail => Intl.message('Voucher Details', name: 'voucherDetail');
-  String get maxUsagePerPerson => Intl.message('Max. usage per person', name: 'maxUsagePerPerson');
+  String get maxUsagePerPerson => Intl.message('Number of uses left', name: 'maxUsagePerPerson');
   String get description => Intl.message('Description', name: 'description');
   String get noEndTime => Intl.message('No end time', name: 'noEndTime');
+
+  String get retry => Intl.message('Retry', name: 'retry');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

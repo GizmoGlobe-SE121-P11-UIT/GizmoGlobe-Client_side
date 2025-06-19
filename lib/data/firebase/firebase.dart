@@ -31,6 +31,7 @@ import '../../objects/invoice_related/sales_invoice_detail.dart';
 import '../../objects/manufacturer.dart';
 import '../../objects/product_related/product.dart';
 import '../../objects/product_related/product_factory.dart';
+import '../../objects/voucher_related/owned_voucher.dart';
 import '../../objects/voucher_related/voucher.dart';
 import '../../objects/voucher_related/voucher_factory.dart';
 
@@ -907,6 +908,11 @@ class Firebase {
             .add(detail.toMap(salesInvoiceID));
       }
 
+      // Update voucher usage if a voucher was applied
+      if (salesInvoice.voucher != null) {
+        await _updateVoucherUses(salesInvoice.customerID, salesInvoice.voucher!);
+      }
+
       await Database().fetchSalesInvoice();
     } catch (e) {
       if (kDebugMode) {
@@ -1028,6 +1034,127 @@ class Firebase {
         print('Error getting vouchers data: $e');
       }
       rethrow;
+    }
+  }
+
+  Future<List<OwnedVoucher>> getOwnedVouchers() async {
+    final QuerySnapshot snapshot = await _firestore
+        .collection('owned_vouchers')
+        .where('customerID', isEqualTo: Database().userID)
+        .where('numberOfUses', isGreaterThan: 0)
+        .get();
+    return snapshot.docs.map((doc) {
+      return OwnedVoucher.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+    }).toList();
+  }
+
+  Future<void> addOwnedVoucher(OwnedVoucher ownedVoucher) async {
+    try {
+      final collectionRef = _firestore.collection('owned_vouchers');
+      final docRef = await collectionRef.add(ownedVoucher.toMap());
+      await docRef.update({'ownedVoucherID': docRef.id});
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error adding owned voucher: $e');
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> removeOwnedVoucher(String ownedVoucherID) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('owned_vouchers')
+          .doc(ownedVoucherID)
+          .delete();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error removing owned voucher: $e');
+      }
+      rethrow;
+    }
+  }
+
+  Future<List<OwnedVoucher>> getOwnedVouchersByCustomerId(String customerId) async {
+    try {
+      // Using a simple where clause without sorting to avoid needing a composite index
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('owned_vouchers')
+          .where('customerID', isEqualTo: customerId)
+          .get();
+
+      return snapshot.docs.map((doc) => OwnedVoucher(
+            ownedVoucherID: doc.id,
+            voucherID: doc['voucherID'] as String,
+            customerID: doc['customerID'] as String,
+            numberOfUses: doc['numberOfUses'] as int,
+          )).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting owned vouchers: $e');
+      }
+      return [];
+    }
+  }
+
+  Future<void> _updateVoucherUses(String customerId, Voucher voucher) async {
+    try {
+      // 1. Reduce owned voucher usage count
+      final ownedVoucherQuery = await _firestore
+          .collection('owned_vouchers')
+          .where('customerID', isEqualTo: customerId)
+          .where('voucherID', isEqualTo: voucher.voucherID)
+          .limit(1)
+          .get();
+
+      if (ownedVoucherQuery.docs.isNotEmpty) {
+        final ownedVoucherDoc = ownedVoucherQuery.docs.first;
+        final currentUsage = ownedVoucherDoc.data()['numberOfUses'] as int;
+        // Reduce usage by 1
+        await ownedVoucherDoc.reference.update({
+          'numberOfUses': currentUsage - 1
+        });
+        if (kDebugMode) {
+          print('Reduced owned voucher usage count to ${currentUsage - 1}');
+        }
+      } else {
+        if (kDebugMode) {
+          print('No owned voucher found for customer $customerId and voucher ${voucher.voucherID}');
+        }
+      }
+
+      // 2. If it's a limited voucher, reduce usageLeft by 1
+      if (voucher.isLimited) {
+        final voucherDoc = await _firestore
+            .collection('vouchers')
+            .doc(voucher.voucherID)
+            .get();
+
+        if (voucherDoc.exists) {
+          final currentUsageLeft = voucherDoc.data()?['usageLeft'] as int? ?? 0;
+          if (currentUsageLeft > 0) {
+            await voucherDoc.reference.update({
+              'usageLeft': currentUsageLeft - 1
+            });
+            if (kDebugMode) {
+              print('Reduced voucher usageLeft to ${currentUsageLeft - 1}');
+            }
+          }
+        } else {
+          if (kDebugMode) {
+            print('Voucher document not found for ID: ${voucher.voucherID}');
+          }
+        }
+      }
+
+      // Update local voucher lists to reflect changes
+      await Database().updateVoucherLists();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating voucher usage: $e');
+        print('Error details: ${e.toString()}');
+      }
+      // Continue with invoice creation even if voucher update fails
     }
   }
 }

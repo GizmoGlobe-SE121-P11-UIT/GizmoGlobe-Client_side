@@ -1,29 +1,30 @@
 // lib/screens/cart/choose_voucher_screen/choose_voucher_screen_state.dart
 import 'package:equatable/equatable.dart';
+import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
 import '../../../objects/voucher_related/voucher.dart';
 
 class ChooseVoucherScreenState with EquatableMixin {
   final List<Voucher> availableVouchers;
-  final bool isLoading;
+  final ProcessState processState;
   final String? errorMessage;
 
   const ChooseVoucherScreenState({
     this.availableVouchers = const [],
-    this.isLoading = false,
+    this.processState = ProcessState.idle,
     this.errorMessage,
   });
 
   @override
-  List<Object?> get props => [availableVouchers, isLoading, errorMessage];
+  List<Object?> get props => [availableVouchers, processState, errorMessage];
 
   ChooseVoucherScreenState copyWith({
     List<Voucher>? availableVouchers,
-    bool? isLoading,
+    ProcessState? processState,
     String? errorMessage,
   }) {
     return ChooseVoucherScreenState(
       availableVouchers: availableVouchers ?? this.availableVouchers,
-      isLoading: isLoading ?? this.isLoading,
+      processState: processState ?? this.processState,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }

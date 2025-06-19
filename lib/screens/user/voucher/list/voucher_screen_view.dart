@@ -32,21 +32,15 @@ class _VoucherScreenState extends State<VoucherScreen>
   @override
   void initState() {
     super.initState();
+    cubit.toLoading();
+    Future.microtask(() async {
+      await cubit.initialize();
+    });
     tabController = TabController(
-      length: 2, // Changed from 4 to 2 tabs
+      length: 2,
       vsync: this,
       initialIndex: 0,
     );
-    cubit.initialize().catchError((error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading vouchers: $error'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    });
   }
 
   @override
@@ -78,23 +72,65 @@ class _VoucherScreenState extends State<VoucherScreen>
           child: BlocConsumer<VoucherScreenCubit, VoucherScreenState>(
             listener: (context, state) {
               if (state.processState == ProcessState.success) {
-                showDialog(
-                  context: context,
-                  builder: (context) => InformationDialog(
-                    title: state.dialogName.description,
-                    content: state.dialogMessage,
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  VoucherScreen.newInstance()));
-                    },
-                  ),
-                );
+                // Only show dialog if there's a dialog message and name
+                if (state.dialogMessage.isNotEmpty) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => InformationDialog(
+                      title: state.dialogName.description,
+                      content: state.dialogMessage,
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    VoucherScreen.newInstance()));
+                      },
+                    ),
+                  );
+                }
               }
             },
             builder: (context, state) {
+              // Show loading indicator while data is being fetched
+              if (state.processState == ProcessState.loading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              // Show error message if the initialization failed
+              if (state.processState == ProcessState.failure) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        S.of(context).error,
+                        style: AppTextStyle.regularText,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        state.dialogMessage,
+                        style: AppTextStyle.regularText,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          cubit.toLoading();
+                          Future.microtask(() async {
+                            await cubit.initialize();
+                          });
+                        },
+                        child: Text(S.of(context).retry),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // Show the content when data is loaded
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TabBarView(

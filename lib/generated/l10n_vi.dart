@@ -934,8 +934,11 @@ class SVI extends S {
   String get voucherDetail => 'Chi tiết mã giảm giá';
 
   @override
-  String get maxUsagePerPerson => 'Số lần sử dụng tối đa mỗi người';
+  String get maxUsagePerPerson => 'Số lần sử dụng còn lại';
 
   @override
   String get noEndTime => 'Không có thời gian kết thúc';
+
+  @override
+  String get retry => 'Thử lại';
 }

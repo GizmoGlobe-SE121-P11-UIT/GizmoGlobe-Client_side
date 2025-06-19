@@ -2,26 +2,26 @@ class OwnedVoucher {
   String? ownedVoucherID;
   String voucherID;
   String customerID;
-  int numberOfUsage;
+  int numberOfUses;
 
   OwnedVoucher({
     this.ownedVoucherID,
     required this.voucherID,
     required this.customerID,
-    this.numberOfUsage = 0,
+    this.numberOfUses = 0,
   });
 
   OwnedVoucher copyWith({
     String? ownedVoucherID,
     String? voucherID,
     String? customerID,
-    int? numberOfUsage,
+    int? numberOfUses,
   }) {
     return OwnedVoucher(
       ownedVoucherID: ownedVoucherID ?? this.ownedVoucherID,
       voucherID: voucherID ?? this.voucherID,
       customerID: customerID ?? this.customerID,
-      numberOfUsage: numberOfUsage ?? this.numberOfUsage,
+      numberOfUses: numberOfUses ?? this.numberOfUses,
     );
   }
 
@@ -29,7 +29,7 @@ class OwnedVoucher {
     return {
       'voucherID': voucherID,
       'customerID': customerID,
-      'numberOfUsage': numberOfUsage,
+      'numberOfUses': numberOfUses,
     };
   }
 
@@ -38,7 +38,7 @@ class OwnedVoucher {
       ownedVoucherID: id,
       voucherID: map['voucherID'],
       customerID: map['customerID'],
-      numberOfUsage: map['numberOfUsage'],
+      numberOfUses: map['numberOfUses'],
     );
 
     return ownedVoucher;
