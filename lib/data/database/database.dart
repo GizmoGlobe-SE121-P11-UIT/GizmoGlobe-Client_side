@@ -154,16 +154,17 @@ class Database {
 
   Future<void> fetchDataFromFirestore() async {
     try {
-      getUser();
+      await getUserData();
       if (kDebugMode) {
         print('Getting data from Firebase');
       }
+
       // print('Đang lấy dữ liệu từ Firebase');
       provinceList = await fetchProvinces();
+
       await fetchAddress();
 
-      final manufacturerSnapshot =
-          await FirebaseFirestore.instance.collection('manufacturers').get();
+      final manufacturerSnapshot = await FirebaseFirestore.instance.collection('manufacturers').get();
 
       manufacturerList = manufacturerSnapshot.docs.map((doc) {
         return Manufacturer(
@@ -172,11 +173,8 @@ class Database {
         );
       }).toList();
 
-      // print('Số lượng manufacturers: ${manufacturerList.length}');
-
       // Lấy danh sách products từ Firestore
-      final productSnapshot =
-          await FirebaseFirestore.instance.collection('products').get();
+      final productSnapshot = await FirebaseFirestore.instance.collection('products').get();
 
       // print('Số lượng products trong snapshot: ${productSnapshot.docs.length}');
 
@@ -230,9 +228,9 @@ class Database {
               'release': (data['release'] as Timestamp).toDate(),
               'sales': data['sales'] as int,
               'stock': data['stock'] as int,
-              'enDescription': data['enDescription'] as String?,
-              'viDescription': data['viDescription'] as String?,
-              'imageUrl': data['imageUrl'] as String?,
+              'enDescription': data['enDescription'] as String? ?? '',
+              'viDescription': data['viDescription'] as String? ?? '',
+              'imageUrl': data['imageUrl'] as String? ?? '',
               'status': ProductStatusEnum.values.firstWhere(
                 (s) => s.getName() == data['status'],
                 orElse: () {
@@ -897,6 +895,19 @@ class Database {
     }
   }
 
+  Future<void> getUserData() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      userID = user.uid;
+      username = userDoc['username'];
+      email = userDoc['email'];
+    }
+  }
+
   Future<void> getUser() async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -962,9 +973,9 @@ class Database {
             'release': (data['release'] as Timestamp).toDate(),
             'sales': data['sales'] as int,
             'stock': data['stock'] as int,
-            'enDescription': data['enDescription'] as String?,
-            'viDescription': data['viDescription'] as String?,
-            'imageUrl': data['imageUrl'] as String?,
+            'enDescription': data['enDescription'] as String? ?? '',
+            'viDescription': data['viDescription'] as String? ?? '',
+            'imageUrl': data['imageUrl'] as String? ?? '',
             'status': ProductStatusEnum.values.firstWhere(
               (s) => s.getName() == data['status'],
               orElse: () {
@@ -1028,9 +1039,9 @@ class Database {
             'release': (doc['release'] as Timestamp).toDate(),
             'sales': doc['sales'] as int,
             'stock': doc['stock'] as int,
-            'enDescription': doc['enDescription'] as String?,
-            'viDescription': doc['viDescription'] as String?,
-            'imageUrl': doc['imageUrl'] as String?,
+            'enDescription': doc['enDescription'] as String? ?? '',
+            'viDescription': doc['viDescription'] as String? ?? '',
+            'imageUrl': doc['imageUrl'] as String? ?? '',
             'status': ProductStatusEnum.values.firstWhere(
               (s) => s.getName() == doc['status'],
               orElse: () {

@@ -50,7 +50,7 @@ abstract class Product {
 
     return ProductFactory.createProduct(category, {
       'productID': data['productID'],
-      'imageUrl': data['imageUrl'] as String?,
+      'imageUrl': data['imageUrl'] as String? ?? '',
       'productName': data['productName'],
       'price': (data['sellingPrice'] as num?)?.toDouble() ?? 0.0,
       'discount': (data['discount'] as num?)?.toDouble() ?? 0.0,
@@ -60,8 +60,8 @@ abstract class Product {
       'status': ProductStatusEnum.values
           .firstWhere((s) => s.getName() == data['status']),
       'manufacturer': data['manufacturerID'].toString(),
-      'enDescription': data['enDescription'] as String?,
-      'viDescription': data['viDescription'] as String?,
+      'enDescription': data['enDescription'] as String? ?? '',
+      'viDescription': data['viDescription'] as String? ?? '',
     });
   }
 

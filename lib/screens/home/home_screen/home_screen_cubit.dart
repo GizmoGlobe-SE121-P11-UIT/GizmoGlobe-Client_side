@@ -16,10 +16,11 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
   }
 
   Future<void> initialize() async {
+    await _updateFavoriteProducts();
+
     emit(state.copyWith(
       bestSellerProducts: Database().bestSellerProducts,
     ));
-    await _updateFavoriteProducts();
   }
 
   Future<void> _updateFavoriteProducts() async {

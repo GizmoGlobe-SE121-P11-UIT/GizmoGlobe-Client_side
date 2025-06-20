@@ -118,10 +118,8 @@ class _HomeScreen extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) =>
-                                          ProductScreen.newInstance(
-                                              initialProducts:
-                                                  state.favoriteProducts)),
+                                      builder: (context) => ProductScreen.newInstance(initialProducts: state.favoriteProducts)
+                                  ),
                                 );
                               },
                             ),
