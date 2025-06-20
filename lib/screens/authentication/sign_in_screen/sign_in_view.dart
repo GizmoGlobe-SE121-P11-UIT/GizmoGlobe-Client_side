@@ -174,7 +174,8 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                         child: Text(
                           S.of(context).forgotPassword,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -208,10 +209,9 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                             if (context.mounted) {
                               // Use Future.microtask to avoid emitting after close
                               Future.microtask(() {
-                                Navigator.pushNamedAndRemoveUntil(
+                                Navigator.pushReplacementNamed(
                                   context,
                                   '/main',
-                                  (route) => false,
                                 );
                               });
                             }
@@ -230,10 +230,9 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                     if (context.mounted) {
                                       // Use Future.microtask to avoid emitting after close
                                       Future.microtask(() {
-                                        Navigator.pushNamedAndRemoveUntil(
+                                        Navigator.pushReplacementNamed(
                                           context,
                                           '/main',
-                                          (route) => false,
                                         );
                                       });
                                     }
@@ -246,36 +245,36 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                       },
                       builder: (context, state) {
                         return ElevatedButton(
-                          onPressed:
-                              state.processState == ProcessState.loading
-                                  ? null
-                                  : () async {
+                          onPressed: state.processState == ProcessState.loading
+                              ? null
+                              : () async {
                                   cubit.signInWithEmailPassword();
                                 },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: theme.colorScheme.primary,
-                                    foregroundColor: theme.colorScheme.onPrimary,
-                                    minimumSize: const Size(double.infinity, 50),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: theme.colorScheme.onPrimary,
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: state.processState == ProcessState.loading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
                                   ),
-                                  child: state.processState == ProcessState.loading
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                      ),
-                                    )
-                                : Text(
-                                    S.of(context).login,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                )
+                              : Text(
+                                  S.of(context).login,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
                                   ),
+                                ),
                         );
                       },
                     ),
@@ -301,8 +300,8 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                               Navigator.pushNamed(context, '/sign-up');
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor:
-                                  theme.colorScheme.primary.withValues(alpha: 0.8),
+                              foregroundColor: theme.colorScheme.primary
+                                  .withValues(alpha: 0.8),
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 8),
                             ),
@@ -357,10 +356,9 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                             if (context.mounted) {
                               // Use Future.microtask to avoid emitting after close
                               Future.microtask(() {
-                                Navigator.pushNamedAndRemoveUntil(
+                                Navigator.pushReplacementNamed(
                                   context,
                                   '/main',
-                                  (route) => false,
                                 );
                               });
                             }
@@ -372,8 +370,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 builder: (BuildContext context) =>
                                     InformationDialog(
                                   title: S.of(context).error,
-                                  content:
-                                      S.of(context).failedToSigninAsGuest,
+                                  content: S.of(context).failedToSigninAsGuest,
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
@@ -390,8 +387,8 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                         child: Text(
                           S.of(context).continueAsGuest,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color:
-                                theme.colorScheme.primary.withValues(alpha: 0.8),
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.8),
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),

@@ -164,7 +164,8 @@ class Database {
 
       await fetchAddress();
 
-      final manufacturerSnapshot = await FirebaseFirestore.instance.collection('manufacturers').get();
+      final manufacturerSnapshot =
+          await FirebaseFirestore.instance.collection('manufacturers').get();
 
       manufacturerList = manufacturerSnapshot.docs.map((doc) {
         return Manufacturer(
@@ -174,7 +175,8 @@ class Database {
       }).toList();
 
       // Lấy danh sách products từ Firestore
-      final productSnapshot = await FirebaseFirestore.instance.collection('products').get();
+      final productSnapshot =
+          await FirebaseFirestore.instance.collection('products').get();
 
       // print('Số lượng products trong snapshot: ${productSnapshot.docs.length}');
 
@@ -228,9 +230,9 @@ class Database {
               'release': (data['release'] as Timestamp).toDate(),
               'sales': data['sales'] as int,
               'stock': data['stock'] as int,
-              'enDescription': data['enDescription'] as String? ?? '',
-              'viDescription': data['viDescription'] as String? ?? '',
-              'imageUrl': data['imageUrl'] as String? ?? '',
+              'enDescription': data['enDescription'] as String?,
+              'viDescription': data['viDescription'] as String?,
+              'imageUrl': data['imageUrl'] as String?,
               'status': ProductStatusEnum.values.firstWhere(
                 (s) => s.getName() == data['status'],
                 orElse: () {
@@ -973,9 +975,9 @@ class Database {
             'release': (data['release'] as Timestamp).toDate(),
             'sales': data['sales'] as int,
             'stock': data['stock'] as int,
-            'enDescription': data['enDescription'] as String? ?? '',
-            'viDescription': data['viDescription'] as String? ?? '',
-            'imageUrl': data['imageUrl'] as String? ?? '',
+            'enDescription': data['enDescription'] as String?,
+            'viDescription': data['viDescription'] as String?,
+            'imageUrl': data['imageUrl'] as String?,
             'status': ProductStatusEnum.values.firstWhere(
               (s) => s.getName() == data['status'],
               orElse: () {
@@ -1039,9 +1041,9 @@ class Database {
             'release': (doc['release'] as Timestamp).toDate(),
             'sales': doc['sales'] as int,
             'stock': doc['stock'] as int,
-            'enDescription': doc['enDescription'] as String? ?? '',
-            'viDescription': doc['viDescription'] as String? ?? '',
-            'imageUrl': doc['imageUrl'] as String? ?? '',
+            'enDescription': doc['enDescription'] as String?,
+            'viDescription': doc['viDescription'] as String?,
+            'imageUrl': doc['imageUrl'] as String?,
             'status': ProductStatusEnum.values.firstWhere(
               (s) => s.getName() == doc['status'],
               orElse: () {
@@ -1087,12 +1089,12 @@ class Database {
       }
 
       // Step 3: Get owned vouchers - using a simpler query to avoid index issues
-      List<OwnedVoucher> ownedVouchers = await Firebase().getOwnedVouchersByCustomerId(userId);
+      List<OwnedVoucher> ownedVouchers =
+          await Firebase().getOwnedVouchersByCustomerId(userId);
 
       // Step 4: Create maps for faster lookups
       Map<String, Voucher> voucherMap = {
-        for (var voucher in allVouchers)
-          voucher.voucherID!: voucher
+        for (var voucher in allVouchers) voucher.voucherID!: voucher
       };
 
       Map<String, OwnedVoucher> ownedVoucherMap = {
@@ -1113,9 +1115,8 @@ class Database {
         if (isValid) {
           validOwnedVoucherIds.add(ownedVoucher.voucherID);
         } else if (ownedVoucher.ownedVoucherID != null) {
-          removalOperations.add(
-              Firebase().removeOwnedVoucher(ownedVoucher.ownedVoucherID!)
-          );
+          removalOperations
+              .add(Firebase().removeOwnedVoucher(ownedVoucher.ownedVoucherID!));
         }
       }
 
@@ -1128,7 +1129,6 @@ class Database {
             voucher.voucherTimeStatus != VoucherTimeStatus.expired &&
             !voucher.voucherRanOut &&
             !validOwnedVoucherIds.contains(voucher.voucherID)) {
-
           OwnedVoucher newOwnedVoucher = OwnedVoucher(
             voucherID: voucher.voucherID!,
             customerID: userId,
@@ -1167,18 +1167,19 @@ class Database {
 
       // Step 9: Filter ongoing and upcoming vouchers
       ongoingVouchers = userVouchers
-          .where((voucher) => voucher.voucherTimeStatus == VoucherTimeStatus.ongoing)
+          .where((voucher) =>
+              voucher.voucherTimeStatus == VoucherTimeStatus.ongoing)
           .toList();
 
       upcomingVouchers = userVouchers
-          .where((voucher) => voucher.voucherTimeStatus == VoucherTimeStatus.upcoming)
+          .where((voucher) =>
+              voucher.voucherTimeStatus == VoucherTimeStatus.upcoming)
           .toList();
 
       // Sort all lists
       userVouchers.sort((a, b) => a.startTime.compareTo(b.startTime));
       ongoingVouchers.sort((a, b) => a.startTime.compareTo(b.startTime));
       upcomingVouchers.sort((a, b) => a.startTime.compareTo(b.startTime));
-
     } catch (e) {
       if (kDebugMode) {
         print('Error updating voucher lists: $e');

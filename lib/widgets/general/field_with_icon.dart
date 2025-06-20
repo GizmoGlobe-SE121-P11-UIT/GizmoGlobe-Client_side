@@ -119,7 +119,12 @@ class FieldWithIcon extends StatelessWidget {
           ),
           disabledBorder: OutlineInputBorder(
             borderRadius: borderRadius,
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5), width: 1.2),
+            borderSide: BorderSide(
+                color: Theme.of(context)
+                    .colorScheme
+                    .outline
+                    .withValues(alpha: 0.5),
+                width: 1.2),
           ),
           contentPadding: EdgeInsets.symmetric(
               vertical: (height - fontSize) / 2, horizontal: 8),
@@ -130,7 +135,7 @@ class FieldWithIcon extends StatelessWidget {
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: fontWeight,
-          color: textColor,
+          color: Theme.of(context).colorScheme.onSurface,
           fontFamily: 'Montserrat',
         ),
         obscureText: obscureText,

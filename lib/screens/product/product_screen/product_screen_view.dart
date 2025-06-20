@@ -6,6 +6,8 @@ import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_state.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_tab/product_tab_view.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../enums/product_related/category_enum.dart';
 import '../../../generated/l10n.dart';
@@ -38,6 +40,11 @@ class _ProductScreenState extends State<ProductScreen>
   ProductScreenCubit get cubit => context.read<ProductScreenCubit>();
   late TabController tabController;
 
+  // Voice search
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _lastWords = '';
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +54,7 @@ class _ProductScreenState extends State<ProductScreen>
         TabController(length: CategoryEnum.values.length + 1, vsync: this);
     cubit.initialize(widget.initialProducts ?? [],
         widget.initialSortOption ?? SortEnum.releaseLatest);
+    _speech = stt.SpeechToText();
   }
 
   @override
@@ -60,6 +68,48 @@ class _ProductScreenState extends State<ProductScreen>
 
   void onTabChanged(int index) {
     cubit.updateSelectedTabIndex(index);
+  }
+
+  void _listen() async {
+    // Request microphone permission
+    var status = await Permission.microphone.request();
+    if (!status.isGranted) {
+      setState(() => _isListening = false);
+      // Optionally show a dialog/toast to the user
+      return;
+    }
+
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (val) {
+          if (val == 'done' || val == 'notListening') {
+            setState(() => _isListening = false);
+            _speech.stop();
+          }
+        },
+        onError: (val) {
+          setState(() => _isListening = false);
+        },
+      );
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+          onResult: (val) {
+            setState(() {
+              _lastWords = val.recognizedWords;
+              searchController.text = _lastWords;
+              searchController.selection = TextSelection.fromPosition(
+                TextPosition(offset: searchController.text.length),
+              );
+              cubit.updateSearchText(_lastWords);
+            });
+          },
+        );
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
   }
 
   // Future<bool> _onWillPop() async {
@@ -86,24 +136,44 @@ class _ProductScreenState extends State<ProductScreen>
         child: Scaffold(
           appBar: AppBar(
             elevation: 0,
-            title: FieldWithIcon(
-              height: 40,
-              controller: searchController,
-              focusNode: searchFocusNode,
-              hintText: S.of(context).findYourItem,
-              fillColor: Theme.of(context).colorScheme.surface,
-              prefixIcon: Icon(
-                Icons.search,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
-              ),
-              onChanged: (value) {
-                cubit.updateSearchText(searchController.text);
-              },
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s-]')),
+            title: Row(
+              children: [
+                Expanded(
+                  child: FieldWithIcon(
+                    height: 40,
+                    controller: searchController,
+                    focusNode: searchFocusNode,
+                    hintText: S.of(context).findYourItem,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
+                    ),
+                    onChanged: (value) {
+                      cubit.updateSearchText(searchController.text);
+                    },
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'[a-zA-Z0-9\s-]')),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(
+                    _isListening ? Icons.mic : Icons.mic_none,
+                    color: _isListening
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.6),
+                  ),
+                  onPressed: _listen,
+                ),
               ],
             ),
             bottom: TabBar(

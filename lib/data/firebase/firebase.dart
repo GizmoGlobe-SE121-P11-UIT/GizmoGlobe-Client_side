@@ -577,9 +577,9 @@ class Firebase {
           'release': (data['release'] as Timestamp).toDate(),
           'sales': data['sales'] as int,
           'stock': data['stock'] as int,
-          'enDescription': data['enDescription'] as String? ?? '',
-          'viDescription': data['viDescription'] as String? ?? '',
-          'imageUrl': data['imageUrl'] as String? ?? '',
+          'enDescription': data['enDescription'] as String?,
+          'viDescription': data['viDescription'] as String?,
+          'imageUrl': data['imageUrl'] as String?,
           'status': ProductStatusEnum.values.firstWhere(
             (e) => e.getName() == data['status'],
             orElse: () => ProductStatusEnum.active,
@@ -910,7 +910,8 @@ class Firebase {
 
       // Update voucher usage if a voucher was applied
       if (salesInvoice.voucher != null) {
-        await _updateVoucherUses(salesInvoice.customerID, salesInvoice.voucher!);
+        await _updateVoucherUses(
+            salesInvoice.customerID, salesInvoice.voucher!);
       }
 
       await Database().fetchSalesInvoice();
@@ -1075,7 +1076,8 @@ class Firebase {
     }
   }
 
-  Future<List<OwnedVoucher>> getOwnedVouchersByCustomerId(String customerId) async {
+  Future<List<OwnedVoucher>> getOwnedVouchersByCustomerId(
+      String customerId) async {
     try {
       // Using a simple where clause without sorting to avoid needing a composite index
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
@@ -1083,12 +1085,14 @@ class Firebase {
           .where('customerID', isEqualTo: customerId)
           .get();
 
-      return snapshot.docs.map((doc) => OwnedVoucher(
-            ownedVoucherID: doc.id,
-            voucherID: doc['voucherID'] as String,
-            customerID: doc['customerID'] as String,
-            numberOfUses: doc['numberOfUses'] as int,
-          )).toList();
+      return snapshot.docs
+          .map((doc) => OwnedVoucher(
+                ownedVoucherID: doc.id,
+                voucherID: doc['voucherID'] as String,
+                customerID: doc['customerID'] as String,
+                numberOfUses: doc['numberOfUses'] as int,
+              ))
+          .toList();
     } catch (e) {
       if (kDebugMode) {
         print('Error getting owned vouchers: $e');
@@ -1111,15 +1115,15 @@ class Firebase {
         final ownedVoucherDoc = ownedVoucherQuery.docs.first;
         final currentUsage = ownedVoucherDoc.data()['numberOfUses'] as int;
         // Reduce usage by 1
-        await ownedVoucherDoc.reference.update({
-          'numberOfUses': currentUsage - 1
-        });
+        await ownedVoucherDoc.reference
+            .update({'numberOfUses': currentUsage - 1});
         if (kDebugMode) {
           print('Reduced owned voucher usage count to ${currentUsage - 1}');
         }
       } else {
         if (kDebugMode) {
-          print('No owned voucher found for customer $customerId and voucher ${voucher.voucherID}');
+          print(
+              'No owned voucher found for customer $customerId and voucher ${voucher.voucherID}');
         }
       }
 
@@ -1133,9 +1137,8 @@ class Firebase {
         if (voucherDoc.exists) {
           final currentUsageLeft = voucherDoc.data()?['usageLeft'] as int? ?? 0;
           if (currentUsageLeft > 0) {
-            await voucherDoc.reference.update({
-              'usageLeft': currentUsageLeft - 1
-            });
+            await voucherDoc.reference
+                .update({'usageLeft': currentUsageLeft - 1});
             if (kDebugMode) {
               print('Reduced voucher usageLeft to ${currentUsageLeft - 1}');
             }
