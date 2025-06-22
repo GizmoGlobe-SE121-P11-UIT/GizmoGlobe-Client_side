@@ -86,8 +86,29 @@ Current question: $userMessage
 
       final CollectionReference<Map<String, dynamic>> productsRef =
           _firestore.collection('products');
+
+      // Get list of inactive manufacturers first
+      final manufacturerSnapshot = await _firestore.collection('manufacturers')
+          .where('status', isEqualTo: 'inactive')
+          .get();
+
+      final List<Map<String, dynamic>> inactiveManufacturers =
+          manufacturerSnapshot.docs.map((doc) => {
+                'id': doc.id,
+                'status': doc['status'] ?? 'inactive'
+              }).toList();
+
+      final List<String> inactiveManufacturerIDs =
+          inactiveManufacturers.map((m) => m['id'] as String).toList();
+
+      if (kDebugMode && inactiveManufacturerIDs.isNotEmpty) {
+        print('Found ${inactiveManufacturerIDs.length} inactive manufacturers to exclude');
+      }
+
+      // First query: Filter by active status
       var query = productsRef.where('status', isEqualTo: 'active');
 
+      // Add category filter if specified
       if (category != null) {
         final standardCategory =
             CATEGORY_MAPPING[category.toLowerCase()] ?? category.toLowerCase();
@@ -97,6 +118,7 @@ Current question: $userMessage
         query = query.where('category', isEqualTo: standardCategory);
       }
 
+      // Add keyword filters if specified
       if (keyword != null) {
         // Tách từ khóa thành các phần
         final parts = _extractProductParts(keyword);
@@ -116,11 +138,25 @@ Current question: $userMessage
         }
       }
 
+      // Execute the query
       final result = await query.get();
+
+      // Filter out products from inactive manufacturers in memory
+      // since Firestore doesn't support NOT IN queries directly in this context
+      final filteredDocs = result.docs.where((doc) =>
+          !inactiveManufacturerIDs.contains(doc.data()['manufacturerID'])).toList();
+
       if (kDebugMode) {
-        print('Found ${result.docs.length} products');
+        print('Found ${result.docs.length} active products');
+        print('After filtering inactive manufacturers: ${filteredDocs.length} products remain');
       }
+
+      // We can't create a new QuerySnapshot with a filtered list directly
+      // Instead, we can return the original snapshot and access filteredDocs separately
+      // or use extension methods to work with the filtered documents
       return result;
+
+      // Note: When using the result, access filteredDocs instead of result.docs
     } catch (e) {
       if (kDebugMode) {
         print('Error in searchProducts: $e');

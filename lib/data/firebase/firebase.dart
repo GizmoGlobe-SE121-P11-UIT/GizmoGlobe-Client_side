@@ -9,6 +9,7 @@ import 'package:gizmoglobe_client/objects/product_related/psu.dart';
 import 'package:gizmoglobe_client/objects/product_related/ram.dart';
 
 import '../../enums/invoice_related/sales_status.dart';
+import '../../enums/manufacturer/manufacturer_status.dart';
 import '../../enums/product_related/category_enum.dart';
 import '../../enums/product_related/cpu_enums/cpu_family.dart';
 import '../../enums/product_related/drive_enums/drive_capacity.dart';
@@ -355,6 +356,19 @@ class Firebase {
 
         final List<Map<String, dynamic>> items = [];
 
+        // First, get all inactive manufacturer IDs to filter against
+        final manufacturerSnapshot = await FirebaseFirestore.instance
+            .collection('manufacturers')
+            .where('status', isEqualTo: 'inactive')
+            .get();
+
+        final List<String> inactiveManufacturerIDs =
+            manufacturerSnapshot.docs.map((doc) => doc.id).toList();
+
+        if (kDebugMode && inactiveManufacturerIDs.isNotEmpty) {
+          print('Found ${inactiveManufacturerIDs.length} inactive manufacturers to filter from cart');
+        }
+
         for (var doc in cartSnapshot.docs) {
           final productID = doc.id;
           final cartData = doc.data();
@@ -365,6 +379,16 @@ class Firebase {
 
           if (productDoc.exists) {
             final productData = productDoc.data()!;
+
+            // Check if the product's manufacturer is inactive
+            final manufacturerID = productData['manufacturerID'] as String;
+            if (inactiveManufacturerIDs.contains(manufacturerID)) {
+              if (kDebugMode) {
+                print('Skipping cart item for product ${productID} from inactive manufacturer ${manufacturerID}');
+              }
+              continue; // Skip this cart item
+            }
+
             final quantity = cartData['quantity'] as int;
 
             // Tính lại subtotal
@@ -529,9 +553,14 @@ class Firebase {
       if (querySnapshot.docs.isEmpty) return null;
 
       final data = querySnapshot.docs.first.data();
+      final docStatus = data['status'] as String?;
       return Manufacturer(
         manufacturerID: data['manufacturerID'] ?? '',
         manufacturerName: data['manufacturerName'] ?? '',
+        status: ManufacturerStatus.values.firstWhere(
+          (e) => e.getName().toLowerCase() == (docStatus?.toLowerCase() ?? ManufacturerStatus.active.getName().toLowerCase()),
+          orElse: () => ManufacturerStatus.active,
+        ),
       );
     } catch (e) {
       if (kDebugMode) {
@@ -543,6 +572,26 @@ class Firebase {
 
   Future<List<Product>> getProducts() async {
     try {
+      // First, get all manufacturers to identify inactive ones
+      final manufacturerSnapshot = await FirebaseFirestore.instance
+          .collection('manufacturers')
+          .where('status', isEqualTo: 'inactive')
+          .get();
+
+      final List<Map<String, dynamic>> inactiveManufacturers =
+          manufacturerSnapshot.docs.map((doc) => {
+                'id': doc.id,
+                'status': doc['status'] ?? 'inactive'
+              }).toList();
+
+      final List<String> inactiveManufacturerIDs =
+          inactiveManufacturers.map((m) => m['id'] as String).toList();
+
+      if (kDebugMode && inactiveManufacturerIDs.isNotEmpty) {
+        print('Found ${inactiveManufacturerIDs.length} inactive manufacturers to exclude');
+      }
+
+      // Get all products
       final QuerySnapshot snapshot =
           await FirebaseFirestore.instance.collection('products').get();
 
@@ -552,10 +601,33 @@ class Firebase {
 
         // Lấy manufacturer từ manufacturerID
         String manufacturerId = data['manufacturerID'];
+
+        // Skip products from inactive manufacturers
+        if (inactiveManufacturerIDs.contains(manufacturerId)) {
+          if (kDebugMode) {
+            print('Skipping product ${doc.id} from inactive manufacturer $manufacturerId');
+          }
+          continue;
+        }
+
         Manufacturer? manufacturer = await getManufacturerById(manufacturerId);
         if (manufacturer == null) {
           if (kDebugMode) {
             print('Manufacturer not found for product ${doc.id}');
+          }
+          continue;
+        }
+
+        // Get product status first to check if it's active
+        ProductStatusEnum productStatus = ProductStatusEnum.values.firstWhere(
+          (e) => e.getName() == data['status'],
+          orElse: () => ProductStatusEnum.active,
+        );
+
+        // Skip products that are not active
+        if (productStatus != ProductStatusEnum.active) {
+          if (kDebugMode) {
+            print('Skipping product ${doc.id} with non-active status: ${productStatus.getName()}');
           }
           continue;
         }
@@ -580,10 +652,7 @@ class Firebase {
           'enDescription': data['enDescription'] as String?,
           'viDescription': data['viDescription'] as String?,
           'imageUrl': data['imageUrl'] as String?,
-          'status': ProductStatusEnum.values.firstWhere(
-            (e) => e.getName() == data['status'],
-            orElse: () => ProductStatusEnum.active,
-          ),
+          'status': productStatus,
         };
 
         // Thêm các thuộc tính đặc thù theo category
@@ -678,6 +747,10 @@ class Firebase {
         // Tạo product instance thông qua factory
         Product product = ProductFactory.createProduct(category, productProps);
         products.add(product);
+      }
+
+      if (kDebugMode) {
+        print('Retrieved ${products.length} active products after filtering');
       }
 
       return products;

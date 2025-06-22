@@ -11,6 +11,7 @@ import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/owned_voucher.dart';
 
+import '../../enums/manufacturer/manufacturer_status.dart';
 import '../../enums/product_related/category_enum.dart';
 import '../../enums/product_related/cpu_enums/cpu_family.dart';
 import '../../enums/product_related/drive_enums/drive_capacity.dart';
@@ -40,6 +41,7 @@ class Database {
   String email = '';
 
   List<Manufacturer> manufacturerList = [];
+  List<Manufacturer> inactiveManufacturerList = [];
   List<Product> productList = [];
   List<Province> provinceList = [];
   List<Address> addressList = [];
@@ -53,6 +55,7 @@ class Database {
   List<Voucher> userVouchers = [];
   List<Voucher> ongoingVouchers = [];
   List<Voucher> upcomingVouchers = [];
+
 
   // final List<Map<String, dynamic>> voucherDataList = [
   //   {
@@ -152,6 +155,12 @@ class Database {
     return user?.uid;
   }
 
+  void getInactiveManufacturerList() {
+    inactiveManufacturerList = manufacturerList
+        .where((manufacturer) => manufacturer.status == ManufacturerStatus.inactive)
+        .toList();
+  }
+
   Future<void> fetchDataFromFirestore() async {
     try {
       await getUserData();
@@ -164,19 +173,25 @@ class Database {
 
       await fetchAddress();
 
-      final manufacturerSnapshot =
-          await FirebaseFirestore.instance.collection('manufacturers').get();
+      final manufacturerSnapshot = await FirebaseFirestore.instance.collection('manufacturers').get();
 
       manufacturerList = manufacturerSnapshot.docs.map((doc) {
+        final data = doc.data();
+        final docStatus = data['status'] as String?;
         return Manufacturer(
           manufacturerID: doc.id,
           manufacturerName: doc['manufacturerName'] as String,
+          status: ManufacturerStatus.values.firstWhere(
+            (e) => e.getName().toLowerCase() == (docStatus?.toLowerCase() ?? ManufacturerStatus.active.getName().toLowerCase()),
+            orElse: () => ManufacturerStatus.active,
+          ),
         );
       }).toList();
 
+      getInactiveManufacturerList();
+
       // Lấy danh sách products từ Firestore
-      final productSnapshot =
-          await FirebaseFirestore.instance.collection('products').get();
+      final productSnapshot = await FirebaseFirestore.instance.collection('products').get();
 
       // print('Số lượng products trong snapshot: ${productSnapshot.docs.length}');
 
@@ -196,6 +211,35 @@ class Database {
               // throw Exception('Không tìm thấy nhà sản xuất cho sản phẩm ${doc.id}');
             },
           );
+
+          // Skip products from inactive manufacturers
+          if (inactiveManufacturerList.any((m) => m.manufacturerID == manufacturer.manufacturerID)) {
+            if (kDebugMode) {
+              print('Skipping product ${doc.id} from inactive manufacturer ${manufacturer.manufacturerName}');
+            }
+            return null;
+          }
+
+          // Get product status first to check if it's active
+          final productStatus = ProductStatusEnum.values.firstWhere(
+            (s) => s.getName() == data['status'],
+            orElse: () {
+              if (kDebugMode) {
+                print('Invalid status for product ${doc.id}');
+              }
+              // print('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
+              throw Exception('Invalid status for product ${doc.id}');
+              // throw Exception('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
+            },
+          );
+
+          // Skip products that are not active
+          if (productStatus != ProductStatusEnum.active) {
+            if (kDebugMode) {
+              print('Skipping product ${doc.id} with non-active status: ${productStatus.getName()}');
+            }
+            return null;
+          }
 
           // Chuyển đổi dữ liệu từ Firestore sang enum
           final category = CategoryEnum.values.firstWhere(
@@ -233,17 +277,7 @@ class Database {
               'enDescription': data['enDescription'] as String?,
               'viDescription': data['viDescription'] as String?,
               'imageUrl': data['imageUrl'] as String?,
-              'status': ProductStatusEnum.values.firstWhere(
-                (s) => s.getName() == data['status'],
-                orElse: () {
-                  if (kDebugMode) {
-                    print('Invalid status for product ${doc.id}');
-                  }
-                  // print('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
-                  throw Exception('Invalid status for product ${doc.id}');
-                  // throw Exception('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
-                },
-              ),
+              'status': productStatus,
               'manufacturer': manufacturer,
               ...specificData,
             },
@@ -256,11 +290,11 @@ class Database {
           return Future.error('Error processing product ${doc.id}: $e');
           // return Future.error('Lỗi xử lý sản phẩm ${doc.id}: $e');
         }
-      }));
+      })).then((products) => products.where((product) => product != null).cast<Product>().toList());
 
       // print('Số lượng products trong list: ${productList.length}');
 
-      bestSellerProducts = await fetchBestSellerProducts();
+      bestSellerProducts = fetchBestSellerProducts();
       favoriteProducts = await fetchFavoriteProducts(userID);
 
       allVoucherList = await Firebase().getVouchers();
@@ -940,68 +974,34 @@ class Database {
     }
   }
 
-  Future<List<Product>> fetchBestSellerProducts() async {
+  List<Product> fetchBestSellerProducts() {
     try {
-      final productSnapshot = await FirebaseFirestore.instance
-          .collection('products')
-          .orderBy('sales', descending: true)
-          .limit(5)
-          .get();
+      // Use the local productList that's already been filtered for inactive manufacturers and non-active products
+      if (productList.isEmpty) {
+        if (kDebugMode) {
+          print('Product list is empty, cannot determine best sellers');
+        }
+        return [];
+      }
 
-      return await Future.wait(productSnapshot.docs.map((doc) async {
-        final data = doc.data();
+      // Create a copy of the list to avoid modifying the original
+      List<Product> sortedProducts = [...productList];
 
-        // Find the corresponding manufacturer
-        final manufacturer = manufacturerList.firstWhere(
-          (m) => m.manufacturerID == data['manufacturerID'],
-          orElse: () {
-            if (kDebugMode) {
-              print('Manufacturer not found for product ${doc.id}');
-            }
-            // print('Nhà sản xuất không tìm thấy cho sản phẩm ${doc.id}');
-            throw Exception('Manufacturer not found for product ${doc.id}');
-            // throw Exception('Nhà sản xuất không tìm thấy cho sản phẩm ${doc.id}');
-          },
-        );
+      // Sort by sales in descending order
+      sortedProducts.sort((a, b) => b.sales.compareTo(a.sales));
 
-        return ProductFactory.createProduct(
-          CategoryEnum.values
-              .firstWhere((c) => c.getName() == data['category']),
-          {
-            'productID': doc.id,
-            'productName': data['productName'] as String,
-            'price': (data['sellingPrice'] as num).toDouble(),
-            'discount': (data['discount'] as num?)?.toDouble() ?? 0.0,
-            'release': (data['release'] as Timestamp).toDate(),
-            'sales': data['sales'] as int,
-            'stock': data['stock'] as int,
-            'enDescription': data['enDescription'] as String?,
-            'viDescription': data['viDescription'] as String?,
-            'imageUrl': data['imageUrl'] as String?,
-            'status': ProductStatusEnum.values.firstWhere(
-              (s) => s.getName() == data['status'],
-              orElse: () {
-                if (kDebugMode) {
-                  print('Invalid status for product ${doc.id}');
-                }
-                // print('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
-                throw Exception('Invalid status for product ${doc.id}');
-                // throw Exception('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
-              },
-            ),
-            'manufacturer': manufacturer,
-            ..._getSpecificProductData(
-                data,
-                CategoryEnum.values
-                    .firstWhere((c) => c.getName() == data['category'])),
-          },
-        );
-      }).toList());
+      // Take the top 5 best sellers
+      List<Product> bestSellers = sortedProducts.take(5).toList();
+
+      if (kDebugMode) {
+        print('Found ${bestSellers.length} best selling products from local data');
+      }
+
+      return bestSellers;
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching best seller products: $e');
+        print('Error creating best seller products: $e');
       }
-      // print('Lỗi khi lấy danh sách sản phẩm bán chạy: $e');
       rethrow;
     }
   }
@@ -1012,6 +1012,13 @@ class Database {
 
   Future<List<Product>> fetchFavoriteProducts(String customerID) async {
     try {
+      if (productList.isEmpty) {
+        if (kDebugMode) {
+          print('Product list is empty, cannot fetch favorites');
+        }
+        return [];
+      }
+
       final favoriteSnapshot = await FirebaseFirestore.instance
           .collection('customers')
           .doc(customerID)
@@ -1025,50 +1032,19 @@ class Database {
         return [];
       }
 
-      final productSnapshot = await FirebaseFirestore.instance
-          .collection('products')
-          .where(FieldPath.documentId, whereIn: favoriteProductIDs)
-          .get();
+      List<Product> favoriteProducts = productList
+          .where((product) => favoriteProductIDs.contains(product.productID))
+          .toList();
 
-      return productSnapshot.docs.map((doc) {
-        return ProductFactory.createProduct(
-          CategoryEnum.values.firstWhere((c) => c.getName() == doc['category']),
-          {
-            'productID': doc.id,
-            'productName': doc['productName'] as String,
-            'price': (doc['sellingPrice'] as num).toDouble(),
-            'discount': (doc['discount'] as num?)?.toDouble() ?? 0.0,
-            'release': (doc['release'] as Timestamp).toDate(),
-            'sales': doc['sales'] as int,
-            'stock': doc['stock'] as int,
-            'enDescription': doc['enDescription'] as String?,
-            'viDescription': doc['viDescription'] as String?,
-            'imageUrl': doc['imageUrl'] as String?,
-            'status': ProductStatusEnum.values.firstWhere(
-              (s) => s.getName() == doc['status'],
-              orElse: () {
-                if (kDebugMode) {
-                  print('Invalid status for product ${doc.id}');
-                }
-                // print('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
-                throw Exception('Invalid status for product ${doc.id}');
-                // throw Exception('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
-              },
-            ),
-            'manufacturer': manufacturerList
-                .firstWhere((m) => m.manufacturerID == doc['manufacturerID']),
-            ..._getSpecificProductData(
-                doc.data(),
-                CategoryEnum.values
-                    .firstWhere((c) => c.getName() == doc['category'])),
-          },
-        );
-      }).toList();
+      if (kDebugMode) {
+        print('Found ${favoriteProducts.length} favorite products from local data');
+      }
+
+      return favoriteProducts;
     } catch (e) {
       if (kDebugMode) {
         print('Error fetching favorite products: $e');
       }
-      // print('Lỗi khi lấy danh sách sản phẩm yêu thích: $e');
       rethrow;
     }
   }
