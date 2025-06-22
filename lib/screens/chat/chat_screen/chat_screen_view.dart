@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/general/gradient_text.dart';
 import '../../../objects/chat_related/chat_message.dart';
 import '../../../screens/chat/chat_screen/chat_screen_cubit.dart';
@@ -95,12 +96,10 @@ class _ChatScreenState extends State<ChatScreen> {
         final theme = Theme.of(context);
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(
-                Icons.chevron_left,
-                size: 32,
-              ),
-              onPressed: () => Navigator.of(context).pop(),
+            leading: GradientIconButton(
+              icon: Icons.chevron_left,
+              onPressed: () => Navigator.pop(context),
+              fillColor: Colors.transparent,
             ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
