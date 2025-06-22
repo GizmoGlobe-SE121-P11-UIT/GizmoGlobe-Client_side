@@ -43,6 +43,7 @@ class Database {
   List<Manufacturer> manufacturerList = [];
   List<Manufacturer> inactiveManufacturerList = [];
   List<Product> productList = [];
+  List<Product> fullProductList = []; // Full product list for sales orders
   List<Province> provinceList = [];
   List<Address> addressList = [];
   List<Product> favoriteProducts = [];
@@ -190,7 +191,93 @@ class Database {
 
       getInactiveManufacturerList();
 
-      // Lấy danh sách products từ Firestore
+      // Get all products from Firestore for the fullProductList (for sales orders)
+      final fullProductSnapshot = await FirebaseFirestore.instance.collection('products').get();
+
+      // Process all products for the fullProductList without filtering out inactive manufacturers' products
+      fullProductList = await Future.wait(fullProductSnapshot.docs.map((doc) async {
+        try {
+          final data = doc.data();
+
+          // Tìm manufacturer tương ứng
+          final manufacturer = manufacturerList.firstWhere(
+                (m) => m.manufacturerID == data['manufacturerID'],
+            orElse: () {
+              if (kDebugMode) {
+                print('Manufacturer not found for product ${doc.id}');
+              }
+              // print('Không tìm thấy nhà sản xuất cho sản phẩm ${doc.id}');
+              throw Exception('Manufacturer not found for product ${doc.id}');
+              // throw Exception('Không tìm thấy nhà sản xuất cho sản phẩm ${doc.id}');
+            },
+          );
+
+          // Chuyển đổi dữ liệu từ Firestore sang enum
+          final category = CategoryEnum.values.firstWhere(
+                (c) => c.getName() == data['category'],
+            orElse: () {
+              if (kDebugMode) {
+                print('Invalid category for product ${doc.id}');
+              }
+              // print('Danh mục không hợp lệ cho sản phẩm ${doc.id}');
+              throw Exception('Invalid category for product ${doc.id}');
+              // throw Exception('Danh mục không hợp lệ cho sản phẩm ${doc.id}');
+            },
+          );
+
+          final specificData = _getSpecificProductData(data, category);
+          if (specificData.isEmpty) {
+            if (kDebugMode) {
+              print('Cannot get specific data for product ${doc.id}');
+            }
+            // print('Không thể lấy dữ liệu cụ thể cho sản phẩm ${doc.id}');
+            throw Exception('Cannot get specific data for product ${doc.id}');
+            // throw Exception('Không thể lấy dữ liệu cụ thể cho sản phẩm ${doc.id}');
+          }
+
+          return ProductFactory.createProduct(
+            category,
+            {
+              'productID': doc.id,
+              'productName': data['productName'] as String,
+              'price': (data['sellingPrice'] as num).toDouble(),
+              'discount': (data['discount'] as num?)?.toDouble() ?? 0.0,
+              'release': (data['release'] as Timestamp).toDate(),
+              'sales': data['sales'] as int,
+              'stock': data['stock'] as int,
+              'enDescription': data['enDescription'] as String?,
+              'viDescription': data['viDescription'] as String?,
+              'imageUrl': data['imageUrl'] as String?,
+              'status': ProductStatusEnum.values.firstWhere(
+                    (s) => s.getName() == data['status'],
+                orElse: () {
+                  if (kDebugMode) {
+                    print('Invalid status for product ${doc.id}');
+                  }
+                  // print('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
+                  throw Exception('Invalid status for product ${doc.id}');
+                  // throw Exception('Trạng thái không hợp lệ cho sản phẩm ${doc.id}');
+                },
+              ),
+              'manufacturer': manufacturer,
+              ...specificData,
+            },
+          );
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error processing product ${doc.id}: $e');
+          }
+          // print('Lỗi xử lý sản phẩm ${doc.id}: $e');
+          return Future.error('Error processing product ${doc.id}: $e');
+          // return Future.error('Lỗi xử lý sản phẩm ${doc.id}: $e');
+        }
+      }));
+
+      if (kDebugMode) {
+        print('Loaded ${fullProductList.length} products for fullProductList (sales orders)');
+      }
+
+      // Lấy danh sách products từ Firestore for regular productList
       final productSnapshot = await FirebaseFirestore.instance.collection('products').get();
 
       // print('Số lượng products trong snapshot: ${productSnapshot.docs.length}');

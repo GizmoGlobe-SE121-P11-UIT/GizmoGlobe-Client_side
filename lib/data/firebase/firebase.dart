@@ -1016,7 +1016,7 @@ class Firebase {
           final detailData = detailDoc.data() as Map<String, dynamic>;
           final productID = detailData['productID'] as String;
 
-          final product = Database().productList.firstWhere(
+          final product = Database().fullProductList.firstWhere(
                 (product) => product.productID == productID,
                 orElse: () =>
                     throw Exception('Product not found for ID: $productID'),
