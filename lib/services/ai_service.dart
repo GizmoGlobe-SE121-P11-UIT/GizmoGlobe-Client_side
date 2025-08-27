@@ -88,21 +88,23 @@ Current question: $userMessage
           _firestore.collection('products');
 
       // Get list of inactive manufacturers first
-      final manufacturerSnapshot = await _firestore.collection('manufacturers')
+      final manufacturerSnapshot = await _firestore
+          .collection('manufacturers')
           .where('status', isEqualTo: 'inactive')
           .get();
 
       final List<Map<String, dynamic>> inactiveManufacturers =
-          manufacturerSnapshot.docs.map((doc) => {
-                'id': doc.id,
-                'status': doc['status'] ?? 'inactive'
-              }).toList();
+          manufacturerSnapshot.docs
+              .map((doc) =>
+                  {'id': doc.id, 'status': doc['status'] ?? 'inactive'})
+              .toList();
 
       final List<String> inactiveManufacturerIDs =
           inactiveManufacturers.map((m) => m['id'] as String).toList();
 
       if (kDebugMode && inactiveManufacturerIDs.isNotEmpty) {
-        print('Found ${inactiveManufacturerIDs.length} inactive manufacturers to exclude');
+        print(
+            'Found ${inactiveManufacturerIDs.length} inactive manufacturers to exclude');
       }
 
       // First query: Filter by active status
@@ -143,12 +145,15 @@ Current question: $userMessage
 
       // Filter out products from inactive manufacturers in memory
       // since Firestore doesn't support NOT IN queries directly in this context
-      final filteredDocs = result.docs.where((doc) =>
-          !inactiveManufacturerIDs.contains(doc.data()['manufacturerID'])).toList();
+      final filteredDocs = result.docs
+          .where((doc) =>
+              !inactiveManufacturerIDs.contains(doc.data()['manufacturerID']))
+          .toList();
 
       if (kDebugMode) {
         print('Found ${result.docs.length} active products');
-        print('After filtering inactive manufacturers: ${filteredDocs.length} products remain');
+        print(
+            'After filtering inactive manufacturers: ${filteredDocs.length} products remain');
       }
 
       // We can't create a new QuerySnapshot with a filtered list directly
@@ -306,17 +311,14 @@ Current question: $userMessage
     }
 
     final buffer = StringBuffer();
-    buffer.writeln(
-        isVietnamese ? '📋 DANH SÁCH YÊU THÍCH:' : '📋 FAVORITE LIST:');
-    buffer.writeln('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    buffer.writeln(isVietnamese ? 'DANH SACH YEU THICH:' : 'FAVORITE LIST:');
 
     for (var i = 0; i < favorites.length; i++) {
       final product = favorites[i];
       buffer.writeln('\n${i + 1}. ${product['productName']}');
       buffer.writeln(
-          '   💰 ${_formatPriceWithDiscount(product['sellingPrice'], product['discount'])}');
-      buffer.writeln('   📦 ${_formatValue(product['stock'], 'stock')}');
-      buffer.writeln('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          '   Gia: ${_formatPriceWithDiscount(product['sellingPrice'], product['discount'])}');
+      buffer.writeln('   Kho: ${_formatValue(product['stock'], 'stock')}');
     }
 
     return buffer.toString();
@@ -781,7 +783,7 @@ CUSTOMER QUESTION: $userMessage
 Reply in English:
 ''';
 
-          final response = await _callGeminiAPI(prompt);
+          final response = _sanitizeMarkdown(await _callGeminiAPI(prompt));
           if (userId != null) {
             _updateHistory(userId, userMessage, response);
           }
@@ -842,7 +844,7 @@ CUSTOMER QUESTION: $userMessage
 Reply in English:
 ''';
 
-        final response = await _callGeminiAPI(prompt);
+        final response = _sanitizeMarkdown(await _callGeminiAPI(prompt));
         if (userId != null) {
           _updateHistory(userId, userMessage, response);
         }
@@ -899,7 +901,7 @@ Reply in English:
 
         final prompt = _createPromptWithProducts(
             processedMessage, productsSnapshot, isVietnamese);
-        final response = await _callGeminiAPI(prompt);
+        final response = _sanitizeMarkdown(await _callGeminiAPI(prompt));
 
         // Cập nhật lịch sử nếu có userId
         if (userId != null) {
@@ -913,7 +915,7 @@ Reply in English:
       if (isGreeting || isStoreQuestion) {
         final prompt =
             _createPromptWithoutProducts(processedMessage, isVietnamese);
-        final response = await _callGeminiAPI(prompt);
+        final response = _sanitizeMarkdown(await _callGeminiAPI(prompt));
 
         // Cập nhật lịch sử nếu có userId
         if (userId != null) {
@@ -925,7 +927,7 @@ Reply in English:
 
       // Với các câu hỏi chung khác
       final prompt = _createGeneralPrompt(processedMessage, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = _sanitizeMarkdown(await _callGeminiAPI(prompt));
 
       // Cập nhật lịch sử nếu có userId
       if (userId != null) {
@@ -941,6 +943,56 @@ Reply in English:
           ? 'Xin lỗi, hiện tại tôi không thể xử lý yêu cầu của bạn. Vui lòng thử lại sau.'
           : 'Sorry, I cannot process your request at the moment. Please try again later.';
     }
+  }
+
+  // Remove markdown formatting but keep simple dash bullets
+  String _sanitizeMarkdown(String input) {
+    var text = input;
+    // Remove bold/italic markers using mapped replacements
+    text = text.replaceAllMapped(
+        RegExp(r"\*\*([^*]+)\*\*"), (m) => m.group(1) ?? "");
+    text =
+        text.replaceAllMapped(RegExp(r"\*([^*]+)\*"), (m) => m.group(1) ?? "");
+    text = text.replaceAllMapped(RegExp(r"_([^_]+)_"), (m) => m.group(1) ?? "");
+    text = text.replaceAllMapped(
+        RegExp(r"~{2}([^~]+)~{2}"), (m) => m.group(1) ?? "");
+    // Strip headings (leading #), keep the text
+    text = text.replaceAll(RegExp(r"^#{1,6}\s+", multiLine: true), "");
+    // Remove code fences while keeping inner content
+    text =
+        text.replaceAllMapped(RegExp(r"```[\s\S]*?```", multiLine: true), (m) {
+      final inner = m
+          .group(0)!
+          .replaceAll(RegExp(r"^```[a-zA-Z]*\n?"), "")
+          .replaceAll("```", "");
+      return inner.trim();
+    });
+    // Inline code ticks
+    text = text.replaceAllMapped(RegExp(r"`([^`]+)`"), (m) => m.group(1) ?? "");
+    // Links: [label](url) -> label
+    text = text.replaceAllMapped(
+        RegExp(r"\[([^\]]+)\]\(([^)]+)\)"), (m) => m.group(1) ?? "");
+    // Images: ![alt](url) -> alt
+    text = text.replaceAllMapped(
+        RegExp(r"!\[([^\]]*)\]\(([^)]+)\)"), (m) => m.group(1) ?? "");
+    // Blockquotes
+    text = text.replaceAll(RegExp(r"^>\s?", multiLine: true), "");
+    // Horizontal rules
+    text =
+        text.replaceAll(RegExp(r"^(-{3,}|\*{3,}|_{3,})$", multiLine: true), "");
+    // Normalize bullets to '- '
+    text = text.replaceAll(RegExp(r"^\s*[\*\+]\s+", multiLine: true), "- ");
+    text = text.replaceAll(
+        RegExp(r"^\s*[•·▪►➤⦿⦾●○◆◇•]\s*", multiLine: true), "- ");
+    // Remove leading numbering like '1. ' but keep text
+    text = text.replaceAll(RegExp(r"^\s*\d+\.\s+", multiLine: true), "- ");
+    // Normalize extra spaces after dash bullet
+    text = text.replaceAll(RegExp(r"^-\s{2,}", multiLine: true), "- ");
+    // Unescape currency by removing the backslash before $
+    text = text.replaceAll(RegExp(r"\\(?=\$\d)"), "");
+    // Trim trailing whitespace lines
+    text = text.replaceAll(RegExp(r"[ \t]+$", multiLine: true), "");
+    return text.trim();
   }
 
   bool _isGreeting(String message) {
