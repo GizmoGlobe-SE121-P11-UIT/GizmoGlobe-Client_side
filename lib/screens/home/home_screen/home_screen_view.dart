@@ -5,10 +5,13 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/chat/chat_screen/chat_screen_view.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_state.dart';
+import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_webview.dart'
+    as web;
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
 import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/widgets/product/product_card.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../enums/processing/sort_enum.dart';
 
@@ -39,6 +42,12 @@ class _HomeScreen extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if running on web platform
+    if (kIsWeb) {
+      return web.HomeScreenWeb.newInstance();
+    }
+
+    // Mobile/Desktop version
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -118,8 +127,10 @@ class _HomeScreen extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => ProductScreen.newInstance(initialProducts: state.favoriteProducts)
-                                  ),
+                                      builder: (context) =>
+                                          ProductScreen.newInstance(
+                                              initialProducts:
+                                                  state.favoriteProducts)),
                                 );
                               },
                             ),

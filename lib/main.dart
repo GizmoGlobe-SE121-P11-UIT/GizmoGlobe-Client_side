@@ -31,18 +31,24 @@ void main() async {
     );
 
     // final database = Database();
-    // Initialize Firebase App Check with debug token and retry configuration
-    await FirebaseAppCheck.instance.activate(
-      androidProvider: AndroidProvider.debug,
-      appleProvider: AppleProvider.deviceCheck,
-    );
+    // Initialize Firebase App Check only on mobile platforms (not web)
+    if (!kIsWeb) {
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: AndroidProvider.debug,
+        appleProvider: AppleProvider.deviceCheck,
+      );
 
-    // Configure retry behavior for App Check
-    FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true);
+      // Configure retry behavior for App Check
+      FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true);
+    }
 
     await Database().initialize();
-    await Permission.camera.request();
-    await Permission.photos.request();
+
+    // Only request permissions on mobile platforms (not web)
+    if (!kIsWeb) {
+      await Permission.camera.request();
+      await Permission.photos.request();
+    }
     runApp(const MyApp());
   } catch (e) {
     if (kDebugMode) {
@@ -60,7 +66,11 @@ void main() async {
 
 Future<void> _setup() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
+
+  // Only initialize Stripe on mobile platforms (not web)
+  if (!kIsWeb) {
+    Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -244,8 +254,7 @@ class AuthWrapper extends StatelessWidget {
         // If we're on the sign-up screen, don't redirect
         if (currentRoute == '/sign-up') {
           return SignUpScreen.newInstance();
-        }
-        else if (snapshot.hasData) {
+        } else if (snapshot.hasData) {
           return const MainScreen();
         }
 

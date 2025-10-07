@@ -38,6 +38,14 @@
           }
         },
         {
+          "client_id": "413433346211-vocgl08p4b06gaud2ch698153l39gu00.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gizmoglobe_client",
+            "certificate_hash": "07f03b143926fb6b9025ea084281c50a8a14d651"
+          }
+        },
+        {
           "client_id": "413433346211-mgedbl60a2q2824jvvf570hqsfa7m6k2.apps.googleusercontent.com",
           "client_type": 3
         }
