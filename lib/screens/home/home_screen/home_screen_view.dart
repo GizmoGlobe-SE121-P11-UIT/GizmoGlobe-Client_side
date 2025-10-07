@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
-import 'package:gizmoglobe_client/screens/chat/chat_screen/chat_screen_view.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_state.dart';
-import 'package:gizmoglobe_client/screens/home/home_screen/home_screen_webview.dart'
-    as web;
-import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
 import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/widgets/product/product_card.dart';
+import 'package:gizmoglobe_client/components/general/web_header.dart';
+import 'package:gizmoglobe_client/components/home/web_hero_section.dart';
+import 'package:gizmoglobe_client/components/home/web_category_nav.dart';
+import 'package:gizmoglobe_client/components/home/web_best_sellers_section.dart';
+import 'package:gizmoglobe_client/components/home/web_favorites_section.dart';
+import 'package:gizmoglobe_client/components/home/web_features_section.dart';
+import 'package:gizmoglobe_client/components/general/web_footer.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../../enums/processing/sort_enum.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,7 +46,41 @@ class _HomeScreen extends State<HomeScreen> {
   Widget build(BuildContext context) {
     // Check if running on web platform
     if (kIsWeb) {
-      return web.HomeScreenWeb.newInstance();
+      return BlocProvider(
+        create: (context) => HomeScreenCubit(
+          favoritesCubit: context.read<FavoritesCubit>(),
+        ),
+        child: Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: BlocBuilder<HomeScreenCubit, HomeScreenState>(
+            builder: (context, state) {
+              // Initialize the cubit when the widget is built
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<HomeScreenCubit>().initialize();
+              });
+
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const WebHeader(),
+                    const WebHeroSection(),
+                    const SizedBox(height: 80),
+                    const WebCategoryNav(),
+                    const SizedBox(height: 80),
+                    WebBestSellersSection(products: state.bestSellerProducts),
+                    const SizedBox(height: 80),
+                    WebFavoritesSection(products: state.favoriteProducts),
+                    const SizedBox(height: 80),
+                    const WebFeaturesSection(),
+                    const SizedBox(height: 80),
+                    const WebFooter(),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
     }
 
     // Mobile/Desktop version
@@ -80,12 +116,7 @@ class _HomeScreen extends State<HomeScreen> {
                             size: 28,
                           ),
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChatScreen.newInstance(),
-                              ),
-                            );
+                            Navigator.pushNamed(context, '/chat');
                           },
                         ),
                       ),
@@ -108,14 +139,7 @@ class _HomeScreen extends State<HomeScreen> {
                               title: S.of(context).bestSellers,
                               products: state.bestSellerProducts,
                               onSeeAll: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          ProductScreen.newInstance(
-                                              initialSortOption:
-                                                  SortEnum.salesHighest)),
-                                );
+                                Navigator.pushNamed(context, '/products');
                               },
                             ),
                             const SizedBox(height: 16),
@@ -124,14 +148,7 @@ class _HomeScreen extends State<HomeScreen> {
                               title: S.of(context).favorites,
                               products: state.favoriteProducts,
                               onSeeAll: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          ProductScreen.newInstance(
-                                              initialProducts:
-                                                  state.favoriteProducts)),
-                                );
+                                Navigator.pushNamed(context, '/products');
                               },
                             ),
                           ],

@@ -1,5 +1,6 @@
 // lib/screens/main/main_screen/main_screen_view.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
@@ -39,62 +40,65 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: widgetList[index](),
-      bottomNavigationBar: ClipRRect(
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(30),
-        ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          onTap: (value) {
-            if (value == 2) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => CartScreen.newInstance()),
-              );
-            } else if (value != index) {
-              setState(() {
-                index = value;
-              });
-            }
-          },
-          currentIndex: index,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          elevation: 3,
-          items: [
-            BottomNavigationBarItem(
-              icon: SelectableGradientIcon(
-                icon: Icons.home,
-                isSelected: index == 0,
+      // Hide bottom navigation on web platform
+      bottomNavigationBar: kIsWeb
+          ? null
+          : ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(30),
               ),
-              label: S.of(context).homeTab,
-            ),
-            BottomNavigationBarItem(
-              icon: SelectableGradientIcon(
-                icon: Icons.shopping_bag,
-                isSelected: index == 1,
+              child: BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                onTap: (value) {
+                  if (value == 2) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CartScreen.newInstance()),
+                    );
+                  } else if (value != index) {
+                    setState(() {
+                      index = value;
+                    });
+                  }
+                },
+                currentIndex: index,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                showSelectedLabels: false,
+                showUnselectedLabels: false,
+                elevation: 3,
+                items: [
+                  BottomNavigationBarItem(
+                    icon: SelectableGradientIcon(
+                      icon: Icons.home,
+                      isSelected: index == 0,
+                    ),
+                    label: S.of(context).homeTab,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: SelectableGradientIcon(
+                      icon: Icons.shopping_bag,
+                      isSelected: index == 1,
+                    ),
+                    label: S.of(context).productsTab,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: SelectableGradientIcon(
+                      icon: Icons.shopping_cart,
+                      isSelected: false,
+                    ),
+                    label: S.of(context).cartTab,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: SelectableGradientIcon(
+                      icon: Icons.person,
+                      isSelected: index == 3,
+                    ),
+                    label: S.of(context).userTab,
+                  ),
+                ],
               ),
-              label: S.of(context).productsTab,
             ),
-            BottomNavigationBarItem(
-              icon: SelectableGradientIcon(
-                icon: Icons.shopping_cart,
-                isSelected: false,
-              ),
-              label: S.of(context).cartTab,
-            ),
-            BottomNavigationBarItem(
-              icon: SelectableGradientIcon(
-                icon: Icons.person,
-                isSelected: index == 3,
-              ),
-              label: S.of(context).userTab,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

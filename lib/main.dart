@@ -9,6 +9,10 @@ import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_
 import 'package:gizmoglobe_client/screens/authentication/sign_up_screen/sign_up_view.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
+import 'package:gizmoglobe_client/screens/chat/chat_screen/chat_screen_view.dart';
+import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
+import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_view.dart';
+import 'package:gizmoglobe_client/screens/user/user_screen/user_screen_view.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
 import 'package:gizmoglobe_client/providers/cart_provider.dart';
@@ -220,11 +224,16 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 routes: {
+                  '/home': (context) => const MainScreen(),
                   '/sign-in': (context) => SignInScreen.newInstance(),
                   '/sign-up': (context) => SignUpScreen.newInstance(),
                   '/forget-password': (context) =>
                       ForgetPasswordScreen.newInstance(),
                   '/main': (context) => const MainScreen(),
+                  '/chat': (context) => ChatScreen.newInstance(),
+                  '/products': (context) => ProductScreen.newInstance(),
+                  '/cart': (context) => CartScreen.newInstance(),
+                  '/user': (context) => UserScreen.newInstance(),
                 },
                 home: const AuthWrapper(),
               ),
