@@ -941,4 +941,80 @@ class SVI extends S {
 
   @override
   String get retry => 'Thử lại';
+
+  // Hero Section
+  @override
+  String get limitedTimeOffer => 'ƯU ĐÃI CÓ THỜI HẠN';
+
+  @override
+  String get buildYourDreamPc => 'Xây Dựng PC\nMơ Ước Của Bạn';
+
+  @override
+  String get premiumComponentsForPc => 'Linh kiện cao cấp cho PC của bạn.';
+
+  @override
+  String get shopNow => 'Mua Ngay';
+
+  @override
+  String get freeShipping => 'Miễn Phí Vận Chuyển';
+
+  @override
+  String get support => 'Hỗ Trợ';
+
+  @override
+  String get latestPcComponents => 'Linh kiện PC mới nhất';
+
+  @override
+  String get expertAssistance => 'Hỗ trợ chuyên nghiệp';
+
+  @override
+  String get fastAndReliable => 'Nhanh chóng & đáng tin cậy';
+
+  @override
+  String get shippingLabel => 'Vận Chuyển';
+
+  // Product Sections
+  @override
+  String get topRatedProductsLovedByCustomers =>
+      'Sản phẩm được đánh giá cao nhất được khách hàng yêu thích';
+
+  @override
+  String get yourFavorites => 'Yêu Thích Của Bạn';
+
+  @override
+  String get productsInYourWishlist =>
+      'Sản phẩm trong danh sách yêu thích của bạn';
+
+  // Guest restrictions
+  @override
+  String get loginRequired => 'Yêu Cầu Đăng Nhập';
+
+  @override
+  String get loginRequiredForCart =>
+      'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng';
+
+  @override
+  String get loginRequiredForFavorites =>
+      'Vui lòng đăng nhập để thêm sản phẩm vào yêu thích';
+
+  // Favorite operations
+  @override
+  String get addedToFavorites => 'Đã thêm vào yêu thích';
+
+  @override
+  String get removedFromFavorites => 'Đã xóa khỏi yêu thích';
+
+  // Error messages
+  @override
+  String get failedToAddToCart => 'Không thể thêm vào giỏ hàng';
+
+  @override
+  String get failedToUpdateFavorites => 'Không thể cập nhật yêu thích';
+
+  // User menu
+  @override
+  String get accountInfo => 'Thông Tin Tài Khoản';
+
+  @override
+  String get signOut => 'Đăng Xuất';
 }

@@ -146,3 +146,4 @@ android/app/google-services.json
 firebase.json
 lib/firebase_options.dart
 .cursorignore
+scripts/apply_storage_cors_dev.sh

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/components/general/web_product_card.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class WebFavoritesSection extends StatelessWidget {
   final List<Product> products;
@@ -22,7 +23,7 @@ class WebFavoritesSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Customer Favorites',
+                    S.of(context).yourFavorites,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 36,
@@ -32,7 +33,7 @@ class WebFavoritesSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Highly recommended by the community',
+                    S.of(context).productsInYourWishlist,
                     style: TextStyle(
                       color: Theme.of(context)
                           .colorScheme
@@ -50,7 +51,7 @@ class WebFavoritesSection extends StatelessWidget {
                 child: Row(
                   children: [
                     Text(
-                      'View All',
+                      S.of(context).seeAll,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.secondary,
                         fontSize: 16,
@@ -69,19 +70,21 @@ class WebFavoritesSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 32),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 24,
-              mainAxisSpacing: 24,
-              childAspectRatio: 0.75,
+          SizedBox(
+            height: 280,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 200,
+                  margin: EdgeInsets.only(
+                    right: index < products.length - 1 ? 20 : 0,
+                  ),
+                  child: WebProductCard(product: products[index]),
+                );
+              },
             ),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              return WebProductCard(product: products[index]);
-            },
           ),
         ],
       ),

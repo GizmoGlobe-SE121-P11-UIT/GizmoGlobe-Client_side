@@ -9,13 +9,11 @@ import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart
 import 'package:gizmoglobe_client/widgets/product/product_card.dart';
 import 'package:gizmoglobe_client/components/general/web_header.dart';
 import 'package:gizmoglobe_client/components/home/web_hero_section.dart';
-import 'package:gizmoglobe_client/components/home/web_category_nav.dart';
 import 'package:gizmoglobe_client/components/home/web_best_sellers_section.dart';
 import 'package:gizmoglobe_client/components/home/web_favorites_section.dart';
 import 'package:gizmoglobe_client/components/home/web_features_section.dart';
 import 'package:gizmoglobe_client/components/general/web_footer.dart';
 import 'package:flutter/foundation.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -46,39 +44,29 @@ class _HomeScreen extends State<HomeScreen> {
   Widget build(BuildContext context) {
     // Check if running on web platform
     if (kIsWeb) {
-      return BlocProvider(
-        create: (context) => HomeScreenCubit(
-          favoritesCubit: context.read<FavoritesCubit>(),
-        ),
-        child: Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: BlocBuilder<HomeScreenCubit, HomeScreenState>(
-            builder: (context, state) {
-              // Initialize the cubit when the widget is built
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.read<HomeScreenCubit>().initialize();
-              });
-
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const WebHeader(),
-                    const WebHeroSection(),
-                    const SizedBox(height: 80),
-                    const WebCategoryNav(),
-                    const SizedBox(height: 80),
-                    WebBestSellersSection(products: state.bestSellerProducts),
-                    const SizedBox(height: 80),
-                    WebFavoritesSection(products: state.favoriteProducts),
-                    const SizedBox(height: 80),
-                    const WebFeaturesSection(),
-                    const SizedBox(height: 80),
-                    const WebFooter(),
-                  ],
-                ),
-              );
-            },
-          ),
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: BlocBuilder<HomeScreenCubit, HomeScreenState>(
+          builder: (context, state) {
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  const WebHeader(),
+                  const WebHeroSection(),
+                  // const SizedBox(height: 80),
+                  // const WebCategoryNav(),
+                  // const SizedBox(height: 80),
+                  WebBestSellersSection(products: state.bestSellerProducts),
+                  const SizedBox(height: 80),
+                  WebFavoritesSection(products: state.favoriteProducts),
+                  const SizedBox(height: 80),
+                  const WebFeaturesSection(),
+                  const SizedBox(height: 80),
+                  const WebFooter(),
+                ],
+              ),
+            );
+          },
         ),
       );
     }

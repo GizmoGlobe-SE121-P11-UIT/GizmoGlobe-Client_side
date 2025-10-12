@@ -24,6 +24,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/services/web_guest_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -245,11 +246,52 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
   @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  final WebGuestService _webGuestService = WebGuestService();
+  bool _isInitializing = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeWebGuest();
+  }
+
+  Future<void> _initializeWebGuest() async {
+    if (kIsWeb) {
+      try {
+        // For web, automatically create a guest user
+        await _webGuestService.createOrGetGuestUser();
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error initializing web guest: $e');
+        }
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isInitializing = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isInitializing) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
@@ -263,12 +305,25 @@ class AuthWrapper extends StatelessWidget {
         // If we're on the sign-up screen, don't redirect
         if (currentRoute == '/sign-up') {
           return SignUpScreen.newInstance();
-        } else if (snapshot.hasData) {
+        }
+
+        // For web, if user is authenticated (including guest), go to main screen
+        if (kIsWeb && snapshot.hasData) {
           return const MainScreen();
         }
 
-        // For all other cases, show sign in screen
-        return SignInScreen.newInstance();
+        // For mobile or if user is authenticated, go to main screen
+        if (snapshot.hasData) {
+          return const MainScreen();
+        }
+
+        // For mobile, show sign in screen
+        if (!kIsWeb) {
+          return SignInScreen.newInstance();
+        }
+
+        // Fallback for web (should not reach here)
+        return const MainScreen();
       },
     );
   }

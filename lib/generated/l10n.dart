@@ -593,14 +593,75 @@ class S {
   String get expired => Intl.message('Expired', name: 'expired');
   String get available => Intl.message('Available', name: 'available');
   String get noExpiry => Intl.message('No expiry', name: 'noExpiry');
-  String expiresIn(int days) => Intl.message('Expires in $days days', name: 'expiresIn', args: [days]);
-  String get maximumDiscount => Intl.message('Maximum discount', name: 'maximumDiscount');
-  String get voucherDetail => Intl.message('Voucher Details', name: 'voucherDetail');
-  String get maxUsagePerPerson => Intl.message('Number of uses left', name: 'maxUsagePerPerson');
+  String expiresIn(int days) =>
+      Intl.message('Expires in $days days', name: 'expiresIn', args: [days]);
+  String get maximumDiscount =>
+      Intl.message('Maximum discount', name: 'maximumDiscount');
+  String get voucherDetail =>
+      Intl.message('Voucher Details', name: 'voucherDetail');
+  String get maxUsagePerPerson =>
+      Intl.message('Number of uses left', name: 'maxUsagePerPerson');
   String get description => Intl.message('Description', name: 'description');
   String get noEndTime => Intl.message('No end time', name: 'noEndTime');
 
   String get retry => Intl.message('Retry', name: 'retry');
+
+  // Hero Section
+  String get limitedTimeOffer =>
+      Intl.message('LIMITED TIME OFFER', name: 'limitedTimeOffer');
+  String get buildYourDreamPc =>
+      Intl.message('Build Your\nDream PC', name: 'buildYourDreamPc');
+  String get premiumComponentsForPc =>
+      Intl.message('Premium components for your PC.',
+          name: 'premiumComponentsForPc');
+  String get shopNow => Intl.message('Shop Now', name: 'shopNow');
+  String get freeShipping =>
+      Intl.message('Free Shipping', name: 'freeShipping');
+  String get support => Intl.message('Support', name: 'support');
+  String get latestPcComponents =>
+      Intl.message('Latest PC components', name: 'latestPcComponents');
+  String get expertAssistance =>
+      Intl.message('Expert assistance', name: 'expertAssistance');
+  String get fastAndReliable =>
+      Intl.message('Fast & reliable', name: 'fastAndReliable');
+  String get shippingLabel => Intl.message('Shipping', name: 'shippingLabel');
+
+  // Product Sections
+  String get topRatedProductsLovedByCustomers =>
+      Intl.message('Top-rated products loved by our customers',
+          name: 'topRatedProductsLovedByCustomers');
+  String get yourFavorites =>
+      Intl.message('Your Favorites', name: 'yourFavorites');
+  String get productsInYourWishlist =>
+      Intl.message('Products in your wishlist', name: 'productsInYourWishlist');
+
+  // Guest restrictions
+  String get loginRequired =>
+      Intl.message('Login Required', name: 'loginRequired');
+  String get loginRequiredForCart =>
+      Intl.message('Please sign in to add items to cart',
+          name: 'loginRequiredForCart');
+  String get loginRequiredForFavorites =>
+      Intl.message('Please sign in to add items to favorites',
+          name: 'loginRequiredForFavorites');
+
+  // Favorite operations
+  String get addedToFavorites =>
+      Intl.message('Added to favorites', name: 'addedToFavorites');
+  String get removedFromFavorites =>
+      Intl.message('Removed from favorites', name: 'removedFromFavorites');
+
+  // Error messages
+  String get failedToAddToCart =>
+      Intl.message('Failed to add to cart', name: 'failedToAddToCart');
+  String get failedToUpdateFavorites =>
+      Intl.message('Failed to update favorites',
+          name: 'failedToUpdateFavorites');
+
+  // User menu
+  String get accountInfo =>
+      Intl.message('Account Information', name: 'accountInfo');
+  String get signOut => Intl.message('Sign Out', name: 'signOut');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

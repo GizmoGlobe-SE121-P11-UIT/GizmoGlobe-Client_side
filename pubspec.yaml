@@ -59,6 +59,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   speech_to_text: ^7.0.0
+  awesome_snackbar_content: ^0.1.8
 
 dev_dependencies:
   flutter_test:
