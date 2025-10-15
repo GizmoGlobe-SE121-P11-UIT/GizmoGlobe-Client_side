@@ -1,9 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'dart:async';
 
 class SnackbarService {
   // Removed custom positioning - using default snackbar positioning
+  
+  /// Shows a snackbar using Overlay to ensure it appears above dialogs
+  static void _showOverlaySnackbar(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required ContentType contentType,
+  }) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+    Timer? timer;
+
+    void removeSnackbar() {
+      overlayEntry.remove();
+      timer?.cancel();
+    }
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 24,
+        left: 16,
+        right: 16,
+        child: Material(
+          elevation: 1000,
+          color: Colors.transparent,
+          child: Stack(
+            children: [
+              // Use AwesomeSnackbarContent
+              AwesomeSnackbarContent(
+                title: title,
+                message: message,
+                contentType: contentType,
+              ),
+              // Overlay a transparent container to intercept close button taps
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () {
+                    // Do nothing - this prevents the close button from working
+                  },
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    // Auto remove after 3 seconds
+    timer = Timer(const Duration(seconds: 3), removeSnackbar);
+  }
 
   /// Shows a success snackbar
   static void showSuccess(
@@ -11,20 +67,12 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    final snackBar = SnackBar(
-      elevation: 0,
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.transparent,
-      content: AwesomeSnackbarContent(
-        title: title,
-        message: message,
-        contentType: ContentType.success,
-      ),
+    _showOverlaySnackbar(
+      context,
+      title: title,
+      message: message,
+      contentType: ContentType.success,
     );
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(snackBar);
   }
 
   /// Shows an error snackbar
@@ -33,20 +81,12 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    final snackBar = SnackBar(
-      elevation: 0,
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.transparent,
-      content: AwesomeSnackbarContent(
-        title: title,
-        message: message,
-        contentType: ContentType.failure,
-      ),
+    _showOverlaySnackbar(
+      context,
+      title: title,
+      message: message,
+      contentType: ContentType.failure,
     );
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(snackBar);
   }
 
   /// Shows a warning snackbar
@@ -55,20 +95,12 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    final snackBar = SnackBar(
-      elevation: 0,
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.transparent,
-      content: AwesomeSnackbarContent(
-        title: title,
-        message: message,
-        contentType: ContentType.warning,
-      ),
+    _showOverlaySnackbar(
+      context,
+      title: title,
+      message: message,
+      contentType: ContentType.warning,
     );
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(snackBar);
   }
 
   /// Shows a help/info snackbar
@@ -77,20 +109,12 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    final snackBar = SnackBar(
-      elevation: 0,
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.transparent,
-      content: AwesomeSnackbarContent(
-        title: title,
-        message: message,
-        contentType: ContentType.help,
-      ),
+    _showOverlaySnackbar(
+      context,
+      title: title,
+      message: message,
+      contentType: ContentType.help,
     );
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(snackBar);
   }
 
   /// Shows a success snackbar for cart operations

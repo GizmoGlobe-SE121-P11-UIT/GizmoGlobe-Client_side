@@ -90,15 +90,6 @@ class _SignUpScreen extends State<SignUpScreen> {
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.brightness == Brightness.light
-                                  ? Colors.black.withValues(alpha: 0.05)  
-                                  : Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: FieldWithIcon(
                           controller: _nameController,
@@ -118,15 +109,6 @@ class _SignUpScreen extends State<SignUpScreen> {
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.brightness == Brightness.light
-                                  ? Colors.black.withValues(alpha: 0.05)
-                                  : Colors.black.withValues(alpha: 0.2),  
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: FieldWithIcon(
                           controller: _emailController,
@@ -146,15 +128,6 @@ class _SignUpScreen extends State<SignUpScreen> {
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.brightness == Brightness.light
-                                  ? Colors.black.withValues(alpha: 0.05)
-                                  : Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: FieldWithIcon(
                           controller: _phoneController,
@@ -175,15 +148,6 @@ class _SignUpScreen extends State<SignUpScreen> {
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.brightness == Brightness.light
-                                  ? Colors.black.withValues(alpha: 0.05)
-                                  : Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: FieldWithIcon(
                           controller: _passwordController,
@@ -204,15 +168,6 @@ class _SignUpScreen extends State<SignUpScreen> {
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.brightness == Brightness.light
-                                  ? Colors.black.withValues(alpha: 0.05)
-                                  : Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: FieldWithIcon(
                           controller: _confirmPasswordController,

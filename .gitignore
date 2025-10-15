@@ -141,9 +141,16 @@ app.*.symbols
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
 !.vscode/settings.json
+
+# Miscellaneous files
 .env
 android/app/google-services.json
 firebase.json
 lib/firebase_options.dart
 .cursorignore
 scripts/apply_storage_cors_dev.sh
+android/local.properties
+ios/Flutter/flutter_export_environment.sh
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+ios/Flutter/flutter_export_environment.sh
+android/local.properties
