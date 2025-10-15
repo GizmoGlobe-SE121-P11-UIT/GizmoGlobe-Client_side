@@ -1,84 +1,180 @@
+import 'dart:html' as html;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'local_guest_service.dart';
 
 class WebGuestService {
-  final LocalGuestService _localGuestService = LocalGuestService();
+  static const String _guestUserKey = 'gizmoglobe_guest_user';
+  static const String _guestUserIdKey = 'gizmoglobe_guest_user_id';
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Check if a guest user is already stored in localStorage
   Future<bool> hasGuestUser() async {
     if (!kIsWeb) return false;
-    return await _localGuestService.hasGuestUser();
+
+    try {
+      final guestUserId = html.window.localStorage[_guestUserIdKey];
+      return guestUserId != null && guestUserId.isNotEmpty;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error checking guest user: $e');
+      }
+      return false;
+    }
   }
 
   /// Get stored guest user ID from localStorage
-  Future<String?> getStoredGuestUserId() async {
+  String? getStoredGuestUserId() {
     if (!kIsWeb) return null;
-    return await _localGuestService.getStoredGuestUserId();
+
+    try {
+      return html.window.localStorage[_guestUserIdKey];
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting stored guest user ID: $e');
+      }
+      return null;
+    }
   }
 
-  /// Create or retrieve guest user for web
-  Future<Map<String, dynamic>?> createOrGetGuestUser() async {
-    if (!kIsWeb) return null;
-    return await _localGuestService.createOrGetGuestUser();
-  }
+  /// Store guest user ID in localStorage
+  Future<void> storeGuestUserId(String userId) async {
+    if (!kIsWeb) return;
 
-  /// Check if current user is a guest
-  Future<bool> isCurrentUserGuest() async {
-    if (!kIsWeb) return false;
-    return await _localGuestService.isCurrentUserGuest();
+    try {
+      html.window.localStorage[_guestUserIdKey] = userId;
+      html.window.localStorage[_guestUserKey] = 'true';
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error storing guest user ID: $e');
+      }
+    }
   }
 
   /// Clear guest user data from localStorage
   Future<void> clearGuestUser() async {
     if (!kIsWeb) return;
-    await _localGuestService.clearGuestUser();
+
+    try {
+      html.window.localStorage.remove(_guestUserIdKey);
+      html.window.localStorage.remove(_guestUserKey);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error clearing guest user data: $e');
+      }
+    }
   }
 
-  /// Get stored guest user data
-  Future<Map<String, dynamic>?> getStoredGuestUserData() async {
+  /// Create or retrieve guest user for web
+  Future<User?> createOrGetGuestUser() async {
     if (!kIsWeb) return null;
-    return await _localGuestService.getStoredGuestUserData();
+
+    try {
+      // Check if we already have a stored guest user ID
+      final storedUserId = getStoredGuestUserId();
+
+      if (storedUserId != null) {
+        // Try to sign in with the stored user ID
+        try {
+          // Check if the user still exists in Firebase
+          final userDoc =
+              await _firestore.collection('users').doc(storedUserId).get();
+          if (userDoc.exists && (userDoc.data()?['isGuest'] ?? false)) {
+            // User exists and is a guest, try to sign them in
+            // Note: We can't directly sign in with a UID, so we'll create a new guest
+            // but preserve the same user data
+            await _auth.signOut(); // Clear any existing auth
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Stored guest user not found, creating new one: $e');
+          }
+        }
+      }
+
+      // Sign in anonymously (creates new guest user)
+      final UserCredential userCredential = await _auth.signInAnonymously();
+
+      if (userCredential.user != null) {
+        // Set up user data
+        await _setupGuestUserData(userCredential.user!);
+
+        // Store the user ID in localStorage
+        await storeGuestUserId(userCredential.user!.uid);
+
+        return userCredential.user;
+      }
+
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error creating/retrieving guest user: $e');
+      }
+      return null;
+    }
   }
 
-  /// Get stored guest customer data
-  Future<Map<String, dynamic>?> getStoredGuestCustomerData() async {
-    if (!kIsWeb) return null;
-    return await _localGuestService.getStoredGuestCustomerData();
+  /// Set up guest user data in Firestore
+  Future<void> _setupGuestUserData(User user) async {
+    try {
+      // Generate guest data
+      final String guestId = user.uid.substring(0, 6);
+      final String guestName = 'Guest_$guestId';
+      final String guestEmail = 'guest.$guestId@gizmoglobe.com';
+      final String guestPhone = '+0000$guestId';
+
+      // Prepare user data
+      final Map<String, dynamic> userData = {
+        'username': guestName,
+        'email': guestEmail,
+        'userid': user.uid,
+        'role': 'customer',
+        'isGuest': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      // Prepare customer data
+      final Map<String, dynamic> customerData = {
+        'customerID': user.uid,
+        'customerName': guestName,
+        'email': guestEmail,
+        'phoneNumber': guestPhone,
+        'isGuest': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      // Use batch write to ensure both operations succeed or fail together
+      final batch = _firestore.batch();
+      batch.set(_firestore.collection('users').doc(user.uid), userData);
+      batch.set(_firestore.collection('customers').doc(user.uid), customerData);
+      await batch.commit();
+
+      if (kDebugMode) {
+        print('Guest user data set up successfully for ${user.uid}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error setting up guest user data: $e');
+      }
+      throw Exception('Failed to set up guest user data: $e');
+    }
   }
 
-  /// Store guest cart data
-  Future<void> storeGuestCart(List<Map<String, dynamic>> cartItems) async {
-    if (!kIsWeb) return;
-    await _localGuestService.storeGuestCart(cartItems);
-  }
+  /// Check if current user is a guest
+  Future<bool> isCurrentUserGuest() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
 
-  /// Get guest cart data
-  Future<List<Map<String, dynamic>>> getGuestCart() async {
-    if (!kIsWeb) return [];
-    return await _localGuestService.getGuestCart();
-  }
-
-  /// Store guest favorites data
-  Future<void> storeGuestFavorites(List<String> favoriteIds) async {
-    if (!kIsWeb) return;
-    await _localGuestService.storeGuestFavorites(favoriteIds);
-  }
-
-  /// Get guest favorites data
-  Future<List<String>> getGuestFavorites() async {
-    if (!kIsWeb) return [];
-    return await _localGuestService.getGuestFavorites();
-  }
-
-  /// Update guest user profile data
-  Future<void> updateGuestUserData(Map<String, dynamic> updatedData) async {
-    if (!kIsWeb) return;
-    await _localGuestService.updateGuestUserData(updatedData);
-  }
-
-  /// Update guest customer data
-  Future<void> updateGuestCustomerData(Map<String, dynamic> updatedData) async {
-    if (!kIsWeb) return;
-    await _localGuestService.updateGuestCustomerData(updatedData);
+    try {
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      return userDoc.exists && (userDoc.data()?['isGuest'] ?? false);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error checking if user is guest: $e');
+      }
+      return false;
+    }
   }
 }

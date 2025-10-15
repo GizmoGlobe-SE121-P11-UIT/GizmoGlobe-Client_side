@@ -7,13 +7,11 @@ import '../../../data/firebase/firebase.dart';
 import '../../../objects/product_related/product.dart';
 import 'cart_screen_state.dart';
 import '../../../enums/processing/process_state_enum.dart';
-import '../../../services/local_guest_service.dart';
 
 class CartScreenCubit extends Cubit<CartScreenState> {
   final Firebase _firebase = Firebase();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final LocalGuestService _localGuestService = LocalGuestService();
 
   CartScreenCubit() : super(const CartScreenState()) {
     // Load cart items when cubit is created
@@ -22,10 +20,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
   Future<bool> _isGuestUser() async {
     final user = _auth.currentUser;
-    if (user == null) {
-      // Check if we have a local guest user
-      return await _localGuestService.isCurrentUserGuest();
-    }
+    if (user == null) return false;
 
     final userDoc = await _firestore.collection('users').doc(user.uid).get();
     return userDoc.exists && (userDoc.data()?['isGuest'] ?? false);

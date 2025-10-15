@@ -108,6 +108,15 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.brightness == Brightness.light
+                                ? Colors.black.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: FieldWithIcon(
                         controller: _emailController,
@@ -127,6 +136,15 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.brightness == Brightness.light
+                                ? Colors.black.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: FieldWithIcon(
                         controller: _passwordController,
