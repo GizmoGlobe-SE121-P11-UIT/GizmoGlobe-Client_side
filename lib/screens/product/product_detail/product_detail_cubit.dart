@@ -6,6 +6,7 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
 
 import '../../../data/firebase/firebase.dart';
+import '../../../services/local_guest_service.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../objects/product_related/cpu.dart';
@@ -19,6 +20,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
   final Firebase _firebase = Firebase();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LocalGuestService _localGuestService = LocalGuestService();
 
   ProductDetailCubit(Product product) : super(ProductDetailState(product: product)) {
     _initializeTechnicalSpecs();
@@ -131,14 +133,19 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
 
   Future<void> loadFavorites() async {
     final user = _auth.currentUser;
-    if (user == null) return;
-
     final isGuest = await _isGuestUser();
+    
     if (isGuest) {
+      // Load favorites from local storage for guest users
+      final guestFavorites = await _localGuestService.getGuestFavorites();
       emit(state.copyWith(
-        favorites: {},
+        favorites: guestFavorites.toSet(),
+        isFavorite: guestFavorites.contains(state.product.productID),
       ));
+      return;
     }
+    
+    if (user == null) return;
 
     final favorites = await _firebase.getFavorites(user.uid);
     emit(state.copyWith(
@@ -149,7 +156,10 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
 
   Future<bool> _isGuestUser() async {
     final user = _auth.currentUser;
-    if (user == null) return false;
+    if (user == null) {
+      // Check if we have a local guest user
+      return await _localGuestService.isCurrentUserGuest();
+    }
 
     final userDoc = await _firestore.collection('users').doc(user.uid).get();
     return userDoc.exists && (userDoc.data()?['isGuest'] ?? false);
@@ -157,16 +167,32 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
 
   Future<void> toggleFavorite() async {
     final user = _auth.currentUser;
-    if (user == null) return;
-
     final isGuest = await _isGuestUser();
+    
+    final currentFavorites = Set<String>.from(state.favorites);
+    
     if (isGuest) {
+      // Handle guest favorites locally
+      if (currentFavorites.contains(state.product.productID)) {
+        currentFavorites.remove(state.product.productID!);
+      } else {
+        currentFavorites.add(state.product.productID!);
+      }
+      
+      // Store updated favorites locally
+      await _localGuestService.storeGuestFavorites(currentFavorites.toList());
+      emit(state.copyWith(
+        favorites: currentFavorites,
+        isFavorite: currentFavorites.contains(state.product.productID),
+      ));
       return;
     }
+    
+    if (user == null) return;
 
-    final currentFavorites = state.favorites;
+    // Handle authenticated user favorites in Firebase
     if (currentFavorites.contains(state.product.productID)) {
-      currentFavorites.remove(state.product.productID);
+      currentFavorites.remove(state.product.productID!);
       await _firebase.removeFavorite(user.uid, state.product.productID!);
     } else {
       currentFavorites.add(state.product.productID!);

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
-import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
 import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
+import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'sign_up_cubit.dart';
 import 'sign_up_state.dart';
 
@@ -74,8 +74,8 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
           boxShadow: [
             BoxShadow(
               color: theme.brightness == Brightness.light
-                  ? Colors.black.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.3),
+                  ? Colors.black.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -93,7 +93,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                   color: theme.colorScheme.surface,
                   border: Border(
                     bottom: BorderSide(
-                      color: theme.dividerColor.withOpacity(0.2),
+                      color: theme.dividerColor.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -106,7 +106,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                       onPressed: () => Navigator.of(context).pop(),
                       icon: Icon(
                         Icons.close,
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                       style: IconButton.styleFrom(
                         backgroundColor:
@@ -186,36 +186,23 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
 
                           // Handle failure state
                           if (state.processState == ProcessState.failure) {
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (BuildContext context) =>
-                                  InformationDialog(
-                                title: state.dialogName.toString(),
-                                content: state.message.toString(),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
+                            SnackbarService.showError(
+                              context,
+                              title: state.dialogName.toString(),
+                              message: state.message.toString(),
                             );
                             return;
                           }
 
                           // Handle success state
                           if (state.processState == ProcessState.success) {
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (BuildContext context) =>
-                                  InformationDialog(
-                                title: state.dialogName.toString(),
-                                content: state.message.toString(),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).pop(); // Close modal
-                                },
-                              ),
+                            SnackbarService.showSuccess(
+                              context,
+                              title: state.dialogName.toString(),
+                              message: state.message.toString(),
                             );
+                            // Close modal after showing success snackbar
+                            Navigator.of(context).pop();
                           }
                         },
                         buildWhen: (previous, current) =>
@@ -242,7 +229,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                             },
                             style: TextButton.styleFrom(
                               foregroundColor:
-                                  theme.colorScheme.primary.withOpacity(0.8),
+                                  theme.colorScheme.primary.withValues(alpha: 0.8),
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 8),
                             ),
@@ -250,7 +237,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                               S.of(context).login,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color:
-                                    theme.colorScheme.primary.withOpacity(0.8),
+                                    theme.colorScheme.primary.withValues(alpha: 0.8),
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
                               ),
@@ -283,18 +270,6 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.dividerColor.withOpacity(0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.brightness == Brightness.light
-                ? Colors.black.withOpacity(0.02)
-                : Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: FieldWithIcon(
         controller: controller,

@@ -7,10 +7,12 @@ import '../../../enums/processing/dialog_name_enum.dart';
 import 'sign_in_state.dart';
 import '../../../enums/processing/notify_message_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../services/local_guest_service.dart';
 
 class SignInCubit extends Cubit<SignInState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LocalGuestService _localGuestService = LocalGuestService();
 
   SignInCubit() : super(const SignInState());
 
@@ -33,6 +35,9 @@ class SignInCubit extends Cubit<SignInState> {
   Future<void> signInWithEmailPassword() async {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
+
+      // Clear any existing guest data when signing in with account
+      await _localGuestService.clearGuestUser();
 
       final UserCredential userCredential =
           await _auth.signInWithEmailAndPassword(
@@ -73,6 +78,10 @@ class SignInCubit extends Cubit<SignInState> {
   Future<void> signInWithGoogle() async {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
+      
+      // Clear any existing guest data when signing in with account
+      await _localGuestService.clearGuestUser();
+      
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         emit(state.copyWith(processState: ProcessState.idle));
@@ -108,32 +117,17 @@ class SignInCubit extends Cubit<SignInState> {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
 
-      // Sign out any existing user first
+      // Sign out any existing Firebase user first
       if (_auth.currentUser != null) {
         await _auth.signOut();
       }
 
-      final UserCredential userCredential = await _auth.signInAnonymously();
+      // Create or get guest user from local storage
+      final guestUserData = await _localGuestService.createOrGetGuestUser();
 
-      if (userCredential.user != null) {
-        // Ensure user data is set up before proceeding
-        await _setupUserData(userCredential.user!, isGuest: true);
-
-        // Verify that the data was properly set up
-        final userDoc = await _firestore
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .get();
-        final customerDoc = await _firestore
-            .collection('customers')
-            .doc(userCredential.user!.uid)
-            .get();
-
-        if (!userDoc.exists || !customerDoc.exists) {
-          if(kDebugMode) {
-            print('Failed to set up guest account data');
-          }
-          throw Exception('Failed to set up guest account data');
+      if (guestUserData != null) {
+        if (kDebugMode) {
+          print('Guest user signed in successfully: ${guestUserData['userid']}');
         }
 
         emit(state.copyWith(
@@ -142,17 +136,18 @@ class SignInCubit extends Cubit<SignInState> {
           message: NotifyMessage.msg1,
           isGuestLogin: true,
         ));
+      } else {
+        throw Exception('Failed to create guest user data');
       }
     } catch (error) {
+      if (kDebugMode) {
+        print('Error signing in as guest: $error');
+      }
       emit(state.copyWith(
         processState: ProcessState.failure,
         dialogName: DialogName.failure,
         message: NotifyMessage.msg2,
       ));
-      // Clean up if setup failed
-      if (_auth.currentUser != null) {
-        await _auth.signOut();
-      }
     }
   }
 
