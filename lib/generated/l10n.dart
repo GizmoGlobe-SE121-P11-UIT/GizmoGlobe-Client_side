@@ -82,6 +82,8 @@ class S {
   String get password => Intl.message('Password', name: 'password');
   String get forgotPassword =>
       Intl.message('Forgot password?', name: 'forgotPassword');
+  String get rememberYourPassword =>
+      Intl.message('Remember your password? ', name: 'rememberYourPassword');
   String get dontHaveAccount =>
       Intl.message("Don't have an account?", name: 'dontHaveAccount');
   String get or => Intl.message('or', name: 'or');

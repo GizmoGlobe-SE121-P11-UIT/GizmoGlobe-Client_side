@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_up_screen/sign_up_webview.dart';
+import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_webview.dart';
+import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_cubit.dart';
 
 class WebHeader extends StatefulWidget {
   const WebHeader({Key? key}) : super(key: key);
@@ -227,7 +229,9 @@ class _WebHeaderState extends State<WebHeader> {
         onTap: () {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          Navigator.pushNamed(context, '/sign-in');
+          // Show sign-in modal for web (without guest option)
+          final cubit = SignInCubit();
+          showSignInModalWithCubit(context, cubit);
         },
       ),
       _buildMenuItem(

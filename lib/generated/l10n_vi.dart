@@ -131,6 +131,9 @@ class SVI extends S {
   String get forgotPassword => 'Quên mật khẩu?';
 
   @override
+  String get rememberYourPassword => 'Nhớ mật khẩu? ';
+
+  @override
   String get resetPassword => 'Đặt lại mật khẩu';
 
   @override

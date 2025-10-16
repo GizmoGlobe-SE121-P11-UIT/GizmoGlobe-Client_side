@@ -6,51 +6,61 @@ import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
-import 'sign_up_cubit.dart';
-import 'sign_up_state.dart';
+import 'forget_password_cubit.dart';
+import 'forget_password_state.dart';
 import '../sign_in_screen/sign_in_webview.dart';
 
-/// Helper function to show the sign-up modal
-void showSignUpModal(BuildContext context) {
+/// Helper function to show the forget password modal
+void showForgetPasswordModal(BuildContext context) {
   showDialog(
     context: context,
     barrierDismissible: true,
     builder: (BuildContext context) {
-      return SignUpWebModal.newInstance();
+      return ForgetPasswordWebModal.newInstance();
     },
   );
 }
 
-class SignUpWebModal extends StatefulWidget {
-  const SignUpWebModal({super.key});
+/// Helper function to show the forget password modal with existing cubit
+void showForgetPasswordModalWithCubit(
+    BuildContext context, ForgetPasswordCubit cubit) {
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return ForgetPasswordWebModal.withCubit(cubit);
+    },
+  );
+}
+
+class ForgetPasswordWebModal extends StatefulWidget {
+  const ForgetPasswordWebModal({super.key});
 
   static Widget newInstance() {
     return BlocProvider(
-      create: (context) => SignUpCubit(),
-      child: const SignUpWebModal(),
+      create: (context) => ForgetPasswordCubit(),
+      child: const ForgetPasswordWebModal(),
+    );
+  }
+
+  static Widget withCubit(ForgetPasswordCubit cubit) {
+    return BlocProvider.value(
+      value: cubit,
+      child: const ForgetPasswordWebModal(),
     );
   }
 
   @override
-  State<SignUpWebModal> createState() => _SignUpWebModalState();
+  State<ForgetPasswordWebModal> createState() => _ForgetPasswordWebModalState();
 }
 
-class _SignUpWebModalState extends State<SignUpWebModal> {
-  final TextEditingController _nameController = TextEditingController();
+class _ForgetPasswordWebModalState extends State<ForgetPasswordWebModal> {
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  SignUpCubit get cubit => context.read<SignUpCubit>();
+  ForgetPasswordCubit get cubit => context.read<ForgetPasswordCubit>();
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 
@@ -131,52 +141,43 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: GradientText(
-                          text: S.of(context).register,
+                          text: S.of(context).forgetPassword,
                           fontSize: 28,
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      _buildInputField(
-                        context,
-                        controller: _nameController,
-                        hintText: S.of(context).enterFullName,
-                        onChanged: (value) => cubit.updateUsername(value),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          S.of(context).forgetPasswordDescription,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 14,
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          S.of(context).emailAddress,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       _buildInputField(
                         context,
                         controller: _emailController,
                         hintText: S.of(context).enterYourEmail,
                         keyboardType: TextInputType.emailAddress,
-                        onChanged: (value) => cubit.updateEmail(value),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildInputField(
-                        context,
-                        controller: _phoneController,
-                        hintText: S.of(context).enterPhoneNumber,
-                        keyboardType: TextInputType.phone,
-                        onChanged: (value) => cubit.updatePhoneNumber(value),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildInputField(
-                        context,
-                        controller: _passwordController,
-                        hintText: S.of(context).enterPassword,
-                        obscureText: true,
-                        onChanged: (value) => cubit.updatePassword(value),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildInputField(
-                        context,
-                        controller: _confirmPasswordController,
-                        hintText: S.of(context).enterConfirmPassword,
-                        obscureText: true,
-                        onChanged: (value) =>
-                            cubit.updateConfirmPassword(value),
+                        onChanged: (value) => cubit.emailChanged(value),
                       ),
                       const SizedBox(height: 24),
-                      BlocConsumer<SignUpCubit, SignUpState>(
+                      BlocConsumer<ForgetPasswordCubit, ForgetPasswordState>(
                         listenWhen: (previous, current) =>
                             previous.processState != current.processState,
                         listener: (context, state) {
@@ -210,15 +211,16 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                         buildWhen: (previous, current) =>
                             previous.processState != current.processState,
                         builder: (context, state) {
-                          return _buildSignUpButton(context, state);
+                          return _buildSendButton(context, state);
                         },
                       ),
                       const SizedBox(height: 20),
+                      // Back to Sign In Link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            S.of(context).alreadyHaveAccount,
+                            S.of(context).rememberYourPassword,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                               fontSize: 14,
@@ -237,7 +239,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                                   const EdgeInsets.symmetric(horizontal: 8),
                             ),
                             child: Text(
-                              S.of(context).login,
+                              S.of(context).signIn,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.primary
                                     .withValues(alpha: 0.8),
@@ -263,7 +265,6 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
     BuildContext context, {
     required TextEditingController controller,
     required String hintText,
-    bool obscureText = false,
     TextInputType? keyboardType,
     required Function(String) onChanged,
   }) {
@@ -282,21 +283,20 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
         fontWeight: FontWeight.normal,
         textColor: theme.colorScheme.onSurface,
         hintTextColor: theme.colorScheme.onSurfaceVariant,
-        obscureText: obscureText,
         keyboardType: keyboardType,
         onChanged: onChanged,
       ),
     );
   }
 
-  Widget _buildSignUpButton(BuildContext context, SignUpState state) {
+  Widget _buildSendButton(BuildContext context, ForgetPasswordState state) {
     final theme = Theme.of(context);
 
     return ElevatedButton(
       onPressed: state.processState == ProcessState.loading
           ? null
           : () async {
-              await cubit.signUp();
+              await cubit.sendVerificationLink(_emailController.text.trim());
             },
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.zero,
@@ -336,7 +336,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Loading...',
+                      'Sending...',
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.onPrimary,
                         fontWeight: FontWeight.bold,
@@ -345,7 +345,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                   ],
                 )
               : Text(
-                  S.of(context).register,
+                  S.of(context).sendVerificationLink,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,

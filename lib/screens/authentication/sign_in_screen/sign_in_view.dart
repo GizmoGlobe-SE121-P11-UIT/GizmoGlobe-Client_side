@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
@@ -9,6 +10,8 @@ import 'sign_in_cubit.dart';
 import 'sign_in_state.dart';
 import '../../../widgets/general/app_logo.dart';
 import '../../../widgets/general/field_with_icon.dart';
+import 'sign_in_webview.dart';
+import '../forget_password_screen/forget_password_webview.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -40,6 +43,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
         setState(() {
           _isInitialized = true;
         });
+        // No automatic modal opening - users will navigate to sign-in explicitly
       }
     });
   }
@@ -146,7 +150,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, '/forget-password');
+                          showForgetPasswordModal(context);
                         },
                         style: TextButton.styleFrom(
                           foregroundColor:
@@ -331,51 +335,149 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () async {
-                          try {
-                            await cubit.signInAsGuest();
-                            if (context.mounted) {
-                              // Use Future.microtask to avoid emitting after close
-                              Future.microtask(() {
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  '/main',
-                                );
-                              });
-                            }
-                          } catch (e) {
+                      // Google Sign In Button
+                      BlocConsumer<SignInCubit, SignInState>(
+                        listener: (context, state) async {
+                          if (state.processState == ProcessState.failure) {
                             if (context.mounted) {
                               showDialog(
                                 context: context,
                                 barrierDismissible: false,
-                                builder: (BuildContext context) =>
+                                builder: (BuildContext dialogContext) =>
                                     InformationDialog(
-                                  title: S.of(context).error,
-                                  content: S.of(context).failedToSigninAsGuest,
+                                  dialogName: state.dialogName,
+                                  content: state.message.toString(),
                                   onPressed: () {
-                                    Navigator.of(context).pop();
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          // Handle success state
+                          if (state.processState == ProcessState.success) {
+                            if (context.mounted) {
+                              await showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (BuildContext dialogContext) =>
+                                    InformationDialog(
+                                  dialogName: state.dialogName,
+                                  content: state.message.toString(),
+                                  onPressed: () {
+                                    Navigator.of(dialogContext).pop();
+                                    if (context.mounted) {
+                                      // Use Future.microtask to avoid emitting after close
+                                      Future.microtask(() {
+                                        Navigator.pushReplacementNamed(
+                                          context,
+                                          '/main',
+                                        );
+                                      });
+                                    }
                                   },
                                 ),
                               );
                             }
                           }
                         },
-                        style: TextButton.styleFrom(
-                          foregroundColor:
-                              theme.colorScheme.primary.withValues(alpha: 0.8),
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                        ),
-                        child: Text(
-                          S.of(context).continueAsGuest,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.primary
-                                .withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                        builder: (context, state) {
+                          return SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton(
+                              onPressed:
+                                  state.processState == ProcessState.loading
+                                      ? null
+                                      : () async {
+                                          await cubit.signInWithGoogle();
+                                        },
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.surface,
+                                side: BorderSide(
+                                  color: theme.colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.5),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: state.processState == ProcessState.loading
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                              theme.colorScheme.primary,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          'Loading...',
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                            color: theme.colorScheme.onSurface,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        // Google Logo SVG
+                                        CustomPaint(
+                                          size: const Size(20, 20),
+                                          painter: GoogleLogoPainter(),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Continue with Google',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: theme.colorScheme.onSurface,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          );
+                        },
+                      ),
+                      // Web Modal Option - only show on non-web platforms
+                      if (!kIsWeb) ...[
+                        const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () {
+                            showSignInModalWithCubit(context, cubit);
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: theme.colorScheme.primary
+                                .withValues(alpha: 0.6),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          child: Text(
+                            'Open Web View',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.primary
+                                  .withValues(alpha: 0.6),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -386,4 +488,95 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
       ),
     );
   }
+}
+
+/// Google Logo Painter
+class GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    // Blue
+    paint.color = const Color(0xFF4285F4);
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width * 0.94, size.height * 0.51)
+        ..cubicTo(size.width * 0.94, size.height * 0.44, size.width * 0.93,
+            size.height * 0.38, size.width * 0.91, size.height * 0.32)
+        ..lineTo(size.width * 0.5, size.height * 0.32)
+        ..lineTo(size.width * 0.5, size.height * 0.50)
+        ..lineTo(size.width * 0.75, size.height * 0.50)
+        ..cubicTo(size.width * 0.74, size.height * 0.56, size.width * 0.71,
+            size.height * 0.61, size.width * 0.66, size.height * 0.64)
+        ..lineTo(size.width * 0.66, size.height * 0.76)
+        ..lineTo(size.width * 0.81, size.height * 0.76)
+        ..cubicTo(size.width * 0.90, size.height * 0.68, size.width * 0.94,
+            size.height * 0.60, size.width * 0.94, size.height * 0.51)
+        ..close(),
+      paint,
+    );
+
+    // Green
+    paint.color = const Color(0xFF34A853);
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width * 0.5, size.height * 0.96)
+        ..cubicTo(size.width * 0.62, size.height * 0.96, size.width * 0.73,
+            size.height * 0.92, size.width * 0.80, size.height * 0.85)
+        ..lineTo(size.width * 0.66, size.height * 0.76)
+        ..cubicTo(size.width * 0.62, size.height * 0.79, size.width * 0.56,
+            size.height * 0.80, size.width * 0.50, size.height * 0.80)
+        ..cubicTo(size.width * 0.38, size.height * 0.80, size.width * 0.28,
+            size.height * 0.72, size.width * 0.24, size.height * 0.61)
+        ..lineTo(size.width * 0.09, size.height * 0.61)
+        ..lineTo(size.width * 0.09, size.height * 0.73)
+        ..cubicTo(size.width * 0.17, size.height * 0.86, size.width * 0.32,
+            size.height * 0.96, size.width * 0.50, size.height * 0.96)
+        ..close(),
+      paint,
+    );
+
+    // Yellow
+    paint.color = const Color(0xFFFBBC05);
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width * 0.24, size.height * 0.59)
+        ..cubicTo(size.width * 0.23, size.height * 0.56, size.width * 0.23,
+            size.height * 0.53, size.width * 0.23, size.height * 0.50)
+        ..cubicTo(size.width * 0.23, size.height * 0.47, size.width * 0.23,
+            size.height * 0.44, size.width * 0.24, size.height * 0.41)
+        ..lineTo(size.width * 0.24, size.height * 0.29)
+        ..lineTo(size.width * 0.09, size.height * 0.29)
+        ..cubicTo(size.width * 0.06, size.height * 0.36, size.width * 0.04,
+            size.height * 0.43, size.width * 0.04, size.height * 0.50)
+        ..cubicTo(size.width * 0.04, size.height * 0.57, size.width * 0.06,
+            size.height * 0.64, size.width * 0.09, size.height * 0.71)
+        ..lineTo(size.width * 0.21, size.height * 0.62)
+        ..lineTo(size.width * 0.24, size.height * 0.59)
+        ..close(),
+      paint,
+    );
+
+    // Red
+    paint.color = const Color(0xFFEA4335);
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width * 0.5, size.height * 0.22)
+        ..cubicTo(size.width * 0.57, size.height * 0.22, size.width * 0.63,
+            size.height * 0.25, size.width * 0.68, size.height * 0.29)
+        ..lineTo(size.width * 0.81, size.height * 0.16)
+        ..cubicTo(size.width * 0.73, size.height * 0.09, size.width * 0.62,
+            size.height * 0.04, size.width * 0.50, size.height * 0.04)
+        ..cubicTo(size.width * 0.32, size.height * 0.04, size.width * 0.17,
+            size.height * 0.14, size.width * 0.09, size.height * 0.29)
+        ..lineTo(size.width * 0.24, size.height * 0.41)
+        ..cubicTo(size.width * 0.28, size.height * 0.30, size.width * 0.38,
+            size.height * 0.22, size.width * 0.50, size.height * 0.22)
+        ..close(),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

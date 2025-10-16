@@ -322,7 +322,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
           return SignInScreen.newInstance();
         }
 
-        // Fallback for web (should not reach here)
+        // For web, go to main screen (guest user should be created automatically)
         return const MainScreen();
       },
     );
