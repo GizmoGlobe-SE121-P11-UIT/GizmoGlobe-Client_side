@@ -1000,6 +1000,16 @@ class SVI extends S {
   String get loginRequiredForFavorites =>
       'Vui lòng đăng nhập để thêm sản phẩm vào yêu thích';
 
+  @override
+  String get loginRequiredForChat =>
+      'Vui lòng đăng nhập để truy cập hỗ trợ trò chuyện';
+
+  // Chat actions
+  @override
+  String get switchToAdmin => 'Chuyển sang Admin';
+  @override
+  String get switchToAI => 'Chuyển sang AI';
+
   // Favorite operations
   @override
   String get addedToFavorites => 'Đã thêm vào yêu thích';

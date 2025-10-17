@@ -9,28 +9,31 @@ import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'forget_password_cubit.dart';
 import 'forget_password_state.dart';
 import '../sign_in_screen/sign_in_webview.dart';
+import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
 
 /// Helper function to show the forget password modal
 void showForgetPasswordModal(BuildContext context) {
+  ModalOverlayService.setOpen(true);
   showDialog(
     context: context,
     barrierDismissible: true,
     builder: (BuildContext context) {
       return ForgetPasswordWebModal.newInstance();
     },
-  );
+  ).whenComplete(() => ModalOverlayService.setOpen(false));
 }
 
 /// Helper function to show the forget password modal with existing cubit
 void showForgetPasswordModalWithCubit(
     BuildContext context, ForgetPasswordCubit cubit) {
+  ModalOverlayService.setOpen(true);
   showDialog(
     context: context,
     barrierDismissible: true,
     builder: (BuildContext context) {
       return ForgetPasswordWebModal.withCubit(cubit);
     },
-  );
+  ).whenComplete(() => ModalOverlayService.setOpen(false));
 }
 
 class ForgetPasswordWebModal extends StatefulWidget {

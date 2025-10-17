@@ -646,6 +646,14 @@ class S {
   String get loginRequiredForFavorites =>
       Intl.message('Please sign in to add items to favorites',
           name: 'loginRequiredForFavorites');
+  String get loginRequiredForChat =>
+      Intl.message('Please sign in to access chat support',
+          name: 'loginRequiredForChat');
+
+  // Chat actions
+  String get switchToAdmin =>
+      Intl.message('Switch to Admin', name: 'switchToAdmin');
+  String get switchToAI => Intl.message('Switch to AI', name: 'switchToAI');
 
   // Favorite operations
   String get addedToFavorites =>

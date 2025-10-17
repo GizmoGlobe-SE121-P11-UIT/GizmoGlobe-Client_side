@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
@@ -5,6 +6,7 @@ import '../../../widgets/general/gradient_text.dart';
 import '../../../objects/chat_related/chat_message.dart';
 import '../../../screens/chat/chat_screen/chat_screen_cubit.dart';
 import '../../../screens/chat/chat_screen/chat_screen_state.dart';
+import '../../../screens/chat/chat_screen/chat_screen_webview.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -91,69 +93,75 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatScreenCubit, ChatScreenState>(
-      builder: (context, state) {
-        final theme = Theme.of(context);
-        return Scaffold(
-          appBar: AppBar(
-            leading: GradientIconButton(
-              icon: Icons.chevron_left,
-              onPressed: () => Navigator.pop(context),
-              fillColor: Colors.transparent,
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GradientText(text: S.of(context).chatSupport),
-                Text(
-                  state.isAIMode
-                      ? S.of(context).aiAssistant
-                      : S.of(context).adminSupport,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-            elevation: 0,
-            actions: [
-              IconButton(
-                icon: Icon(
-                  state.isAIMode ? Icons.support_agent : Icons.smart_toy,
-                  color: theme.colorScheme.primary,
-                ),
-                onPressed: () async {
-                  if (state.isAIMode) {
-                    await cubit
-                        .switchToAdmin(S.of(context).adminWelcomeMessage);
-                  } else {
-                    await cubit.switchToAI(S.of(context).aiWelcomeMessage);
-                  }
-                },
+    // Use kIsWeb to determine platform
+    if (kIsWeb) {
+      return const ChatScreenWebView();
+    } else {
+      // Use mobile implementation
+      return BlocBuilder<ChatScreenCubit, ChatScreenState>(
+        builder: (context, state) {
+          final theme = Theme.of(context);
+          return Scaffold(
+            appBar: AppBar(
+              leading: GradientIconButton(
+                icon: Icons.chevron_left,
+                onPressed: () => Navigator.pop(context),
+                fillColor: Colors.transparent,
               ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          body: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  reverse: true,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: state.messages.length,
-                  itemBuilder: (context, index) {
-                    final message = state.messages[index];
-                    return _buildMessageBubble(message, theme);
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GradientText(text: S.of(context).chatSupport),
+                  Text(
+                    state.isAIMode
+                        ? S.of(context).aiAssistant
+                        : S.of(context).adminSupport,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+              elevation: 0,
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    state.isAIMode ? Icons.support_agent : Icons.smart_toy,
+                    color: theme.colorScheme.primary,
+                  ),
+                  onPressed: () async {
+                    if (state.isAIMode) {
+                      await cubit
+                          .switchToAdmin(S.of(context).adminWelcomeMessage);
+                    } else {
+                      await cubit.switchToAI(S.of(context).aiWelcomeMessage);
+                    }
                   },
                 ),
-              ),
-              _buildMessageInput(theme),
-            ],
-          ),
-        );
-      },
-    );
+                const SizedBox(width: 8),
+              ],
+            ),
+            body: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    reverse: true,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    itemCount: state.messages.length,
+                    itemBuilder: (context, index) {
+                      final message = state.messages[index];
+                      return _buildMessageBubble(message, theme);
+                    },
+                  ),
+                ),
+                _buildMessageInput(theme),
+              ],
+            ),
+          );
+        },
+      );
+    }
   }
 
   Widget _buildMessageBubble(ChatMessage message, ThemeData theme) {

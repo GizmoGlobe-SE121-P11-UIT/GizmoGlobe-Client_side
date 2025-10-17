@@ -1,64 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
-import 'dart:async';
 
 class SnackbarService {
   // Removed custom positioning - using default snackbar positioning
-  
-  /// Shows a snackbar using Overlay to ensure it appears above dialogs
+
+  /// Shows a snackbar using ScaffoldMessenger (default). Use
+  /// [showGuestRestrictionAboveOverlay] if you must ensure above dialogs.
   static void _showOverlaySnackbar(
     BuildContext context, {
     required String title,
     required String message,
     required ContentType contentType,
   }) {
-    final overlay = Overlay.of(context);
-    late OverlayEntry overlayEntry;
-    Timer? timer;
+    final snackBar = SnackBar(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      duration: const Duration(seconds: 3),
+      content: AwesomeSnackbarContent(
+        title: title,
+        message: message,
+        contentType: contentType,
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
-    void removeSnackbar() {
-      overlayEntry.remove();
-      timer?.cancel();
-    }
-
-    overlayEntry = OverlayEntry(
+  /// Show a snackbar-like overlay ABOVE dialogs using a provided root Overlay
+  static void _insertOverlaySnackbar(
+    OverlayState overlay, {
+    required String title,
+    required String message,
+    required ContentType contentType,
+  }) {
+    final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        bottom: 24,
         left: 16,
         right: 16,
+        bottom: 24,
         child: Material(
           elevation: 1000,
           color: Colors.transparent,
-          child: Stack(
-            children: [
-              // Use AwesomeSnackbarContent
-              AwesomeSnackbarContent(
-                title: title,
-                message: message,
-                contentType: contentType,
-              ),
-              // Overlay a transparent container to intercept close button taps
-              Positioned.fill(
-                child: GestureDetector(
-                  onTap: () {
-                    // Do nothing - this prevents the close button from working
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                  ),
-                ),
-              ),
-            ],
+          child: AwesomeSnackbarContent(
+            title: title,
+            message: message,
+            contentType: contentType,
           ),
         ),
       ),
     );
-
     overlay.insert(overlayEntry);
-
-    // Auto remove after 3 seconds
-    timer = Timer(const Duration(seconds: 3), removeSnackbar);
+    Future.delayed(const Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
   }
 
   /// Shows a success snackbar
@@ -141,14 +136,57 @@ class SnackbarService {
     required String actionType,
   }) {
     final String title = S.of(context).loginRequired;
-    final String message = actionType == 'cart'
-        ? S.of(context).loginRequiredForCart
-        : S.of(context).loginRequiredForFavorites;
+    String message;
+
+    switch (actionType) {
+      case 'cart':
+        message = S.of(context).loginRequiredForCart;
+        break;
+      case 'favorites':
+        message = S.of(context).loginRequiredForFavorites;
+        break;
+      case 'chat':
+        message = S.of(context).loginRequiredForChat;
+        break;
+      default:
+        message = S.of(context).loginRequired;
+    }
 
     showHelp(
       context,
       title: title,
       message: message,
+    );
+  }
+
+  /// Same as [showGuestRestriction] but guarantees it appears above dialogs
+  static void showGuestRestrictionAboveOverlay(
+    OverlayState overlay, {
+    required BuildContext context,
+    required String actionType,
+  }) {
+    final String title = S.of(context).loginRequired;
+    String message;
+
+    switch (actionType) {
+      case 'cart':
+        message = S.of(context).loginRequiredForCart;
+        break;
+      case 'favorites':
+        message = S.of(context).loginRequiredForFavorites;
+        break;
+      case 'chat':
+        message = S.of(context).loginRequiredForChat;
+        break;
+      default:
+        message = S.of(context).loginRequired;
+    }
+
+    _insertOverlaySnackbar(
+      overlay,
+      title: title,
+      message: message,
+      contentType: ContentType.help,
     );
   }
 

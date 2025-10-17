@@ -10,38 +10,42 @@ import 'sign_in_cubit.dart';
 import 'sign_in_state.dart';
 import '../sign_up_screen/sign_up_webview.dart';
 import '../forget_password_screen/forget_password_webview.dart';
+import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
 
 /// Helper function to show the sign-in modal
-void showSignInModal(BuildContext context) {
-  showDialog(
+Future<void> showSignInModal(BuildContext context) {
+  ModalOverlayService.setOpen(true);
+  return showDialog(
     context: context,
     barrierDismissible: true,
     builder: (BuildContext context) {
       return SignInWebModal.newInstance();
     },
-  );
+  ).whenComplete(() => ModalOverlayService.setOpen(false));
 }
 
 /// Helper function to show the sign-in modal with existing cubit
-void showSignInModalWithCubit(BuildContext context, SignInCubit cubit) {
-  showDialog(
+Future<void> showSignInModalWithCubit(BuildContext context, SignInCubit cubit) {
+  ModalOverlayService.setOpen(true);
+  return showDialog(
     context: context,
     barrierDismissible: true,
     builder: (BuildContext context) {
       return SignInWebModal.withCubit(cubit);
     },
-  );
+  ).whenComplete(() => ModalOverlayService.setOpen(false));
 }
 
 /// Helper function to show the sign-in modal for web (without guest option)
-void showSignInModalForWeb(BuildContext context, SignInCubit cubit) {
-  showDialog(
+Future<void> showSignInModalForWeb(BuildContext context, SignInCubit cubit) {
+  ModalOverlayService.setOpen(true);
+  return showDialog(
     context: context,
     barrierDismissible: true,
     builder: (BuildContext context) {
       return SignInWebModal.withCubit(cubit, showGuestOption: false);
     },
-  );
+  ).whenComplete(() => ModalOverlayService.setOpen(false));
 }
 
 class SignInWebModal extends StatefulWidget {
@@ -227,15 +231,13 @@ class _SignInWebModalState extends State<SignInWebModal> {
                               title: state.dialogName.toString(),
                               message: state.message.toString(),
                             );
-                            // Close modal after showing success snackbar
-                            Navigator.of(context).pop();
-                            // Navigate to main screen
+                            // Close modal and navigate on next frame using root navigator
+                            Navigator.of(context, rootNavigator: true).pop();
                             if (context.mounted) {
-                              Future.microtask(() {
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  '/main',
-                                );
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pushNamedAndRemoveUntil(
+                                        '/main', (r) => false);
                               });
                             }
                           }
@@ -324,14 +326,12 @@ class _SignInWebModalState extends State<SignInWebModal> {
                               title: state.dialogName.toString(),
                               message: state.message.toString(),
                             );
-                            Navigator.of(context).pop();
-                            // Navigate to main screen
+                            Navigator.of(context, rootNavigator: true).pop();
                             if (context.mounted) {
-                              Future.microtask(() {
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  '/main',
-                                );
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pushNamedAndRemoveUntil(
+                                        '/main', (r) => false);
                               });
                             }
                           } else if (state.processState ==
@@ -362,14 +362,13 @@ class _SignInWebModalState extends State<SignInWebModal> {
                                 title: state.dialogName.toString(),
                                 message: state.message.toString(),
                               );
-                              Navigator.of(context).pop();
-                              // Navigate to main screen
+                              Navigator.of(context, rootNavigator: true).pop();
                               if (context.mounted) {
-                                Future.microtask(() {
-                                  Navigator.pushReplacementNamed(
-                                    context,
-                                    '/main',
-                                  );
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pushNamedAndRemoveUntil(
+                                          '/main', (r) => false);
                                 });
                               }
                             } else if (state.processState ==

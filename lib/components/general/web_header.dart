@@ -17,6 +17,14 @@ class _WebHeaderState extends State<WebHeader> {
   bool _isUserMenuOpen = false;
   OverlayEntry? _overlayEntry;
   final GlobalKey _userIconKey = GlobalKey();
+  final GlobalKey _headerKey = GlobalKey();
+
+  void _closeUserMenuIfOpen() {
+    if (_isUserMenuOpen) {
+      setState(() => _isUserMenuOpen = false);
+      _removeOverlay();
+    }
+  }
 
   @override
   void dispose() {
@@ -40,6 +48,7 @@ class _WebHeaderState extends State<WebHeader> {
           final isMobile = screenWidth <= 768;
 
           return Container(
+            key: _headerKey,
             padding: EdgeInsets.symmetric(
               horizontal: isMobile
                   ? 16
@@ -76,6 +85,7 @@ class _WebHeaderState extends State<WebHeader> {
             // Logo
             GestureDetector(
               onTap: () {
+                _closeUserMenuIfOpen();
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   '/home',
@@ -88,16 +98,12 @@ class _WebHeaderState extends State<WebHeader> {
                 fit: BoxFit.contain,
               ),
             ),
-            // Action buttons
+            // Action buttons (chat icon removed)
             Row(
               children: [
-                _buildIconButton(context, Icons.chat_bubble_outline,
-                    isMobile: true, onPressed: () {
-                  Navigator.pushNamed(context, '/chat');
-                }),
-                const SizedBox(width: 8),
                 _buildIconButton(context, Icons.shopping_cart_outlined,
                     isMobile: true, onPressed: () {
+                  _closeUserMenuIfOpen();
                   Navigator.pushNamed(context, '/cart');
                 }),
                 const SizedBox(width: 8),
@@ -129,11 +135,7 @@ class _WebHeaderState extends State<WebHeader> {
           ),
         ),
         const Spacer(),
-        // Action Buttons
-        _buildIconButton(context, Icons.chat_bubble_outline, onPressed: () {
-          Navigator.pushNamed(context, '/chat');
-        }),
-        const SizedBox(width: 16),
+        // Action Buttons (chat icon removed)
         _buildIconButton(context, Icons.shopping_cart_outlined, onPressed: () {
           Navigator.pushNamed(context, '/cart');
         }),
@@ -372,24 +374,47 @@ class _WebHeaderState extends State<WebHeader> {
     final position = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
 
-    return Positioned(
-      left: position.dx - 200 + size.width, // Align right edge with icon
-      top: position.dy + size.height + 12,
-      child: Material(
-        elevation: 8,
-        borderRadius: BorderRadius.circular(12),
-        color: Theme.of(context).colorScheme.surface,
-        child: Container(
-          constraints: const BoxConstraints(
-            maxHeight: 300,
-            maxWidth: 200,
-          ),
+    return Stack(
+      children: [
+        // Tap catcher below the header to allow header buttons to work on first tap
+        Positioned(
+          top: (_headerKey.currentContext?.findRenderObject() as RenderBox?)
+                  ?.size
+                  .height ??
+              0,
+          left: 0,
+          right: 0,
+          bottom: 0,
           child: GestureDetector(
-            onTap: () {}, // Prevent closing when clicking inside menu
-            child: _buildUserSubmenu(context, isMobile),
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              setState(() => _isUserMenuOpen = false);
+              _removeOverlay();
+            },
+            child: Container(color: Colors.transparent),
           ),
         ),
-      ),
+        // The actual submenu, positioned near the user icon
+        Positioned(
+          left: position.dx - 200 + size.width, // Align right edge with icon
+          top: position.dy + size.height + 12,
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surface,
+            child: Container(
+              constraints: const BoxConstraints(
+                maxHeight: 300,
+                maxWidth: 200,
+              ),
+              child: GestureDetector(
+                onTap: () {}, // Prevent closing when clicking inside menu
+                child: _buildUserSubmenu(context, isMobile),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

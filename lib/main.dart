@@ -25,6 +25,29 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
+import 'package:gizmoglobe_client/components/chat/floating_chat.dart';
+import 'package:flutter/material.dart'
+    show
+        PageTransitionsBuilder,
+        PageTransitionsTheme,
+        TargetPlatform,
+        Widget,
+        BuildContext,
+        Animation;
+
+class NoTransitionsBuilder extends PageTransitionsBuilder {
+  const NoTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+      PageRoute<T> route,
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondaryAnimation,
+      Widget child) {
+    return child; // No animation
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,10 +117,13 @@ class MyApp extends StatelessWidget {
             print('Current locale: ${languageProvider.currentLocale}');
             print('Supported locales: ${[Locale('en'), Locale('vi')]}');
           }
+          final GlobalKey<NavigatorState> _rootNavigatorKey =
+              GlobalKey<NavigatorState>();
           return BlocProvider(
             create: (context) => MainScreenCubit(),
             child: CartProvider(
               child: MaterialApp(
+                navigatorKey: _rootNavigatorKey,
                 title: 'GizmoGlobe',
                 themeMode: themeProvider.themeMode,
                 locale: languageProvider.currentLocale,
@@ -132,11 +158,17 @@ class MyApp extends StatelessWidget {
                     print(
                         'Current locale in builder: ${Localizations.localeOf(context)}');
                   }
-                  return Localizations.override(
+                  Widget wrapped = Localizations.override(
                     context: context,
                     locale: languageProvider.currentLocale,
                     child: child!,
                   );
+                  // Inject floating chat only on web
+                  if (kIsWeb) {
+                    return FloatingChat(
+                        child: wrapped, navigatorKey: _rootNavigatorKey);
+                  }
+                  return wrapped;
                 },
                 theme: ThemeData(
                   colorScheme: ColorScheme(
@@ -153,6 +185,18 @@ class MyApp extends StatelessWidget {
                     error: Colors.red[400]!,
                     onError: Colors.white,
                   ),
+                  pageTransitionsTheme: kIsWeb
+                      ? const PageTransitionsTheme(
+                          builders: {
+                            TargetPlatform.android: NoTransitionsBuilder(),
+                            TargetPlatform.iOS: NoTransitionsBuilder(),
+                            TargetPlatform.linux: NoTransitionsBuilder(),
+                            TargetPlatform.macOS: NoTransitionsBuilder(),
+                            TargetPlatform.windows: NoTransitionsBuilder(),
+                            TargetPlatform.fuchsia: NoTransitionsBuilder(),
+                          },
+                        )
+                      : const PageTransitionsTheme(),
                   elevatedButtonTheme: ElevatedButtonThemeData(
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
@@ -193,6 +237,18 @@ class MyApp extends StatelessWidget {
                     error: Colors.red,
                     onError: Colors.white,
                   ),
+                  pageTransitionsTheme: kIsWeb
+                      ? const PageTransitionsTheme(
+                          builders: {
+                            TargetPlatform.android: NoTransitionsBuilder(),
+                            TargetPlatform.iOS: NoTransitionsBuilder(),
+                            TargetPlatform.linux: NoTransitionsBuilder(),
+                            TargetPlatform.macOS: NoTransitionsBuilder(),
+                            TargetPlatform.windows: NoTransitionsBuilder(),
+                            TargetPlatform.fuchsia: NoTransitionsBuilder(),
+                          },
+                        )
+                      : const PageTransitionsTheme(),
                   elevatedButtonTheme: ElevatedButtonThemeData(
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
@@ -266,8 +322,16 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Future<void> _initializeWebGuest() async {
     if (kIsWeb) {
       try {
-        // For web, automatically create a guest user
-        await _webGuestService.createOrGetGuestUser();
+        // For web, only create a guest user if nobody is currently logged in
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser == null) {
+          await _webGuestService.createOrGetGuestUser();
+        } else {
+          if (kDebugMode) {
+            print(
+                'Skipping guest creation: user already logged in (${currentUser.uid})');
+          }
+        }
       } catch (e) {
         if (kDebugMode) {
           print('Error initializing web guest: $e');
