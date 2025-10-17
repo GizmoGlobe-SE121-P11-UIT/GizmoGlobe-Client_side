@@ -78,24 +78,39 @@ class SignInCubit extends Cubit<SignInState> {
   Future<void> signInWithGoogle() async {
     try {
       emit(state.copyWith(processState: ProcessState.loading));
-      
+
       // Clear any existing guest data when signing in with account
       await _localGuestService.clearGuestUser();
-      
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        emit(state.copyWith(processState: ProcessState.idle));
-        return;
-      }
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
 
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
+      UserCredential userCredential;
+
+      if (kIsWeb) {
+        // For web, use Firebase Auth with Google provider directly
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+
+        userCredential = await _auth.signInWithPopup(googleProvider);
+      } else {
+        // For mobile, use Google Sign-In plugin
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+
+        final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+        if (googleUser == null) {
+          emit(state.copyWith(processState: ProcessState.idle));
+          return;
+        }
+
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        userCredential = await _auth.signInWithCredential(credential);
+      }
+
       if (userCredential.user != null) {
         await _setupUserData(userCredential.user!);
         emit(state.copyWith(
@@ -105,6 +120,9 @@ class SignInCubit extends Cubit<SignInState> {
         ));
       }
     } catch (error) {
+      if (kDebugMode) {
+        print('Google Sign-In error: $error');
+      }
       emit(state.copyWith(
         processState: ProcessState.failure,
         dialogName: DialogName.failure,
@@ -127,7 +145,8 @@ class SignInCubit extends Cubit<SignInState> {
 
       if (guestUserData != null) {
         if (kDebugMode) {
-          print('Guest user signed in successfully: ${guestUserData['userid']}');
+          print(
+              'Guest user signed in successfully: ${guestUserData['userid']}');
         }
 
         emit(state.copyWith(

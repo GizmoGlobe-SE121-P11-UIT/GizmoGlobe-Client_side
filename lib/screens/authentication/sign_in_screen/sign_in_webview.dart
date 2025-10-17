@@ -11,6 +11,7 @@ import 'sign_in_state.dart';
 import '../sign_up_screen/sign_up_webview.dart';
 import '../forget_password_screen/forget_password_webview.dart';
 import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 
 /// Helper function to show the sign-in modal
 Future<void> showSignInModal(BuildContext context) {
@@ -501,23 +502,16 @@ class _SignInWebModalState extends State<SignInWebModal> {
     return SizedBox(
       width: double.infinity,
       height: 48,
-      child: OutlinedButton(
-        onPressed: state.processState == ProcessState.loading
-            ? null
-            : () async {
-                await cubit.signInWithGoogle();
-              },
-        style: OutlinedButton.styleFrom(
-          backgroundColor: theme.colorScheme.surface,
-          side: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.5),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: state.processState == ProcessState.loading
-            ? Row(
+      child: state.processState == ProcessState.loading
+          ? Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border.all(
+                  color: theme.dividerColor.withValues(alpha: 0.5),
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
@@ -539,27 +533,18 @@ class _SignInWebModalState extends State<SignInWebModal> {
                     ),
                   ),
                 ],
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Google Logo SVG
-                  CustomPaint(
-                    size: const Size(20, 20),
-                    painter: GoogleLogoPainter(),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Continue with Google',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                ],
               ),
-      ),
+            )
+          : SignInButton(
+              Buttons.google,
+              text: 'Continue with Google',
+              onPressed: () async {
+                await cubit.signInWithGoogle();
+              },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
     );
   }
 
@@ -612,95 +597,4 @@ class _SignInWebModalState extends State<SignInWebModal> {
     Navigator.of(context).pop();
     showForgetPasswordModal(context);
   }
-}
-
-/// Google Logo Painter
-class GoogleLogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    // Blue
-    paint.color = const Color(0xFF4285F4);
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width * 0.94, size.height * 0.51)
-        ..cubicTo(size.width * 0.94, size.height * 0.44, size.width * 0.93,
-            size.height * 0.38, size.width * 0.91, size.height * 0.32)
-        ..lineTo(size.width * 0.5, size.height * 0.32)
-        ..lineTo(size.width * 0.5, size.height * 0.50)
-        ..lineTo(size.width * 0.75, size.height * 0.50)
-        ..cubicTo(size.width * 0.74, size.height * 0.56, size.width * 0.71,
-            size.height * 0.61, size.width * 0.66, size.height * 0.64)
-        ..lineTo(size.width * 0.66, size.height * 0.76)
-        ..lineTo(size.width * 0.81, size.height * 0.76)
-        ..cubicTo(size.width * 0.90, size.height * 0.68, size.width * 0.94,
-            size.height * 0.60, size.width * 0.94, size.height * 0.51)
-        ..close(),
-      paint,
-    );
-
-    // Green
-    paint.color = const Color(0xFF34A853);
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width * 0.5, size.height * 0.96)
-        ..cubicTo(size.width * 0.62, size.height * 0.96, size.width * 0.73,
-            size.height * 0.92, size.width * 0.80, size.height * 0.85)
-        ..lineTo(size.width * 0.66, size.height * 0.76)
-        ..cubicTo(size.width * 0.62, size.height * 0.79, size.width * 0.56,
-            size.height * 0.80, size.width * 0.50, size.height * 0.80)
-        ..cubicTo(size.width * 0.38, size.height * 0.80, size.width * 0.28,
-            size.height * 0.72, size.width * 0.24, size.height * 0.61)
-        ..lineTo(size.width * 0.09, size.height * 0.61)
-        ..lineTo(size.width * 0.09, size.height * 0.73)
-        ..cubicTo(size.width * 0.17, size.height * 0.86, size.width * 0.32,
-            size.height * 0.96, size.width * 0.50, size.height * 0.96)
-        ..close(),
-      paint,
-    );
-
-    // Yellow
-    paint.color = const Color(0xFFFBBC05);
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width * 0.24, size.height * 0.59)
-        ..cubicTo(size.width * 0.23, size.height * 0.56, size.width * 0.23,
-            size.height * 0.53, size.width * 0.23, size.height * 0.50)
-        ..cubicTo(size.width * 0.23, size.height * 0.47, size.width * 0.23,
-            size.height * 0.44, size.width * 0.24, size.height * 0.41)
-        ..lineTo(size.width * 0.24, size.height * 0.29)
-        ..lineTo(size.width * 0.09, size.height * 0.29)
-        ..cubicTo(size.width * 0.06, size.height * 0.36, size.width * 0.04,
-            size.height * 0.43, size.width * 0.04, size.height * 0.50)
-        ..cubicTo(size.width * 0.04, size.height * 0.57, size.width * 0.06,
-            size.height * 0.64, size.width * 0.09, size.height * 0.71)
-        ..lineTo(size.width * 0.21, size.height * 0.62)
-        ..lineTo(size.width * 0.24, size.height * 0.59)
-        ..close(),
-      paint,
-    );
-
-    // Red
-    paint.color = const Color(0xFFEA4335);
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width * 0.5, size.height * 0.22)
-        ..cubicTo(size.width * 0.57, size.height * 0.22, size.width * 0.63,
-            size.height * 0.25, size.width * 0.68, size.height * 0.29)
-        ..lineTo(size.width * 0.81, size.height * 0.16)
-        ..cubicTo(size.width * 0.73, size.height * 0.09, size.width * 0.62,
-            size.height * 0.04, size.width * 0.50, size.height * 0.04)
-        ..cubicTo(size.width * 0.32, size.height * 0.04, size.width * 0.17,
-            size.height * 0.14, size.width * 0.09, size.height * 0.29)
-        ..lineTo(size.width * 0.24, size.height * 0.41)
-        ..cubicTo(size.width * 0.28, size.height * 0.30, size.width * 0.38,
-            size.height * 0.22, size.width * 0.50, size.height * 0.22)
-        ..close(),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
