@@ -676,6 +676,10 @@ class S {
   String get accountInfo =>
       Intl.message('Account Information', name: 'accountInfo');
   String get signOut => Intl.message('Sign Out', name: 'signOut');
+  
+  // Order screen
+  String get yourOrdersWillAppearHere =>
+      Intl.message('Your orders will appear here', name: 'yourOrdersWillAppearHere');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

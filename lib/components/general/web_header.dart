@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_up_screen/sign_up_webview.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_webview.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_cubit.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
+import 'package:gizmoglobe_client/components/general/user_settings.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:html' as html show window;
 
 class WebHeader extends StatefulWidget {
   const WebHeader({Key? key}) : super(key: key);
@@ -45,6 +50,38 @@ class _WebHeaderState extends State<WebHeader> {
     } else {
       // User is authenticated, navigate to cart
       Navigator.pushNamed(context, '/cart');
+    }
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    try {
+      // Clear local guest data
+      await _webGuestService.clearGuestUser();
+
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
+
+      if (context.mounted) {
+        if (kIsWeb) {
+          // Refresh the page to create a new guest instance
+          html.window.location.reload();
+        } else {
+          // For mobile, navigate to home
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/',
+            (Route<dynamic> route) => false,
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        SnackbarService.showError(
+          context,
+          title: S.of(context).error,
+          message: '${S.of(context).signOut}: $e',
+        );
+      }
     }
   }
 
@@ -231,7 +268,7 @@ class _WebHeaderState extends State<WebHeader> {
         }
 
         return Container(
-          width: 200,
+          width: 280,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: isGuest
@@ -274,7 +311,7 @@ class _WebHeaderState extends State<WebHeader> {
         onTap: () {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          // TODO: Navigate to settings page
+          UserSettingsModal.show(context);
         },
       ),
     ];
@@ -282,6 +319,7 @@ class _WebHeaderState extends State<WebHeader> {
 
   List<Widget> _buildAuthenticatedMenuItems(BuildContext context) {
     return [
+      _buildUserInfoSection(context),
       _buildMenuItem(
         context,
         icon: Icons.person,
@@ -294,12 +332,32 @@ class _WebHeaderState extends State<WebHeader> {
       ),
       _buildMenuItem(
         context,
+        icon: Icons.receipt_long,
+        title: S.of(context).myOrders,
+        onTap: () {
+          setState(() => _isUserMenuOpen = false);
+          _removeOverlay();
+          Navigator.pushNamed(context, '/orders?tab=completed');
+        },
+      ),
+      _buildMenuItem(
+        context,
+        icon: Icons.card_giftcard,
+        title: S.of(context).myVouchers,
+        onTap: () {
+          setState(() => _isUserMenuOpen = false);
+          _removeOverlay();
+          // TODO: Navigate to voucher screen for future development
+        },
+      ),
+      _buildMenuItem(
+        context,
         icon: Icons.settings,
         title: S.of(context).settings,
         onTap: () {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          // TODO: Navigate to settings page
+          UserSettingsModal.show(context);
         },
       ),
       _buildMenuItem(
@@ -309,10 +367,166 @@ class _WebHeaderState extends State<WebHeader> {
         onTap: () {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          // TODO: Handle sign out
+          _handleLogout(context);
         },
       ),
     ];
+  }
+
+  Widget _buildUserInfoSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+       
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.person,
+              color: Theme.of(context).colorScheme.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FutureBuilder<Map<String, dynamic>?>(
+                  future: _getCurrentUserInfo(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 16,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            height: 12,
+                            width: 180,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    
+                    final userInfo = snapshot.data;
+                    final displayName = userInfo?['displayName'] ?? 
+                                      userInfo?['username'] ?? 
+                                      userInfo?['email']?.split('@')[0] ?? 
+                                      'User';
+                    final email = userInfo?['email'] ?? '';
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (email.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            email,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.6),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>?> _getCurrentUserInfo() async {
+    try {
+      // Check if user is authenticated via Firebase Auth
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        // Get user info from Firestore
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+        
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+          return {
+            'displayName': userData['displayName'] ?? userData['username'],
+            'username': userData['username'],
+            'email': currentUser.email,
+          };
+        }
+        
+        // Fallback to Firebase Auth user info
+        return {
+          'displayName': currentUser.displayName,
+          'username': currentUser.displayName,
+          'email': currentUser.email,
+        };
+      }
+      
+      // Check if user is a guest user
+      final isGuest = await _webGuestService.isCurrentUserGuest();
+      if (isGuest) {
+        final guestData = await _webGuestService.getStoredGuestUserData();
+        if (guestData != null) {
+          return {
+            'displayName': guestData['displayName'] ?? guestData['username'],
+            'username': guestData['username'],
+            'email': guestData['email'],
+          };
+        }
+      }
+    } catch (e) {
+      // Handle error silently
+    }
+    return null;
   }
 
   Widget _buildMenuItem(
@@ -417,7 +631,7 @@ class _WebHeaderState extends State<WebHeader> {
         ),
         // The actual submenu, positioned near the user icon
         Positioned(
-          left: position.dx - 200 + size.width, // Align right edge with icon
+          left: position.dx - 280 + size.width, // Align right edge with icon
           top: position.dy + size.height + 12,
           child: Material(
             elevation: 8,
@@ -426,7 +640,7 @@ class _WebHeaderState extends State<WebHeader> {
             child: Container(
               constraints: const BoxConstraints(
                 maxHeight: 300,
-                maxWidth: 200,
+                maxWidth: 280,
               ),
               child: GestureDetector(
                 onTap: () {}, // Prevent closing when clicking inside menu

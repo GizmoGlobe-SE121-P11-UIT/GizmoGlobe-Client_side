@@ -1033,4 +1033,8 @@ class SVI extends S {
 
   @override
   String get signOut => 'Đăng Xuất';
+  
+  // Order screen
+  @override
+  String get yourOrdersWillAppearHere => 'Đơn hàng của bạn sẽ xuất hiện ở đây';
 }

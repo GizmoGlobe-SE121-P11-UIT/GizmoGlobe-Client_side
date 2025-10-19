@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/enums/invoice_related/sales_status.dart';
 import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.dart';
+import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_webview.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../generated/l10n.dart';
@@ -56,6 +58,12 @@ class _OrderScreenState extends State<OrderScreen>
 
   @override
   Widget build(BuildContext context) {
+    // For web, use the webview component directly
+    if (kIsWeb) {
+      return OrderScreenWebView.newInstance(initialTab: widget.orderOption);
+    }
+
+    // For mobile, use the original layout
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
