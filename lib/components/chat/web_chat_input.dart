@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 
-class WebChatInput extends StatelessWidget {
+class WebChatInput extends StatefulWidget {
   final TextEditingController controller;
   final bool isMobile;
   final VoidCallback onSend;
@@ -14,18 +14,39 @@ class WebChatInput extends StatelessWidget {
   });
 
   @override
+  State<WebChatInput> createState() => _WebChatInputState();
+}
+
+class _WebChatInputState extends State<WebChatInput> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onTextChanged);
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 16 : 32,
+        horizontal: widget.isMobile ? 16 : 32,
         vertical: 20,
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
-              controller: controller,
+              controller: widget.controller,
               decoration: InputDecoration(
                 hintText: S.of(context).typeMessage,
                 border: OutlineInputBorder(
@@ -44,14 +65,15 @@ class WebChatInput extends StatelessWidget {
               textInputAction: TextInputAction.send,
               onSubmitted: (text) {
                 if (text.trim().isNotEmpty) {
-                  onSend();
+                  widget.onSend();
                 }
               },
             ),
           ),
           const SizedBox(width: 8),
           FloatingActionButton.small(
-            onPressed: controller.text.trim().isEmpty ? null : onSend,
+            onPressed:
+                widget.controller.text.trim().isEmpty ? null : widget.onSend,
             child: const Icon(Icons.send),
           ),
         ],

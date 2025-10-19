@@ -178,13 +178,16 @@ class SnackbarService {
       case 'chat':
         message = S.of(context).loginRequiredForChat;
         break;
+      case 'google_cancelled':
+        message = 'Google sign-in was cancelled. You can try again anytime.';
+        break;
       default:
         message = S.of(context).loginRequired;
     }
 
     _insertOverlaySnackbar(
       overlay,
-      title: title,
+      title: actionType == 'google_cancelled' ? 'Google Sign-In' : title,
       message: message,
       contentType: ContentType.help,
     );

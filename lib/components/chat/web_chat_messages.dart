@@ -50,12 +50,58 @@ class WebChatMessages extends StatelessWidget {
                     : isAdminBot
                         ? colorScheme.surfaceContainerHighest
                         : colorScheme.secondaryContainer,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: isUser
+                      ? const Radius.circular(16)
+                      : const Radius.circular(4),
+                  bottomRight: isUser
+                      ? const Radius.circular(4)
+                      : const Radius.circular(16),
+                ),
+                boxShadow: isUser
+                    ? [
+                        BoxShadow(
+                          color: colorScheme.primary.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Add sender indicator for AI messages
+                  if (!isUser) ...[
+                    Row(
+                      children: [
+                        Icon(
+                          isAdminBot ? Icons.support_agent : Icons.smart_toy,
+                          size: 16,
+                          color: isAdminBot
+                              ? colorScheme.onSurface.withOpacity(0.7)
+                              : colorScheme.onSecondaryContainer
+                                  .withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          isAdminBot ? 'Admin' : 'AI Assistant',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isAdminBot
+                                ? colorScheme.onSurface.withOpacity(0.8)
+                                : colorScheme.onSecondaryContainer
+                                    .withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   RichText(
                     text: TextSpan(
                       children: buildMessageSpans(
@@ -70,17 +116,33 @@ class WebChatMessages extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    DateFormat('HH:mm').format(message.timestamp),
-                    style: TextStyle(
-                      color: isUser
-                          ? colorScheme.onPrimary.withOpacity(0.7)
-                          : isAdminBot
-                              ? colorScheme.onSurfaceVariant.withOpacity(0.7)
-                              : colorScheme.onSecondaryContainer
-                                  .withOpacity(0.7),
-                      fontSize: 12,
-                    ),
+                  Row(
+                    mainAxisAlignment: isUser
+                        ? MainAxisAlignment.end
+                        : MainAxisAlignment.start,
+                    children: [
+                      if (isUser) ...[
+                        Icon(
+                          Icons.person,
+                          size: 12,
+                          color: colorScheme.onPrimary.withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(
+                        DateFormat('HH:mm').format(message.timestamp),
+                        style: TextStyle(
+                          color: isUser
+                              ? colorScheme.onPrimary.withOpacity(0.7)
+                              : isAdminBot
+                                  ? colorScheme.onSurfaceVariant
+                                      .withOpacity(0.7)
+                                  : colorScheme.onSecondaryContainer
+                                      .withOpacity(0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

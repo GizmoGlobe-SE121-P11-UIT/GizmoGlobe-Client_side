@@ -1,53 +1,40 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
 import '../../../objects/product_related/product.dart';
 import 'cart_screen_state.dart';
 import '../../../enums/processing/process_state_enum.dart';
-import '../../../services/local_guest_service.dart';
 
 class CartScreenCubit extends Cubit<CartScreenState> {
   final Firebase _firebase = Firebase();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final LocalGuestService _localGuestService = LocalGuestService();
 
   CartScreenCubit() : super(const CartScreenState()) {
     // Load cart items when cubit is created
     loadCartItems();
   }
 
-  Future<bool> _isGuestUser() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      // Check if we have a local guest user
-      return await _localGuestService.isCurrentUserGuest();
-    }
-
-    final userDoc = await _firestore.collection('users').doc(user.uid).get();
-    return userDoc.exists && (userDoc.data()?['isGuest'] ?? false);
-  }
-
   Future<void> loadCartItems() async {
     try {
+      if (isClosed) return;
       emit(state.copyWith(processState: ProcessState.loading));
 
       final user = _auth.currentUser;
       if (user == null) {
-        if (kDebugMode){
+        if (kDebugMode) {
           print('User not logged in');
         }
+        if (isClosed) return;
         emit(state.copyWith(
-            processState: ProcessState.failure,
-            error: 'User not logged in'
-        ));
+            processState: ProcessState.failure, error: 'User not logged in'));
         return;
       }
 
       final items = await _firebase.getCartItems(user.uid);
+
+      if (isClosed) return;
 
       // Tính subtotal cho mỗi item
       final updatedItems = items.map((item) {
@@ -66,11 +53,13 @@ class CartScreenCubit extends Cubit<CartScreenState> {
         };
       }).toList();
 
+      if (isClosed) return;
       emit(state.copyWith(
         items: updatedItems,
         processState: ProcessState.success,
       ));
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(
           processState: ProcessState.failure, error: e.toString()));
     }
@@ -78,6 +67,8 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
   Future<void> updateQuantity(String productID, int newQuantity) async {
     try {
+      if (isClosed) return;
+
       // Optimistically update the state
       final updatedItems = state.items.map((item) {
         if (item['productID'] == productID) {
@@ -96,6 +87,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
         return item;
       }).toList();
 
+      if (isClosed) return;
       emit(state.copyWith(items: updatedItems));
 
       // Make the actual update call
@@ -104,8 +96,10 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
       await _firebase.updateCartItemQuantity(user.uid, productID, newQuantity);
     } catch (e) {
+      if (isClosed) return;
       // Revert the state if the update call fails
       await loadCartItems();
+      if (isClosed) return;
       emit(state.copyWith(
           processState: ProcessState.failure, error: e.toString()));
     }
@@ -113,18 +107,21 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
   Future<void> removeFromCart(String productID) async {
     try {
+      if (isClosed) return;
       final user = _auth.currentUser;
       if (user == null) return;
 
       await _firebase.removeFromCart(user.uid, productID);
       await loadCartItems();
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(
           processState: ProcessState.failure, error: e.toString()));
     }
   }
 
   void toggleItemSelection(String productID) {
+    if (isClosed) return;
     final currentSelected = Set<String>.from(state.selectedItems);
     if (currentSelected.contains(productID)) {
       currentSelected.remove(productID);
@@ -135,6 +132,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
   }
 
   void toggleSelectAll() {
+    if (isClosed) return;
     if (state.isAllSelected) {
       emit(state.copyWith(selectedItems: {}));
     } else {
@@ -146,12 +144,14 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
   Future<void> clearCart() async {
     try {
+      if (isClosed) return;
       final user = _auth.currentUser;
       if (user == null) return;
 
       await _firebase.clearCart(user.uid);
       await loadCartItems();
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(
           processState: ProcessState.failure, error: e.toString()));
     }
@@ -159,11 +159,13 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
   Future<void> addToCart(String productID, int quantity) async {
     try {
+      if (isClosed) return;
       final user = _auth.currentUser;
       if (user == null) {
         if (kDebugMode) {
           print('User not logged in');
         }
+        if (isClosed) return;
         emit(state.copyWith(
             processState: ProcessState.failure, error: 'User not logged in.'));
         return;
@@ -172,6 +174,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       await _firebase.addToCart(user.uid, productID, quantity);
       await loadCartItems();
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(
           processState: ProcessState.failure, error: e.toString()));
     }

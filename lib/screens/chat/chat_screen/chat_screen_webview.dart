@@ -49,7 +49,7 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
+          0.0, // Scroll to top since we're using reverse: true
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );

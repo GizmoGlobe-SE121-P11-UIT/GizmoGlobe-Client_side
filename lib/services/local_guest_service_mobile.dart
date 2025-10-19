@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:html' as html show window;
 
 class LocalGuestService {
   static const String _guestUserKey = 'gizmoglobe_guest_user';
@@ -15,14 +14,9 @@ class LocalGuestService {
   /// Check if a guest user is already stored locally
   Future<bool> hasGuestUser() async {
     try {
-      if (kIsWeb) {
-        final guestUserId = html.window.localStorage[_guestUserIdKey];
-        return guestUserId != null && guestUserId.isNotEmpty;
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        final guestUserId = prefs.getString(_guestUserIdKey);
-        return guestUserId != null && guestUserId.isNotEmpty;
-      }
+      final prefs = await SharedPreferences.getInstance();
+      final guestUserId = prefs.getString(_guestUserIdKey);
+      return guestUserId != null && guestUserId.isNotEmpty;
     } catch (e) {
       if (kDebugMode) {
         print('Error checking guest user: $e');
@@ -34,12 +28,8 @@ class LocalGuestService {
   /// Get stored guest user ID from local storage
   Future<String?> getStoredGuestUserId() async {
     try {
-      if (kIsWeb) {
-        return html.window.localStorage[_guestUserIdKey];
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        return prefs.getString(_guestUserIdKey);
-      }
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_guestUserIdKey);
     } catch (e) {
       if (kDebugMode) {
         print('Error getting stored guest user ID: $e');
@@ -51,13 +41,8 @@ class LocalGuestService {
   /// Get stored guest user data from local storage
   Future<Map<String, dynamic>?> getStoredGuestUserData() async {
     try {
-      String? userDataJson;
-      if (kIsWeb) {
-        userDataJson = html.window.localStorage[_guestUserDataKey];
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        userDataJson = prefs.getString(_guestUserDataKey);
-      }
+      final prefs = await SharedPreferences.getInstance();
+      final userDataJson = prefs.getString(_guestUserDataKey);
 
       if (userDataJson != null) {
         return Map<String, dynamic>.from(json.decode(userDataJson));
@@ -74,13 +59,8 @@ class LocalGuestService {
   /// Get stored guest customer data from local storage
   Future<Map<String, dynamic>?> getStoredGuestCustomerData() async {
     try {
-      String? customerDataJson;
-      if (kIsWeb) {
-        customerDataJson = html.window.localStorage[_guestCustomerDataKey];
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        customerDataJson = prefs.getString(_guestCustomerDataKey);
-      }
+      final prefs = await SharedPreferences.getInstance();
+      final customerDataJson = prefs.getString(_guestCustomerDataKey);
 
       if (customerDataJson != null) {
         return Map<String, dynamic>.from(json.decode(customerDataJson));
@@ -185,18 +165,11 @@ class LocalGuestService {
       final userDataJson = json.encode(userData);
       final customerDataJson = json.encode(customerData);
 
-      if (kIsWeb) {
-        html.window.localStorage[_guestUserIdKey] = userId;
-        html.window.localStorage[_guestUserKey] = 'true';
-        html.window.localStorage[_guestUserDataKey] = userDataJson;
-        html.window.localStorage[_guestCustomerDataKey] = customerDataJson;
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_guestUserIdKey, userId);
-        await prefs.setBool(_guestUserKey, true);
-        await prefs.setString(_guestUserDataKey, userDataJson);
-        await prefs.setString(_guestCustomerDataKey, customerDataJson);
-      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_guestUserIdKey, userId);
+      await prefs.setBool(_guestUserKey, true);
+      await prefs.setString(_guestUserDataKey, userDataJson);
+      await prefs.setString(_guestCustomerDataKey, customerDataJson);
     } catch (e) {
       if (kDebugMode) {
         print('Error storing guest data: $e');
@@ -209,13 +182,8 @@ class LocalGuestService {
   Future<void> storeGuestCart(List<Map<String, dynamic>> cartItems) async {
     try {
       final cartJson = json.encode(cartItems);
-
-      if (kIsWeb) {
-        html.window.localStorage[_guestCartKey] = cartJson;
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_guestCartKey, cartJson);
-      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_guestCartKey, cartJson);
     } catch (e) {
       if (kDebugMode) {
         print('Error storing guest cart: $e');
@@ -226,14 +194,8 @@ class LocalGuestService {
   /// Get guest cart data
   Future<List<Map<String, dynamic>>> getGuestCart() async {
     try {
-      String? cartJson;
-
-      if (kIsWeb) {
-        cartJson = html.window.localStorage[_guestCartKey];
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        cartJson = prefs.getString(_guestCartKey);
-      }
+      final prefs = await SharedPreferences.getInstance();
+      final cartJson = prefs.getString(_guestCartKey);
 
       if (cartJson != null) {
         final List<dynamic> cartList = json.decode(cartJson);
@@ -252,13 +214,8 @@ class LocalGuestService {
   Future<void> storeGuestFavorites(List<String> favoriteIds) async {
     try {
       final favoritesJson = json.encode(favoriteIds);
-
-      if (kIsWeb) {
-        html.window.localStorage[_guestFavoritesKey] = favoritesJson;
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_guestFavoritesKey, favoritesJson);
-      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_guestFavoritesKey, favoritesJson);
     } catch (e) {
       if (kDebugMode) {
         print('Error storing guest favorites: $e');
@@ -269,14 +226,8 @@ class LocalGuestService {
   /// Get guest favorites data
   Future<List<String>> getGuestFavorites() async {
     try {
-      String? favoritesJson;
-
-      if (kIsWeb) {
-        favoritesJson = html.window.localStorage[_guestFavoritesKey];
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        favoritesJson = prefs.getString(_guestFavoritesKey);
-      }
+      final prefs = await SharedPreferences.getInstance();
+      final favoritesJson = prefs.getString(_guestFavoritesKey);
 
       if (favoritesJson != null) {
         final List<dynamic> favoritesList = json.decode(favoritesJson);
@@ -307,22 +258,13 @@ class LocalGuestService {
   /// Clear all guest user data from local storage
   Future<void> clearGuestUser() async {
     try {
-      if (kIsWeb) {
-        html.window.localStorage.remove(_guestUserIdKey);
-        html.window.localStorage.remove(_guestUserKey);
-        html.window.localStorage.remove(_guestUserDataKey);
-        html.window.localStorage.remove(_guestCustomerDataKey);
-        html.window.localStorage.remove(_guestCartKey);
-        html.window.localStorage.remove(_guestFavoritesKey);
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.remove(_guestUserIdKey);
-        await prefs.remove(_guestUserKey);
-        await prefs.remove(_guestUserDataKey);
-        await prefs.remove(_guestCustomerDataKey);
-        await prefs.remove(_guestCartKey);
-        await prefs.remove(_guestFavoritesKey);
-      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_guestUserIdKey);
+      await prefs.remove(_guestUserKey);
+      await prefs.remove(_guestUserDataKey);
+      await prefs.remove(_guestCustomerDataKey);
+      await prefs.remove(_guestCartKey);
+      await prefs.remove(_guestFavoritesKey);
 
       if (kDebugMode) {
         print('Guest user data cleared successfully');
@@ -344,13 +286,8 @@ class LocalGuestService {
         mergedData['isGuest'] = true; // Ensure isGuest flag is maintained
 
         final userDataJson = json.encode(mergedData);
-
-        if (kIsWeb) {
-          html.window.localStorage[_guestUserDataKey] = userDataJson;
-        } else {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(_guestUserDataKey, userDataJson);
-        }
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_guestUserDataKey, userDataJson);
       }
     } catch (e) {
       if (kDebugMode) {
@@ -369,13 +306,8 @@ class LocalGuestService {
         mergedData['isGuest'] = true; // Ensure isGuest flag is maintained
 
         final customerDataJson = json.encode(mergedData);
-
-        if (kIsWeb) {
-          html.window.localStorage[_guestCustomerDataKey] = customerDataJson;
-        } else {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(_guestCustomerDataKey, customerDataJson);
-        }
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_guestCustomerDataKey, customerDataJson);
       }
     } catch (e) {
       if (kDebugMode) {

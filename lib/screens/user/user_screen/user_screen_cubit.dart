@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../data/database/database.dart';
 import '../../authentication/sign_in_screen/sign_in_view.dart';
 import 'user_screen_state.dart';
-import '../../../services/local_guest_service.dart';
+import '../../../services/local_guest_service_platform.dart';
 
 class UserScreenCubit extends Cubit<UserScreenState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -30,7 +30,7 @@ class UserScreenCubit extends Cubit<UserScreenState> {
     try {
       final user = _auth.currentUser;
       final isGuest = await _isGuestUser();
-      
+
       if (isGuest && user == null) {
         // Handle local guest user
         final guestData = await _localGuestService.getStoredGuestUserData();
@@ -44,7 +44,7 @@ class UserScreenCubit extends Cubit<UserScreenState> {
         }
         return;
       }
-      
+
       if (user != null) {
         final doc = await _firestore.collection('users').doc(user.uid).get();
         if (doc.exists) {
@@ -70,10 +70,10 @@ class UserScreenCubit extends Cubit<UserScreenState> {
     try {
       // Clear local guest data
       await _localGuestService.clearGuestUser();
-      
+
       // Sign out from Firebase
       await FirebaseAuth.instance.signOut();
-      
+
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -91,15 +91,16 @@ class UserScreenCubit extends Cubit<UserScreenState> {
   void updateUsername(String newName) async {
     if (newName.isNotEmpty) {
       final isGuest = await _isGuestUser();
-      
+
       if (isGuest && _auth.currentUser == null) {
         // Update local guest user data
         await _localGuestService.updateGuestUserData({'username': newName});
-        await _localGuestService.updateGuestCustomerData({'customerName': newName});
+        await _localGuestService
+            .updateGuestCustomerData({'customerName': newName});
         emit(state.copyWith(username: newName));
         return;
       }
-      
+
       final userId = await Database().getCurrentUserID();
       if (userId != null) {
         await FirebaseFirestore.instance
@@ -116,15 +117,16 @@ class UserScreenCubit extends Cubit<UserScreenState> {
     try {
       final isGuest = await _isGuestUser();
       final user = _auth.currentUser;
-      
+
       if (isGuest && user == null) {
         // Update local guest user avatar
         await _localGuestService.updateGuestUserData({'avatarUrl': avatarUrl});
-        await _localGuestService.updateGuestCustomerData({'avatarUrl': avatarUrl});
+        await _localGuestService
+            .updateGuestCustomerData({'avatarUrl': avatarUrl});
         emit(state.copyWith(avatarUrl: avatarUrl));
         return;
       }
-      
+
       if (user != null) {
         final batch = _firestore.batch();
         final email = user.email;

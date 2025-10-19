@@ -114,7 +114,10 @@ class _ForgetPasswordWebModalState extends State<ForgetPasswordWebModal> {
                 ),
                 child: Row(
                   children: [
-                    const AppLogo(alignment: Alignment.centerLeft),
+                    const AppLogo(
+                      alignment: Alignment.centerLeft,
+                      height: 40,
+                    ),
                     const Spacer(),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -148,7 +151,7 @@ class _ForgetPasswordWebModalState extends State<ForgetPasswordWebModal> {
                           fontSize: 28,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
@@ -159,7 +162,7 @@ class _ForgetPasswordWebModalState extends State<ForgetPasswordWebModal> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
@@ -171,7 +174,7 @@ class _ForgetPasswordWebModalState extends State<ForgetPasswordWebModal> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       _buildInputField(
                         context,
                         controller: _emailController,
@@ -179,7 +182,7 @@ class _ForgetPasswordWebModalState extends State<ForgetPasswordWebModal> {
                         keyboardType: TextInputType.emailAddress,
                         onChanged: (value) => cubit.emailChanged(value),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       BlocConsumer<ForgetPasswordCubit, ForgetPasswordState>(
                         listenWhen: (previous, current) =>
                             previous.processState != current.processState,
@@ -217,7 +220,7 @@ class _ForgetPasswordWebModalState extends State<ForgetPasswordWebModal> {
                           return _buildSendButton(context, state);
                         },
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
                       // Back to Sign In Link
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

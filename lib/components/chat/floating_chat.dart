@@ -76,7 +76,14 @@ class _FloatingChatState extends State<FloatingChat> {
                   child: SizedBox(
                     width: _panelWidth,
                     height: _panelHeight,
-                    child: ChatScreenWebView.newInstance(embedded: true),
+                    child: Overlay(
+                      initialEntries: [
+                        OverlayEntry(
+                          builder: (context) =>
+                              ChatScreenWebView.newInstance(embedded: true),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

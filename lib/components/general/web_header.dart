@@ -4,6 +4,7 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_up_screen/sign_up_webview.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_webview.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_cubit.dart';
+import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 
 class WebHeader extends StatefulWidget {
   const WebHeader({Key? key}) : super(key: key);
@@ -23,6 +24,27 @@ class _WebHeaderState extends State<WebHeader> {
     if (_isUserMenuOpen) {
       setState(() => _isUserMenuOpen = false);
       _removeOverlay();
+    }
+  }
+
+  Future<void> _handleCartNavigation(BuildContext context) async {
+    _closeUserMenuIfOpen();
+
+    // Check if user is guest before navigating to cart
+    final isGuest = await _webGuestService.isCurrentUserGuest();
+    if (isGuest) {
+      // Show snackbar and sign-in modal for guest users
+      final overlayState = Navigator.of(context).overlay!;
+      SnackbarService.showGuestRestrictionAboveOverlay(
+        overlayState,
+        context: context,
+        actionType: 'cart',
+      );
+      final signInCubit = SignInCubit();
+      await showSignInModalWithCubit(context, signInCubit);
+    } else {
+      // User is authenticated, navigate to cart
+      Navigator.pushNamed(context, '/cart');
     }
   }
 
@@ -103,8 +125,7 @@ class _WebHeaderState extends State<WebHeader> {
               children: [
                 _buildIconButton(context, Icons.shopping_cart_outlined,
                     isMobile: true, onPressed: () {
-                  _closeUserMenuIfOpen();
-                  Navigator.pushNamed(context, '/cart');
+                  _handleCartNavigation(context);
                 }),
                 const SizedBox(width: 8),
                 _buildUserIconButton(context, isMobile: true),
@@ -137,7 +158,7 @@ class _WebHeaderState extends State<WebHeader> {
         const Spacer(),
         // Action Buttons (chat icon removed)
         _buildIconButton(context, Icons.shopping_cart_outlined, onPressed: () {
-          Navigator.pushNamed(context, '/cart');
+          _handleCartNavigation(context);
         }),
         const SizedBox(width: 16),
         _buildUserIconButton(context),

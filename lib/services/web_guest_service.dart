@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'local_guest_service.dart';
+import 'local_guest_service_platform.dart';
 
 class WebGuestService {
   final LocalGuestService _localGuestService = LocalGuestService();

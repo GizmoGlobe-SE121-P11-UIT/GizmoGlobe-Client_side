@@ -103,7 +103,10 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                 ),
                 child: Row(
                   children: [
-                    const AppLogo(alignment: Alignment.centerLeft),
+                    const AppLogo(
+                      alignment: Alignment.centerLeft,
+                      height: 40,
+                    ),
                     const Spacer(),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -137,14 +140,14 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                           fontSize: 28,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       _buildInputField(
                         context,
                         controller: _nameController,
                         hintText: S.of(context).enterFullName,
                         onChanged: (value) => cubit.updateUsername(value),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildInputField(
                         context,
                         controller: _emailController,
@@ -152,7 +155,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                         keyboardType: TextInputType.emailAddress,
                         onChanged: (value) => cubit.updateEmail(value),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildInputField(
                         context,
                         controller: _phoneController,
@@ -160,7 +163,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                         keyboardType: TextInputType.phone,
                         onChanged: (value) => cubit.updatePhoneNumber(value),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildInputField(
                         context,
                         controller: _passwordController,
@@ -168,7 +171,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                         obscureText: true,
                         onChanged: (value) => cubit.updatePassword(value),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildInputField(
                         context,
                         controller: _confirmPasswordController,
@@ -177,7 +180,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                         onChanged: (value) =>
                             cubit.updateConfirmPassword(value),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       BlocConsumer<SignUpCubit, SignUpState>(
                         listenWhen: (previous, current) =>
                             previous.processState != current.processState,
@@ -215,7 +218,7 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
                           return _buildSignUpButton(context, state);
                         },
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

@@ -29,10 +29,8 @@ class AIConversationService {
       // First, try to load from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final historyKey = '$_prefKeyPrefix$userId';
-      final lastSyncKey = '$_lastSyncKeyPrefix$userId';
 
       final historyJson = prefs.getString(historyKey);
-      final lastSyncTime = prefs.getInt(lastSyncKey);
 
       if (historyJson != null) {
         final history = _parseHistoryFromJson(historyJson);
@@ -68,14 +66,15 @@ class AIConversationService {
         // Convert Firebase document to conversation format
         data.forEach((key, value) {
           if (value is Map<String, dynamic>) {
-            final message = value as Map<String, dynamic>;
+            final message = value;
             if (message['content'] != null && message['timestamp'] != null) {
-              messages.add({
+              final newMessage = <String, dynamic>{
                 'question': message['content'] as String,
                 'answer': message['aiResponse'] ?? 'No response available',
                 'timestamp': (message['timestamp'] as Timestamp).toDate(),
                 'messageId': key,
-              });
+              };
+              messages.add(newMessage);
             }
           }
         });
@@ -375,13 +374,14 @@ class AIConversationService {
     final history = _conversationHistory[userId]!;
     final messageId = DateTime.now().millisecondsSinceEpoch.toString();
 
-    // Add new interaction
-    history.add({
+    // Add new interaction - explicitly cast to Map<String, dynamic>
+    final newInteraction = <String, dynamic>{
       'question': question,
       'answer': answer,
       'timestamp': DateTime.now(),
       'messageId': messageId,
-    });
+    };
+    history.add(newInteraction);
 
     // Keep only the last N interactions
     if (history.length > _maxHistoryLength) {
@@ -484,12 +484,13 @@ class AIConversationService {
 
       // Track add-to-cart actions
       if (_utils.isAddToCartRequest(question)) {
-        addToCartActions.add({
+        final addToCartAction = <String, dynamic>{
           'question': question,
           'answer': answer,
           'timestamp': interaction['timestamp'],
           'productName': productName,
-        });
+        };
+        addToCartActions.add(addToCartAction);
       }
     }
 

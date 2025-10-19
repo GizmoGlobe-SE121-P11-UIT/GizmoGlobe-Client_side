@@ -650,6 +650,10 @@ class S {
       Intl.message('Please sign in to access chat support',
           name: 'loginRequiredForChat');
 
+  /// `Continue with Google`
+  String get continueWithGoogle =>
+      Intl.message('Continue with Google', name: 'continueWithGoogle');
+
   // Chat actions
   String get switchToAdmin =>
       Intl.message('Switch to Admin', name: 'switchToAdmin');

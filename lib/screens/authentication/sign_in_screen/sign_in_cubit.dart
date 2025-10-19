@@ -7,7 +7,7 @@ import '../../../enums/processing/dialog_name_enum.dart';
 import 'sign_in_state.dart';
 import '../../../enums/processing/notify_message_enum.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../services/local_guest_service.dart';
+import '../../../services/local_guest_service_platform.dart';
 
 class SignInCubit extends Cubit<SignInState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -90,7 +90,18 @@ class SignInCubit extends Cubit<SignInState> {
         googleProvider.addScope('email');
         googleProvider.addScope('profile');
 
-        userCredential = await _auth.signInWithPopup(googleProvider);
+        try {
+          userCredential = await _auth.signInWithPopup(googleProvider);
+        } catch (error) {
+          // Handle popup dismissal or cancellation
+          if (error.toString().contains('popup_closed_by_user') ||
+              error.toString().contains('popup_closed') ||
+              error.toString().contains('cancelled')) {
+            emit(state.copyWith(processState: ProcessState.idle));
+            return;
+          }
+          rethrow; // Re-throw other errors
+        }
       } else {
         // For mobile, use Google Sign-In plugin
         final GoogleSignIn googleSignIn = GoogleSignIn();

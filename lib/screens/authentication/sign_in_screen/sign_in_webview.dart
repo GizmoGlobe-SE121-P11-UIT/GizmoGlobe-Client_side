@@ -11,7 +11,6 @@ import 'sign_in_state.dart';
 import '../sign_up_screen/sign_up_webview.dart';
 import '../forget_password_screen/forget_password_webview.dart';
 import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
-import 'package:sign_in_button/sign_in_button.dart';
 
 /// Helper function to show the sign-in modal
 Future<void> showSignInModal(BuildContext context) {
@@ -131,7 +130,10 @@ class _SignInWebModalState extends State<SignInWebModal> {
                 ),
                 child: Row(
                   children: [
-                    const AppLogo(alignment: Alignment.centerLeft),
+                    const AppLogo(
+                      alignment: Alignment.centerLeft,
+                      height: 40,
+                    ),
                     const Spacer(),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -165,7 +167,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                           fontSize: 28,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       _buildInputField(
                         context,
                         controller: _emailController,
@@ -173,7 +175,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                         keyboardType: TextInputType.emailAddress,
                         onChanged: (value) => cubit.emailChanged(value),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildInputField(
                         context,
                         controller: _passwordController,
@@ -181,7 +183,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                         obscureText: true,
                         onChanged: (value) => cubit.passwordChanged(value),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       // Forgot Password
                       Align(
                         alignment: Alignment.centerRight,
@@ -204,7 +206,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       BlocConsumer<SignInCubit, SignInState>(
                         listenWhen: (previous, current) =>
                             previous.processState != current.processState,
@@ -249,73 +251,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                           return _buildSignInButton(context, state);
                         },
                       ),
-                      const SizedBox(height: 20),
-                      // Register Link
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            S.of(context).dontHaveAccount,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontSize: 14,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              // Open sign-up modal
-                              showSignUpModal(context);
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: theme.colorScheme.primary
-                                  .withValues(alpha: 0.8),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                            ),
-                            child: Text(
-                              S.of(context).register,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.primary
-                                    .withValues(alpha: 0.8),
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Divider
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: theme.dividerColor.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'OR',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.6),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: theme.dividerColor.withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       // Google Sign In Button
                       BlocConsumer<SignInCubit, SignInState>(
                         listenWhen: (previous, current) =>
@@ -342,6 +278,15 @@ class _SignInWebModalState extends State<SignInWebModal> {
                               title: state.dialogName.toString(),
                               message: state.message.toString(),
                             );
+                          } else if (state.processState == ProcessState.idle) {
+                            // Handle Google popup dismissal - show info snackbar above modal
+                            final overlayState =
+                                Overlay.of(context, rootOverlay: true);
+                            SnackbarService.showGuestRestrictionAboveOverlay(
+                              overlayState,
+                              context: context,
+                              actionType: 'google_cancelled',
+                            );
                           }
                         },
                         buildWhen: (previous, current) =>
@@ -352,7 +297,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                       ),
                       // Guest Login - only show if showGuestOption is true
                       if (widget.showGuestOption) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         BlocConsumer<SignInCubit, SignInState>(
                           listenWhen: (previous, current) =>
                               previous.processState != current.processState,
@@ -388,6 +333,42 @@ class _SignInWebModalState extends State<SignInWebModal> {
                           },
                         ),
                       ],
+                      const SizedBox(height: 20),
+                      // Register Link - moved to bottom
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            S.of(context).dontHaveAccount,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontSize: 14,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              // Open sign-up modal
+                              showSignUpModal(context);
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: theme.colorScheme.primary
+                                  .withValues(alpha: 0.8),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            child: Text(
+                              S.of(context).register,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.primary
+                                    .withValues(alpha: 0.8),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -535,14 +516,59 @@ class _SignInWebModalState extends State<SignInWebModal> {
                 ],
               ),
             )
-          : SignInButton(
-              Buttons.google,
-              text: 'Continue with Google',
+          : ElevatedButton(
               onPressed: () async {
                 await cubit.signInWithGoogle();
               },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.secondary,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Container(
+                  height: 50,
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Google Logo
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage(
+                              'https://www.gstatic.com/marketing-cms/assets/images/d5/dc/cfe9ce8b4425b410b49b7f2dd3f3/g.webp=s96-fcrop64=1,00000000ffffffff-rw',
+                            ),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        S.of(context).continueWithGoogle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
     );

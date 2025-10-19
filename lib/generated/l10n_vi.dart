@@ -1004,6 +1004,9 @@ class SVI extends S {
   String get loginRequiredForChat =>
       'Vui lòng đăng nhập để truy cập hỗ trợ trò chuyện';
 
+  @override
+  String get continueWithGoogle => 'Tiếp tục với Google';
+
   // Chat actions
   @override
   String get switchToAdmin => 'Chuyển sang Admin';

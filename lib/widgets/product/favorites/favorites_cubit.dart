@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/firebase/firebase.dart';
-import '../../../services/local_guest_service.dart';
+import '../../../services/local_guest_service_platform.dart';
 
 class FavoritesCubit extends Cubit<Set<String>> {
   final Firebase _firebase = Firebase();
@@ -28,14 +28,14 @@ class FavoritesCubit extends Cubit<Set<String>> {
   Future<void> loadFavorites() async {
     final user = _auth.currentUser;
     final isGuest = await _isGuestUser();
-    
+
     if (isGuest) {
       // Load favorites from local storage for guest users
       final guestFavorites = await _localGuestService.getGuestFavorites();
       emit(guestFavorites.toSet());
       return;
     }
-    
+
     if (user == null) return;
 
     final favorites = await _firebase.getFavorites(user.uid);
@@ -50,9 +50,9 @@ class FavoritesCubit extends Cubit<Set<String>> {
   Future<void> toggleFavorite(String productId) async {
     final user = _auth.currentUser;
     final isGuest = await _isGuestUser();
-    
+
     final currentFavorites = Set<String>.from(state);
-    
+
     if (isGuest) {
       // Handle guest favorites locally
       if (currentFavorites.contains(productId)) {
@@ -60,13 +60,13 @@ class FavoritesCubit extends Cubit<Set<String>> {
       } else {
         currentFavorites.add(productId);
       }
-      
+
       // Store updated favorites locally
       await _localGuestService.storeGuestFavorites(currentFavorites.toList());
       emit(currentFavorites);
       return;
     }
-    
+
     if (user == null) return;
 
     // Handle authenticated user favorites in Firebase

@@ -6,7 +6,7 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
 
 import '../../../data/firebase/firebase.dart';
-import '../../../services/local_guest_service.dart';
+import '../../../services/local_guest_service_platform.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../objects/product_related/cpu.dart';
@@ -22,7 +22,8 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final LocalGuestService _localGuestService = LocalGuestService();
 
-  ProductDetailCubit(Product product) : super(ProductDetailState(product: product)) {
+  ProductDetailCubit(Product product)
+      : super(ProductDetailState(product: product)) {
     _initializeTechnicalSpecs();
     loadFavorites();
   }
@@ -113,28 +114,28 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
           print('User not logged in');
         }
         emit(state.copyWith(
-            processState: ProcessState.failure,
-            message: 'User not logged in.',
+          processState: ProcessState.failure,
+          message: 'User not logged in.',
         ));
         return;
       }
 
       await _firebase.addToCart(user.uid, productID, quantity);
       emit(state.copyWith(
-          processState: ProcessState.success,
-          message: 'Added ${state.product.productName} to cart',
+        processState: ProcessState.success,
+        message: 'Added ${state.product.productName} to cart',
       ));
     } catch (e) {
       emit(state.copyWith(
-          processState: ProcessState.failure, message: 'Failed to add to cart: $e'
-      ));
+          processState: ProcessState.failure,
+          message: 'Failed to add to cart: $e'));
     }
   }
 
   Future<void> loadFavorites() async {
     final user = _auth.currentUser;
     final isGuest = await _isGuestUser();
-    
+
     if (isGuest) {
       // Load favorites from local storage for guest users
       final guestFavorites = await _localGuestService.getGuestFavorites();
@@ -144,7 +145,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       ));
       return;
     }
-    
+
     if (user == null) return;
 
     final favorites = await _firebase.getFavorites(user.uid);
@@ -168,9 +169,9 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
   Future<void> toggleFavorite() async {
     final user = _auth.currentUser;
     final isGuest = await _isGuestUser();
-    
+
     final currentFavorites = Set<String>.from(state.favorites);
-    
+
     if (isGuest) {
       // Handle guest favorites locally
       if (currentFavorites.contains(state.product.productID)) {
@@ -178,7 +179,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       } else {
         currentFavorites.add(state.product.productID!);
       }
-      
+
       // Store updated favorites locally
       await _localGuestService.storeGuestFavorites(currentFavorites.toList());
       emit(state.copyWith(
@@ -187,7 +188,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       ));
       return;
     }
-    
+
     if (user == null) return;
 
     // Handle authenticated user favorites in Firebase

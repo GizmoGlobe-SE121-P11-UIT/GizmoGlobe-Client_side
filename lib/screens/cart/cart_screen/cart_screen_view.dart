@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
@@ -7,9 +8,9 @@ import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/general/gradient_text.dart';
-import '../../main/main_screen/main_screen_view.dart';
 import 'cart_screen_cubit.dart';
 import 'cart_screen_state.dart';
+import 'cart_screen_webview.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -28,6 +29,12 @@ class _CartScreen extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // For web, use the webview component directly
+    if (kIsWeb) {
+      return CartScreenWebView.withCubit(cubit);
+    }
+
+    // For mobile, use the original layout
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -87,12 +94,9 @@ class _CartScreen extends State<CartScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushAndRemoveUntil(
+                      Navigator.pushNamedAndRemoveUntil(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const MainScreen(initialIndex: 1),
-                        ),
+                        '/products',
                         (route) => false,
                       );
                     },
@@ -118,369 +122,355 @@ class _CartScreen extends State<CartScreen> {
             );
           }
 
-          return Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(0, 16, 16, 20),
-                  itemCount: state.items.length,
-                  itemBuilder: (context, index) {
-                    final item = state.items[index];
-                    final product = item['product'] as Map<String, dynamic>;
+          return _buildMobileLayout(state);
+        },
+      ),
+    );
+  }
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Row(
+  Widget _buildMobileLayout(CartScreenState state) {
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(0, 16, 16, 20),
+            itemCount: state.items.length,
+            itemBuilder: (context, index) {
+              final item = state.items[index];
+              final product = item['product'] as Map<String, dynamic>;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Checkbox
+                    Checkbox(
+                      value: state.selectedItems.contains(item['productID']),
+                      onChanged: (value) {
+                        cubit.toggleItemSelection(item['productID']);
+                      },
+                      activeColor: Theme.of(context).colorScheme.primary,
+                      checkColor: Theme.of(context).colorScheme.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      side: BorderSide(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.5),
+                        width: 1.5,
+                      ),
+                    ),
+                    // Product Image
+                    Card(
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            _getCategoryIcon(product['category']),
+                            size: 36,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Product Details
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Checkbox
-                          Checkbox(
-                            value:
-                                state.selectedItems.contains(item['productID']),
-                            onChanged: (value) {
-                              cubit.toggleItemSelection(item['productID']);
-                            },
-                            activeColor: Theme.of(context).colorScheme.primary,
-                            checkColor: Theme.of(context).colorScheme.surface,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            side: BorderSide(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.5),
-                              width: 1.5,
+                          Text(
+                            product['productName'],
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
-                          // Product Image
-                          Card(
-                            margin: EdgeInsets.zero,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  _getCategoryIcon(product['category']),
-                                  size: 36,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Product Details
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product['productName'],
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                if (product['discount'] > 0) ...[
-                                  Text(
-                                    '\$${(product['sellingPrice']).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.lineThrough,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withValues(alpha: 0.6),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                ],
-                                Text(
-                                  '\$${(product['sellingPrice'] * (1 - (product['discount'] ?? 0))).toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                        Theme.of(context).colorScheme.tertiary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Quantity Controls
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Quantity Controls
-                              Container(
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.2),
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.remove,
-                                        size: 16,
-                                      ),
-                                      onPressed:
-                                          (item['quantity'] as int? ?? 0) > 1
-                                              ? () {
-                                                  cubit.updateQuantity(
-                                                    item['productID'] as String,
-                                                    (item['quantity'] as int? ??
-                                                            0) -
-                                                        1,
-                                                  );
-                                                }
-                                              : null,
-                                      padding: const EdgeInsets.all(2),
-                                      constraints: const BoxConstraints(),
-                                      style: IconButton.styleFrom(
-                                        foregroundColor:
-                                            (item['quantity'] as int? ?? 0) > 1
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.3),
-                                      ),
-                                    ),
-                                    Container(
-                                      constraints:
-                                          const BoxConstraints(minWidth: 16),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        (item['quantity'] as int? ?? 0)
-                                            .toString(),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.add,
-                                        size: 16,
-                                      ),
-                                      onPressed: () {
-                                        cubit.updateQuantity(
-                                          item['productID'] as String,
-                                          (item['quantity'] as int? ?? 0) + 1,
-                                        );
-                                      },
-                                      padding: const EdgeInsets.all(4),
-                                      constraints: const BoxConstraints(),
-                                      style: IconButton.styleFrom(
-                                        foregroundColor: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              // Delete Button
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      backgroundColor:
-                                          Theme.of(context).colorScheme.surface,
-                                      title: Text(
-                                        S.of(context).removeItem,
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      ),
-                                      content: Text(
-                                        S.of(context).removeItemConfirmation,
-                                        style: const TextStyle(
-                                            color: Colors.white70),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: Text(S.of(context).cancel),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            cubit.removeFromCart(
-                                                item['productID'] as String);
-                                          },
-                                          child: Text(
-                                            S.of(context).remove,
-                                            style: const TextStyle(
-                                                color: Colors.red),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                style: IconButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // Bottom Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              activeColor:
-                                  Theme.of(context).colorScheme.primary,
-                              checkColor: Theme.of(context).colorScheme.surface,
-                              value: state.isAllSelected,
-                              onChanged: (value) {
-                                cubit.toggleSelectAll();
-                              },
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              side: BorderSide(
+                          const SizedBox(height: 4),
+                          if (product['discount'] > 0) ...[
+                            Text(
+                              '\$${(product['sellingPrice']).toStringAsFixed(2)}',
+                              style: TextStyle(
+                                decoration: TextDecoration.lineThrough,
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onSurface
-                                    .withValues(alpha: 0.5),
-                                width: 1.5,
+                                    .withValues(alpha: 0.6),
+                                fontSize: 14,
                               ),
                             ),
-                            Text(
-                              S.of(context).selectAll,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontSize: 16,
-                              ),
-                            ),
+                            const SizedBox(width: 4),
                           ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            if (state.hasDiscounts &&
-                                state.selectedCount > 0) ...[
-                              Text(
-                                '\$${state.totalBeforeDiscount.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.6),
-                                  fontSize: 14,
+                          Text(
+                            '\$${(product['sellingPrice'] * (1 - (product['discount'] ?? 0))).toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.tertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Quantity Controls
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Quantity Controls
+                        Container(
+                          height: 32,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.2),
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.remove,
+                                  size: 16,
+                                ),
+                                onPressed: (item['quantity'] as int? ?? 0) > 1
+                                    ? () {
+                                        cubit.updateQuantity(
+                                          item['productID'] as String,
+                                          (item['quantity'] as int? ?? 0) - 1,
+                                        );
+                                      }
+                                    : null,
+                                padding: const EdgeInsets.all(2),
+                                constraints: const BoxConstraints(),
+                                style: IconButton.styleFrom(
+                                  foregroundColor:
+                                      (item['quantity'] as int? ?? 0) > 1
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.3),
                                 ),
                               ),
-                              // const SizedBox(height: 2),
-                            ],
-                            Text(
-                              '\$${state.totalAmount.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.tertiary,
+                              Container(
+                                constraints: const BoxConstraints(minWidth: 16),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  (item['quantity'] as int? ?? 0).toString(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.add,
+                                  size: 16,
+                                ),
+                                onPressed: () {
+                                  cubit.updateQuantity(
+                                    item['productID'] as String,
+                                    (item['quantity'] as int? ?? 0) + 1,
+                                  );
+                                },
+                                padding: const EdgeInsets.all(4),
+                                constraints: const BoxConstraints(),
+                                style: IconButton.styleFrom(
+                                  foregroundColor:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Delete Button
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.surface,
+                                title: Text(
+                                  S.of(context).removeItem,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                content: Text(
+                                  S.of(context).removeItemConfirmation,
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text(S.of(context).cancel),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      cubit.removeFromCart(
+                                          item['productID'] as String);
+                                    },
+                                    child: Text(
+                                      S.of(context).remove,
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          style: IconButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          if (state.selectedCount == 0) {
-                            return;
-                          }
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => CheckoutScreen.newInstance(
-                                cartItems:
-                                    cubit.convertItemsToProductQuantityList(),
-                              ),
-                            ),
-                          );
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        // Bottom Section
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Checkbox(
+                        activeColor: Theme.of(context).colorScheme.primary,
+                        checkColor: Theme.of(context).colorScheme.surface,
+                        value: state.isAllSelected,
+                        onChanged: (value) {
+                          cubit.toggleSelectAll();
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text(
-                          S.of(context).goToCheckout,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        side: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.5),
+                          width: 1.5,
                         ),
                       ),
+                      Text(
+                        S.of(context).selectAll,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (state.hasDiscounts && state.selectedCount > 0) ...[
+                        Text(
+                          '\$${state.totalBeforeDiscount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.6),
+                            fontSize: 14,
+                          ),
+                        ),
+                        // const SizedBox(height: 2),
+                      ],
+                      Text(
+                        '\$${state.totalAmount.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.tertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (state.selectedCount == 0) {
+                      return;
+                    }
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => CheckoutScreen.newInstance(
+                          cartItems: cubit.convertItemsToProductQuantityList(),
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ],
+                  ),
+                  child: Text(
+                    S.of(context).goToCheckout,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 
