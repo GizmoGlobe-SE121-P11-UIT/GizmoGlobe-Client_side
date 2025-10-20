@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
+import 'package:image_picker/image_picker.dart';
 
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -28,6 +30,36 @@ class StorageService {
     } catch (e) {
       if (kDebugMode) {
         print('Error uploading image: $e');
+      }
+      rethrow;
+    }
+  }
+
+  Future<String> uploadUserAvatarFromWeb(XFile imageFile, String userId) async {
+    try {
+      // Kiểm tra người dùng đã đăng nhập chưa
+      if (_auth.currentUser == null) {
+        throw Exception('User not logged in');
+      }
+
+      // Tạo tên file duy nhất
+      String fileName = 'avatars/$userId.jpg'; // Use .jpg as default for web
+
+      // Read the image file as bytes
+      Uint8List imageBytes = await imageFile.readAsBytes();
+
+      // Upload file lên Firebase Storage
+      TaskSnapshot snapshot = await _storage.ref().child(fileName).putData(
+            imageBytes,
+            SettableMetadata(contentType: 'image/jpeg'),
+          );
+
+      // Lấy URL của file đã upload
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error uploading image from web: $e');
       }
       rethrow;
     }

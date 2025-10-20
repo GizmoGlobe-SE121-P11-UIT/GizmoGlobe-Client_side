@@ -35,6 +35,13 @@ class _AvatarPickerState extends State<AvatarPicker> {
 
   Future<bool> _checkAndRequestPermission(Permission permission) async {
     try {
+      // On web, permissions are handled by the browser
+      // For camera access, the browser will prompt the user
+      // For gallery access, no special permissions are needed
+      if (kIsWeb) {
+        return true;
+      }
+
       if (Platform.isAndroid) {
         // Kiểm tra phiên bản Android
         final androidInfo = await _deviceInfo.androidInfo;
@@ -79,41 +86,56 @@ class _AvatarPickerState extends State<AvatarPicker> {
   }
 
   Future<void> _showImageSourceDialog() async {
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(S.of(context).pickAvatar),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: Text(S.of(context).chooseFromGallery), // 'Chọn từ thư viện'
-              onTap: () async {
-                Navigator.pop(context);
-                final hasPermission =
-                    await _checkAndRequestPermission(Permission.photos);
-                if (hasPermission) {
-                  _pickImage(ImageSource.gallery);
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: Text(S.of(context).takeAPicture), // 'Chụp ảnh mới'
-              onTap: () async {
-                Navigator.pop(context);
-                final hasPermission =
-                    await _checkAndRequestPermission(Permission.camera);
-                if (hasPermission) {
-                  _pickImage(ImageSource.camera);
-                }
-              },
+    if (kIsWeb) {
+      // On web, directly open file picker for gallery
+      final hasPermission = await _checkAndRequestPermission(Permission.photos);
+      if (hasPermission) {
+        _pickImage(ImageSource.gallery);
+      }
+    } else {
+      // On mobile, show dialog with options
+      return showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(S.of(context).pickAvatar),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: Text(S.of(context).chooseFromGallery),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final hasPermission =
+                      await _checkAndRequestPermission(Permission.photos);
+                  if (hasPermission) {
+                    _pickImage(ImageSource.gallery);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: Text(S.of(context).takeAPicture),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final hasPermission =
+                      await _checkAndRequestPermission(Permission.camera);
+                  if (hasPermission) {
+                    _pickImage(ImageSource.camera);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
             ),
           ],
         ),
-      ),
-    );
+      );
+    }
   }
 
   void _showPermissionDeniedDialog(String feature) {
@@ -142,22 +164,55 @@ class _AvatarPickerState extends State<AvatarPicker> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? image = await _picker.pickImage(
+      if (kDebugMode) {
+        print('Attempting to pick image from source: $source');
+        if (kIsWeb) {
+          print('Running on web platform');
+        }
+      }
+
+      final XFile? image = await _picker
+          .pickImage(
         source: source,
         maxWidth: 512,
         maxHeight: 512,
         imageQuality: 85,
+      )
+          .timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          if (kDebugMode) {
+            print('Image picker timed out - possible permission issue');
+          }
+          throw Exception(
+              'Camera access timed out. Please check browser permissions.');
+        },
       );
+
+      if (kDebugMode) {
+        print(
+            'Image picker result: ${image != null ? "Success" : "Cancelled/Error"}');
+      }
 
       if (image != null) {
         setState(() => _isUploading = true);
 
         try {
           // Upload ảnh lên Firebase Storage
-          String downloadUrl = await _storageService.uploadUserAvatar(
-            File(image.path),
-            widget.userId,
-          );
+          String downloadUrl;
+          if (kIsWeb) {
+            // On web, we need to handle the file differently
+            downloadUrl = await _storageService.uploadUserAvatarFromWeb(
+              image,
+              widget.userId,
+            );
+          } else {
+            // On mobile platforms, use the File class
+            downloadUrl = await _storageService.uploadUserAvatar(
+              File(image.path),
+              widget.userId,
+            );
+          }
 
           // Gọi callback để cập nhật avatar mới
           widget.onAvatarChanged(downloadUrl);
@@ -190,13 +245,38 @@ class _AvatarPickerState extends State<AvatarPicker> {
         }
       }
     } catch (e) {
+      String errorMessage = 'Error picking image: $e';
+
+      // Handle specific camera access errors on web
+      if (kIsWeb && source == ImageSource.camera) {
+        if (e.toString().contains('Permission denied') ||
+            e.toString().contains('NotAllowedError') ||
+            e.toString().contains('timed out')) {
+          errorMessage = 'Camera access denied or timed out. Please:\n'
+              '1. Allow camera access in your browser settings\n'
+              '2. Make sure you\'re using HTTPS\n'
+              '3. Check if another app is using your camera';
+        } else if (e.toString().contains('NotFoundError')) {
+          errorMessage =
+              'No camera found. Please connect a camera to your device.';
+        } else if (e.toString().contains('NotReadableError')) {
+          errorMessage =
+              'Camera is being used by another application. Please close other camera apps.';
+        } else {
+          errorMessage = 'Camera access failed. Please check:\n'
+              '1. Browser camera permissions\n'
+              '2. HTTPS connection\n'
+              '3. Camera availability';
+        }
+      }
+
       if (mounted) {
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => InformationDialog(
             title: S.of(context).error,
-            content: 'Error picking image: $e',
+            content: errorMessage,
             dialogName: DialogName.failure,
             buttonText: S.of(context).ok,
             onPressed: () {
@@ -241,7 +321,10 @@ class _AvatarPickerState extends State<AvatarPicker> {
                   spreadRadius: 5,
                 ),
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.3),
                   blurRadius: 15,
                   spreadRadius: 2,
                 ),

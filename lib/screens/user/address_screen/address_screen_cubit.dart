@@ -7,22 +7,46 @@ import 'address_screen_state.dart';
 class AddressScreenCubit extends Cubit<AddressScreenState> {
   AddressScreenCubit() : super(const AddressScreenState());
 
-  Future<void> initialize() async {
-    reloadList();
+  bool get _canEmit => !isClosed;
+  void _safeEmit(AddressScreenState newState) {
+    if (_canEmit) {
+      emit(newState);
+    }
   }
 
-  void reloadList() {
-    final visibleAddresses = Database().addressList.where((address) => !address.hidden).toList();
-    emit(state.copyWith(addressList: visibleAddresses));
+  Future<void> initialize() async {
+    await reloadList();
+  }
+
+  Future<void> reloadList() async {
+    // First fetch addresses from Firebase
+    await Database().fetchAddress();
+    // Then filter visible addresses
+    final visibleAddresses =
+        Database().addressList.where((address) => !address.hidden).toList();
+    _safeEmit(state.copyWith(addressList: visibleAddresses));
   }
 
   Future<void> addAddress(Address address) async {
     await Firebase().createAddress(address);
-    reloadList();
+    if (_canEmit) {
+      await reloadList();
+    }
   }
 
   Future<void> editAddress(Address address) async {
     await Firebase().updateAddress(address);
-    reloadList();
+    if (_canEmit) {
+      await reloadList();
+    }
+  }
+
+  Future<void> deleteAddress(Address address) async {
+    // Set address as hidden instead of deleting
+    address.hidden = true;
+    await Firebase().updateAddress(address);
+    if (_canEmit) {
+      await reloadList();
+    }
   }
 }

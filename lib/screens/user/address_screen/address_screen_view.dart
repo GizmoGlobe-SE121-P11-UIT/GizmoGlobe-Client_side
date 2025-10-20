@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/user/address_screen/address_screen_state.dart';
@@ -10,6 +11,7 @@ import '../../../widgets/general/gradient_icon_button.dart';
 import '../add_address_screen/add_address_screen_view.dart';
 import '../edit_address_screen/edit_address_screen_view.dart';
 import 'address_screen_cubit.dart';
+import 'address_screen_webview.dart';
 
 class AddressScreen extends StatefulWidget {
   const AddressScreen({super.key});
@@ -34,6 +36,12 @@ class _AddressScreen extends State<AddressScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // For web, use the webview component directly
+    if (kIsWeb) {
+      return AddressScreenWebView.withCubit(cubit);
+    }
+
+    // For mobile, use the original layout
     return Scaffold(
       appBar: AppBar(
         leading: GradientIconButton(
@@ -88,7 +96,8 @@ class _AddressScreen extends State<AddressScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.3),
+                                        color:
+                                            Colors.black.withValues(alpha: 0.3),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),

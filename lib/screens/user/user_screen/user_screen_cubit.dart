@@ -103,11 +103,20 @@ class UserScreenCubit extends Cubit<UserScreenState> {
 
       final userId = await Database().getCurrentUserID();
       if (userId != null) {
-        await FirebaseFirestore.instance
-            .collection('customers')
-            .doc(userId)
-            .update({'customerName': newName});
+        // Update both customers and users collections
+        final batch = _firestore.batch();
 
+        // Update customers collection
+        batch.update(_firestore.collection('customers').doc(userId), {
+          'customerName': newName,
+        });
+
+        // Update users collection
+        batch.update(_firestore.collection('users').doc(userId), {
+          'username': newName,
+        });
+
+        await batch.commit();
         emit(state.copyWith(username: newName));
       }
     }

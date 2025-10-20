@@ -347,7 +347,7 @@ class _WebHeaderState extends State<WebHeader> {
         onTap: () {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          // TODO: Navigate to voucher screen for future development
+          Navigator.pushNamed(context, '/vouchers');
         },
       ),
       _buildMenuItem(
@@ -378,24 +378,33 @@ class _WebHeaderState extends State<WebHeader> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
-       
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .primary
-                  .withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.person,
-              color: Theme.of(context).colorScheme.primary,
-              size: 20,
-            ),
+          FutureBuilder<Map<String, dynamic>?>(
+            future: _getCurrentUserInfo(),
+            builder: (context, snapshot) {
+              final avatarUrl = snapshot.data?['avatarUrl'] as String?;
+              return Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.1),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: (avatarUrl != null && avatarUrl.isNotEmpty)
+                    ? Image.network(avatarUrl, fit: BoxFit.cover)
+                    : Icon(
+                        Icons.person,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 22,
+                      ),
+              );
+            },
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -435,14 +444,14 @@ class _WebHeaderState extends State<WebHeader> {
                         ],
                       );
                     }
-                    
+
                     final userInfo = snapshot.data;
-                    final displayName = userInfo?['displayName'] ?? 
-                                      userInfo?['username'] ?? 
-                                      userInfo?['email']?.split('@')[0] ?? 
-                                      'User';
+                    final displayName = userInfo?['displayName'] ??
+                        userInfo?['username'] ??
+                        userInfo?['email']?.split('@')[0] ??
+                        'User';
                     final email = userInfo?['email'] ?? '';
-                    
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -493,24 +502,26 @@ class _WebHeaderState extends State<WebHeader> {
             .collection('users')
             .doc(currentUser.uid)
             .get();
-        
+
         if (userDoc.exists) {
           final userData = userDoc.data() as Map<String, dynamic>;
           return {
             'displayName': userData['displayName'] ?? userData['username'],
             'username': userData['username'],
             'email': currentUser.email,
+            'avatarUrl': userData['avatarUrl'] ?? currentUser.photoURL,
           };
         }
-        
+
         // Fallback to Firebase Auth user info
         return {
           'displayName': currentUser.displayName,
           'username': currentUser.displayName,
           'email': currentUser.email,
+          'avatarUrl': currentUser.photoURL,
         };
       }
-      
+
       // Check if user is a guest user
       final isGuest = await _webGuestService.isCurrentUserGuest();
       if (isGuest) {
@@ -520,6 +531,7 @@ class _WebHeaderState extends State<WebHeader> {
             'displayName': guestData['displayName'] ?? guestData['username'],
             'username': guestData['username'],
             'email': guestData['email'],
+            'avatarUrl': guestData['avatarUrl'],
           };
         }
       }

@@ -10,6 +10,7 @@ class VoucherScreenCubit extends Cubit<VoucherScreenState> {
   VoucherScreenCubit() : super(const VoucherScreenState());
 
   void toLoading() {
+    if (isClosed) return;
     emit(state.copyWith(processState: ProcessState.loading));
   }
 
@@ -24,6 +25,7 @@ class VoucherScreenCubit extends Cubit<VoucherScreenState> {
       final upcomingVouchers = Database().getUpcomingVouchers();
 
       // Update state with voucher lists from Database
+      if (isClosed) return;
       emit(state.copyWith(
         voucherList: userVouchers,
         ongoingList: ongoingVouchers,
@@ -34,6 +36,7 @@ class VoucherScreenCubit extends Cubit<VoucherScreenState> {
       if (kDebugMode) {
         print('Error initializing vouchers: $e');
       }
+      if (isClosed) return;
       emit(state.copyWith(
         processState: ProcessState.failure,
         dialogName: DialogName.failure,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_cubit.dart';
@@ -71,12 +72,14 @@ class _ProductScreenState extends State<ProductScreen>
   }
 
   void _listen() async {
-    // Request microphone permission
-    var status = await Permission.microphone.request();
-    if (!status.isGranted) {
-      setState(() => _isListening = false);
-      // Optionally show a dialog/toast to the user
-      return;
+    // Request microphone permission (only on mobile platforms)
+    if (!kIsWeb) {
+      var status = await Permission.microphone.request();
+      if (!status.isGranted) {
+        setState(() => _isListening = false);
+        // Optionally show a dialog/toast to the user
+        return;
+      }
     }
 
     if (!_isListening) {

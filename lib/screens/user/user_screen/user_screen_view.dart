@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
@@ -18,6 +19,7 @@ import '../address_screen/address_screen_view.dart';
 import '../order_screen/order_screen_view.dart';
 import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
+import 'user_screen_webview.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -33,7 +35,6 @@ class UserScreen extends StatefulWidget {
 
 class _UserScreen extends State<UserScreen> {
   UserScreenCubit get cubit => context.read<UserScreenCubit>();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -517,6 +518,12 @@ class _UserScreen extends State<UserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // For web, use the webview component directly
+    if (kIsWeb) {
+      return UserScreenWebView.withCubit(cubit);
+    }
+
+    // For mobile, use the original layout
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(

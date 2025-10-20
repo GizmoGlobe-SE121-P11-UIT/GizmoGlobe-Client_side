@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/functions/converter.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/limited_interface.dart';
@@ -7,6 +8,7 @@ import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_de
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:intl/intl.dart';
+import 'voucher_detail_webview.dart';
 
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../generated/l10n.dart';
@@ -34,6 +36,19 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final voucher = widget.voucher;
+
+    // For web, show as a modal dialog and pop this route afterwards
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await showVoucherDetailModal(context, voucher);
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      });
+      return const Scaffold(body: SizedBox.shrink());
+    }
+
+    // For mobile, use the original layout
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -155,7 +170,8 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
     );
   }
 
-  Widget _buildMultiTextField(BuildContext context, String label, String value) {
+  Widget _buildMultiTextField(
+      BuildContext context, String label, String value) {
     final controller = TextEditingController(text: value);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

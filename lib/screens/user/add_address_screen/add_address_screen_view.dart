@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
@@ -9,6 +10,7 @@ import '../../../widgets/general/gradient_icon_button.dart';
 import 'add_address_screen_cubit.dart';
 import '../../../widgets/general/address_picker.dart';
 import '../../../generated/l10n.dart';
+import 'add_address_modal_webview.dart';
 
 class AddAddressScreen extends StatefulWidget {
   const AddAddressScreen({super.key});
@@ -227,4 +229,16 @@ class _AddAddressScreen extends State<AddAddressScreen> {
       ),
     );
   }
+}
+
+/// Open Add Address flow with platform-aware behavior.
+/// - On Web: opens a modal dialog and returns the selected [Address].
+/// - On Mobile/Desktop: navigates to full screen and returns the selected [Address].
+Future<Address?> openAddAddressFlow(BuildContext context) async {
+  if (kIsWeb) {
+    return await showAddAddressModal(context);
+  }
+  return await Navigator.of(context).push<Address>(
+    MaterialPageRoute(builder: (_) => AddAddressScreen.newInstance()),
+  );
 }

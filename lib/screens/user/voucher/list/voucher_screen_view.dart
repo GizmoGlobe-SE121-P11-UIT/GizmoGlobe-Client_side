@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_state.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_view.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
+import 'voucher_screen_webview.dart';
 
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../objects/voucher_related/voucher.dart';
@@ -19,6 +21,10 @@ class VoucherScreen extends StatefulWidget {
         create: (context) => VoucherScreenCubit(),
         child: const VoucherScreen(),
       );
+
+  static Route<dynamic> route() {
+    return MaterialPageRoute(builder: (_) => VoucherScreen.newInstance());
+  }
 
   @override
   State<VoucherScreen> createState() => _VoucherScreenState();
@@ -45,6 +51,12 @@ class _VoucherScreenState extends State<VoucherScreen>
 
   @override
   Widget build(BuildContext context) {
+    // For web, use the webview component directly
+    if (kIsWeb) {
+      return VoucherScreenWebView.withCubit(cubit);
+    }
+
+    // For mobile, use the original layout
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();

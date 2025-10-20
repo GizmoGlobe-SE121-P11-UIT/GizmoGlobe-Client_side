@@ -568,6 +568,15 @@ class SVI extends S {
   String get deleteAddressConfirmation =>
       'Bạn có chắc chắn muốn xóa địa chỉ này không?';
 
+  @override
+  String get addYourFirstAddress => 'Thêm địa chỉ đầu tiên của bạn';
+
+  @override
+  String get edit => 'Chỉnh sửa';
+
+  @override
+  String get delete => 'Xóa';
+
   // Các getter không có trong lớp cha S
   String get home => 'Trang chủ';
   String get products => 'Sản phẩm';
@@ -577,6 +586,7 @@ class SVI extends S {
   String get newArrivals => 'Sản phẩm mới';
   String get viewAll => 'Xem tất cả';
   String get productDetails => 'Chi tiết sản phẩm';
+  @override
   String get description => 'Mô tả';
   String get specifications => 'Thông số kỹ thuật';
   String get reviews => 'Đánh giá';
@@ -1029,11 +1039,36 @@ class SVI extends S {
 
   // User menu
   @override
-  String get accountInfo => 'Thông Tin Tài Khoản';
+  String get accountInfo => 'Thông tin tài khoản';
 
   @override
-  String get signOut => 'Đăng Xuất';
-  
+  String get signOut => 'Đăng xuất';
+
+  // User Profile Screen
+  @override
+  String get profilePicture => 'Ảnh đại diện';
+
+  @override
+  String get changeAvatar => 'Thay đổi ảnh đại diện';
+
+  @override
+  String get upload => 'Tải lên';
+
+  @override
+  String get username => 'Tên người dùng';
+
+  @override
+  String get emailCannotBeChanged => 'Email không thể thay đổi';
+
+  @override
+  String get sendPasswordResetEmail => 'Gửi email đặt lại mật khẩu';
+
+  @override
+  String get tapAvatarToChange => 'Nhấn vào ảnh đại diện để thay đổi';
+
+  @override
+  String get imageFormatHint => 'JPG, PNG hoặc GIF (Tối đa 5MB)';
+
   // Order screen
   @override
   String get yourOrdersWillAppearHere => 'Đơn hàng của bạn sẽ xuất hiện ở đây';

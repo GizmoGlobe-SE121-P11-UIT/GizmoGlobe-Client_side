@@ -194,6 +194,11 @@ class S {
   String get deleteAddressConfirmation =>
       Intl.message('Are you sure you want to delete this address?',
           name: 'deleteAddressConfirmation');
+  String get addYourFirstAddress =>
+      Intl.message('Add your first address to get started',
+          name: 'addYourFirstAddress');
+  String get edit => Intl.message('Edit', name: 'edit');
+  String get delete => Intl.message('Delete', name: 'delete');
   String get receiverNameRequired =>
       Intl.message('Receiver name is required', name: 'receiverNameRequired');
   String get receiverPhoneRequired =>
@@ -674,12 +679,30 @@ class S {
 
   // User menu
   String get accountInfo =>
-      Intl.message('Account Information', name: 'accountInfo');
+      Intl.message('Account information', name: 'accountInfo');
   String get signOut => Intl.message('Sign Out', name: 'signOut');
-  
+
+  // User Profile Screen
+  String get profilePicture =>
+      Intl.message('Profile Picture', name: 'profilePicture');
+  String get changeAvatar =>
+      Intl.message('Change Avatar', name: 'changeAvatar');
+  String get upload => Intl.message('Upload', name: 'upload');
+  String get username => Intl.message('Username', name: 'username');
+  String get emailCannotBeChanged =>
+      Intl.message('Email cannot be changed', name: 'emailCannotBeChanged');
+  String get sendPasswordResetEmail =>
+      Intl.message('Send Password Reset Email', name: 'sendPasswordResetEmail');
+  String get tapAvatarToChange =>
+      Intl.message('Tap the avatar to change your profile picture',
+          name: 'tapAvatarToChange');
+  String get imageFormatHint =>
+      Intl.message('JPG, PNG or GIF (Max 5MB)', name: 'imageFormatHint');
+
   // Order screen
   String get yourOrdersWillAppearHere =>
-      Intl.message('Your orders will appear here', name: 'yourOrdersWillAppearHere');
+      Intl.message('Your orders will appear here',
+          name: 'yourOrdersWillAppearHere');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -14,6 +14,7 @@ import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_
 import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/user_screen/user_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_view.dart';
+import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_view.dart';
 import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
@@ -28,9 +29,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/chat/floating_chat.dart';
-
-// Web-specific imports
-import 'dart:html' as html show window;
 
 class NoTransitionsBuilder extends PageTransitionsBuilder {
   const NoTransitionsBuilder();
@@ -48,8 +46,7 @@ class NoTransitionsBuilder extends PageTransitionsBuilder {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  
+
   await dotenv.load(fileName: ".env");
   await _setup();
   try {
@@ -122,7 +119,7 @@ class MyApp extends StatelessWidget {
             create: (context) => MainScreenCubit(),
             child: CartProvider(
               child: MaterialApp(
-                  navigatorKey: _rootNavigatorKey,
+                navigatorKey: _rootNavigatorKey,
                 title: 'GizmoGlobe',
                 themeMode: themeProvider.themeMode,
                 locale: languageProvider.currentLocale,
@@ -157,8 +154,7 @@ class MyApp extends StatelessWidget {
                     print(
                         'Current locale in builder: ${Localizations.localeOf(context)}');
                   }
-                  
-                  
+
                   Widget wrapped = Localizations.override(
                     context: context,
                     locale: languageProvider.currentLocale,
@@ -292,6 +288,8 @@ class MyApp extends StatelessWidget {
                   '/products': (context) => ProductScreen.newInstance(),
                   '/cart': (context) => CartScreen.newInstance(),
                   '/user': (context) => UserScreen.newInstance(),
+                  '/user-settings': (context) => UserScreen.newInstance(),
+                  '/vouchers': (context) => VoucherScreen.newInstance(),
                 },
                 onGenerateRoute: (settings) {
                   // Clean the route name to remove any hash fragments
@@ -299,13 +297,29 @@ class MyApp extends StatelessWidget {
                   if (cleanRouteName.contains('#')) {
                     cleanRouteName = cleanRouteName.split('#')[0];
                   }
-                  
-                  if (cleanRouteName == '/orders' || cleanRouteName.startsWith('/orders?')) {
+
+                  // User sub routes for web navigation
+                  if (cleanRouteName == '/user/personal-information' ||
+                      cleanRouteName == '/user/addresses') {
+                    return PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          UserScreen.newInstance(),
+                      settings: RouteSettings(name: cleanRouteName),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 150),
+                    );
+                  }
+
+                  if (cleanRouteName == '/orders' ||
+                      cleanRouteName.startsWith('/orders?')) {
                     // Parse query parameters to determine initial tab
                     final uri = Uri.parse(cleanRouteName);
                     final tabParam = uri.queryParameters['tab'];
                     OrderOption initialTab = OrderOption.toShip;
-                    
+
                     switch (tabParam) {
                       case 'to-ship':
                         initialTab = OrderOption.toShip;
@@ -319,11 +333,13 @@ class MyApp extends StatelessWidget {
                       default:
                         initialTab = OrderOption.toShip;
                     }
-                    
+
                     return PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) => OrderScreen.newInstance(orderOption: initialTab),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          OrderScreen.newInstance(orderOption: initialTab),
                       settings: RouteSettings(name: cleanRouteName),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 300),

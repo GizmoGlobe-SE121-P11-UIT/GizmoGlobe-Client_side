@@ -6,7 +6,6 @@ import 'package:gizmoglobe_client/components/general/web_header.dart';
 import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.dart';
-import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_view.dart';
 import 'package:gizmoglobe_client/widgets/order/sales_invoice_widget.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import 'dart:html' as html show window;
@@ -38,7 +37,7 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
       vsync: this,
       initialIndex: widget.initialTab?.index ?? OrderOption.toShip.index,
     );
-    
+
     // Initialize with the selected tab
     final initialOption = widget.initialTab ?? OrderOption.toShip;
     cubit.initialize(initialOption);
@@ -78,21 +77,26 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
                   Center(
                     child: Text(
                       S.of(context).orders,
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                     ),
                   ),
                   const SizedBox(height: 32),
-                  
-                  // Tab Bar - full width with dividers
-                  Container(
+
+                  // Tab Bar - fixed height to prevent label clipping
+                  SizedBox(
                     width: double.infinity,
+                    height: 56,
                     child: TabBar(
                       controller: _tabController,
                       labelColor: Theme.of(context).colorScheme.primary,
-                      unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      unselectedLabelColor: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
                       indicatorColor: Theme.of(context).colorScheme.primary,
                       indicatorWeight: 3,
                       labelPadding: EdgeInsets.zero,
@@ -119,19 +123,20 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
                           html.window.location.href = '#$newUrl';
                         }
                       },
-                      tabs: OrderOption.values.map((option) => Tab(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Text(
-                            _getTabTitle(context, option),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      )).toList(),
+                      tabs: OrderOption.values
+                          .map((option) => Tab(
+                                child: Center(
+                                  child: Text(
+                                    _getTabTitle(context, option),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ))
+                          .toList(),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Tab Content
                   Expanded(
                     child: BlocConsumer<OrderScreenCubit, OrderScreenState>(
@@ -140,18 +145,21 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
-                              backgroundColor: Theme.of(context).colorScheme.surface,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.surface,
                               title: Text(
                                 S.of(context).orderConfirmed,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               content: Text(
                                 S.of(context).deliveryConfirmed,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                               actions: [
@@ -161,7 +169,8 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => OrderScreenWebView.newInstance(
+                                        builder: (context) =>
+                                            OrderScreenWebView.newInstance(
                                           initialTab: OrderOption.completed,
                                         ),
                                       ),
@@ -221,22 +230,26 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
             Icon(
               Icons.shopping_bag_outlined,
               size: 64,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               emptyMessage,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8),
             Text(
               S.of(context).yourOrdersWillAppearHere,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                  ),
             ),
           ],
         ),
@@ -253,7 +266,8 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
           child: SalesInvoiceWidget(
             salesInvoice: salesInvoice,
             onPressed: () async {
-              if (enableConfirmDelivery && salesInvoice.salesStatus?.toString() == 'shipped') {
+              if (enableConfirmDelivery &&
+                  salesInvoice.salesStatus?.toString() == 'shipped') {
                 await cubit.confirmDelivery(salesInvoice);
               }
             },
