@@ -22,6 +22,7 @@ abstract class Product {
 
   String? enDescription;
   String? viDescription;
+  double priorityScore = 0.0;
 
   Product({
     this.productID,

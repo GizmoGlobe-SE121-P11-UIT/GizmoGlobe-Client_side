@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
+import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
 import 'home_screen_state.dart';
 
@@ -56,6 +57,11 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
       }
       // print('Lỗi khi cập nhật danh sách sản phẩm yêu thích: $e');
     }
+  }
+
+  void updateRecommendedProducts() {
+    List<Product> recommendedProducts = [];
+
   }
 
   void changeSearchText(String? searchText) {

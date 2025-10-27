@@ -1,13 +1,12 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=/Users/terry/Flutter/flutter"
-export "FLUTTER_APPLICATION_PATH=/Users/terry/Works/SE121.P11-GizmoGlobe-Client_side"
+export "FLUTTER_ROOT=C:\Users\Admin\dev\flutter"
+export "FLUTTER_APPLICATION_PATH=C:\Users\Admin\Documents\GitHub\SE121.P11-GizmoGlobe-Client_side"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
-export "FLUTTER_TARGET=lib/main.dart"
+export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=1.0.0"
 export "FLUTTER_BUILD_NUMBER=1"
-export "FLUTTER_CLI_BUILD_MODE=debug"
 export "DART_OBFUSCATION=false"
 export "TRACK_WIDGET_CREATION=true"
 export "TREE_SHAKE_ICONS=false"

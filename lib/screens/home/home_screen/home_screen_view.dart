@@ -139,6 +139,15 @@ class _HomeScreen extends State<HomeScreen> {
                                 Navigator.pushNamed(context, '/products');
                               },
                             ),
+                            const SizedBox(height: 16),
+                            _buildCarousel(
+                              context,
+                              title: "Recommended for You",
+                              products: state.favoriteProducts,
+                              onSeeAll: () {
+                                Navigator.pushNamed(context, '/products');
+                              },
+                            ),
                           ],
                         );
                       },
