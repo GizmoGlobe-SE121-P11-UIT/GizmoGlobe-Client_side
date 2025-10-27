@@ -143,7 +143,7 @@ class _HomeScreen extends State<HomeScreen> {
                             _buildCarousel(
                               context,
                               title: "Recommended for You",
-                              products: state.favoriteProducts,
+                              products: state.recommendedProducts,
                               onSeeAll: () {
                                 Navigator.pushNamed(context, '/products');
                               },
@@ -166,7 +166,9 @@ class _HomeScreen extends State<HomeScreen> {
       {required String title,
       required List<Product> products,
       required VoidCallback onSeeAll}) {
-    return Column(
+    return products.isEmpty 
+        ? Container()
+        : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(

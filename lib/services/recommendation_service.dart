@@ -20,7 +20,7 @@ class RecommendationService {
 
   /// This is the main function you will call from your app's UI
   /// It finds a ranked list of compatible products for a given slot.
-  List<Product> getCompatibleParts(
+  List<Product> getRecommendedProducts(
       Product product,
       {int topN = 10}
   ) {
