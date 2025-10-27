@@ -1,184 +1,165 @@
+import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
-import 'package:gizmoglobe_client/enums/product_related/gpu_enums/gpu_bus.dart';
 import 'package:gizmoglobe_client/enums/product_related/psu_enums/psu_efficiency.dart';
 import 'package:gizmoglobe_client/enums/product_related/psu_enums/psu_modular.dart';
-import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_bus.dart';
-import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_capacity_enum.dart';
 import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_type.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
-import '../../../enums/product_related/cpu_enums/cpu_family.dart';
-import '../../../enums/product_related/drive_enums/drive_capacity.dart';
 import '../../../enums/product_related/drive_enums/drive_type.dart';
-import '../../../enums/product_related/gpu_enums/gpu_capacity.dart';
 import '../../../enums/product_related/gpu_enums/gpu_series.dart';
-import '../../../enums/product_related/mainboard_enums/mainboard_compatibility.dart';
 import '../../../enums/product_related/mainboard_enums/mainboard_form_factor.dart';
-import '../../../enums/product_related/mainboard_enums/mainboard_series.dart';
-import '../../data/database/database.dart';
+import '../../enums/product_related/cpu_enums/cpu_series.dart';
+import '../../enums/product_related/cpu_enums/socket.dart';
+import '../../enums/product_related/drive_enums/drive_form_factor.dart';
+import '../../enums/product_related/drive_enums/drive_gen.dart';
+import '../../enums/product_related/drive_enums/interface_type.dart';
+import '../../enums/product_related/gpu_enums/gpu_version.dart';
 
 class FilterArgument {
   final List<Manufacturer> manufacturerList;
   final String minPrice;
   final String maxPrice;
 
-  final List<CategoryEnum> categoryList;
+  final List<CPUSeries> cpuSeries;
+  final List<Socket> sockets;
 
-  final List<RAMBus> ramBusList;
-  final List<RAMCapacity> ramCapacityList;
-  final List<RAMType> ramTypeList;
+  final List<MainboardFormFactor> mainboardFormFactor;
+  final String minM2Slots;
+  final String maxM2Slots;
+  final String minSataPorts;
+  final String maxSataPorts;
 
-  final List<CPUFamily> cpuFamilyList;
-  final String minCpuCore;
-  final String maxCpuCore;
-  final String minCpuThread;
-  final String maxCpuThread;
-  final String minCpuClockSpeed;
-  final String maxCpuClockSpeed;
+  final List<RAMType> ramType;
 
-  final List<PSUModular> psuModularList;
-  final List<PSUEfficiency> psuEfficiencyList;
-  final String minPsuWattage;
-  final String maxPsuWattage;
+  final List<GPUSeries> gpuSeries;
+  final List<GPUVersion> gpuVersion;
 
-  final List<GPUBus> gpuBusList;
-  final List<GPUCapacity> gpuCapacityList;
-  final List<GPUSeries> gpuSeriesList;
-  final String minGpuClockSpeed;
-  final String maxGpuClockSpeed;
+  final String minMemoryGb;
+  final String maxMemoryGb;
 
-  final List<DriveType> driveTypeList;
-  final List<DriveCapacity> driveCapacityList;
+  final String minClockSpeed;
+  final String maxClockSpeed;
+  final String minTdp;
+  final String maxTdp;
 
-  final List<MainboardFormFactor> mainboardFormFactorList;
-  final List<MainboardSeries> mainboardSeriesList;
-  final List<MainboardCompatibility> mainboardCompatibilityList;
+  final List<DriveFormFactor> driveFormFactor;
+  final List<DriveType> driveType;
+  final List<InterfaceType> interfaceType;
+  final List<DriveGen> gen;
+
+  final List<PSUEfficiency> psuEfficiency;
+  final List<PSUModular> psuModularity;
 
   const FilterArgument({
     this.manufacturerList = const [],
     this.minPrice = '',
     this.maxPrice = '',
-    this.categoryList = CategoryEnum.values,
-    this.ramBusList = RAMBus.values,
-    this.ramCapacityList = RAMCapacity.values,
-    this.ramTypeList = RAMType.values,
-    this.cpuFamilyList = CPUFamily.values,
-    this.minCpuCore = '',
-    this.maxCpuCore = '',
-    this.minCpuThread = '',
-    this.maxCpuThread = '',
-    this.minCpuClockSpeed = '',
-    this.maxCpuClockSpeed = '',
-    this.psuModularList = PSUModular.values,
-    this.psuEfficiencyList = PSUEfficiency.values,
-    this.minPsuWattage = '',
-    this.maxPsuWattage = '',
-    this.gpuBusList = GPUBus.values,
-    this.gpuCapacityList = GPUCapacity.values,
-    this.gpuSeriesList = GPUSeries.values,
-    this.minGpuClockSpeed = '',
-    this.maxGpuClockSpeed = '',
-    this.driveTypeList = DriveType.values,
-    this.driveCapacityList = DriveCapacity.values,
-    this.mainboardFormFactorList = MainboardFormFactor.values,
-    this.mainboardSeriesList = MainboardSeries.values,
-    this.mainboardCompatibilityList = MainboardCompatibility.values,
+    this.cpuSeries = const [],
+    this.sockets = const [],
+    this.mainboardFormFactor = const [],
+    this.minM2Slots = '',
+    this.maxM2Slots = '',
+    this.minSataPorts = '',
+    this.maxSataPorts = '',
+    this.ramType = const [],
+    this.gpuSeries = const [],
+    this.gpuVersion = const [],
+    this.minMemoryGb = '',
+    this.maxMemoryGb = '',
+    this.minClockSpeed = '',
+    this.maxClockSpeed = '',
+    this.minTdp = '',
+    this.maxTdp = '',
+    this.driveFormFactor = const [],
+    this.driveType = const [],
+    this.interfaceType = const [],
+    this.gen = const [],
+    this.psuEfficiency = const [],
+    this.psuModularity = const [],
   });
 
   FilterArgument copyWith({
     List<Manufacturer>? manufacturerList,
-    String? minStock,
-    String? maxStock,
-    List<CategoryEnum>? categoryList,
-    List<RAMBus>? ramBusList,
-    List<RAMCapacity>? ramCapacityList,
-    List<RAMType>? ramTypeList,
-    List<CPUFamily>? cpuFamilyList,
-    String? minCpuCore,
-    String? maxCpuCore,
-    String? minCpuThread,
-    String? maxCpuThread,
-    String? minCpuClockSpeed,
-    String? maxCpuClockSpeed,
-    List<PSUModular>? psuModularList,
-    List<PSUEfficiency>? psuEfficiencyList,
-    String? minPsuWattage,
-    String? maxPsuWattage,
-    List<GPUBus>? gpuBusList,
-    List<GPUCapacity>? gpuCapacityList,
-    List<GPUSeries>? gpuSeriesList,
-    String? minGpuClockSpeed,
-    String? maxGpuClockSpeed,
-    List<DriveType>? driveTypeList,
-    List<DriveCapacity>? driveCapacityList,
-    List<MainboardFormFactor>? mainboardFormFactorList,
-    List<MainboardSeries>? mainboardSeriesList,
-    List<MainboardCompatibility>? mainboardCompatibilityList,
+    String? minPrice,
+    String? maxPrice,
+    List<CPUSeries>? cpuSeries,
+    List<Socket>? sockets,
+    List<MainboardFormFactor>? mainboardFormFactor,
+    String? minM2Slots,
+    String? maxM2Slots,
+    String? minSataPorts,
+    String? maxSataPorts,
+    List<RAMType>? ramType,
+    List<GPUSeries>? gpuSeries,
+    List<GPUVersion>? gpuVersion,
+    String? minMemoryGb,
+    String? maxMemoryGb,
+    String? minClockSpeed,
+    String? maxClockSpeed,
+    String? minTdp,
+    String? maxTdp,
+    List<DriveFormFactor>? driveFormFactor,
+    List<DriveType>? driveType,
+    List<InterfaceType>? interfaceType,
+    List<DriveGen>? gen,
+    List<PSUEfficiency>? psuEfficiency,
+    List<PSUModular>? psuModularity,
   }) {
     return FilterArgument(
       manufacturerList: manufacturerList ?? this.manufacturerList,
-      minPrice: minStock ?? minPrice,
-      maxPrice: maxStock ?? maxPrice,
-      categoryList: categoryList ?? this.categoryList,
-      ramBusList: ramBusList ?? this.ramBusList,
-      ramCapacityList: ramCapacityList ?? this.ramCapacityList,
-      ramTypeList: ramTypeList ?? this.ramTypeList,
-      cpuFamilyList: cpuFamilyList ?? this.cpuFamilyList,
-      minCpuCore: minCpuCore ?? this.minCpuCore,
-      maxCpuCore: maxCpuCore ?? this.maxCpuCore,
-      minCpuThread: minCpuThread ?? this.minCpuThread,
-      maxCpuThread: maxCpuThread ?? this.maxCpuThread,
-      minCpuClockSpeed: minCpuClockSpeed ?? this.minCpuClockSpeed,
-      maxCpuClockSpeed: maxCpuClockSpeed ?? this.maxCpuClockSpeed,
-      psuModularList: psuModularList ?? this.psuModularList,
-      psuEfficiencyList: psuEfficiencyList ?? this.psuEfficiencyList,
-      minPsuWattage: minPsuWattage ?? this.minPsuWattage,
-      maxPsuWattage: maxPsuWattage ?? this.maxPsuWattage,
-      gpuBusList: gpuBusList ?? this.gpuBusList,
-      gpuCapacityList: gpuCapacityList ?? this.gpuCapacityList,
-      gpuSeriesList: gpuSeriesList ?? this.gpuSeriesList,
-      minGpuClockSpeed: minGpuClockSpeed ?? this.minGpuClockSpeed,
-      maxGpuClockSpeed: maxGpuClockSpeed ?? this.maxGpuClockSpeed,
-      driveTypeList: driveTypeList ?? this.driveTypeList,
-      driveCapacityList: driveCapacityList ?? this.driveCapacityList,
-      mainboardFormFactorList: mainboardFormFactorList ?? this.mainboardFormFactorList,
-      mainboardSeriesList: mainboardSeriesList ?? this.mainboardSeriesList,
-      mainboardCompatibilityList: mainboardCompatibilityList ?? this.mainboardCompatibilityList,
+      minPrice: minPrice ?? this.minPrice,
+      maxPrice: maxPrice ?? this.maxPrice,
+      cpuSeries: cpuSeries ?? this.cpuSeries,
+      sockets: sockets ?? this.sockets,
+      mainboardFormFactor: mainboardFormFactor ?? this.mainboardFormFactor,
+      minM2Slots: minM2Slots ?? this.minM2Slots,
+      maxM2Slots: maxM2Slots ?? this.maxM2Slots,
+      minSataPorts: minSataPorts ?? this.minSataPorts,
+      maxSataPorts: maxSataPorts ?? this.maxSataPorts,
+      ramType: ramType ?? this.ramType,
+      gpuSeries: gpuSeries ?? this.gpuSeries,
+      gpuVersion: gpuVersion ?? this.gpuVersion,
+      minMemoryGb: minMemoryGb ?? this.minMemoryGb,
+      maxMemoryGb: maxMemoryGb ?? this.maxMemoryGb,
+      minClockSpeed: minClockSpeed ?? this.minClockSpeed,
+      maxClockSpeed: maxClockSpeed ?? this.maxClockSpeed,
+      minTdp: minTdp ?? this.minTdp,
+      maxTdp: maxTdp ?? this.maxTdp,
+      driveFormFactor: driveFormFactor ?? this.driveFormFactor,
+      driveType: driveType ?? this.driveType,
+      interfaceType: interfaceType ?? this.interfaceType,
+      gen: gen ?? this.gen,
+      psuEfficiency: psuEfficiency ?? this.psuEfficiency,
+      psuModularity: psuModularity ?? this.psuModularity,
     );
   }
 
-  FilterArgument copy({FilterArgument? filter}) {
+  FilterArgument copy({required FilterArgument filter}) {
     return FilterArgument(
-      manufacturerList: filter?.manufacturerList ?? Database().manufacturerList,
-      minPrice: filter?.minPrice ?? minPrice,
-      maxPrice: filter?.maxPrice ?? maxPrice,
-      categoryList: filter?.categoryList ?? categoryList,
-      ramBusList: filter?.ramBusList ?? ramBusList,
-      ramCapacityList: filter?.ramCapacityList ?? ramCapacityList,
-      ramTypeList: filter?.ramTypeList ?? ramTypeList,
-      cpuFamilyList: filter?.cpuFamilyList ?? cpuFamilyList,
-      minCpuCore: filter?.minCpuCore ?? minCpuCore,
-      maxCpuCore: filter?.maxCpuCore ?? maxCpuCore,
-      minCpuThread: filter?.minCpuThread ?? minCpuThread,
-      maxCpuThread: filter?.maxCpuThread ?? maxCpuThread,
-      minCpuClockSpeed: filter?.minCpuClockSpeed ?? minCpuClockSpeed,
-      maxCpuClockSpeed: filter?.maxCpuClockSpeed ?? maxCpuClockSpeed,
-      psuModularList: filter?.psuModularList ?? psuModularList,
-      psuEfficiencyList: filter?.psuEfficiencyList ?? psuEfficiencyList,
-      minPsuWattage: filter?.minPsuWattage ?? minPsuWattage,
-      maxPsuWattage: filter?.maxPsuWattage ?? maxPsuWattage,
-      gpuBusList: filter?.gpuBusList ?? gpuBusList,
-      gpuCapacityList: filter?.gpuCapacityList ?? gpuCapacityList,
-      gpuSeriesList: filter?.gpuSeriesList ?? gpuSeriesList,
-      minGpuClockSpeed: filter?.minGpuClockSpeed ?? minGpuClockSpeed,
-      maxGpuClockSpeed: filter?.maxGpuClockSpeed ?? maxGpuClockSpeed,
-      driveTypeList: filter?.driveTypeList ?? driveTypeList,
-      driveCapacityList: filter?.driveCapacityList ?? driveCapacityList,
-      mainboardFormFactorList: filter?.mainboardFormFactorList ??
-          mainboardFormFactorList,
-      mainboardSeriesList: filter?.mainboardSeriesList ??
-          mainboardSeriesList,
-      mainboardCompatibilityList: filter?.mainboardCompatibilityList ??
-          mainboardCompatibilityList,
+      manufacturerList: filter.manufacturerList,
+      minPrice: filter.minPrice,
+      maxPrice: filter.maxPrice,
+      cpuSeries: filter.cpuSeries,
+      sockets: filter.sockets,
+      mainboardFormFactor: filter.mainboardFormFactor,
+      minM2Slots: filter.minM2Slots,
+      maxM2Slots: filter.maxM2Slots,
+      minSataPorts: filter.minSataPorts,
+      maxSataPorts: filter.maxSataPorts,
+      ramType: filter.ramType,
+      gpuSeries: filter.gpuSeries,
+      gpuVersion: filter.gpuVersion,
+      minMemoryGb: filter.minMemoryGb,
+      maxMemoryGb: filter.maxMemoryGb,
+      minClockSpeed: filter.minClockSpeed,
+      maxClockSpeed: filter.maxClockSpeed,
+      minTdp: filter.minTdp,
+      maxTdp: filter.maxTdp,
+      driveFormFactor: filter.driveFormFactor,
+      driveType: filter.driveType,
+      interfaceType: filter.interfaceType,
+      gen: filter.gen,
+      psuEfficiency: filter.psuEfficiency,
+      psuModularity: filter.psuModularity,
     );
   }
 }

@@ -11,6 +11,7 @@ import 'package:gizmoglobe_client/components/general/web_header.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
+import '../../../functions/helper.dart';
 import 'cart_screen_cubit.dart';
 import 'cart_screen_state.dart';
 
@@ -300,7 +301,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                       Row(
                         children: [
                           Text(
-                            '\$${originalPrice.toStringAsFixed(2)}',
+                            Helper.toCurrencyFormat(originalPrice),
                             style: TextStyle(
                               decoration: TextDecoration.lineThrough,
                               color: Theme.of(context)
@@ -334,7 +335,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                       const SizedBox(height: 4),
                     ],
                     Text(
-                      '\$${finalPrice.toStringAsFixed(2)}',
+                      Helper.toCurrencyFormat(finalPrice),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -343,7 +344,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Subtotal: \$${((item['subtotal'] as num?)?.toDouble() ?? 0).toStringAsFixed(2)}',
+                      'Subtotal: ${(Helper.toCurrencyFormat(item['subtotal'] as num))}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -553,7 +554,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                   ),
                 ),
                 Text(
-                  '\$${state.totalAmount.toStringAsFixed(2)}',
+                  Helper.toCurrencyFormat(state.totalAmount),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -579,7 +580,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                   ),
                   Text(
-                    '\$${state.totalBeforeDiscount.toStringAsFixed(2)}',
+                  Helper.toCurrencyFormat(state.totalBeforeDiscount),
                     style: TextStyle(
                       decoration: TextDecoration.lineThrough,
                       color: Theme.of(context)
@@ -604,7 +605,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                   ),
                   Text(
-                    '-\$${(state.totalBeforeDiscount - state.totalAmount).toStringAsFixed(2)}',
+                    '-${Helper.toCurrencyFormat(state.totalBeforeDiscount - state.totalAmount)}',
                     style: TextStyle(
                       color: Colors.green[700],
                       fontSize: 16,
@@ -659,7 +660,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                   ),
                 ),
                 Text(
-                  '\$${state.totalAmount.toStringAsFixed(2)}',
+                  Helper.toCurrencyFormat(state.totalAmount),
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -808,6 +809,8 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
+      default:
+        return Icons.devices_other;
     }
   }
 }

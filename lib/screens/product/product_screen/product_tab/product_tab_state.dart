@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
+import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 
 import '../../../../enums/processing/sort_enum.dart';
@@ -12,6 +13,7 @@ class TabState extends Equatable{
   final ProcessState processState;
   final SortEnum selectedSortOption;
   final FilterArgument filterArgument;
+  final CategoryEnum activeCategory;
   final Product? selectedProduct;
   final List<Manufacturer> manufacturerList;
   final List<Product> filteredProductList;
@@ -23,6 +25,7 @@ class TabState extends Equatable{
     this.selectedSortOption = SortEnum.releaseLatest,
     this.selectedProduct,
     this.filterArgument = const FilterArgument(),
+    this.activeCategory = CategoryEnum.empty,
     this.processState = ProcessState.idle,
     this.filteredProductList = const [],
   });
@@ -35,6 +38,7 @@ class TabState extends Equatable{
     selectedSortOption,
     selectedProduct,
     filterArgument,
+    activeCategory,
     processState,
     filteredProductList,
   ];
@@ -45,6 +49,7 @@ class TabState extends Equatable{
     SortEnum? selectedSortOption,
     Product? selectedProduct,
     FilterArgument? filterArgument,
+    CategoryEnum? activeCategory,
     ProcessState? processState,
     List<Manufacturer>? manufacturerList,
     List<Product>? filteredProductList,
@@ -55,6 +60,7 @@ class TabState extends Equatable{
       selectedSortOption: selectedSortOption ?? this.selectedSortOption,
       selectedProduct: selectedProduct,
       filterArgument: filterArgument ?? this.filterArgument,
+      activeCategory: activeCategory ?? this.activeCategory,
       processState: processState ?? this.processState,
       manufacturerList: manufacturerList ?? this.manufacturerList,
       filteredProductList: filteredProductList ?? this.filteredProductList,

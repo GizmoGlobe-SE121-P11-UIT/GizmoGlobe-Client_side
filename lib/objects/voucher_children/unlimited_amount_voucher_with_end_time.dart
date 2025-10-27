@@ -80,13 +80,13 @@ class UnlimitedAmountVoucherWithEndTime
         const SizedBox(height: 4),
 
         Text(
-          'Discount \$$discountValue',
+          'Discount ${(discountValue)}',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
 
         Text(
-          'Minimum purchase: \$$minimumPurchase',
+          'Minimum purchase: ${Helper.toCurrencyFormat(minimumPurchase)}',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),

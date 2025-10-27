@@ -10,6 +10,7 @@ import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_
 import 'package:gizmoglobe_client/components/general/web_header.dart';
 
 import '../../../../enums/processing/process_state_enum.dart';
+import '../../../../functions/helper.dart';
 import '../../../../objects/voucher_related/voucher.dart';
 import '../../../../widgets/dialog/information_dialog.dart';
 import 'voucher_screen_cubit.dart';
@@ -391,7 +392,7 @@ class _VoucherScreenWebViewState extends State<VoucherScreenWebView>
                     child: Text(
                       voucher.isPercentage
                           ? '${voucher.discountValue}%'
-                          : '\$${voucher.discountValue}',
+                          : Helper.toCurrencyFormat(voucher.discountValue),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.tertiary,
                         fontWeight: FontWeight.bold,
@@ -415,7 +416,7 @@ class _VoucherScreenWebViewState extends State<VoucherScreenWebView>
               const SizedBox(height: 8),
               // Minimum Purchase
               Text(
-                '${S.of(context).minimumPurchase}: \$${voucher.minimumPurchase.toStringAsFixed(2)}',
+                '${S.of(context).minimumPurchase}: ${Helper.toCurrencyFormat(voucher.minimumPurchase)}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context)
                           .colorScheme

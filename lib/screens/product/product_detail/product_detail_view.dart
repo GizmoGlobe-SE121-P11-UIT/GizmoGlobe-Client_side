@@ -7,14 +7,15 @@ import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
+import '../../../functions/helper.dart';
 import '../../../generated/l10n.dart';
-import '../../../objects/product_related/cpu.dart';
-import '../../../objects/product_related/drive.dart';
-import '../../../objects/product_related/gpu.dart';
-import '../../../objects/product_related/mainboard.dart';
+import '../../../objects/product_related/cpu_related/cpu.dart';
+import '../../../objects/product_related/drive_related/drive.dart';
+import '../../../objects/product_related/gpu_related/gpu.dart';
+import '../../../objects/product_related/mainboard_related/mainboard.dart';
 import '../../../objects/product_related/product.dart';
-import '../../../objects/product_related/psu.dart';
-import '../../../objects/product_related/ram.dart';
+import '../../../objects/product_related/psu_related/psu.dart';
+import '../../../objects/product_related/ram_related/ram.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/field_with_icon.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
@@ -248,7 +249,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       Row(
                                         children: [
                                           Text(
-                                            '\$${widget.product.price.toStringAsFixed(2)}',
+                                            Helper.toCurrencyFormat(widget.product.price),
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .titleMedium
@@ -269,7 +270,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                   BorderRadius.circular(4),
                                             ),
                                             child: Text(
-                                              '-${widget.product.discountPercentage.toStringAsFixed(0)}%',
+                                              '-${widget.product.discount.toStringAsFixed(0)}%',
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .labelSmall
@@ -284,7 +285,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       const SizedBox(height: 4),
                                     ],
                                     Text(
-                                      '\$${widget.product.discountedPrice.toStringAsFixed(2)}',
+                                      Helper.toCurrencyFormat(widget.product.discountedPrice),
                                       style: Theme.of(context)
                                           .textTheme
                                           .headlineMedium
@@ -298,7 +299,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                _buildSpecificationList(context),
+                                ..._buildProductSpecificDetails(context, state.product, state.technicalSpecs),
                                 const SizedBox(height: 24),
 
                                 // if (widget.product.getDescription(context) != null) ...[
@@ -407,7 +408,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      '\$${(widget.product.price * state.quantity).toStringAsFixed(2)}',
+                                      Helper.toCurrencyFormat(widget.product.price * state.quantity),
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
@@ -424,7 +425,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      '\$${(widget.product.discountedPrice * state.quantity).toStringAsFixed(2)}',
+                                      (Helper.toCurrencyFormat(widget.product.discountedPrice * state.quantity)),
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
@@ -484,278 +485,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildSpecificationList(BuildContext context) {
-    final specs = <Widget>[
-      Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Text(
-          S.of(context).productSpecifications,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-      ),
-      _buildSpecGroup(
-        S.of(context).basicInformation,
-        [
-          _buildSpecRow(context, S.of(context).manufacturer,
-              widget.product.manufacturer.manufacturerName)
-        ],
-      ),
-    ];
-
-    switch (widget.product.runtimeType) {
-      case const (RAM):
-        final ram = widget.product as RAM;
-        specs.add(_buildSpecGroup(
-          S.of(context).memorySpecifications,
-          [
-            _buildSpecRow(context, S.of(context).busSpeed, '${ram.bus}'),
-            _buildSpecRow(context, S.of(context).capacity, '${ram.capacity}'),
-            _buildSpecRow(
-                context, S.of(context).ramType, ram.ramType.toString()),
-          ],
-        ));
-        break;
-      case const (CPU):
-        final cpu = widget.product as CPU;
-        specs.add(_buildSpecGroup(
-          S.of(context).processorSpecifications,
-          [
-            _buildSpecRow(context, S.of(context).family, cpu.family.toString()),
-            _buildSpecRow(context, S.of(context).cores, '${cpu.core}'),
-            _buildSpecRow(context, S.of(context).threads, '${cpu.thread}'),
-            _buildSpecRow(
-                context, S.of(context).clockSpeed, '${cpu.clockSpeed} GHz'),
-          ],
-        ));
-        break;
-      case const (PSU):
-        final psu = widget.product as PSU;
-        specs.add(_buildSpecGroup(
-          S.of(context).powerSupplySpecifications,
-          [
-            _buildSpecRow(context, S.of(context).wattage, '${psu.wattage}W'),
-            _buildSpecRow(
-                context, S.of(context).efficiency, psu.efficiency.toString()),
-            _buildSpecRow(
-                context, S.of(context).modular, psu.modular.toString()),
-          ],
-        ));
-        break;
-      case const (GPU):
-        final gpu = widget.product as GPU;
-        specs.add(_buildSpecGroup(
-          S.of(context).graphicsCardSpecifications,
-          [
-            _buildSpecRow(context, S.of(context).series, gpu.series.toString()),
-            _buildSpecRow(
-                context, S.of(context).memory, gpu.capacity.toString()),
-            _buildSpecRow(context, S.of(context).busWidth, gpu.bus.toString()),
-            _buildSpecRow(context, S.of(context).clockSpeed,
-                '${gpu.clockSpeed.toString()}GHz'),
-          ],
-        ));
-        break;
-      case const (Mainboard):
-        final mainboard = widget.product as Mainboard;
-        specs.add(_buildSpecGroup(
-          S.of(context).motherboardSpecifications,
-          [
-            _buildSpecRow(context, S.of(context).formFactor,
-                mainboard.formFactor.toString()),
-            _buildSpecRow(
-                context, S.of(context).series, mainboard.series.toString()),
-            _buildSpecRow(context, S.of(context).compatibility,
-                mainboard.compatibility.toString()),
-          ],
-        ));
-        break;
-      case const (Drive):
-        final drive = widget.product as Drive;
-        specs.add(_buildSpecGroup(
-          S.of(context).storageSpecifications,
-          [
-            _buildSpecRow(
-                context, S.of(context).driveType, drive.type.toString()),
-            _buildSpecRow(
-                context, S.of(context).capacity, drive.capacity.toString()),
-          ],
-        ));
-        break;
-    }
-
-    widget.product.getDescription(context) != null
-        ? specs.add(_buildSpecGroup(
-          S.of(context).description,
-          [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: Expanded(
-                child: Text(
-                  widget.product.getDescription(context)!,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            )
-          ],
-        )
-    )
-        : const SizedBox();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.01),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: specs,
-      ),
-    );
-  }
-
-  Widget _buildSpecGroup(String title, List<Widget> specs) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.01),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: specs,
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _buildSpecRow(BuildContext context, String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Widget _buildPriceSection({
-  //   required double sellingPrice,
-  //   required double discount,
-  // }) {
-  //   final discountedPrice = sellingPrice * (1 - discount);
-  //
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(vertical: 8.0),
-  //     child: Row(
-  //       children: [
-  //         Icon(Icons.attach_money, size: 20, color: Colors.grey[500]),
-  //         const SizedBox(width: 8),
-  //         const Text(
-  //           'Price: ', // 'Giá: '
-  //           style: TextStyle(
-  //             fontWeight: FontWeight.w900,
-  //             color: Colors.white,
-  //           ),
-  //         ),
-  //         if (discount > 0) ...[
-  //           Text(
-  //             '\$${sellingPrice.toStringAsFixed(2)}',
-  //             style: TextStyle(
-  //               color: Colors.grey[400],
-  //               fontWeight: FontWeight.w400,
-  //               decoration: TextDecoration.lineThrough,
-  //               fontSize: 14,
-  //             ),
-  //           ),
-  //           const SizedBox(width: 8),
-  //           Text(
-  //             '\$${discountedPrice.toStringAsFixed(2)}',
-  //             style: TextStyle(
-  //               color: Theme.of(context).colorScheme.tertiary,
-  //               fontWeight: FontWeight.bold,
-  //               fontSize: 16,
-  //             ),
-  //           ),
-  //           const SizedBox(width: 8),
-  //           Container(
-  //             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-  //             decoration: BoxDecoration(
-  //               color: Colors.red.withValues(alpha: 0.1),
-  //               borderRadius: BorderRadius.circular(4),
-  //             ),
-  //             child: Text(
-  //               '-${(discount * 100).toStringAsFixed(0)}%',
-  //               style: TextStyle(
-  //                 color: Colors.red[300],
-  //                 fontSize: 12,
-  //                 fontWeight: FontWeight.bold,
-  //               ),
-  //             ),
-  //           ),
-  //         ] else
-  //           Text(
-  //             '\$${sellingPrice.toStringAsFixed(2)}',
-  //             style: const TextStyle(
-  //               color: Colors.white,
-  //               fontWeight: FontWeight.w400,
-  //             ),
-  //           ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   IconData _getCategoryIcon() {
     switch (widget.product.category) {
       case CategoryEnum.ram:
@@ -770,7 +499,101 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
+      default:
+        return Icons.devices;
     }
+  }
+
+  List<Widget> _buildProductSpecificDetails(
+      BuildContext context, Product product, Map<String, String> specs) {
+    return specs.entries
+        .map((entry) => _buildSpecificationRow(
+        _getLocalizedSpecKey(context, entry.key), entry.value))
+        .toList();
+  }
+
+  String _getLocalizedSpecKey(BuildContext context, String key) {
+    switch (key.toLowerCase()) {
+      case 'type':
+        return S.of(context).driveType;
+      case 'capacity':
+        // return S.of(context).driveCapacity;
+        return "Drive Capacity";
+      case 'ram bus':
+        // return S.of(context).ramBus;
+        return "RAM Bus";
+      case 'ram capacity':
+        // return S.of(context).ramCapacity;
+        return "RAM Capacity";
+      case 'ram type':
+        return S.of(context).ramType;
+      case 'cpu family':
+        // return S.of(context).cpuFamily;
+        return "CPU Family";
+      case 'cpu core':
+        return S.of(context).cpuCore;
+      case 'cpu thread':
+        return S.of(context).cpuThread;
+      case 'cpu clock speed':
+        return S.of(context).cpuClockSpeed;
+      case 'psu wattage':
+        return S.of(context).psuWattage;
+      case 'psu efficiency':
+        // return S.of(context).psuEfficiency;
+        return "PSU Efficiency";
+      case 'psu modular':
+        // return S.of(context).psuModular;
+
+      case 'gpu series':
+        // return S.of(context).gpuSeries;
+        return "GPU Series";
+      case 'gpu capacity':
+        // return S.of(context).gpuCapacity;
+        return "GPU Capacity";
+      case 'gpu bus':
+        // return S.of(context).gpuBus;
+        return "GPU Bus";
+      case 'gpu clock speed':
+        return S.of(context).gpuClockSpeed;
+      case 'form factor':
+        return S.of(context).formFactor;
+      case 'series':
+        return S.of(context).series;
+      case 'compatibility':
+        return S.of(context).compatibility;
+      default:
+        return key;
+    }
+  }
+
+  Widget _buildSpecificationRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildQuantityButton({
@@ -790,29 +613,5 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
     );
   }
-
-/*  Widget _buildTextField(BuildContext context, String label, String value) {
-    final controller = TextEditingController(text: value);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 4),
-        MultiFieldWithIcon(
-          controller: controller,
-          readOnly: true,
-          hintText: value,
-          textColor: Theme.of(context).colorScheme.onSurface,
-        ),
-      ],
-    );
-  }*/
 }
 

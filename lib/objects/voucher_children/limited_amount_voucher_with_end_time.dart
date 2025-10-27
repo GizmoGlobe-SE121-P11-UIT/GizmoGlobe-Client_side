@@ -120,13 +120,13 @@ class LimitedAmountVoucherWithEndTime
         const SizedBox(height: 4),
 
         Text(
-          'Discount \$$discountValue',
+          'Discount ${Helper.toCurrencyFormat(discountValue)}',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
 
         Text(
-          'Minimum purchase: \$$minimumPurchase',
+          'Minimum purchase: ${Helper.toCurrencyFormat(minimumPurchase)}',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),

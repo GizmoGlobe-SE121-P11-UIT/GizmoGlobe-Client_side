@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/objects/product_related/product_extensions.dart';
+import 'package:gizmoglobe_client/widgets/product/product_card.dart';
 
+import '../../../../data/database/database.dart';
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../enums/processing/sort_enum.dart';
+import '../../../../enums/product_related/category_enum.dart';
+import '../../../../enums/product_related/product_status_enum.dart';
 import '../../../../objects/product_related/filter_argument.dart';
 import '../../../../objects/product_related/product.dart';
 import '../../../../widgets/general/app_text_style.dart';
-import '../../../../widgets/product/product_card.dart';
 import '../../filter/filter_screen/filter_screen_view.dart';
 import '../../mixin/product_tab_mixin.dart';
+import '../../product_detail/product_detail_view.dart';
 import 'product_tab_cubit.dart';
 import 'product_tab_state.dart';
 
@@ -17,93 +23,65 @@ class ProductTab extends StatefulWidget {
   const ProductTab({super.key});
 
   static Widget newInstance(
-          {String? searchText,
-          List<Product>? initialProducts,
-          required SortEnum initialSortOption}) =>
+          {String? searchText, required List<Product> initialProducts}) =>
       BlocProvider<TabCubit>(
         create: (context) => AllTabCubit()
           ..initialize(const FilterArgument(),
-              searchText: searchText,
-              initialProducts: initialProducts,
-              initialSortOption: initialSortOption),
+              searchText: searchText, initialProducts: initialProducts),
         child: const ProductTab(),
       );
 
   static Widget newRam(
-          {String? searchText,
-          List<Product>? initialProducts,
-          required SortEnum initialSortOption}) =>
+          {String? searchText, required List<Product> initialProducts}) =>
       BlocProvider<TabCubit>(
         create: (context) => RamTabCubit()
           ..initialize(const FilterArgument(),
-              searchText: searchText,
-              initialProducts: initialProducts,
-              initialSortOption: initialSortOption),
+              searchText: searchText, initialProducts: initialProducts),
         child: const ProductTab(),
       );
 
   static Widget newCpu(
-          {String? searchText,
-          List<Product>? initialProducts,
-          required SortEnum initialSortOption}) =>
+          {String? searchText, required List<Product> initialProducts}) =>
       BlocProvider<TabCubit>(
         create: (context) => CpuTabCubit()
           ..initialize(const FilterArgument(),
-              searchText: searchText,
-              initialProducts: initialProducts,
-              initialSortOption: initialSortOption),
+              searchText: searchText, initialProducts: initialProducts),
         child: const ProductTab(),
       );
 
   static Widget newPsu(
-          {String? searchText,
-          List<Product>? initialProducts,
-          required SortEnum initialSortOption}) =>
+          {String? searchText, required List<Product> initialProducts}) =>
       BlocProvider<TabCubit>(
         create: (context) => PsuTabCubit()
           ..initialize(const FilterArgument(),
-              searchText: searchText,
-              initialProducts: initialProducts,
-              initialSortOption: initialSortOption),
+              searchText: searchText, initialProducts: initialProducts),
         child: const ProductTab(),
       );
 
   static Widget newGpu(
-          {String? searchText,
-          List<Product>? initialProducts,
-          required SortEnum initialSortOption}) =>
+          {String? searchText, required List<Product> initialProducts}) =>
       BlocProvider<TabCubit>(
         create: (context) => GpuTabCubit()
           ..initialize(const FilterArgument(),
-              searchText: searchText,
-              initialProducts: initialProducts,
-              initialSortOption: initialSortOption),
+              searchText: searchText, initialProducts: initialProducts),
         child: const ProductTab(),
       );
 
   static Widget newDrive(
-          {String? searchText,
-          List<Product>? initialProducts,
-          required SortEnum initialSortOption}) =>
+          {String? searchText, required List<Product> initialProducts}) =>
       BlocProvider<TabCubit>(
         create: (context) => DriveTabCubit()
           ..initialize(const FilterArgument(),
-              searchText: searchText,
-              initialProducts: initialProducts,
-              initialSortOption: initialSortOption),
+              searchText: searchText, initialProducts: initialProducts),
         child: const ProductTab(),
       );
 
   static Widget newMainboard(
-          {String? searchText,
-          List<Product>? initialProducts,
-          required SortEnum initialSortOption}) =>
+          {String? searchText, required List<Product> initialProducts}) =>
       BlocProvider<TabCubit>(
         create: (context) => MainboardTabCubit()
           ..initialize(const FilterArgument(),
-              searchText: searchText,
-              initialProducts: initialProducts,
-              initialSortOption: initialSortOption),
+              searchText: searchText, initialProducts: initialProducts),
         child: const ProductTab(),
       );
 
@@ -121,24 +99,30 @@ class _ProductTabState extends State<ProductTab>
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(
-              children: [
-                BlocBuilder<TabCubit, TabState>(
-                  builder: (context, state) {
-                    return Row(
-                      children: [
-                        Text(
-                          S.of(context).sortBy,
-                          style: AppTextStyle.smallText,
-                        ),
-                        const SizedBox(width: 8),
-                        DropdownButton<SortEnum>(
+      child: Stack(children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Column(
+            children: [
+              BlocBuilder<TabCubit, TabState>(
+                builder: (context, state) {
+                  return Row(
+                    children: [
+                      Text(
+                        S.of(context).sortBy,
+                        style: AppTextStyle.smallText,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButton<SortEnum>(
+                          isExpanded: true,
+                          itemHeight: kMinInteractiveDimension,
                           value: state.selectedSortOption,
                           icon: const Icon(Icons.keyboard_arrow_down),
+                          underline: Container(
+                            height: 1,
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                          ),
                           onChanged: (SortEnum? newValue) {
                             if (newValue != null &&
                                 newValue != state.selectedSortOption) {
@@ -148,122 +132,159 @@ class _ProductTabState extends State<ProductTab>
                           items: SortEnum.values
                               .map<DropdownMenuItem<SortEnum>>(
                                   (SortEnum value) {
-                            String displayText;
-                            switch (value) {
-                              case SortEnum.cheapest:
-                                displayText = S.of(context).priceAscending;
-                                break;
-                              case SortEnum.expensive:
-                                displayText = S.of(context).priceDescending;
-                                break;
-                              case SortEnum.releaseLatest:
-                                displayText = S.of(context).newest;
-                                break;
-                              case SortEnum.releaseOldest:
-                                displayText = S.of(context).oldest;
-                                break;
-                              case SortEnum.salesHighest:
-                                displayText = S.of(context).nameAscending;
-                                break;
-                              case SortEnum.salesLowest:
-                                displayText = S.of(context).nameDescending;
-                                break;
-                              case SortEnum.discountHighest:
-                                displayText = S.of(context).discountHighest;
-                                break;
-                              case SortEnum.discountLowest:
-                                displayText = S.of(context).discountLowest;
-                                break;
-                            }
-                            return DropdownMenuItem<SortEnum>(
-                              value: value,
-                              child: Text(displayText),
-                            );
-                          }).toList(),
+                                String displayText;
+                                switch (value) {
+                                  case SortEnum.salesHighest:
+                                    // displayText = S.of(context).salesHighest;
+                                  displayText = "Sells Highest";
+                                    break;
+                                  case SortEnum.salesLowest:
+                                    // displayText = S.of(context).salesLowest;
+                                  displayText = "Sells Lowest";
+                                    break;
+                                  case SortEnum.releaseLatest:
+                                    // displayText = S.of(context).releaseLatest;
+                                  displayText = "Release Latest";
+                                    break;
+                                  case SortEnum.releaseOldest:
+                                    // displayText = S.of(context).releaseOldest;
+                                  displayText = "Release Oldest";
+                                    break;
+                                  case SortEnum.priceLowest:
+                                    // displayText = S.of(context).priceLowest;
+                                  displayText = "Price Lowest";
+                                    break;
+                                  case SortEnum.priceHighest:
+                                    // displayText = S.of(context).priceHighest;
+                                  displayText = "Price Highest";
+                                  case SortEnum.discountHighest:
+                                    // displayText = S.of(context).discountHighest;
+                                  displayText = "Discount Highest";
+                                  case SortEnum.discountLowest:
+                                    // displayText = S.of(context).discountLowest;
+                                  displayText = "Discount Lowest";
+                                    break;
+                                }
+                                return DropdownMenuItem<SortEnum>(
+                                  value: value,
+                                  child: Container(
+                                    constraints: const BoxConstraints(minHeight: 40),
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      displayText,
+                                      overflow: TextOverflow.visible,
+                                      softWrap: true,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                         ),
-                        const Spacer(),
-                        Center(
-                          child: IconButton(
-                            icon: const Icon(Icons.filter_list_alt),
-                            iconSize: 28,
-                            color: Theme.of(context).colorScheme.primary,
-                            onPressed: () async {
-                              final FilterArgument arguments = state
-                                  .filterArgument
-                                  .copy(filter: state.filterArgument);
+                      ),
+                      Center(
+                        child: IconButton(
+                          icon: const Icon(Icons.filter_list_alt),
+                          iconSize: 28,
+                          color: Theme.of(context).colorScheme.primary,
+                          onPressed: () async {
+                            final FilterArgument arguments = state
+                                .filterArgument
+                                .copy(filter: state.filterArgument);
 
-                              final result = await Navigator.of(context).push(
+                            final result = await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    FilterScreen.newInstance(
+                                      arguments: arguments,
+                                      selectedTabIndex: cubit.getIndex(),
+                                      manufacturerList:
+                                      cubit.getManufacturerList(),
+                                    ),
+                              ),
+                            );
+
+                            if (result is FilterArgument) {
+                              cubit.updateFilter(
+                                filter: result,
+                              );
+                              cubit.applyFilters();
+                            }
+                          },
+                        ),
+                      )
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: BlocBuilder<TabCubit, TabState>(
+                  builder: (context, state) {
+                    if (state.filteredProductList.isEmpty) {
+                      return Center(
+                        child: Text(
+                          S.of(context).noProductsFound,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: state.filteredProductList.length,
+                      itemBuilder: (context, index) {
+                        final product = state.filteredProductList[index];
+                        final isSelected = state.selectedProduct == product;
+
+                        return AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: state.selectedProduct == null ||
+                                  state.selectedProduct == product
+                              ? 1.0
+                              : 0.3,
+                          child: ProductCard(
+                            product: product,
+                            isSelected: isSelected,
+                            onTap: () async {
+                              cubit.setSelectedProduct(null);
+                              ProcessState result =
+                                  await Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      FilterScreen.newInstance(
-                                    arguments: arguments,
-                                    selectedTabIndex: cubit.getIndex(),
-                                    manufacturerList:
-                                        cubit.getManufacturerList(),
-                                  ),
+                                      ProductDetailScreen.newInstance(product),
                                 ),
                               );
 
-                              if (result is FilterArgument) {
-                                cubit.updateFilter(
-                                  filter: result,
-                                );
-                                cubit.applyFilters();
+                              if (result == ProcessState.success) {
+                                await cubit.reloadProducts();
                               }
                             },
                           ),
-                        )
-                      ],
+                        );
+                      },
                     );
                   },
                 ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: BlocBuilder<TabCubit, TabState>(
-                    builder: (context, state) {
-                      if (state.filteredProductList.isEmpty) {
-                        return Center(
-                          child: Text(S.of(context).noProductsFound),
-                        );
-                      }
-                      return GridView.builder(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2, // 2 items per row
-                          childAspectRatio:
-                              0.75, // Adjust the aspect ratio as needed
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                        ),
-                        itemCount: state.filteredProductList.length,
-                        itemBuilder: (context, index) {
-                          final product = state.filteredProductList[index];
-                          return ProductCard(product: product);
-                        },
-                      );
-                    },
+              ),
+            ],
+          ),
+        ),
+        BlocBuilder<TabCubit, TabState>(
+          builder: (context, state) {
+            if (state.processState == ProcessState.loading) {
+              return Stack(
+                children: [
+                  ModalBarrier(
+                      dismissible: false, color: Colors.black.withValues(alpha: 0.5)),
+                  Center(
+                    child: CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          BlocBuilder<TabCubit, TabState>(
-            builder: (context, state) {
-              if (state.processState == ProcessState.loading) {
-                return Stack(
-                  children: [
-                    ModalBarrier(
-                        dismissible: false,
-                        color: Colors.black.withValues(alpha: 0.5)),
-                    const Center(child: CircularProgressIndicator()),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
-      ),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ]),
     );
   }
 }

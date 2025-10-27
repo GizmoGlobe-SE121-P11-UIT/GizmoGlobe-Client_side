@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../enums/product_related/category_enum.dart';
+import '../../functions/helper.dart';
 import '../../objects/invoice_related/sales_invoice_detail.dart';
 import '../general/app_text_style.dart';
 
@@ -55,7 +56,7 @@ class InvoiceDetailsWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '\$${(detail.sellingPrice).toStringAsFixed(2)}',
+                  Helper.toCurrencyFormat(detail.sellingPrice),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

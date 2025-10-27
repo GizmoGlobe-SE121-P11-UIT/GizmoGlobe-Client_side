@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import '../../functions/converter.dart';
 import '../../objects/voucher_related/end_time_interface.dart';
@@ -99,7 +100,7 @@ class VoucherWidget extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          ' \$${Converter.formatDouble(voucher.minimumPurchase)}',
+                          Helper.toCurrencyFormat(voucher.minimumPurchase),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.tertiary,
                             fontWeight: FontWeight.w600,
@@ -247,9 +248,9 @@ class VoucherWidget extends StatelessWidget {
   String _getDiscountText(BuildContext context) {
     if (voucher.isPercentage && voucher is PercentageInterface) {
       final percentage = voucher as PercentageInterface;
-      return '${S.of(context).discount} ${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} \$${Converter.formatDouble(percentage.maximumDiscountValue)}';
+      return '${S.of(context).discount} ${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} ${Helper.toCurrencyFormat(percentage.maximumDiscountValue)}';
     } else {
-      return '${S.of(context).discount} \$${Converter.formatDouble(voucher.discountValue)}';
+      return '${S.of(context).discount} ${Helper.toCurrencyFormat(voucher.discountValue)}';
     }
   }
 }

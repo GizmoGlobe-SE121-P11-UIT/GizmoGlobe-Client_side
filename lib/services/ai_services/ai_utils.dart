@@ -869,7 +869,7 @@ class AIUtils {
         RegExp(r"^\s*[•·▪►➤⦿⦾●○◆◇•]\s*", multiLine: true), "- ");
     text = text.replaceAll(RegExp(r"^\s*\d+\.\s+", multiLine: true), "- ");
     text = text.replaceAll(RegExp(r"^-\s{2,}", multiLine: true), "- ");
-    text = text.replaceAll(RegExp(r"\\(?=\$\d)"), "");
+    text = text.replaceAll(RegExp(r"\\(?=\₫\d)"), "");
     text = text.replaceAll(RegExp(r"[ \t]+$", multiLine: true), "");
     return text.trim();
   }

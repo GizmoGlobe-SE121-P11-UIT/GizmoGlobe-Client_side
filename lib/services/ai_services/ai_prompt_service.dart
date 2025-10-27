@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../functions/helper.dart';
+
 class AIPromptService {
   /// Create base prompt for AI
   String createBasePrompt(bool isVietnamese) {
@@ -253,15 +255,12 @@ Reply in English:
         return value.toString();
       case 'price':
         if (value is num) {
-          return '\$${value.toStringAsFixed(2)}';
+          return Helper.toCurrencyFormat(value);
         }
         if (value is String) {
-          final match = RegExp(r'\$?(\d+\.?\d*)').firstMatch(value);
+          final match = RegExp(r'\?(\d+\.?\d*)₫').firstMatch(value);
           if (match != null) {
-            final numericPrice = double.tryParse(match.group(1)!);
-            if (numericPrice != null) {
-              return numericPrice.toStringAsFixed(2);
-            }
+            return Helper.toCurrencyFormat((match.group(1)!) as num);
           }
         }
         return 'Price not available';

@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import '../../../../objects/product_related/filter_argument.dart';
 import 'filter_screen_state.dart';
@@ -12,7 +13,6 @@ class FilterScreenCubit extends Cubit<FilterScreenState> {
     required List<Manufacturer> manufacturerList,
   }) {
     emit(state.copyWith(
-      filterArgument: initialFilterValue,
       selectedTabIndex: selectedTabIndex,
       manufacturerList: manufacturerList,
     ));

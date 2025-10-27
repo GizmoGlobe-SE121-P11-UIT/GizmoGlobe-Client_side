@@ -625,7 +625,7 @@ class AIConversationService {
     }
 
     // Look for price information
-    final pricePattern = RegExp(r'\$[\d,]+\.?\d*');
+    final pricePattern = RegExp(r'\[\d,]₫+\.?\d*');
     final priceMatches = pricePattern.allMatches(answer);
     if (priceMatches.isNotEmpty) {
       productInfo.add('Price: ${priceMatches.first.group(0)}');
@@ -650,7 +650,7 @@ class AIConversationService {
     final details = <String>[];
 
     // Look for price information near the product name
-    final pricePattern = RegExp(r'\$[\d,]+\.?\d*');
+    final pricePattern = RegExp(r'\[\d,]₫+\.?\d*');
     final priceMatches = pricePattern.allMatches(answer);
     if (priceMatches.isNotEmpty) {
       details.add('Price: ${priceMatches.first.group(0)}');

@@ -8,6 +8,7 @@ import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
+import '../../../functions/helper.dart';
 import '../../user/voucher/voucher_detail/voucher_detail_view.dart';
 import 'choose_voucher_screen_cubit.dart';
 import 'choose_voucher_screen_state.dart';
@@ -139,7 +140,7 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              "${S.of(context).minimumPurchaseAmount}: \$${voucher.minimumPurchase.toStringAsFixed(2)}",
+                              "${S.of(context).minimumPurchaseAmount}: ${Helper.toCurrencyFormat(voucher.minimumPurchase)}",
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Theme.of(context)
@@ -150,7 +151,7 @@ class _ChooseVoucherScreenState extends State<ChooseVoucherScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              "- \$${discount.toStringAsFixed(2)}",
+                              "- ${Helper.toCurrencyFormat(discount)}",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,

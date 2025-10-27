@@ -6,6 +6,7 @@ import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_v
 
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
+import '../../../functions/helper.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/general/gradient_text.dart';
 import 'cart_screen_cubit.dart';
@@ -202,7 +203,7 @@ class _CartScreen extends State<CartScreen> {
                           const SizedBox(height: 4),
                           if (product['discount'] > 0) ...[
                             Text(
-                              '\$${(product['sellingPrice']).toStringAsFixed(2)}',
+                              '${(product['sellingPrice']).toStringAsFixed(2)}',
                               style: TextStyle(
                                 decoration: TextDecoration.lineThrough,
                                 color: Theme.of(context)
@@ -215,7 +216,7 @@ class _CartScreen extends State<CartScreen> {
                             const SizedBox(width: 4),
                           ],
                           Text(
-                            '\$${(product['sellingPrice'] * (1 - (product['discount'] ?? 0))).toStringAsFixed(2)}',
+                            Helper.toCurrencyFormat(product['sellingPrice'] * (1 - (product['discount'] ?? 0))),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -410,7 +411,7 @@ class _CartScreen extends State<CartScreen> {
                     children: [
                       if (state.hasDiscounts && state.selectedCount > 0) ...[
                         Text(
-                          '\$${state.totalBeforeDiscount.toStringAsFixed(2)}',
+                          Helper.toCurrencyFormat(state.totalBeforeDiscount),
                           style: TextStyle(
                             decoration: TextDecoration.lineThrough,
                             color: Theme.of(context)
@@ -423,7 +424,7 @@ class _CartScreen extends State<CartScreen> {
                         // const SizedBox(height: 2),
                       ],
                       Text(
-                        '\$${state.totalAmount.toStringAsFixed(2)}',
+                        Helper.toCurrencyFormat(state.totalAmount),
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -491,6 +492,8 @@ class _CartScreen extends State<CartScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
+      default:
+        return Icons.devices;
     }
   }
 }

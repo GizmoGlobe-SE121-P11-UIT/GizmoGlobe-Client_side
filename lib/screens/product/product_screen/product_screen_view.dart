@@ -52,7 +52,7 @@ class _ProductScreenState extends State<ProductScreen>
     searchController = TextEditingController();
     searchFocusNode = FocusNode();
     tabController =
-        TabController(length: CategoryEnum.values.length + 1, vsync: this);
+        TabController(length: CategoryEnum.getValues().length + 1, vsync: this);
     cubit.initialize(widget.initialProducts ?? [],
         widget.initialSortOption ?? SortEnum.releaseLatest);
     _speech = stt.SpeechToText();
@@ -65,7 +65,7 @@ class _ProductScreenState extends State<ProductScreen>
     super.dispose();
   }
 
-  int getTabCount() => CategoryEnum.values.length + 1;
+  int getTabCount() => CategoryEnum.getValues().length + 1;
 
   void onTabChanged(int index) {
     cubit.updateSelectedTabIndex(index);
@@ -114,14 +114,6 @@ class _ProductScreenState extends State<ProductScreen>
       _speech.stop();
     }
   }
-
-  // Future<bool> _onWillPop() async {
-  //   if (searchFocusNode.hasFocus) {
-  //     searchFocusNode.unfocus();
-  //     return Future.value(false);
-  //   }
-  //   return Future.value(true);
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -210,32 +202,25 @@ class _ProductScreenState extends State<ProductScreen>
                   children: [
                     ProductTab.newInstance(
                         searchText: state.searchText,
-                        initialProducts: state.initialProducts,
-                        initialSortOption: state.initialSortOption),
+                        initialProducts: state.initialProducts),
                     ProductTab.newRam(
                         searchText: state.searchText,
-                        initialProducts: state.initialProducts,
-                        initialSortOption: state.initialSortOption),
+                        initialProducts: state.initialProducts),
                     ProductTab.newCpu(
                         searchText: state.searchText,
-                        initialProducts: state.initialProducts,
-                        initialSortOption: state.initialSortOption),
+                        initialProducts: state.initialProducts,),
                     ProductTab.newPsu(
                         searchText: state.searchText,
-                        initialProducts: state.initialProducts,
-                        initialSortOption: state.initialSortOption),
+                        initialProducts: state.initialProducts,),
                     ProductTab.newGpu(
                         searchText: state.searchText,
-                        initialProducts: state.initialProducts,
-                        initialSortOption: state.initialSortOption),
+                        initialProducts: state.initialProducts,),
                     ProductTab.newDrive(
                         searchText: state.searchText,
-                        initialProducts: state.initialProducts,
-                        initialSortOption: state.initialSortOption),
+                        initialProducts: state.initialProducts,),
                     ProductTab.newMainboard(
                         searchText: state.searchText,
-                        initialProducts: state.initialProducts,
-                        initialSortOption: state.initialSortOption),
+                        initialProducts: state.initialProducts,),
                   ],
                 );
               },

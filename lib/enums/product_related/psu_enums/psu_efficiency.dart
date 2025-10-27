@@ -1,4 +1,5 @@
 enum PSUEfficiency {
+  unknown('Unknown'),
   white('80+ White'),
   bronze('80+ Bronze'),
   gold('80+ Gold'),
@@ -13,6 +14,10 @@ enum PSUEfficiency {
     return name;
   }
 
+  static List<PSUEfficiency> getValues() {
+    return PSUEfficiency.values.where((e) => e != PSUEfficiency.unknown).toList();
+  }
+
   @override
   String toString() {
     return description;
@@ -21,6 +26,9 @@ enum PSUEfficiency {
 
 extension PSUEfficiencyExtension on PSUEfficiency {
   static PSUEfficiency fromName(String name) {
-    return PSUEfficiency.values.firstWhere((e) => e.getName() == name);
+    return PSUEfficiency.values.firstWhere(
+      (e) => e.getName() == name,
+      orElse: () => PSUEfficiency.unknown,
+    );
   }
 }

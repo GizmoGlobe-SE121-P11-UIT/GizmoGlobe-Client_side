@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../functions/helper.dart';
 import 'ai_utils.dart';
 import 'ai_nlp_service.dart';
 
@@ -599,10 +600,10 @@ class AIProductService {
         return value.toString();
       case 'price':
         if (value is num) {
-          return '\$${value.toStringAsFixed(2)}';
+          return Helper.toCurrencyFormat(value);
         }
         if (value is String) {
-          final match = RegExp(r'\$?(\d+\.?\d*)').firstMatch(value);
+          final match = RegExp(r'\?(\d+\.?\d*)₫').firstMatch(value);
           if (match != null) {
             final numericPrice = double.tryParse(match.group(1)!);
             if (numericPrice != null) {

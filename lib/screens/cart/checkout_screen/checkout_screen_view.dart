@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/widgets/general/app_text_style.dart';
 
 import '../../../enums/processing/dialog_name_enum.dart';
@@ -161,7 +162,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                 const SizedBox(height: 4),
                                 if (product.discount > 0) ...[
                                   Text(
-                                    '\$${(product.price).toStringAsFixed(2)}',
+                                    Helper.toCurrencyFormat(product.price),
                                     style: TextStyle(
                                       decoration: TextDecoration.lineThrough,
                                       color: Theme.of(context)
@@ -174,7 +175,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                   const SizedBox(height: 2),
                                 ],
                                 Text(
-                                  '\$${(detail.sellingPrice).toStringAsFixed(2)}',
+                                  Helper.toCurrencyFormat(detail.sellingPrice),
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -273,7 +274,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                                   .voucherDiscount >
                                               0)
                                             Text(
-                                              '- \$${state.salesInvoice!.voucherDiscount.toStringAsFixed(2)}',
+                                              '- ${Helper.toCurrencyFormat(state.salesInvoice!.voucherDiscount)}',
                                               style: TextStyle(
                                                 color: Colors.green,
                                                 fontWeight: FontWeight.bold,
@@ -402,7 +403,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                 state.salesInvoice!.getTotalBasedPrice() >
                                     state.salesInvoice!.totalPrice)
                               Text(
-                                '\$${state.salesInvoice!.getTotalBasedPrice().toStringAsFixed(2)}',
+                                Helper.toCurrencyFormat(state.salesInvoice!.getTotalBasedPrice()),
                                 style: TextStyle(
                                   fontSize: 16,
                                   decoration: TextDecoration.lineThrough,
@@ -412,7 +413,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                 ),
                               ),
                             Text(
-                              '\$${state.salesInvoice?.totalPrice.toStringAsFixed(2)}',
+                              Helper.toCurrencyFormat(state.salesInvoice?.totalPrice ?? 0),
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -497,6 +498,8 @@ class _CheckoutScreen extends State<CheckoutScreen> {
         return Icons.storage;
       case CategoryEnum.mainboard:
         return Icons.dashboard;
+      default:
+        return Icons.devices;
     }
   }
 }

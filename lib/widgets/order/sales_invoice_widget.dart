@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
 import 'package:gizmoglobe_client/widgets/order/invoice_details_widget.dart';
 import '../../enums/invoice_related/sales_status.dart';
+import '../../functions/helper.dart';
 import '../general/app_text_style.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 
@@ -41,7 +42,7 @@ class SalesInvoiceWidget extends StatelessWidget {
                   children: [
                     Text(
                       S.of(context).totalItems(salesInvoice.getTotalItems(),
-                          '\$${salesInvoice.totalPrice.toStringAsFixed(2)}'),
+                          Helper.toCurrencyFormat(salesInvoice.totalPrice)),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.onPrimary,

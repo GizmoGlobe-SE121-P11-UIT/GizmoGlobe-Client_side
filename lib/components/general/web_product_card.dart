@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_cubit.dart';
@@ -104,7 +105,7 @@ class _WebProductCardState extends State<WebProductCard> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  '-${widget.product.discountPercentage.toStringAsFixed(0)}%',
+                                  '-${widget.product.discount.toStringAsFixed(0)}%',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -215,7 +216,7 @@ class _WebProductCardState extends State<WebProductCard> {
                                 children: [
                                   if (widget.product.discount > 0) ...[
                                     Text(
-                                      '\$${widget.product.price.toStringAsFixed(2)}',
+                                      Helper.toCurrencyFormat(widget.product.price),
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
@@ -229,7 +230,7 @@ class _WebProductCardState extends State<WebProductCard> {
                                     const SizedBox(height: 2),
                                   ],
                                   Text(
-                                    '\$${widget.product.discountedPrice.toStringAsFixed(2)}',
+                                    Helper.toCurrencyFormat(widget.product.discountedPrice),
                                     style: TextStyle(
                                       color:
                                           Theme.of(context).colorScheme.primary,
