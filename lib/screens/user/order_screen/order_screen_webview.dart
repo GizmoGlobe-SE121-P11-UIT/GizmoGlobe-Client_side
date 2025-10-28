@@ -8,7 +8,8 @@ import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_cubit.d
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.dart';
 import 'package:gizmoglobe_client/widgets/order/sales_invoice_widget.dart';
 import '../../../enums/processing/process_state_enum.dart';
-import 'dart:html' as html show window;
+import 'package:gizmoglobe_client/services/platform_actions.dart'
+    as platform_actions;
 
 class OrderScreenWebView extends StatefulWidget {
   final OrderOption? initialTab;
@@ -120,7 +121,7 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
                         final newUrl = '/orders?tab=$tabName';
                         // Update the browser URL with hash for proper routing
                         if (kIsWeb) {
-                          html.window.location.href = '#$newUrl';
+                          platform_actions.setHashUrl(newUrl);
                         }
                       },
                       tabs: OrderOption.values
