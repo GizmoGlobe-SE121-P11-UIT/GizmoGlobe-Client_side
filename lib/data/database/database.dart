@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gizmoglobe_client/objects/address_related/address.dart';
+import 'package:gizmoglobe_client/objects/cart_item.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
@@ -48,7 +49,7 @@ class Database {
   List<Voucher> userVouchers = [];
   List<Voucher> ongoingVouchers = [];
   List<Voucher> upcomingVouchers = [];
-
+  Set<CartItem> cartItems = {};
 
   // final List<Map<String, dynamic>> voucherDataList = [
   //   {
@@ -238,6 +239,8 @@ class Database {
 
       allVoucherList = await Firebase().getVouchers();
 
+      await getCartItems();
+
       await fetchSalesInvoice();
     } catch (e) {
       if (kDebugMode) {
@@ -245,6 +248,50 @@ class Database {
       }
       // print('Lỗi khi lấy dữ liệu: $e');
       rethrow;
+    }
+  }
+
+  Future<void> getCartItems() async {
+    try {
+      String userID = await getCurrentUserID() ?? '';
+
+      if (userID.isEmpty) {
+        if (kDebugMode) {
+          print('User not logged in. Cannot fetch cart items.');
+        }
+        return;
+      }
+
+      final getCart = await FirebaseFirestore.instance
+          .collection('customers')
+          .doc(userID)
+          .collection('carts')
+          .get();
+
+      Set<CartItem> updatedItems = {};
+
+      for (var item in getCart.docs) {
+        final productID = item['productID'] as String;
+        final quantity = item['quantity'] as int;
+
+        final product = productList.firstWhere(
+          (prod) => prod.productID == productID,
+          orElse: () => ProductFactory.createProduct({
+            'productID': productID,
+            'productName': 'Unknown Product',
+            'category': CategoryEnum.empty,
+            'price': 0.0,
+            'status': ProductStatusEnum.discontinued,
+          }),
+        );
+        updatedItems.add(CartItem(product: product, quantity: quantity));
+      }
+
+      cartItems = updatedItems;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching cart items: $e');
+      }
     }
   }
 
@@ -802,6 +849,49 @@ class Database {
     }
   }
 
+
+  Future<List<Product>> getProducts() async {
+    try {
+      final QuerySnapshot snapshot =
+      await FirebaseFirestore.instance.collection('products').get();
+
+      List<Product> products = [];
+      for (var doc in snapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+        Manufacturer manufacturer = manufacturerList.firstWhere(
+          (manu) => manu.manufacturerID == data['manufacturerID'],
+          orElse: () => Manufacturer(
+            manufacturerID: 'unknown',
+            manufacturerName: 'Unknown Manufacturer',
+          ),
+        );
+
+        if (manufacturer.status == ManufacturerStatus.inactive) {
+          continue;
+        }
+        // Tạo product instance thông qua factory
+        Product product = ProductFactory.createProduct(data);
+
+        if (
+          product.status == ProductStatusEnum.discontinued ||
+          product.status == ProductStatusEnum.outOfStock
+        ) {
+          continue;
+        }
+
+        products.add(product);
+      }
+
+      return products;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting products: $e');
+      } // Lỗi khi lấy danh sách sản phẩm
+      rethrow;
+    }
+  }
+
   Future<void> getUsername() async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -886,10 +976,6 @@ class Database {
       }
       rethrow;
     }
-  }
-
-  void updateProductList(List<Product> productList) {
-    this.productList = productList;
   }
 
   Future<List<Product>> fetchFavoriteProducts(String customerID) async {

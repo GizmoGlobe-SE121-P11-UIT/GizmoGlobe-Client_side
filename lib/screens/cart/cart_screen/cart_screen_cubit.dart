@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:gizmoglobe_client/objects/cart_item.dart';
 import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
 import '../../../objects/product_related/product.dart';
@@ -32,30 +34,15 @@ class CartScreenCubit extends Cubit<CartScreenState> {
         return;
       }
 
-      final items = await _firebase.getCartItems(user.uid);
+      await Database().getCartItems();
+
+      final items = Database().cartItems;
 
       if (isClosed) return;
-
-      // Tính subtotal cho mỗi item
-      final updatedItems = items.map((item) {
-        final product = item['product'] as Map<String, dynamic>;
-        final quantity = (item['quantity'] as num?)?.toDouble() ?? 0;
-        final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
-        final discount = (product['discount'] as num?)?.toDouble() ?? 0;
-
-        // Tính giá sau giảm giá
-        final discountedPrice = price * (1 - discount / 100);
-        final subtotal = discountedPrice * quantity;
-
-        return {
-          ...item,
-          'subtotal': subtotal,
-        };
-      }).toList();
 
       if (isClosed) return;
       emit(state.copyWith(
-        items: updatedItems,
+        items: items,
         processState: ProcessState.success,
       ));
     } catch (e) {
@@ -65,27 +52,17 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     }
   }
 
-  Future<void> updateQuantity(String productID, int newQuantity) async {
+
+  Future<void> updateQuantity(CartItem cartItem, int newQuantity) async {
     try {
       if (isClosed) return;
 
-      // Optimistically update the state
       final updatedItems = state.items.map((item) {
-        if (item['productID'] == productID) {
-          final product = item['product'] as Map<String, dynamic>;
-          final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
-          final discount = (product['discount'] as num?)?.toDouble() ?? 0;
-          final discountedPrice = price * (1 - discount / 100);
-          final subtotal = discountedPrice * newQuantity;
-
-          return {
-            ...item,
-            'quantity': newQuantity,
-            'subtotal': subtotal,
-          };
+        if (item == cartItem) {
+          return item.copyWith(quantity: newQuantity);
         }
         return item;
-      }).toList();
+      }).toSet();
 
       if (isClosed) return;
       emit(state.copyWith(items: updatedItems));
@@ -94,7 +71,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      await _firebase.updateCartItemQuantity(user.uid, productID, newQuantity);
+      await _firebase.updateCartItemQuantity(user.uid, cartItem.product.productID!, newQuantity);
     } catch (e) {
       if (isClosed) return;
       // Revert the state if the update call fails
@@ -105,13 +82,13 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     }
   }
 
-  Future<void> removeFromCart(String productID) async {
+  Future<void> removeFromCart(CartItem item) async {
     try {
       if (isClosed) return;
       final user = _auth.currentUser;
       if (user == null) return;
 
-      await _firebase.removeFromCart(user.uid, productID);
+      await _firebase.removeFromCart(user.uid, item.product.productID!);
       await loadCartItems();
     } catch (e) {
       if (isClosed) return;
@@ -120,13 +97,13 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     }
   }
 
-  void toggleItemSelection(String productID) {
+  void toggleItemSelection(CartItem item) {
     if (isClosed) return;
-    final currentSelected = Set<String>.from(state.selectedItems);
-    if (currentSelected.contains(productID)) {
-      currentSelected.remove(productID);
+    final currentSelected = Set<CartItem>.from(state.selectedItems);
+    if (currentSelected.contains(item)) {
+      currentSelected.remove(item);
     } else {
-      currentSelected.add(productID);
+      currentSelected.add(item);
     }
     emit(state.copyWith(selectedItems: currentSelected));
   }
@@ -137,8 +114,8 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       emit(state.copyWith(selectedItems: {}));
     } else {
       final allProductIds =
-          state.items.map((item) => item['productID'] as String).toSet();
-      emit(state.copyWith(selectedItems: allProductIds));
+          state.items.map((item) => item.product.productID as String).toSet();
+      emit(state.copyWith(selectedItems: state.items));
     }
   }
 
@@ -184,14 +161,13 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     final result = <Map<Product, int>>[];
 
     for (var item in state.items) {
-      final productID = item['productID'] as String;
-      final quantity = item['quantity'] as int;
+      final productID = item.product.productID;
 
       if (state.selectedItems.contains(productID)) {
         final product = Database()
             .productList
             .firstWhere((product) => product.productID == productID);
-        result.add({product: quantity});
+        result.add({product: item.quantity});
       }
     }
     return result;

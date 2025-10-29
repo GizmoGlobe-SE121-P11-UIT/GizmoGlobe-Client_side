@@ -52,7 +52,7 @@ class ProductFactory {
           release: parseDate(properties['release']),
           stock: toInt(properties['stock']),
           sales: toInt(properties['sales']),
-          status: parseStatus(properties['status']),
+          status: parseStatus(properties['status'], toInt(properties['stock'])),
           imageUrl: properties['imageUrl']?.toString(),
           enDescription: properties['enDescription']?.toString(),
           viDescription: properties['viDescription']?.toString(),
@@ -75,7 +75,7 @@ class ProductFactory {
           release: parseDate(properties['release']),
           stock: toInt(properties['stock']),
           sales: toInt(properties['sales']),
-          status: parseStatus(properties['status']),
+          status: parseStatus(properties['status'], toInt(properties['stock'])),
           imageUrl: properties['imageUrl']?.toString(),
           enDescription: properties['enDescription']?.toString(),
           viDescription: properties['viDescription']?.toString(),
@@ -108,7 +108,7 @@ class ProductFactory {
 
           stock: toInt(properties['stock']),
           sales: toInt(properties['sales']),
-          status: parseStatus(properties['status']),
+          status: parseStatus(properties['status'], toInt(properties['stock'])),
           imageUrl: properties['imageUrl']?.toString(),
           enDescription: properties['enDescription']?.toString(),
           viDescription: properties['viDescription']?.toString(),
@@ -135,7 +135,7 @@ class ProductFactory {
 
           stock: toInt(properties['stock']),
           sales: toInt(properties['sales']),
-          status: parseStatus(properties['status']),
+          status: parseStatus(properties['status'], toInt(properties['stock'])),
           imageUrl: properties['imageUrl']?.toString(),
           enDescription: properties['enDescription']?.toString(),
           viDescription: properties['viDescription']?.toString(),
@@ -171,7 +171,7 @@ class ProductFactory {
 
           stock: toInt(properties['stock']),
           sales: toInt(properties['sales']),
-          status: parseStatus(properties['status']),
+          status: parseStatus(properties['status'], toInt(properties['stock'])),
           imageUrl: properties['imageUrl']?.toString(),
           enDescription: properties['enDescription']?.toString(),
           viDescription: properties['viDescription']?.toString(),
@@ -197,7 +197,7 @@ class ProductFactory {
 
           sales: toInt(properties['sales']),
           stock: toInt(properties['stock']),
-          status: parseStatus(properties['status']),
+          status: parseStatus(properties['status'], toInt(properties['stock'])),
           imageUrl: properties['imageUrl']?.toString(),
           enDescription: properties['enDescription']?.toString(),
           viDescription: properties['viDescription']?.toString(),
@@ -252,9 +252,14 @@ DateTime parseDate(dynamic v) {
   return DateTime.tryParse(v.toString()) ?? DateTime.fromMillisecondsSinceEpoch(0);
 }
 
-ProductStatusEnum parseStatus(dynamic v) {
+ProductStatusEnum parseStatus(dynamic v, int stock) {
   if (v == null) return ProductStatusEnum.unknown;
-  return ProductStatusEnumExtension.fromName(v.toString());
+  ProductStatusEnum status = ProductStatusEnumExtension.fromName(v.toString());
+
+  if (status == ProductStatusEnum.active && stock <= 0) {
+    return ProductStatusEnum.outOfStock;
+  }
+  return status;
 }
 
 RAMType parseRamType(dynamic v) {

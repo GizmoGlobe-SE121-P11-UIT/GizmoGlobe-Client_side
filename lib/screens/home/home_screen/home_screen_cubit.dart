@@ -15,13 +15,19 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
   late final StreamSubscription _favoritesSubscription;
   final Firebase _firebase = Firebase();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  late dynamic user;
 
   HomeScreenCubit({required this.favoritesCubit})
       : super(const HomeScreenState()) {
     // Lắng nghe thay đổi từ FavoritesCubit
     _favoritesSubscription = favoritesCubit.stream.listen((favoriteIds) async {
       await _updateFavoriteProducts();
+      await _updateRecommendedProducts();
     });
+
+    user = _auth.currentUser;
+
+    emit(state.copyWith(cartItems: Database().cartItems));
   }
 
   @override
@@ -64,14 +70,17 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
     }
   }
 
-  Future<void> updateRecommendedProducts() async {
+  Future<void> _updateRecommendedProducts() async {
     List<Product> recommendedProducts = [];
     List<Product> cartProducts = [];
     await loadCartItems();
-    final cartItems = state.cartItems ?? [];
+    final cartItems = state.cartItems;
+
     for (var item in cartItems) {
-      final product = item['product'] as Map<String, dynamic>;
-      cartProducts.add(ProductFactory.createProduct(product));
+      final product = Database()
+          .productList
+          .firstWhere((p) => p.productID == item.product.productID, orElse: () => ProductFactory.createProduct({}));
+      cartProducts.add(product);
     }
 
     Product mostExpensiveProduct = cartProducts.firstWhere(
@@ -94,43 +103,10 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
   Future<void> loadCartItems() async {
     try {
       if (isClosed) return;
-      
-      final user = _auth.currentUser;
-      if (user == null) {
-        if (kDebugMode) {
-          print('User not logged in');
-        }
-        return ;
-        // emit(state.copyWith(
-        //     processState: ProcessState.failure, error: 'User not logged in'));
-        // return;
+      await Database().getCartItems();
+      if (!isClosed) {
+        emit(state.copyWith(cartItems: Database().cartItems));
       }
-
-      final cartItems = await _firebase.getCartItems(user!.uid);
-
-      if (isClosed) return;
-
-      // Tính subtotal cho mỗi item
-      final updatedItems = cartItems.map((item) {
-        final product = item['product'] as Map<String, dynamic>;
-        final quantity = (item['quantity'] as num?)?.toDouble() ?? 0;
-        final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
-        final discount = (product['discount'] as num?)?.toDouble() ?? 0;
-
-        // Tính giá sau giảm giá
-        final discountedPrice = price * (1 - discount / 100);
-        final subtotal = discountedPrice * quantity;
-
-        return {
-          ...item,
-          'subtotal': subtotal,
-        };
-      }).toList();
-
-      if (isClosed) return;
-      emit(state.copyWith(
-        cartItems: updatedItems,
-      ));
     } catch (e) {
       if (isClosed) return;
       // emit(state.copyWith(

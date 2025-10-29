@@ -1,14 +1,15 @@
 import 'package:equatable/equatable.dart';
+import 'package:gizmoglobe_client/objects/cart_item.dart';
 import '../../../enums/processing/process_state_enum.dart';
 
 class CartScreenState extends Equatable {
-  final List<Map<String, dynamic>> items;
-  final Set<String> selectedItems;
+  final Set<CartItem> items;
+  final Set<CartItem> selectedItems;
   final ProcessState processState;
   final String? error;
 
   const CartScreenState({
-    this.items = const [],
+    this.items = const {},
     this.selectedItems = const {},
     this.processState = ProcessState.idle,
     this.error,
@@ -19,14 +20,7 @@ class CartScreenState extends Equatable {
   double get totalAmount {
     double total = 0;
     for (var item in items) {
-      if (selectedItems.contains(item['productID'])) {
-        final product = item['product'] as Map<String, dynamic>;
-        final quantity = (item['quantity'] as num?)?.toDouble() ?? 0;
-        final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
-        final discount = (product['discount'] as num?)?.toDouble() ?? 0;
-        final discountedPrice = price * (1 - discount);
-        total += discountedPrice * quantity;
-      }
+      total += item.subTotal();
     }
     return total;
   }
@@ -34,22 +28,14 @@ class CartScreenState extends Equatable {
   double get totalBeforeDiscount {
     double total = 0;
     for (var item in items) {
-      if (selectedItems.contains(item['productID'])) {
-        final product = item['product'] as Map<String, dynamic>;
-        final quantity = (item['quantity'] as num?)?.toDouble() ?? 0;
-        final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
-        
-        total += price * quantity;
-      }
+      total += item.subTotalBeforeDiscount();
     }
     return total;
   }
 
   bool get hasDiscounts {
     return items.any((item) {
-      final product = item['product'] as Map<String, dynamic>;
-      final discount = product['discount'];
-      return discount != null && (discount as num) > 0;
+      return item.product.discountedPrice < item.product.price;
     });
   }
 
@@ -59,8 +45,8 @@ class CartScreenState extends Equatable {
   int get selectedCount => selectedItems.length;
 
   CartScreenState copyWith({
-    List<Map<String, dynamic>>? items,
-    Set<String>? selectedItems,
+    Set<CartItem>? items,
+    Set<CartItem>? selectedItems,
     ProcessState? processState,
     String? error,
   }) {

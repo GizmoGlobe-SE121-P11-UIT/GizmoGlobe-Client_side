@@ -57,9 +57,7 @@ abstract class TabCubit extends Cubit<TabState> {
 
   Future<void> _fetchProducts() async {
     try {
-      List<Product> products = await Firebase().getProducts();
-      Database().updateProductList(products);
-
+      Database().getProducts();
       emit(state.copyWith(productList: Database().productList, filteredProductList: Database().productList));
     } catch (e) {
       if (kDebugMode) {

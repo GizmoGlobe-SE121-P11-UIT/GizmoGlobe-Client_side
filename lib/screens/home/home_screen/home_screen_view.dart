@@ -166,7 +166,7 @@ class _HomeScreen extends State<HomeScreen> {
       {required String title,
       required List<Product> products,
       required VoidCallback onSeeAll}) {
-    return products.isEmpty 
+    return products.isEmpty
         ? Container()
         : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
