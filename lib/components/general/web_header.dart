@@ -9,7 +9,8 @@ import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'package:gizmoglobe_client/components/general/user_settings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:html' as html show window;
+import 'package:gizmoglobe_client/services/platform_actions.dart'
+    as platform_actions;
 
 class WebHeader extends StatefulWidget {
   const WebHeader({Key? key}) : super(key: key);
@@ -64,7 +65,7 @@ class _WebHeaderState extends State<WebHeader> {
       if (context.mounted) {
         if (kIsWeb) {
           // Refresh the page to create a new guest instance
-          html.window.location.reload();
+          platform_actions.reloadPage();
         } else {
           // For mobile, navigate to home
           Navigator.pushNamedAndRemoveUntil(

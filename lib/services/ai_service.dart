@@ -18,7 +18,7 @@ import 'ai_services/ai_nlp_service.dart';
 class AIService {
   final String _baseUrl =
       'https://generativelanguage.googleapis.com/v1beta/models';
-  final String _model = 'gemini-2.0-flash';
+  final String _model = 'gemini-2.5-pro';
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
