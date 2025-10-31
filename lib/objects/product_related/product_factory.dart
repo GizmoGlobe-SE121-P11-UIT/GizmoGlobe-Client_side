@@ -53,7 +53,7 @@ class ProductFactory {
           stock: toInt(properties['stock']),
           sales: toInt(properties['sales']),
           status: parseStatus(properties['status'], toInt(properties['stock'])),
-          imageUrl: properties['imageUrl']?.toString(),
+          imageUrl: parseStringOrMapUrl(properties['imageUrl']),
           enDescription: properties['enDescription']?.toString(),
           viDescription: properties['viDescription']?.toString(),
 
@@ -305,4 +305,13 @@ PSUModular parsePSUModular(dynamic v) {
 DriveType parseDriveType(dynamic v) {
   if (v == null) return DriveType.unknown;
   return DriveTypeExtension.fromName(v.toString());
+}
+
+String? parseStringOrMapUrl(dynamic value) {
+  if (value == null) return null;
+  if (value is String) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+  return null;
 }

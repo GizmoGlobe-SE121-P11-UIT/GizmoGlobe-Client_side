@@ -3,14 +3,14 @@ import 'package:gizmoglobe_client/objects/cart_item.dart';
 import '../../../enums/processing/process_state_enum.dart';
 
 class CartScreenState extends Equatable {
-  final Set<CartItem> items;
-  final Set<CartItem> selectedItems;
+  final List<CartItem> items;
+  final List<CartItem> selectedItems;
   final ProcessState processState;
   final String? error;
 
   const CartScreenState({
-    this.items = const {},
-    this.selectedItems = const {},
+    this.items = const [],
+    this.selectedItems = const [],
     this.processState = ProcessState.idle,
     this.error,
   });
@@ -45,8 +45,8 @@ class CartScreenState extends Equatable {
   int get selectedCount => selectedItems.length;
 
   CartScreenState copyWith({
-    Set<CartItem>? items,
-    Set<CartItem>? selectedItems,
+    List<CartItem>? items,
+    List<CartItem>? selectedItems,
     ProcessState? processState,
     String? error,
   }) {

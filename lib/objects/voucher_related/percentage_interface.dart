@@ -1,4 +1,4 @@
 abstract class PercentageInterface {
-  double get maximumDiscountValue;
-  set maximumDiscountValue(double value);
+  int get maximumDiscountValue;
+  set maximumDiscountValue(int value);
 }

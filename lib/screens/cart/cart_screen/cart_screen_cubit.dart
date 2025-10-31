@@ -62,7 +62,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
           return item.copyWith(quantity: newQuantity);
         }
         return item;
-      }).toSet();
+      }).toList();
 
       if (isClosed) return;
       emit(state.copyWith(items: updatedItems));
@@ -99,7 +99,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
   void toggleItemSelection(CartItem item) {
     if (isClosed) return;
-    final currentSelected = Set<CartItem>.from(state.selectedItems);
+    final currentSelected = List<CartItem>.from(state.selectedItems);
     if (currentSelected.contains(item)) {
       currentSelected.remove(item);
     } else {
@@ -111,10 +111,10 @@ class CartScreenCubit extends Cubit<CartScreenState> {
   void toggleSelectAll() {
     if (isClosed) return;
     if (state.isAllSelected) {
-      emit(state.copyWith(selectedItems: {}));
+      emit(state.copyWith(selectedItems: []));
     } else {
       final allProductIds =
-          state.items.map((item) => item.product.productID as String).toSet();
+          state.items.map((item) => item.product.productID as String).toList();
       emit(state.copyWith(selectedItems: state.items));
     }
   }

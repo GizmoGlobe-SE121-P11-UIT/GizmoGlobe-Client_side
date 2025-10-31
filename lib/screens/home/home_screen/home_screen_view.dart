@@ -45,7 +45,9 @@ class _HomeScreen extends State<HomeScreen> {
     // Check if running on web platform
     if (kIsWeb) {
       return Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Theme
+            .of(context)
+            .scaffoldBackgroundColor,
         body: BlocBuilder<HomeScreenCubit, HomeScreenState>(
           builder: (context, state) {
             return SingleChildScrollView(
@@ -77,7 +79,7 @@ class _HomeScreen extends State<HomeScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Stack(
           children: [
             Scaffold(
@@ -88,7 +90,9 @@ class _HomeScreen extends State<HomeScreen> {
                 title: Stack(children: [
                   Center(
                     child: Semantics(
-                      label: S.of(context).appLogo,
+                      label: S
+                          .of(context)
+                          .appLogo,
                       child: const AppLogo(height: 50),
                     ),
                   ),
@@ -96,11 +100,16 @@ class _HomeScreen extends State<HomeScreen> {
                     children: [
                       Expanded(child: SizedBox()),
                       Semantics(
-                        label: S.of(context).chatButton,
+                        label: S
+                            .of(context)
+                            .chatButton,
                         child: IconButton(
                           icon: Icon(
                             Icons.chat,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Theme
+                                .of(context)
+                                .colorScheme
+                                .primary,
                             size: 28,
                           ),
                           onPressed: () {
@@ -113,8 +122,7 @@ class _HomeScreen extends State<HomeScreen> {
                   ),
                 ]),
               ),
-              body: Padding(
-                padding: const EdgeInsets.all(16.0),
+              body: SingleChildScrollView(
                 child: Column(
                   children: [
                     const SizedBox(height: 16),
@@ -124,22 +132,26 @@ class _HomeScreen extends State<HomeScreen> {
                           children: [
                             _buildCarousel(
                               context,
-                              title: S.of(context).bestSellers,
+                              title: S
+                                  .of(context)
+                                  .bestSellers,
                               products: state.bestSellerProducts,
                               onSeeAll: () {
                                 Navigator.pushNamed(context, '/products');
                               },
+                              length: 4,
                             ),
-                            const SizedBox(height: 16),
                             _buildCarousel(
                               context,
-                              title: S.of(context).favorites,
+                              title: S
+                                  .of(context)
+                                  .favorites,
                               products: state.favoriteProducts,
                               onSeeAll: () {
                                 Navigator.pushNamed(context, '/products');
                               },
+                              length: 4,
                             ),
-                            const SizedBox(height: 16),
                             _buildCarousel(
                               context,
                               title: "Recommended for You",
@@ -147,6 +159,7 @@ class _HomeScreen extends State<HomeScreen> {
                               onSeeAll: () {
                                 Navigator.pushNamed(context, '/products');
                               },
+                              length: 20,
                             ),
                           ],
                         );
@@ -162,49 +175,62 @@ class _HomeScreen extends State<HomeScreen> {
     );
   }
 
+  // dart
   Widget _buildCarousel(BuildContext context,
       {required String title,
-      required List<Product> products,
-      required VoidCallback onSeeAll}) {
-    return products.isEmpty
-        ? Container()
-        : Column(
+        required List<Product> products,
+        required VoidCallback onSeeAll,
+        required int length}) {
+    if (products.isEmpty) return Container();
+
+    final itemCount = products.length > length ? length : products.length;
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            fontSize: 24,
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: itemCount,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 0,
+            crossAxisSpacing: 0,
+            childAspectRatio: 0.65,
+          ),
+          itemBuilder: (context, index) {
+            return ProductCard(product: products[index]);
+          },
+        ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontSize: 24,
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
+            Expanded(child: SizedBox()),
             TextButton(
               onPressed: onSeeAll,
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.secondary,
                 textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               child: Text(S.of(context).seeAll),
             ),
-          ],
-        ),
-        SizedBox(
-          height: 220,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: products.length > 5 ? 5 : products.length,
-            itemBuilder: (context, index) {
-              return SizedBox(
-                  width: 150, child: ProductCard(product: products[index]));
-            },
-          ),
+            Icon(
+              Icons.arrow_right_alt_outlined,
+              color: Theme.of(context).colorScheme.secondary,
+              size: 20,
+            ),
+          ]
         ),
       ],
     );

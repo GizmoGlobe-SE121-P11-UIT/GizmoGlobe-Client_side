@@ -609,49 +609,65 @@ class Firebase {
   Future<List<Voucher>> getVouchers() async {
     try {
       final QuerySnapshot snapshot =
-          await _firestore.collection('vouchers').get();
-
+      await _firestore.collection('vouchers').get();
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
         data['voucherID'] = doc.id;
 
-        // Debug logging
-        if (kDebugMode) {
-          print('Raw startTime type: ${data['startTime'].runtimeType}');
-          print('Raw startTime value: ${data['startTime']}');
-          if (data['hasEndTime'] == true) {
-            print('Raw endTime type: ${data['endTime'].runtimeType}');
-            print('Raw endTime value: ${data['endTime']}');
-          }
+        // Convert date strings to DateTime objects and ensure startTime is never null
+        if (data['startTime'] is String) {
+          data['startTime'] = DateTime.parse(data['startTime']);
+        } else if (data['startTime'] == null) {
+          data['startTime'] = DateTime.now();
         }
 
-        // Convert date to DateTime
-        if (data['startTime'] is Timestamp) {
-          data['startTime'] = (data['startTime'] as Timestamp).toDate();
-        } else if (data['startTime'] is String) {
-          data['startTime'] = DateTime.parse(data['startTime'] as String);
-        }
-
+        // Handle endTime for vouchers with end time
         if (data['hasEndTime'] == true) {
-          if (data['endTime'] is Timestamp) {
-            data['endTime'] = (data['endTime'] as Timestamp).toDate();
-          } else if (data['endTime'] is String) {
-            data['endTime'] = DateTime.parse(data['endTime'] as String);
+          if (data['endTime'] is String) {
+            data['endTime'] = DateTime.parse(data['endTime']);
+          } else if (data['endTime'] == null) {
+            data['endTime'] = DateTime.now()
+                .add(const Duration(days: 30)); // Default to 30 days from now
           }
         }
 
-        // Handle localized descriptions
-        if (data['description'] != null) {
-          // If there's only one description, use it for both languages
-          data['enDescription'] = data['description'];
-          data['viDescription'] = data['description'];
+        // Handle required fields with default values
+        data['voucherName'] ??= '';
+        data['discountValue'] ??= 0.0;
+        data['minimumPurchase'] ??= 0;
+        data['maxUsagePerPerson'] ??= 1;
+        data['isVisible'] ??= true;
+        data['isEnabled'] ??= true;
+        data['enDescription'] ??= '';
+        data['viDescription'] ??= '';
+        data['isPercentage'] ??= false;
+        data['hasEndTime'] ??= false;
+        data['isLimited'] ??= false;
+
+        // Handle fields for limited vouchers
+        if (data['isLimited'] == true) {
+          data['maximumUsage'] ??= 0;
+          data['usageLeft'] ??= 0;
+        }
+
+        // Handle fields for percentage vouchers
+        if (data['isPercentage'] == true) {
+          data['maximumDiscountValue'] ??= 0;
+        }
+
+        // Ensure all DateTime fields are properly set
+        if (data['startTime'] is! DateTime) {
+          data['startTime'] = DateTime.now();
+        }
+        if (data['hasEndTime'] == true && data['endTime'] is! DateTime) {
+          data['endTime'] = DateTime.now().add(const Duration(days: 30));
         }
 
         return VoucherFactory.fromMap(doc.id, data);
       }).toList();
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting vouchers data: $e');
+        print('Error getting vouchers: $e');
       }
       rethrow;
     }

@@ -20,14 +20,15 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
   HomeScreenCubit({required this.favoritesCubit})
       : super(const HomeScreenState()) {
     // Lắng nghe thay đổi từ FavoritesCubit
+    emit(state.copyWith(cartItems: Database().cartItems));
     _favoritesSubscription = favoritesCubit.stream.listen((favoriteIds) async {
       await _updateFavoriteProducts();
-      await _updateRecommendedProducts();
     });
+
+    _updateRecommendedProducts();
 
     user = _auth.currentUser;
 
-    emit(state.copyWith(cartItems: Database().cartItems));
   }
 
   @override
@@ -70,28 +71,21 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
     }
   }
 
-  Future<void> _updateRecommendedProducts() async {
-    List<Product> recommendedProducts = [];
-    List<Product> cartProducts = [];
-    await loadCartItems();
+  void _updateRecommendedProducts() {
     final cartItems = state.cartItems;
+    final cartProducts = cartItems.map((c) => c.product).toList();
 
-    for (var item in cartItems) {
-      final product = Database()
-          .productList
-          .firstWhere((p) => p.productID == item.product.productID, orElse: () => ProductFactory.createProduct({}));
-      cartProducts.add(product);
+    if (cartProducts.isEmpty) {
+      if (!isClosed) emit(state.copyWith(recommendedProducts: []));
+      return;
     }
 
-    Product mostExpensiveProduct = cartProducts.firstWhere(
-        (product) => product.discountedPrice == cartProducts
-            .map((p) => p.discountedPrice)
-            .reduce((a, b) => a > b ? a : b),
-        orElse: () => ProductFactory.createProduct({}));
+    final recommendedProducts = RecommendationService()
+        .getRecommendationsForBuild(cartProducts, topN: 20);
 
-    RecommendationService recommendationService = RecommendationService();
-    recommendedProducts = recommendationService.getRecommendedProducts(mostExpensiveProduct);
-    emit(state.copyWith(recommendedProducts: recommendedProducts));
+    if (!isClosed) {
+      emit(state.copyWith(recommendedProducts: recommendedProducts));
+    }
   }
 
   void changeSearchText(String? searchText) {

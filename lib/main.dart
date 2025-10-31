@@ -163,11 +163,15 @@ class MyApp extends StatelessWidget {
                   // Inject floating chat only on web
                   if (kIsWeb) {
                     return FloatingChat(
-                        child: wrapped, navigatorKey: _rootNavigatorKey);
+                        navigatorKey: _rootNavigatorKey,
+                        child: wrapped
+                    );
                   }
                   return wrapped;
                 },
                 theme: ThemeData(
+                  scaffoldBackgroundColor: Colors.transparent,
+                  canvasColor: Colors.transparent,
                   colorScheme: ColorScheme(
                     brightness: Brightness.light,
                     primary: const Color(0xFF0F4C81),
@@ -204,7 +208,6 @@ class MyApp extends StatelessWidget {
                       ),
                     ),
                   ),
-                  scaffoldBackgroundColor: Colors.white,
                   appBarTheme: const AppBarTheme(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,

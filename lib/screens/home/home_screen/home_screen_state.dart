@@ -9,7 +9,7 @@ class HomeScreenState extends Equatable {
   final List<Product> bestSellerProducts;
   final List<Product> favoriteProducts;
   final List<Product> recommendedProducts;
-  final Set<CartItem> cartItems;
+  final List<CartItem> cartItems;
 
   const HomeScreenState({
     this.username = '',
@@ -17,7 +17,7 @@ class HomeScreenState extends Equatable {
     this.bestSellerProducts = const [],
     this.favoriteProducts = const [],
     this.recommendedProducts = const [],
-    this.cartItems = const {},
+    this.cartItems = const [],
   });
 
   @override
@@ -29,7 +29,7 @@ class HomeScreenState extends Equatable {
     List<Product>? bestSellerProducts,
     List<Product>? favoriteProducts,
     List<Product>? recommendedProducts,
-    Set<CartItem>? cartItems,
+    List<CartItem>? cartItems,
   }) {
     return HomeScreenState(
       username: username ?? this.username,

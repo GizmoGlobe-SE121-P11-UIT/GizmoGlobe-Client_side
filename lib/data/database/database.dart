@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -8,7 +9,12 @@ import 'package:gizmoglobe_client/objects/address_related/address.dart';
 import 'package:gizmoglobe_client/objects/cart_item.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
+import 'package:gizmoglobe_client/objects/product_related/cpu_related/cpu.dart';
+import 'package:gizmoglobe_client/objects/product_related/drive_related/drive.dart';
+import 'package:gizmoglobe_client/objects/product_related/gpu_related/gpu.dart';
+import 'package:gizmoglobe_client/objects/product_related/mainboard_related/mainboard.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/objects/product_related/psu_related/psu.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/owned_voucher.dart';
 
 import '../../enums/manufacturer/manufacturer_status.dart';
@@ -23,6 +29,7 @@ import '../../enums/product_related/ram_enums/ram_type.dart';
 import '../../enums/voucher_related/voucher_status.dart';
 import '../../objects/address_related/province.dart';
 import '../../objects/product_related/product_factory.dart';
+import '../../objects/product_related/ram_related/ram.dart';
 import '../../objects/voucher_related/voucher.dart';
 import '../firebase/firebase.dart';
 
@@ -45,11 +52,18 @@ class Database {
   List<Voucher> allVoucherList = [];
   List<OwnedVoucher> ownedVoucherList = [];
 
+  List<RAM> ramList = [];
+  List<CPU> cpuList = [];
+  List<GPU> gpuList = [];
+  List<PSU> psuList = [];
+  List<Mainboard> mainboardList = [];
+  List<Drive> driveList = [];
+
   // Add these properties to store voucher lists
   List<Voucher> userVouchers = [];
   List<Voucher> ongoingVouchers = [];
   List<Voucher> upcomingVouchers = [];
-  Set<CartItem> cartItems = {};
+  List<CartItem> cartItems = [];
 
   // final List<Map<String, dynamic>> voucherDataList = [
   //   {
@@ -155,8 +169,29 @@ class Database {
         .toList();
   }
 
+  // Future<void> addStatusToAllProducts({bool overwrite = false}) async {
+  //   final firestore = FirebaseFirestore.instance;
+  //   final snapshot = await firestore.collection('products').get();
+  //   final docs = snapshot.docs;
+  //   if (docs.isEmpty) return;
+  //
+  //   const int batchSize = 500; // Firestore batch limit
+  //   for (var i = 0; i < docs.length; i += batchSize) {
+  //     final batch = firestore.batch();
+  //     final end = min(i + batchSize, docs.length);
+  //     for (var j = i; j < end; j++) {
+  //       final doc = docs[j];
+  //       final data = doc.data();
+  //       if (!overwrite && data.containsKey('status')) continue;
+  //       batch.update(doc.reference, {'status': 'active'});
+  //     }
+  //     await batch.commit();
+  //   }
+  // }
+
   Future<void> fetchDataFromFirestore() async {
     try {
+      // await addStatusToAllProducts();
       await getUserData();
       if (kDebugMode) {
         print('Getting data from Firebase');
@@ -184,55 +219,7 @@ class Database {
 
       getInactiveManufacturerList();
 
-      final productSnapshot =
-      await FirebaseFirestore.instance.collection('products').get();
-
-      if (kDebugMode) {
-        print('Products: ${productSnapshot.docs.length}');
-      }
-
-      final products = (await Future.wait(productSnapshot.docs.map((doc) async {
-        try {
-          final dynamic raw = doc.data();
-          if (raw is! Map<String, dynamic>) {
-            if (kDebugMode) {
-              print('Product ${doc.id} has unexpected data type: ${raw.runtimeType}');
-            }
-            return null;
-          }
-
-          // Normalize: parse JSON strings into Map/List where applicable
-          final Map<String, dynamic> data = raw.map<String, dynamic>((key, value) {
-            dynamic normalized = value;
-            if (value is String) {
-              final s = value.trim();
-              if ((s.startsWith('{') && s.endsWith('}')) ||
-                  (s.startsWith('[') && s.endsWith(']'))) {
-                try {
-                  normalized = jsonDecode(s);
-                } catch (_) {
-                  normalized = value; // leave original if parse fails
-                }
-              }
-            }
-            return MapEntry(key, normalized);
-          });
-
-          // Ensure productID present (some factories expect it)
-          data.putIfAbsent('productID', () => doc.id);
-
-          return ProductFactory.createProduct(data);
-        } catch (e, st) {
-          if (kDebugMode) {
-            print('Error processing product ${doc.id}: $e\n$st');
-          }
-          return null;
-        }
-      }))).whereType<Product>().toList();
-
-      productList = products;
-
-      // print('Số lượng products trong list: ${productList.length}');
+      productList = await getProducts();
 
       bestSellerProducts = fetchBestSellerProducts();
       favoriteProducts = await fetchFavoriteProducts(userID);
@@ -268,7 +255,7 @@ class Database {
           .collection('carts')
           .get();
 
-      Set<CartItem> updatedItems = {};
+      List<CartItem> updatedItems = [];
 
       for (var item in getCart.docs) {
         final productID = item['productID'] as String;
@@ -308,513 +295,6 @@ class Database {
     }
   }
 
-  // Future<void> _initializeSampleData() async {
-  //   manufacturerList = [
-  //     const Manufacturer(
-  //       manufacturerID: 'Corsair',
-  //       manufacturerName: 'Corsair',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'G.Skill',
-  //       manufacturerName: 'G.Skill',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'Crucial',
-  //       manufacturerName: 'Crucial',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'Kingston',
-  //       manufacturerName: 'Kingston',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'Intel',
-  //       manufacturerName: 'Intel',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'AMD',
-  //       manufacturerName: 'AMD',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'ASUS',
-  //       manufacturerName: 'ASUS',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'MSI',
-  //       manufacturerName: 'MSI',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'Gigabyte',
-  //       manufacturerName: 'Gigabyte',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'Samsung',
-  //       manufacturerName: 'Samsung',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'Western Digital',
-  //       manufacturerName: 'Western Digital',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'Seagate',
-  //       manufacturerName: 'Seagate',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'Seasonic',
-  //       manufacturerName: 'Seasonic',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'be quiet!',
-  //       manufacturerName: 'be quiet!',
-  //     ),
-  //     Manufacturer(
-  //       manufacturerID: 'Thermaltake',
-  //       manufacturerName: 'Thermaltake',
-  //     ),
-  //   ];
-  //   productList = [
-  //     ProductFactory.createProduct(CategoryEnum.ram, {
-  //       'productName': 'Kingston HyperX Fury DDR3',
-  //       'price': 49.99,
-  //       'manufacturer': manufacturerList[3], // Kingston
-  //       'bus': RAMBus.mhz1600,
-  //       'capacity': RAMCapacity.gb8,
-  //       'ramType': RAMType.ddr3,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.ram, {
-  //       'productName': 'Corsair Vengeance DDR3',
-  //       'price': 89.99,
-  //       'manufacturer': manufacturerList[0], // Corsair
-  //       'bus': RAMBus.mhz2133,
-  //       'capacity': RAMCapacity.gb16,
-  //       'ramType': RAMType.ddr3,
-  //     }),
-  //
-  //     // DDR4 RAM samples
-  //     ProductFactory.createProduct(CategoryEnum.ram, {
-  //       'productName': 'G.Skill Ripjaws V DDR4',
-  //       'price': 69.99,
-  //       'manufacturer': manufacturerList[1], // G.Skill
-  //       'bus': RAMBus.mhz2400,
-  //       'capacity': RAMCapacity.gb16,
-  //       'ramType': RAMType.ddr4,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.ram, {
-  //       'productName': 'Crucial Ballistix DDR4',
-  //       'price': 129.99,
-  //       'manufacturer': manufacturerList[2], // Crucial
-  //       'bus': RAMBus.mhz3200,
-  //       'capacity': RAMCapacity.gb32,
-  //       'ramType': RAMType.ddr4,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.ram, {
-  //       'productName': 'Corsair Dominator DDR4',
-  //       'price': 249.99,
-  //       'manufacturer': manufacturerList[0], // Corsair
-  //       'bus': RAMBus.mhz3200,
-  //       'capacity': RAMCapacity.gb64,
-  //       'ramType': RAMType.ddr4,
-  //     }),
-  //
-  //     // DDR5 RAM samples
-  //     ProductFactory.createProduct(CategoryEnum.ram, {
-  //       'productName': 'G.Skill Trident Z5 DDR5',
-  //       'price': 159.99,
-  //       'manufacturer': manufacturerList[1], // G.Skill
-  //       'bus': RAMBus.mhz4800,
-  //       'capacity': RAMCapacity.gb32,
-  //       'ramType': RAMType.ddr5,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.ram, {
-  //       'productName': 'Corsair Vengeance DDR5',
-  //       'price': 299.99,
-  //       'manufacturer': manufacturerList[0], // Corsair
-  //       'bus': RAMBus.mhz4800,
-  //       'capacity': RAMCapacity.gb64,
-  //       'ramType': RAMType.ddr5,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.ram, {
-  //       'productName': 'Kingston Fury Beast DDR5',
-  //       'price': 599.99,
-  //       'manufacturer': manufacturerList[3], // Kingston
-  //       'bus': RAMBus.mhz4800,
-  //       'capacity': RAMCapacity.gb128,
-  //       'ramType': RAMType.ddr5,
-  //     }),
-  //
-  //     // CPU samples
-  //     ProductFactory.createProduct(CategoryEnum.cpu, {
-  //       'productName': 'Intel Core i3-13100',
-  //       'price': 149.99,
-  //       'manufacturer': manufacturerList[4], // Intel
-  //       'family': CPUFamily.corei3Ultra3,
-  //       'core': 4,
-  //       'thread': 8,
-  //       'clockSpeed': 3.4,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.cpu, {
-  //       'productName': 'Intel Core i5-13600K',
-  //       'price': 319.99,
-  //       'manufacturer': manufacturerList[4], // Intel
-  //       'family': CPUFamily.corei5Ultra5,
-  //       'core': 14,
-  //       'thread': 20,
-  //       'clockSpeed': 3.5,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.cpu, {
-  //       'productName': 'Intel Core i7-13700K',
-  //       'price': 419.99,
-  //       'manufacturer': manufacturerList[4], // Intel
-  //       'family': CPUFamily.corei7Ultra7,
-  //       'core': 16,
-  //       'thread': 24,
-  //       'clockSpeed': 3.4,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.cpu, {
-  //       'productName': 'Intel Xeon W-3475X',
-  //       'price': 1499.99,
-  //       'manufacturer': manufacturerList[4], // Intel
-  //       'family': CPUFamily.xeon,
-  //       'core': 36,
-  //       'thread': 72,
-  //       'clockSpeed': 2.8,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.cpu, {
-  //       'productName': 'AMD Ryzen 3 4100',
-  //       'price': 99.99,
-  //       'manufacturer': manufacturerList[5], // AMD
-  //       'family': CPUFamily.ryzen3,
-  //       'core': 4,
-  //       'thread': 8,
-  //       'clockSpeed': 3.8,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.cpu, {
-  //       'productName': 'AMD Ryzen 5 7600X',
-  //       'price': 299.99,
-  //       'manufacturer': manufacturerList[5], // AMD
-  //       'family': CPUFamily.ryzen5,
-  //       'core': 6,
-  //       'thread': 12,
-  //       'clockSpeed': 4.7,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.cpu, {
-  //       'productName': 'AMD Ryzen 7 7800X3D',
-  //       'price': 449.99,
-  //       'manufacturer': manufacturerList[5], // AMD
-  //       'family': CPUFamily.ryzen7,
-  //       'core': 8,
-  //       'thread': 16,
-  //       'clockSpeed': 4.2,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.cpu, {
-  //       'productName': 'AMD Threadripper PRO 5995WX',
-  //       'price': 6499.99,
-  //       'manufacturer': manufacturerList[5], // AMD
-  //       'family': CPUFamily.threadripper,
-  //       'core': 64,
-  //       'thread': 128,
-  //       'clockSpeed': 2.7,
-  //     }),
-  //
-  //     // GPU samples
-  //     ProductFactory.createProduct(CategoryEnum.gpu, {
-  //       'productName': 'ASUS ROG STRIX GTX 1660 SUPER',
-  //       'price': 299.99,
-  //       'manufacturer': manufacturerList[6], // ASUS
-  //       'series': GPUSeries.gtx,
-  //       'capacity': GPUCapacity.gb6,
-  //       'busWidth': GPUBus.bit128,
-  //       'clockSpeed': 1.53,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.gpu, {
-  //       'productName': 'MSI Gaming X RTX 4070',
-  //       'price': 599.99,
-  //       'manufacturer': manufacturerList[7], // MSI
-  //       'series': GPUSeries.rtx,
-  //       'capacity': GPUCapacity.gb12,
-  //       'busWidth': GPUBus.bit128,
-  //       'clockSpeed': 2.31,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.gpu, {
-  //       'productName': 'NVIDIA Quadro RTX A6000',
-  //       'price': 4499.99,
-  //       'manufacturer': manufacturerList[6], // ASUS
-  //       'series': GPUSeries.quadro,
-  //       'capacity': GPUCapacity.gb24,
-  //       'busWidth': GPUBus.bit384,
-  //       'clockSpeed': 1.80,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.gpu, {
-  //       'productName': 'Gigabyte RX 7900 XTX',
-  //       'price': 999.99,
-  //       'manufacturer': manufacturerList[8], // Gigabyte
-  //       'series': GPUSeries.rx,
-  //       'capacity': GPUCapacity.gb24,
-  //       'busWidth': GPUBus.bit384,
-  //       'clockSpeed': 2.50,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.gpu, {
-  //       'productName': 'AMD FirePro W9100',
-  //       'price': 3999.99,
-  //       'manufacturer': manufacturerList[5], // AMD
-  //       'series': GPUSeries.firePro,
-  //       'capacity': GPUCapacity.gb16,
-  //       'busWidth': GPUBus.bit512,
-  //       'clockSpeed': 0.93,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.gpu, {
-  //       'productName': 'Intel Arc A770',
-  //       'price': 349.99,
-  //       'manufacturer': manufacturerList[4], // Intel
-  //       'series': GPUSeries.arc,
-  //       'capacity': GPUCapacity.gb16,
-  //       'busWidth': GPUBus.bit256,
-  //       'clockSpeed': 2.10,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.gpu, {
-  //       'productName': 'MSI Gaming X RTX 4090',
-  //       'price': 1999.99,
-  //       'manufacturer': manufacturerList[7], // MSI
-  //       'series': GPUSeries.rtx,
-  //       'capacity': GPUCapacity.gb24,
-  //       'busWidth': GPUBus.bit384,
-  //       'clockSpeed': 2.52,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.gpu, {
-  //       'productName': 'Gigabyte RX 6600',
-  //       'price': 249.99,
-  //       'manufacturer': manufacturerList[8], // Gigabyte
-  //       'series': GPUSeries.rx,
-  //       'capacity': GPUCapacity.gb8,
-  //       'busWidth': GPUBus.bit128,
-  //       'clockSpeed': 2.49,
-  //     }),
-  //
-  //     // Mainboard samples
-  //     ProductFactory.createProduct(CategoryEnum.mainboard, {
-  //       'productName': 'ASUS PRIME H610M-K',
-  //       'price': 89.99,
-  //       'manufacturer': manufacturerList[6], // ASUS
-  //       'formFactor': MainboardFormFactor.microATX,
-  //       'series': MainboardSeries.h,
-  //       'compatibility': MainboardCompatibility.intel,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.mainboard, {
-  //       'productName': 'MSI PRO H610I',
-  //       'price': 119.99,
-  //       'manufacturer': manufacturerList[7], // MSI
-  //       'formFactor': MainboardFormFactor.miniITX,
-  //       'series': MainboardSeries.h,
-  //       'compatibility': MainboardCompatibility.intel,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.mainboard, {
-  //       'productName': 'Gigabyte B650 AORUS ELITE AX',
-  //       'price': 229.99,
-  //       'manufacturer': manufacturerList[8], // Gigabyte
-  //       'formFactor': MainboardFormFactor.atx,
-  //       'series': MainboardSeries.b,
-  //       'compatibility': MainboardCompatibility.amd,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.mainboard, {
-  //       'productName': 'MSI MAG B760M MORTAR',
-  //       'price': 179.99,
-  //       'manufacturer': manufacturerList[7], // MSI
-  //       'formFactor': MainboardFormFactor.microATX,
-  //       'series': MainboardSeries.b,
-  //       'compatibility': MainboardCompatibility.intel,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.mainboard, {
-  //       'productName': 'ASUS ROG STRIX B650E-I',
-  //       'price': 289.99,
-  //       'manufacturer': manufacturerList[6], // ASUS
-  //       'formFactor': MainboardFormFactor.miniITX,
-  //       'series': MainboardSeries.b,
-  //       'compatibility': MainboardCompatibility.amd,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.mainboard, {
-  //       'productName': 'ASUS ROG MAXIMUS Z790 HERO',
-  //       'price': 629.99,
-  //       'manufacturer': manufacturerList[6], // ASUS
-  //       'formFactor': MainboardFormFactor.atx,
-  //       'series': MainboardSeries.z,
-  //       'compatibility': MainboardCompatibility.intel,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.mainboard, {
-  //       'productName': 'MSI MPG Z790M EDGE',
-  //       'price': 399.99,
-  //       'manufacturer': manufacturerList[7], // MSI
-  //       'formFactor': MainboardFormFactor.microATX,
-  //       'series': MainboardSeries.z,
-  //       'compatibility': MainboardCompatibility.intel,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.mainboard, {
-  //       'productName': 'Gigabyte X670E AORUS MASTER',
-  //       'price': 499.99,
-  //       'manufacturer': manufacturerList[8], // Gigabyte
-  //       'formFactor': MainboardFormFactor.atx,
-  //       'series': MainboardSeries.x,
-  //       'compatibility': MainboardCompatibility.amd,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.mainboard, {
-  //       'productName': 'ASUS ROG STRIX X670E-I',
-  //       'price': 469.99,
-  //       'manufacturer': manufacturerList[6], // ASUS
-  //       'formFactor': MainboardFormFactor.miniITX,
-  //       'series': MainboardSeries.x,
-  //       'compatibility': MainboardCompatibility.amd,
-  //     }),
-  //
-  //     // Drive samples
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'Seagate Barracuda',
-  //       'price': 49.99,
-  //       'manufacturer': manufacturerList[11], // Seagate
-  //       'type': DriveType.hdd,
-  //       'capacity': DriveCapacity.tb2,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'WD Blue HDD',
-  //       'price': 89.99,
-  //       'manufacturer': manufacturerList[10], // Western Digital
-  //       'type': DriveType.hdd,
-  //       'capacity': DriveCapacity.tb4,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'Samsung 870 EVO',
-  //       'price': 69.99,
-  //       'manufacturer': manufacturerList[9], // Samsung
-  //       'type': DriveType.sataSSD,
-  //       'capacity': DriveCapacity.gb512,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'Crucial MX500',
-  //       'price': 89.99,
-  //       'manufacturer': manufacturerList[2], // Crucial
-  //       'type': DriveType.sataSSD,
-  //       'capacity': DriveCapacity.tb1,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'WD Blue SATA SSD',
-  //       'price': 159.99,
-  //       'manufacturer': manufacturerList[10], // Western Digital
-  //       'type': DriveType.sataSSD,
-  //       'capacity': DriveCapacity.tb2,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'Samsung 860 EVO M.2',
-  //       'price': 79.99,
-  //       'manufacturer': manufacturerList[9], // Samsung
-  //       'type': DriveType.m2NGFF,
-  //       'capacity': DriveCapacity.gb512,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'WD Blue M.2 SATA',
-  //       'price': 109.99,
-  //       'manufacturer': manufacturerList[10], // Western Digital
-  //       'type': DriveType.m2NGFF,
-  //       'capacity': DriveCapacity.tb1,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'Samsung 970 EVO Plus',
-  //       'price': 119.99,
-  //       'manufacturer': manufacturerList[9], // Samsung
-  //       'type': DriveType.m2NVME,
-  //       'capacity': DriveCapacity.gb512,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'WD Black SN850X',
-  //       'price': 159.99,
-  //       'manufacturer': manufacturerList[10], // Western Digital
-  //       'type': DriveType.m2NVME,
-  //       'capacity': DriveCapacity.tb1,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'Seagate FireCuda 530',
-  //       'price': 359.99,
-  //       'manufacturer': manufacturerList[11], // Seagate
-  //       'type': DriveType.m2NVME,
-  //       'capacity': DriveCapacity.tb2,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.drive, {
-  //       'productName': 'Corsair Force MP600',
-  //       'price': 699.99,
-  //       'manufacturer': manufacturerList[0], // Corsair
-  //       'type': DriveType.m2NVME,
-  //       'capacity': DriveCapacity.tb4,
-  //     }),
-  //
-  //     // PSU samples
-  //     ProductFactory.createProduct(CategoryEnum.psu, {
-  //       'productName': 'Thermaltake Smart 500W',
-  //       'price': 44.99,
-  //       'manufacturer': manufacturerList[14], // Thermaltake
-  //       'wattage': 500,
-  //       'efficiency': PSUEfficiency.white,
-  //       'modular': PSUModular.nonModular,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.psu, {
-  //       'productName': 'Corsair CV650',
-  //       'price': 69.99,
-  //       'manufacturer': manufacturerList[0], // Corsair
-  //       'wattage': 650,
-  //       'efficiency': PSUEfficiency.bronze,
-  //       'modular': PSUModular.nonModular,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.psu, {
-  //       'productName': 'be quiet! Pure Power 11',
-  //       'price': 89.99,
-  //       'manufacturer': manufacturerList[13], // be quiet!
-  //       'wattage': 600,
-  //       'efficiency': PSUEfficiency.bronze,
-  //       'modular': PSUModular.semiModular,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.psu, {
-  //       'productName': 'Seasonic FOCUS GX-750',
-  //       'price': 129.99,
-  //       'manufacturer': manufacturerList[12], // Seasonic
-  //       'wattage': 750,
-  //       'efficiency': PSUEfficiency.gold,
-  //       'modular': PSUModular.fullModular,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.psu, {
-  //       'productName': 'Corsair RM850x',
-  //       'price': 149.99,
-  //       'manufacturer': manufacturerList[0], // Corsair
-  //       'wattage': 850,
-  //       'efficiency': PSUEfficiency.gold,
-  //       'modular': PSUModular.fullModular,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.psu, {
-  //       'productName': 'be quiet! Straight Power 11',
-  //       'price': 189.99,
-  //       'manufacturer': manufacturerList[13], // be quiet!
-  //       'wattage': 850,
-  //       'efficiency': PSUEfficiency.platinum,
-  //       'modular': PSUModular.fullModular,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.psu, {
-  //       'productName': 'Seasonic PRIME TX-1000',
-  //       'price': 309.99,
-  //       'manufacturer': manufacturerList[12], // Seasonic
-  //       'wattage': 1000,
-  //       'efficiency': PSUEfficiency.titanium,
-  //       'modular': PSUModular.fullModular,
-  //     }),
-  //     ProductFactory.createProduct(CategoryEnum.psu, {
-  //       'productName': 'be quiet! Dark Power Pro 12',
-  //       'price': 399.99,
-  //       'manufacturer': manufacturerList[13], // be quiet!
-  //       'wattage': 1200,
-  //       'efficiency': PSUEfficiency.titanium,
-  //       'modular': PSUModular.fullModular,
-  //     }),
-  //   ];
-  //   provinceList = await fetchProvinces();
-  // }
-
-  void generateSampleData() {
-    // _initializeSampleData();
-  }
-
   Future<List<Province>> fetchProvinces() async {
     const filePath = 'lib/data/database/full_json_generated_data_vn_units.json';
 
@@ -849,45 +329,75 @@ class Database {
     }
   }
 
-
   Future<List<Product>> getProducts() async {
     try {
-      final QuerySnapshot snapshot =
+      final productSnapshot =
       await FirebaseFirestore.instance.collection('products').get();
 
-      List<Product> products = [];
-      for (var doc in snapshot.docs) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      if (kDebugMode) {
+        print('Products: ${productSnapshot.docs.length}');
+      }
 
-        Manufacturer manufacturer = manufacturerList.firstWhere(
-          (manu) => manu.manufacturerID == data['manufacturerID'],
-          orElse: () => Manufacturer(
-            manufacturerID: 'unknown',
-            manufacturerName: 'Unknown Manufacturer',
-          ),
-        );
+      final products = (await Future.wait(productSnapshot.docs.map((doc) async {
+        try {
+          final dynamic raw = doc.data();
+          if (raw is! Map<String, dynamic>) {
+            if (kDebugMode) {
+              print('Product ${doc.id} has unexpected data type: ${raw.runtimeType}');
+            }
+            return null;
+          }
 
-        if (manufacturer.status == ManufacturerStatus.inactive) {
-          continue;
+          final Map<String, dynamic> data = raw.map<String, dynamic>((key, value) {
+            dynamic normalized = value;
+            if (value is String) {
+              final s = value.trim();
+              if ((s.startsWith('{') && s.endsWith('}')) ||
+                  (s.startsWith('[') && s.endsWith(']'))) {
+                try {
+                  normalized = jsonDecode(s);
+                } catch (_) {
+                  normalized = value;
+                }
+              }
+            }
+            return MapEntry(key, normalized);
+          });
+
+          data.putIfAbsent('productID', () => doc.id);
+
+          return ProductFactory.createProduct(data);
+        } catch (e, st) {
+          if (kDebugMode) {
+            print('Error processing product ${doc.id}: $e\n$st');
+          }
+          return null;
         }
-        // Tạo product instance thông qua factory
-        Product product = ProductFactory.createProduct(data);
+      }))).whereType<Product>().toList();
 
-        if (
-          product.status == ProductStatusEnum.discontinued ||
-          product.status == ProductStatusEnum.outOfStock
-        ) {
-          continue;
-        }
+      // Store to central lists so other methods (e.g. getProductsWithCategory) can use them
+      productList = products;
+      fullProductList = [...products];
 
-        products.add(product);
+      // Populate typed lists using runtime types
+      ramList = products.whereType<RAM>().toList();
+      cpuList = products.whereType<CPU>().toList();
+      gpuList = products.whereType<GPU>().toList();
+      psuList = products.whereType<PSU>().toList();
+      mainboardList = products.whereType<Mainboard>().toList();
+      driveList = products.whereType<Drive>().toList();
+
+      if (kDebugMode) {
+        print('Populated typed lists: '
+            'ram=${ramList.length}, cpu=${cpuList.length}, gpu=${gpuList.length}, '
+            'psu=${psuList.length}, mainboard=${mainboardList.length}, drive=${driveList.length}');
       }
 
       return products;
     } catch (e) {
       if (kDebugMode) {
         print('Error getting products: $e');
-      } // Lỗi khi lấy danh sách sản phẩm
+      }
       rethrow;
     }
   }

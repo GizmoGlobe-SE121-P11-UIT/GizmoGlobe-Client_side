@@ -8,7 +8,7 @@ import '../../widgets/general/app_text_style.dart';
 class UnlimitedPercentageVoucherWithoutEndTime
     extends Voucher
     implements PercentageInterface {
-  double _maximumDiscountValue;
+  int _maximumDiscountValue;
 
   UnlimitedPercentageVoucherWithoutEndTime({
     super.voucherID,
@@ -25,14 +25,14 @@ class UnlimitedPercentageVoucherWithoutEndTime
     super.hasEndTime = true,
     super.isLimited = false,
 
-    required double maximumDiscountValue,
+    required int maximumDiscountValue,
   }) :
         _maximumDiscountValue = maximumDiscountValue;
 
   @override
-  double get maximumDiscountValue => _maximumDiscountValue;
+  int get maximumDiscountValue => _maximumDiscountValue;
   @override
-  set maximumDiscountValue(double value) => _maximumDiscountValue = value;
+  set maximumDiscountValue(int value) => _maximumDiscountValue = value;
 
   @override
   void updateVoucher({
@@ -40,14 +40,14 @@ class UnlimitedPercentageVoucherWithoutEndTime
     String? voucherName,
     DateTime? startTime,
     double? discountValue,
-    double? minimumPurchase,
+    int? minimumPurchase,
     int? maxUsagePerPerson,
     bool? isVisible,
     bool? isEnabled,
     String? enDescription,
     String? viDescription,
     DateTime? endTime,
-    double? maximumDiscountValue,
+    int? maximumDiscountValue,
   }) {
     super.updateVoucher(
       voucherID: voucherID,

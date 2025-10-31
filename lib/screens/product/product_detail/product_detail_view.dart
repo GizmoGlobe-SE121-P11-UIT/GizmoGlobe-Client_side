@@ -16,9 +16,11 @@ import '../../../objects/product_related/mainboard_related/mainboard.dart';
 import '../../../objects/product_related/product.dart';
 import '../../../objects/product_related/psu_related/psu.dart';
 import '../../../objects/product_related/ram_related/ram.dart';
+import '../../../services/recommendation_service.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/field_with_icon.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
+import '../../../widgets/product/product_card.dart';
 import '../../cart/cart_screen/cart_screen_cubit.dart';
 import '../../cart/cart_screen/cart_screen_state.dart';
 import '../../cart/cart_screen/cart_screen_view.dart';
@@ -307,6 +309,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 //   _buildTextField(context, S.of(context).description,
                                 //       widget.product.getDescription(context)!),
                                 // ],
+
+                                _buildRecommendationsSection(context, state.product),
                               ],
                             ),
                           ),
@@ -610,6 +614,69 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         constraints: const BoxConstraints(),
         iconSize: 18,
         splashRadius: 20,
+      ),
+    );
+  }
+
+  Widget _buildRecommendationsSection(BuildContext context, Product currentProduct) {
+    final recs = RecommendationService()
+        .getCompatibleForProduct(currentProduct)
+        .where((p) => p.productID != currentProduct.productID)
+        .toList();
+
+    if (recs.isEmpty) return const SizedBox();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Good with this product',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              fontSize: 18,
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          LayoutBuilder(builder: (context, constraints) {
+            const int crossAxisCount = 2;
+            const double spacing = 8.0;
+            const double itemHeight = 260.0;
+
+            final totalSpacing = spacing * (crossAxisCount - 1);
+            final itemWidth = (constraints.maxWidth - totalSpacing) / crossAxisCount;
+            final childAspectRatio = itemWidth / itemHeight;
+
+            return GridView.builder(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: recs.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                mainAxisSpacing: spacing,
+                crossAxisSpacing: spacing,
+                childAspectRatio: childAspectRatio,
+              ),
+              itemBuilder: (context, index) {
+                final product = recs[index];
+                return GestureDetector(
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (ctx) => ProductDetailScreen.newInstance(product),
+                      ),
+                    );
+                  },
+                  child: ProductCard(product: product),
+                );
+              },
+            );
+          }),
+          const SizedBox(height: 12),
+        ],
       ),
     );
   }

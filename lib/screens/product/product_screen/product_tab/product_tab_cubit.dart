@@ -157,12 +157,6 @@ abstract class TabCubit extends Cubit<TabState> {
       case SortEnum.salesLowest:
         filteredProducts.sort((a, b) => a.sales.compareTo(b.sales));
         break;
-      case SortEnum.discountHighest:
-        filteredProducts.sort((a, b) => b.discount.compareTo(a.discount));
-        break;
-      case SortEnum.discountLowest:
-        filteredProducts.sort((a, b) => a.discount.compareTo(b.discount));
-        break;
       default:
         filteredProducts.sort((a, b) => b.sales.compareTo(a.sales));
     }

@@ -7,7 +7,7 @@ abstract class Voucher {
   String voucherName;
   DateTime startTime;
   double discountValue;
-  double minimumPurchase;
+  int minimumPurchase;
   int maxUsagePerPerson;
   bool isVisible;
   bool isEnabled;
@@ -38,7 +38,7 @@ abstract class Voucher {
     String? voucherID,
     String? voucherName,
     double? discountValue,
-    double? minimumPurchase,
+    int? minimumPurchase,
     int? maxUsagePerPerson,
     DateTime? startTime,
     String? enDescription,
