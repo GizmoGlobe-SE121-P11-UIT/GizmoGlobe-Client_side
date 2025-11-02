@@ -7,6 +7,7 @@ import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_cubit.dar
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
+import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 
 class WebProductCard extends StatefulWidget {
   final Product product;
@@ -79,19 +80,65 @@ class _WebProductCardState extends State<WebProductCard> {
                       child: Stack(
                         children: [
                           Center(
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(12),
-                                topRight: Radius.circular(12),
-                              ),
-                              child: Image.network(
-                                widget.product.imageUrl ??
-                                    'https://via.placeholder.com/400x300',
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
-                            ),
+                            child: widget.product.imageUrl != null &&
+                                    widget.product.imageUrl!.isNotEmpty
+                                ? ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(12),
+                                      topRight: Radius.circular(12),
+                                    ),
+                                    child: Image.network(
+                                      widget.product.imageUrl!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        // Fallback to category icon if image fails to load
+                                        return Container(
+                                          padding: const EdgeInsets.all(24.0),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primaryContainer
+                                                .withValues(alpha: 0.3),
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                              topLeft: Radius.circular(12),
+                                              topRight: Radius.circular(12),
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            _getCategoryIcon(
+                                                widget.product.category),
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            size: 64,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  )
+                                : Container(
+                                    padding: const EdgeInsets.all(24.0),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer
+                                          .withValues(alpha: 0.3),
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12),
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      _getCategoryIcon(widget.product.category),
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      size: 64,
+                                    ),
+                                  ),
                           ),
                           // Discount badge
                           if (widget.product.discount > 0)
@@ -219,7 +266,8 @@ class _WebProductCardState extends State<WebProductCard> {
                                 children: [
                                   if (widget.product.discount > 0) ...[
                                     Text(
-                                      Helper.toCurrencyFormat(widget.product.price),
+                                      Helper.toCurrencyFormat(
+                                          widget.product.price),
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
@@ -233,7 +281,8 @@ class _WebProductCardState extends State<WebProductCard> {
                                     const SizedBox(height: 2),
                                   ],
                                   Text(
-                                    Helper.toCurrencyFormat(widget.product.discountedPrice),
+                                    Helper.toCurrencyFormat(
+                                        widget.product.discountedPrice),
                                     style: TextStyle(
                                       color:
                                           Theme.of(context).colorScheme.primary,
@@ -305,6 +354,25 @@ class _WebProductCardState extends State<WebProductCard> {
     } catch (e) {
       // Show error feedback
       SnackbarService.showCartError(context);
+    }
+  }
+
+  IconData _getCategoryIcon(CategoryEnum category) {
+    switch (category) {
+      case CategoryEnum.ram:
+        return Icons.memory;
+      case CategoryEnum.cpu:
+        return Icons.computer;
+      case CategoryEnum.psu:
+        return Icons.power;
+      case CategoryEnum.gpu:
+        return Icons.videogame_asset;
+      case CategoryEnum.drive:
+        return Icons.storage;
+      case CategoryEnum.mainboard:
+        return Icons.developer_board;
+      default:
+        return Icons.device_unknown;
     }
   }
 }

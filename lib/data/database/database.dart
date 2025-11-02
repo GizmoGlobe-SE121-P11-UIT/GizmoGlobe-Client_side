@@ -1,10 +1,11 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
+import 'package:gizmoglobe_client/enums/product_related/product_status_enum.dart';
 import 'package:gizmoglobe_client/objects/address_related/address.dart';
 import 'package:gizmoglobe_client/objects/cart_item.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';

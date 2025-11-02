@@ -3,17 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
-import 'package:gizmoglobe_client/objects/product_related/product.dart';
-import 'package:gizmoglobe_client/objects/product_related/product_factory.dart';
 import 'package:gizmoglobe_client/services/recommendation_service.dart';
-import '../../../data/firebase/firebase.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
 import 'home_screen_state.dart';
 
 class HomeScreenCubit extends Cubit<HomeScreenState> {
   final FavoritesCubit favoritesCubit;
   late final StreamSubscription _favoritesSubscription;
-  final Firebase _firebase = Firebase();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late dynamic user;
 
@@ -28,7 +24,6 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
     _updateRecommendedProducts();
 
     user = _auth.currentUser;
-
   }
 
   @override

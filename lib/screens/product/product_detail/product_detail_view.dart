@@ -10,8 +10,6 @@ import '../../../enums/product_related/category_enum.dart';
 import '../../../functions/helper.dart';
 import '../../../generated/l10n.dart';
 import '../../../objects/product_related/product.dart';
-import '../../../objects/product_related/psu_related/psu.dart';
-import '../../../objects/product_related/ram_related/ram.dart';
 import '../../../services/recommendation_service.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
