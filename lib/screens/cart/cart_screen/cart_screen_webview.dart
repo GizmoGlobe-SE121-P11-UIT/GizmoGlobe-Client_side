@@ -13,7 +13,6 @@ import 'package:gizmoglobe_client/components/general/web_header.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../functions/helper.dart';
-import '../../../objects/product_related/product.dart';
 import 'cart_screen_cubit.dart';
 import 'cart_screen_state.dart';
 
@@ -225,11 +224,8 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
   }
 
   Widget _buildCartItem(CartItem item) {
-    final isSelected = context
-        .read<CartScreenCubit>()
-        .state
-        .selectedItems
-        .contains(item);
+    final isSelected =
+        context.read<CartScreenCubit>().state.selectedItems.contains(item);
     final product = item.product;
     final originalPrice = product.price;
     final discount = product.discount;
@@ -376,9 +372,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                           icon: const Icon(Icons.remove, size: 20),
                           onPressed: (item.quantity) > 1
                               ? () {
-                                  cubit.updateQuantity(
-                                    item, item.quantity - 1
-                                  );
+                                  cubit.updateQuantity(item, item.quantity - 1);
                                 }
                               : null,
                           padding: const EdgeInsets.all(8),
@@ -411,9 +405,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                         IconButton(
                           icon: const Icon(Icons.add, size: 20),
                           onPressed: () {
-                            cubit.updateQuantity(
-                              item, item.quantity + 1
-                            );
+                            cubit.updateQuantity(item, item.quantity + 1);
                           },
                           padding: const EdgeInsets.all(8),
                           constraints: const BoxConstraints(
@@ -578,7 +570,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                   ),
                   Text(
-                  Helper.toCurrencyFormat(state.totalBeforeDiscount),
+                    Helper.toCurrencyFormat(state.totalBeforeDiscount),
                     style: TextStyle(
                       decoration: TextDecoration.lineThrough,
                       color: Theme.of(context)

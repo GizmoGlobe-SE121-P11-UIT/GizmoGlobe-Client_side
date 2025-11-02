@@ -9,8 +9,6 @@ import '../../objects/address_related/address.dart';
 import '../../objects/invoice_related/sales_invoice.dart';
 import '../../objects/invoice_related/sales_invoice_detail.dart';
 import '../../objects/manufacturer.dart';
-import '../../objects/product_related/product.dart';
-import '../../objects/product_related/product_factory.dart';
 import '../../objects/voucher_related/owned_voucher.dart';
 import '../../objects/voucher_related/voucher.dart';
 import '../../objects/voucher_related/voucher_factory.dart';
@@ -269,7 +267,7 @@ class Firebase {
         final price = (productData['sellingPrice'] as num).toDouble();
         final discount = (productData['discount'] as num?)?.toDouble() ?? 0.0;
         final discountedPrice = price * (1 - discount / 100);
-        final subtotal = (discountedPrice * newQuantity).toStringAsFixed(2);
+        (discountedPrice * newQuantity).toStringAsFixed(2);
 
         final cartRef = _firestore
             .collection('customers')
@@ -485,7 +483,7 @@ class Firebase {
           .doc(productId)
           .update({'status': status.getName()});
 
-      List<Product> products = await Database().getProducts();
+      await Database().getProducts();
     } catch (e) {
       if (kDebugMode) {
         print('Error changing product status: $e');

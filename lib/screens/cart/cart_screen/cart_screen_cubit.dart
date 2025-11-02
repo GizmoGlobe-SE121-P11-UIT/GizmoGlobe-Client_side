@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/objects/cart_item.dart';
@@ -52,7 +51,6 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     }
   }
 
-
   Future<void> updateQuantity(CartItem cartItem, int newQuantity) async {
     try {
       if (isClosed) return;
@@ -71,7 +69,8 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      await _firebase.updateCartItemQuantity(user.uid, cartItem.product.productID!, newQuantity);
+      await _firebase.updateCartItemQuantity(
+          user.uid, cartItem.product.productID!, newQuantity);
     } catch (e) {
       if (isClosed) return;
       // Revert the state if the update call fails
@@ -113,8 +112,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     if (state.isAllSelected) {
       emit(state.copyWith(selectedItems: []));
     } else {
-      final allProductIds =
-          state.items.map((item) => item.product.productID as String).toList();
+      state.items.map((item) => item.product.productID as String).toList();
       emit(state.copyWith(selectedItems: state.items));
     }
   }

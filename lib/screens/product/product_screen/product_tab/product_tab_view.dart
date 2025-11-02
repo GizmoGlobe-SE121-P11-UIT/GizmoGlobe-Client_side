@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
-import 'package:gizmoglobe_client/objects/product_related/product_extensions.dart';
 import 'package:gizmoglobe_client/widgets/product/product_card.dart';
 
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../enums/processing/sort_enum.dart';
 import '../../../../objects/product_related/filter_argument.dart';
 import '../../../../objects/product_related/product.dart';
-import '../../../../widgets/general/app_text_style.dart';
 import '../../filter/filter_screen/filter_screen_view.dart';
 import '../../mixin/product_tab_mixin.dart';
 import '../../product_detail/product_detail_view.dart';
