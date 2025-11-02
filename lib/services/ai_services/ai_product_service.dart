@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../functions/helper.dart';
-import 'ai_utils.dart';
-import 'ai_nlp_service.dart';
 
 class AIProductService {
   final FirebaseFirestore _firestore;

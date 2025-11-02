@@ -1,10 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/enums/product_related/product_status_enum.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 
 import '../../enums/product_related/category_enum.dart';
-import 'product_factory.dart';
 
 abstract class Product {
   String? productID;

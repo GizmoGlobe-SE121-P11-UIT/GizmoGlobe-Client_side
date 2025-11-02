@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 import '../../../../objects/product_related/filter_argument.dart';
 import 'filter_screen_state.dart';
@@ -23,13 +22,15 @@ class FilterScreenCubit extends Cubit<FilterScreenState> {
   }
 
   void toggleManufacturer(Manufacturer manufacturer) {
-    final selectedManufacturers = List<Manufacturer>.from(state.filterArgument.manufacturerList);
+    final selectedManufacturers =
+        List<Manufacturer>.from(state.filterArgument.manufacturerList);
     if (selectedManufacturers.contains(manufacturer)) {
       selectedManufacturers.remove(manufacturer);
     } else {
       selectedManufacturers.add(manufacturer);
     }
 
-    updateFilterArgument(state.filterArgument.copyWith(manufacturerList: selectedManufacturers));
+    updateFilterArgument(
+        state.filterArgument.copyWith(manufacturerList: selectedManufacturers));
   }
 }

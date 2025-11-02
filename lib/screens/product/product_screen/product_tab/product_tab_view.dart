@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
-import 'package:gizmoglobe_client/objects/product_related/product_extensions.dart';
 import 'package:gizmoglobe_client/widgets/product/product_card.dart';
 
-import '../../../../data/database/database.dart';
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../enums/processing/sort_enum.dart';
-import '../../../../enums/product_related/category_enum.dart';
-import '../../../../enums/product_related/product_status_enum.dart';
 import '../../../../objects/product_related/filter_argument.dart';
 import '../../../../objects/product_related/product.dart';
 import '../../../../widgets/general/app_text_style.dart';
@@ -121,7 +116,10 @@ class _ProductTabState extends State<ProductTab>
                           icon: const Icon(Icons.keyboard_arrow_down),
                           underline: Container(
                             height: 1,
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.5),
                           ),
                           onChanged: (SortEnum? newValue) {
                             if (newValue != null &&
@@ -132,52 +130,53 @@ class _ProductTabState extends State<ProductTab>
                           items: SortEnum.values
                               .map<DropdownMenuItem<SortEnum>>(
                                   (SortEnum value) {
-                                String displayText;
-                                switch (value) {
-                                  case SortEnum.salesHighest:
-                                    // displayText = S.of(context).salesHighest;
-                                  displayText = "Sells Highest";
-                                    break;
-                                  case SortEnum.salesLowest:
-                                    // displayText = S.of(context).salesLowest;
-                                  displayText = "Sells Lowest";
-                                    break;
-                                  case SortEnum.releaseLatest:
-                                    // displayText = S.of(context).releaseLatest;
-                                  displayText = "Release Latest";
-                                    break;
-                                  case SortEnum.releaseOldest:
-                                    // displayText = S.of(context).releaseOldest;
-                                  displayText = "Release Oldest";
-                                    break;
-                                  case SortEnum.priceLowest:
-                                    // displayText = S.of(context).priceLowest;
-                                  displayText = "Price Lowest";
-                                    break;
-                                  case SortEnum.priceHighest:
-                                    // displayText = S.of(context).priceHighest;
-                                  displayText = "Price Highest";
-                                  case SortEnum.discountHighest:
-                                    // displayText = S.of(context).discountHighest;
-                                  displayText = "Discount Highest";
-                                  case SortEnum.discountLowest:
-                                    // displayText = S.of(context).discountLowest;
-                                  displayText = "Discount Lowest";
-                                    break;
-                                }
-                                return DropdownMenuItem<SortEnum>(
-                                  value: value,
-                                  child: Container(
-                                    constraints: const BoxConstraints(minHeight: 40),
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      displayText,
-                                      overflow: TextOverflow.visible,
-                                      softWrap: true,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                            String displayText;
+                            switch (value) {
+                              case SortEnum.salesHighest:
+                                // displayText = S.of(context).salesHighest;
+                                displayText = "Sells Highest";
+                                break;
+                              case SortEnum.salesLowest:
+                                // displayText = S.of(context).salesLowest;
+                                displayText = "Sells Lowest";
+                                break;
+                              case SortEnum.releaseLatest:
+                                // displayText = S.of(context).releaseLatest;
+                                displayText = "Release Latest";
+                                break;
+                              case SortEnum.releaseOldest:
+                                // displayText = S.of(context).releaseOldest;
+                                displayText = "Release Oldest";
+                                break;
+                              case SortEnum.priceLowest:
+                                // displayText = S.of(context).priceLowest;
+                                displayText = "Price Lowest";
+                                break;
+                              case SortEnum.priceHighest:
+                                // displayText = S.of(context).priceHighest;
+                                displayText = "Price Highest";
+                              case SortEnum.discountHighest:
+                                // displayText = S.of(context).discountHighest;
+                                displayText = "Discount Highest";
+                              case SortEnum.discountLowest:
+                                // displayText = S.of(context).discountLowest;
+                                displayText = "Discount Lowest";
+                                break;
+                            }
+                            return DropdownMenuItem<SortEnum>(
+                              value: value,
+                              child: Container(
+                                constraints:
+                                    const BoxConstraints(minHeight: 40),
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  displayText,
+                                  overflow: TextOverflow.visible,
+                                  softWrap: true,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ),
                       Center(
@@ -192,13 +191,11 @@ class _ProductTabState extends State<ProductTab>
 
                             final result = await Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    FilterScreen.newInstance(
-                                      arguments: arguments,
-                                      selectedTabIndex: cubit.getIndex(),
-                                      manufacturerList:
-                                      cubit.getManufacturerList(),
-                                    ),
+                                builder: (context) => FilterScreen.newInstance(
+                                  arguments: arguments,
+                                  selectedTabIndex: cubit.getIndex(),
+                                  manufacturerList: cubit.getManufacturerList(),
+                                ),
                               ),
                             );
 
@@ -272,7 +269,8 @@ class _ProductTabState extends State<ProductTab>
               return Stack(
                 children: [
                   ModalBarrier(
-                      dismissible: false, color: Colors.black.withValues(alpha: 0.5)),
+                      dismissible: false,
+                      color: Colors.black.withValues(alpha: 0.5)),
                   Center(
                     child: CircularProgressIndicator(
                       color: Theme.of(context).colorScheme.primary,

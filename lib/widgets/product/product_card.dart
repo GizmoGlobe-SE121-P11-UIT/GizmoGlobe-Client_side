@@ -30,20 +30,30 @@ class ProductCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: isSelected
-                ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
                 : product.displayStatus == ProductStatusEnum.discontinued
-                    ? Theme.of(context).colorScheme.error.withOpacity(0.05)
-                    : Theme.of(context).colorScheme.tertiary.withOpacity(0.05),
+                    ? Theme.of(context)
+                        .colorScheme
+                        .error
+                        .withValues(alpha: 0.05)
+                    : Theme.of(context)
+                        .colorScheme
+                        .tertiary
+                        .withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: product.displayStatus == ProductStatusEnum.discontinued
-                  ? Theme.of(context).colorScheme.error.withOpacity(0.5)
-                  : Theme.of(context).colorScheme.tertiary.withOpacity(0.5),
+                  ? Theme.of(context).colorScheme.error.withValues(alpha: 0.5)
+                  : Theme.of(context)
+                      .colorScheme
+                      .tertiary
+                      .withValues(alpha: 0.5),
               width: 2,
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -82,10 +92,12 @@ class ProductCard extends StatelessWidget {
                           ),
                           // Status icon
                           Icon(
-                            product.displayStatus == ProductStatusEnum.discontinued
+                            product.displayStatus ==
+                                    ProductStatusEnum.discontinued
                                 ? Icons.cancel_outlined
                                 : Icons.check_circle_outline,
-                            color: product.displayStatus == ProductStatusEnum.discontinued
+                            color: product.displayStatus ==
+                                    ProductStatusEnum.discontinued
                                 ? Theme.of(context).colorScheme.error
                                 : Theme.of(context).colorScheme.tertiary,
                             size: 16,
@@ -105,7 +117,9 @@ class ProductCard extends StatelessWidget {
                                 Icon(
                                   Icons.inventory_2_outlined,
                                   size: 14,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -113,7 +127,9 @@ class ProductCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: product.stock > 0
-                                        ? Theme.of(context).colorScheme.onSurface
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
                                         : Theme.of(context).colorScheme.error,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -130,14 +146,17 @@ class ProductCard extends StatelessWidget {
                                 Icon(
                                   Icons.trending_up,
                                   size: 14,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${product.sales}',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -153,14 +172,17 @@ class ProductCard extends StatelessWidget {
                                 Icon(
                                   Icons.monetization_on_outlined,
                                   size: 14,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   Helper.toCurrencyFormat(product.price),
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),

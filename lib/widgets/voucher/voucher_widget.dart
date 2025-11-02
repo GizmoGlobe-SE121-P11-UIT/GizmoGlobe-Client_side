@@ -35,17 +35,17 @@ class VoucherWidget extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   colorScheme.primary,
-                  colorScheme.primary.withOpacity(0.8),
+                  colorScheme.primary.withValues(alpha: 0.8),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: colorScheme.outline.withOpacity(0.2),
+                color: colorScheme.outline.withValues(alpha: 0.2),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: colorScheme.shadow.withOpacity(0.1),
+                  color: colorScheme.shadow.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -79,7 +79,8 @@ class VoucherWidget extends StatelessWidget {
                     Text(
                       _getDiscountText(context),
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                        color: colorScheme.onPrimaryContainer
+                            .withValues(alpha: 0.8),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -95,8 +96,8 @@ class VoucherWidget extends StatelessWidget {
                         Text(
                           '${S.of(context).minimumPurchase}:',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color:
-                                colorScheme.onPrimaryContainer.withOpacity(0.7),
+                            color: colorScheme.onPrimaryContainer
+                                .withValues(alpha: 0.7),
                           ),
                         ),
                         Text(
@@ -137,22 +138,22 @@ class VoucherWidget extends StatelessWidget {
     Color textColor;
     if (!voucher.isEnabled) {
       statusText = S.of(context).disabled;
-      backgroundColor = colorScheme.error.withOpacity(0.2);
+      backgroundColor = colorScheme.error.withValues(alpha: 0.2);
       textColor = colorScheme.error;
     } else if (voucher.isLimited &&
         (voucher as LimitedInterface).usageLeft <= 0) {
       statusText = S.of(context).ranOut;
-      backgroundColor = colorScheme.error.withOpacity(0.2);
+      backgroundColor = colorScheme.error.withValues(alpha: 0.2);
       textColor = colorScheme.error;
     } else if (voucher.hasEndTime &&
         voucher is EndTimeInterface &&
         (voucher as EndTimeInterface).endTime.isBefore(DateTime.now())) {
       statusText = S.of(context).expired;
-      backgroundColor = colorScheme.error.withOpacity(0.2);
+      backgroundColor = colorScheme.error.withValues(alpha: 0.2);
       textColor = colorScheme.error;
     } else {
       statusText = S.of(context).available;
-      backgroundColor = colorScheme.tertiary.withOpacity(0.2);
+      backgroundColor = colorScheme.tertiary.withValues(alpha: 0.2);
       textColor = Colors.green;
     }
     return Container(
@@ -205,7 +206,7 @@ class VoucherWidget extends StatelessWidget {
           size: 16,
           color: isUrgent
               ? colorScheme.error
-              : colorScheme.onPrimaryContainer.withOpacity(0.7),
+              : colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
         ),
         const SizedBox(width: 4),
         Text(
@@ -215,7 +216,7 @@ class VoucherWidget extends StatelessWidget {
           style: theme.textTheme.bodySmall?.copyWith(
             color: isUrgent
                 ? colorScheme.error
-                : colorScheme.onPrimaryContainer.withOpacity(0.7),
+                : colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
             fontWeight: isUrgent ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -232,13 +233,13 @@ class VoucherWidget extends StatelessWidget {
         Icon(
           Icons.people_outline,
           size: 16,
-          color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+          color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
         ),
         const SizedBox(width: 4),
         Text(
           '${limited.usageLeft}/${limited.maximumUsage}',
           style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+            color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
           ),
         ),
       ],

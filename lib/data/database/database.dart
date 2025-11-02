@@ -11,14 +11,6 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/owned_voucher.dart';
 
 import '../../enums/manufacturer/manufacturer_status.dart';
-import '../../enums/product_related/category_enum.dart';
-import '../../enums/product_related/drive_enums/drive_type.dart';
-import '../../enums/product_related/gpu_enums/gpu_series.dart';
-import '../../enums/product_related/mainboard_enums/mainboard_form_factor.dart';
-import '../../enums/product_related/product_status_enum.dart';
-import '../../enums/product_related/psu_enums/psu_efficiency.dart';
-import '../../enums/product_related/psu_enums/psu_modular.dart';
-import '../../enums/product_related/ram_enums/ram_type.dart';
 import '../../enums/voucher_related/voucher_status.dart';
 import '../../objects/address_related/province.dart';
 import '../../objects/product_related/product_factory.dart';
@@ -48,7 +40,6 @@ class Database {
   List<Voucher> userVouchers = [];
   List<Voucher> ongoingVouchers = [];
   List<Voucher> upcomingVouchers = [];
-
 
   // final List<Map<String, dynamic>> voucherDataList = [
   //   {
@@ -150,7 +141,8 @@ class Database {
 
   void getInactiveManufacturerList() {
     inactiveManufacturerList = manufacturerList
-        .where((manufacturer) => manufacturer.status == ManufacturerStatus.inactive)
+        .where((manufacturer) =>
+            manufacturer.status == ManufacturerStatus.inactive)
         .toList();
   }
 
@@ -166,7 +158,8 @@ class Database {
 
       await fetchAddress();
 
-      final manufacturerSnapshot = await FirebaseFirestore.instance.collection('manufacturers').get();
+      final manufacturerSnapshot =
+          await FirebaseFirestore.instance.collection('manufacturers').get();
 
       manufacturerList = manufacturerSnapshot.docs.map((doc) {
         final data = doc.data();
@@ -175,7 +168,10 @@ class Database {
           manufacturerID: doc.id,
           manufacturerName: doc['manufacturerName'] as String,
           status: ManufacturerStatus.values.firstWhere(
-            (e) => e.getName().toLowerCase() == (docStatus?.toLowerCase() ?? ManufacturerStatus.active.getName().toLowerCase()),
+            (e) =>
+                e.getName().toLowerCase() ==
+                (docStatus?.toLowerCase() ??
+                    ManufacturerStatus.active.getName().toLowerCase()),
             orElse: () => ManufacturerStatus.active,
           ),
         );
@@ -184,7 +180,7 @@ class Database {
       getInactiveManufacturerList();
 
       final productSnapshot =
-      await FirebaseFirestore.instance.collection('products').get();
+          await FirebaseFirestore.instance.collection('products').get();
 
       if (kDebugMode) {
         print('Products: ${productSnapshot.docs.length}');
@@ -195,13 +191,15 @@ class Database {
           final dynamic raw = doc.data();
           if (raw is! Map<String, dynamic>) {
             if (kDebugMode) {
-              print('Product ${doc.id} has unexpected data type: ${raw.runtimeType}');
+              print(
+                  'Product ${doc.id} has unexpected data type: ${raw.runtimeType}');
             }
             return null;
           }
 
           // Normalize: parse JSON strings into Map/List where applicable
-          final Map<String, dynamic> data = raw.map<String, dynamic>((key, value) {
+          final Map<String, dynamic> data =
+              raw.map<String, dynamic>((key, value) {
             dynamic normalized = value;
             if (value is String) {
               final s = value.trim();
@@ -227,7 +225,9 @@ class Database {
           }
           return null;
         }
-      }))).whereType<Product>().toList();
+      })))
+          .whereType<Product>()
+          .toList();
 
       productList = products;
 
@@ -876,7 +876,8 @@ class Database {
       List<Product> bestSellers = sortedProducts.take(5).toList();
 
       if (kDebugMode) {
-        print('Found ${bestSellers.length} best selling products from local data');
+        print(
+            'Found ${bestSellers.length} best selling products from local data');
       }
 
       return bestSellers;
@@ -919,7 +920,8 @@ class Database {
           .toList();
 
       if (kDebugMode) {
-        print('Found ${favoriteProducts.length} favorite products from local data');
+        print(
+            'Found ${favoriteProducts.length} favorite products from local data');
       }
 
       return favoriteProducts;
