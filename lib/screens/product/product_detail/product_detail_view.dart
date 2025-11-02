@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 
+import '../../../components/general/web_product_card.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
@@ -641,7 +643,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
           const SizedBox(height: 8),
           LayoutBuilder(builder: (context, constraints) {
-            const int crossAxisCount = 2;
+            const int crossAxisCount = !kIsWeb ? 2 : 4;
             const double spacing = 8.0;
             const double itemHeight = 260.0;
 
@@ -670,7 +672,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     );
                   },
-                  child: ProductCard(product: product),
+                  child: !kIsWeb ?
+                  ProductCard(product: product) :
+                  WebProductCard(product: product),
                 );
               },
             );

@@ -11,7 +11,7 @@ import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 class WebProductCard extends StatefulWidget {
   final Product product;
 
-  const WebProductCard({Key? key, required this.product}) : super(key: key);
+  const WebProductCard({super.key, required this.product});
 
   @override
   State<WebProductCard> createState() => _WebProductCardState();
