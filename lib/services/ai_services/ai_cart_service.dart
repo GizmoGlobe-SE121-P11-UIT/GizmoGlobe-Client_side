@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:intl/intl.dart';
 
 class AICartService {
@@ -95,32 +96,7 @@ class AICartService {
     final finalPrice = price * (1 - discount / 100);
 
     return isVietnamese
-        ? '✅ Đã thêm $quantity ${quantity > 1 ? 'sản phẩm' : 'sản phẩm'} "$productDisplayName" vào giỏ hàng thành công!\n\n💰 Giá: ${formatPriceWithDiscount(price, discount)}\n📦 Số lượng: $quantity\n💵 Tổng: ${formatPrice(finalPrice * quantity)}\n\nBạn có thể xem giỏ hàng của mình trong ứng dụng.'
-        : '✅ Successfully added $quantity ${quantity > 1 ? 'items' : 'item'} of "$productDisplayName" to your cart!\n\n💰 Price: ${formatPriceWithDiscount(price, discount)}\n📦 Quantity: $quantity\n💵 Total: ${formatPrice(finalPrice * quantity)}\n\nYou can view your cart in the app.';
-  }
-
-  // Private helper methods
-  String formatPriceWithDiscount(dynamic price, dynamic discount) {
-    if (price == null) return 'Price not available';
-    if (price is! num) return formatPrice((price as num).toDouble());
-
-    if (discount == null || discount == 0) {
-      return formatPrice((price).toDouble());
-    }
-
-    // Fix: discount is percentage, not decimal
-    final discountAmount = (price) * ((discount as num) / 100);
-    final finalPrice = (price) - discountAmount;
-
-    return '${formatPrice(finalPrice.toDouble())} (Original: ${formatPrice((price).toDouble())})';
-  }
-
-  String formatPrice(double price) {
-    final formatter = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 2,
-    );
-    return formatter.format(price);
+        ? '✅ Đã thêm $quantity ${quantity > 1 ? 'sản phẩm' : 'sản phẩm'} "$productDisplayName" vào giỏ hàng thành công!\n\n💰 Giá: ${Helper.toCurrencyFormat(finalPrice)}\n📦 Số lượng: $quantity\n💵 Tổng: ${Helper.toCurrencyFormat(finalPrice * quantity)}\n\nBạn có thể xem giỏ hàng của mình trong ứng dụng.'
+        : '✅ Successfully added $quantity ${quantity > 1 ? 'items' : 'item'} of "$productDisplayName" to your cart!\n\n💰 Price: ${Helper.toCurrencyFormat(finalPrice)}\n📦 Quantity: $quantity\n💵 Total: ${Helper.toCurrencyFormat(finalPrice * quantity)}\n\nYou can view your cart in the app.';
   }
 }

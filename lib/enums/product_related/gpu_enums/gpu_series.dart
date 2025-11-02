@@ -1,4 +1,5 @@
 enum GPUSeries {
+  unknown('Unknown'),
   gtx('GTX'),
   rtx('RTX'),
   quadro('Quadro'),
@@ -14,6 +15,10 @@ enum GPUSeries {
     return name;
   }
 
+  static List<GPUSeries> getValues() {
+    return GPUSeries.values.where((e) => e != GPUSeries.unknown).toList();
+  }
+
   @override
   String toString() {
     return description;
@@ -22,6 +27,9 @@ enum GPUSeries {
 
 extension GPUSeriesExtension on GPUSeries {
   static GPUSeries fromName(String name) {
-    return GPUSeries.values.firstWhere((e) => e.getName() == name);
+    return GPUSeries.values.firstWhere(
+      (e) => e.getName() == name,
+      orElse: () => GPUSeries.unknown,
+    );
   }
 }

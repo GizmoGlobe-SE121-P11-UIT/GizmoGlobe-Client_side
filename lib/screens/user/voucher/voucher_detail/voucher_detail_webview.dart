@@ -6,6 +6,7 @@ import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_de
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../functions/helper.dart';
 import '../../../../generated/l10n.dart';
 import '../../../../objects/voucher_related/end_time_interface.dart';
 import '../../../../objects/voucher_related/percentage_interface.dart';
@@ -160,7 +161,7 @@ class _VoucherDetailWebModalState extends State<VoucherDetailWebModal> {
                             .format(voucher.startTime)),
                     const SizedBox(height: 16),
                     _buildTextField(context, S.of(context).minimumPurchase,
-                        '\$${Converter.formatDouble(voucher.minimumPurchase)}'),
+                        Helper.toCurrencyFormat(voucher.minimumPurchase)),
                     const SizedBox(height: 16),
                     if (voucher.isLimited)
                       _buildTextField(context, S.of(context).usage,
@@ -178,8 +179,8 @@ class _VoucherDetailWebModalState extends State<VoucherDetailWebModal> {
                       context,
                       S.of(context).discount,
                       voucher.isPercentage
-                          ? '${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} \$${Converter.formatDouble((voucher as PercentageInterface).maximumDiscountValue)}'
-                          : '\$${Converter.formatDouble(voucher.discountValue)}',
+                          ? '${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
+                          : Helper.toCurrencyFormat(voucher.discountValue),
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
@@ -210,7 +211,7 @@ class _VoucherDetailWebModalState extends State<VoucherDetailWebModal> {
                   DateFormat('dd/MM/yyyy hh:mm:ss').format(voucher.startTime)),
               const SizedBox(height: 16),
               _buildTextField(context, S.of(context).minimumPurchase,
-                  '\$${Converter.formatDouble(voucher.minimumPurchase)}'),
+                  Helper.toCurrencyFormat(voucher.minimumPurchase)),
               const SizedBox(height: 16),
               if (voucher.isLimited)
                 _buildTextField(context, S.of(context).usage,
@@ -220,8 +221,8 @@ class _VoucherDetailWebModalState extends State<VoucherDetailWebModal> {
                 context,
                 S.of(context).discount,
                 voucher.isPercentage
-                    ? '${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} \$${Converter.formatDouble((voucher as PercentageInterface).maximumDiscountValue)}'
-                    : '\$${Converter.formatDouble(voucher.discountValue)}',
+                    ? '${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
+                    : Helper.toCurrencyFormat(voucher.discountValue),
               ),
               const SizedBox(height: 16),
               _buildTextField(

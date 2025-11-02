@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
-import 'package:gizmoglobe_client/enums/product_related/cpu_enums/cpu_family.dart';
-import 'package:gizmoglobe_client/enums/product_related/gpu_enums/gpu_bus.dart';
+import 'package:gizmoglobe_client/enums/product_related/cpu_enums/socket.dart';
 import 'package:gizmoglobe_client/enums/product_related/mainboard_enums/mainboard_form_factor.dart';
 import 'package:gizmoglobe_client/enums/product_related/psu_enums/psu_modular.dart';
-import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_bus.dart';
-import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_capacity_enum.dart';
-import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/product_related/filter_argument.dart';
-
-import '../../../../enums/product_related/drive_enums/drive_capacity.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
+import '../../../../enums/product_related/cpu_enums/cpu_series.dart';
+import '../../../../enums/product_related/drive_enums/drive_form_factor.dart';
+import '../../../../enums/product_related/drive_enums/drive_gen.dart';
 import '../../../../enums/product_related/drive_enums/drive_type.dart';
-import '../../../../enums/product_related/gpu_enums/gpu_capacity.dart';
+import '../../../../enums/product_related/drive_enums/interface_type.dart';
 import '../../../../enums/product_related/gpu_enums/gpu_series.dart';
-import '../../../../enums/product_related/mainboard_enums/mainboard_compatibility.dart';
-import '../../../../enums/product_related/mainboard_enums/mainboard_series.dart';
+import '../../../../enums/product_related/gpu_enums/gpu_version.dart';
 import '../../../../enums/product_related/psu_enums/psu_efficiency.dart';
 import '../../../../enums/product_related/ram_enums/ram_type.dart';
 import '../../../../objects/manufacturer.dart';
@@ -24,6 +21,7 @@ import '../option_filter/option_filter.dart';
 import '../range_filter/range_filter.dart';
 import 'filter_screen_cubit.dart';
 import 'filter_screen_state.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class FilterScreen extends StatefulWidget {
   final FilterArgument arguments;
@@ -66,38 +64,11 @@ class _FilterScreenState extends State<FilterScreen> {
   final TextEditingController minPriceController = TextEditingController();
   final TextEditingController maxPriceController = TextEditingController();
 
-  final TextEditingController minCpuCoreController = TextEditingController();
-  final TextEditingController maxCpuCoreController = TextEditingController();
-  final TextEditingController minCpuThreadController = TextEditingController();
-  final TextEditingController maxCpuThreadController = TextEditingController();
-  final TextEditingController minCpuClockSpeedController =
-      TextEditingController();
-  final TextEditingController maxCpuClockSpeedController =
-      TextEditingController();
-
-  final TextEditingController minPsuWattageController = TextEditingController();
-  final TextEditingController maxPsuWattageController = TextEditingController();
-
-  final TextEditingController minGpuClockSpeedController =
-      TextEditingController();
-  final TextEditingController maxGpuClockSpeedController =
-      TextEditingController();
-
   @override
   void initState() {
     super.initState();
     minPriceController.text = widget.arguments.minPrice;
     maxPriceController.text = widget.arguments.maxPrice;
-    minCpuClockSpeedController.text = widget.arguments.minCpuClockSpeed;
-    maxCpuClockSpeedController.text = widget.arguments.maxCpuClockSpeed;
-    minCpuCoreController.text = widget.arguments.minCpuCore;
-    maxCpuCoreController.text = widget.arguments.maxCpuCore;
-    minCpuThreadController.text = widget.arguments.minCpuThread;
-    maxCpuThreadController.text = widget.arguments.maxCpuThread;
-    minPsuWattageController.text = widget.arguments.minPsuWattage;
-    maxPsuWattageController.text = widget.arguments.maxPsuWattage;
-    minGpuClockSpeedController.text = widget.arguments.minGpuClockSpeed;
-    maxGpuClockSpeedController.text = widget.arguments.maxGpuClockSpeed;
 
     cubit.initialize(
       initialFilterValue: widget.arguments,
@@ -112,32 +83,21 @@ class _FilterScreenState extends State<FilterScreen> {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-              // key: Icons.chevron_left,
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.chevron_left),
-              iconSize: 40,
-              color: Theme.of(context).colorScheme.primary,
-              // fillColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: GradientIconButton(
+              icon: Icons.chevron_left,
+              onPressed: () => Navigator.pop(context),
+              fillColor: Colors.transparent,
             ),
-            title: Text(
-              S.of(context).filter,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-            ),
+            title: GradientText(text: S.of(context).filter),
             actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(state.filterArgument);
-                },
-                child: Text(
-                  S.of(context).ok,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: GradientIconButton(
+                  icon: Icons.check,
+                  onPressed: () => Navigator.pop(context, state.filterArgument),
+                  fillColor: Colors.transparent,
                 ),
               ),
             ],
@@ -159,18 +119,16 @@ class _FilterScreenState extends State<FilterScreen> {
                   toController: maxPriceController,
                   onFromValueChanged: (value) {
                     cubit.updateFilterArgument(
-                      state.filterArgument.copyWith(minStock: value),
+                      state.filterArgument.copyWith(minPrice: value),
                     );
                   },
                   onToValueChanged: (value) {
                     cubit.updateFilterArgument(
-                      state.filterArgument.copyWith(maxStock: value),
+                      state.filterArgument.copyWith(maxPrice: value),
                     );
                   },
                   fromValue: state.filterArgument.minPrice,
                   toValue: state.filterArgument.maxPrice,
-                  fromHint: S.of(context).enterMinPrice,
-                  toHint: S.of(context).enterMaxPrice,
                 ),
                 const SizedBox(height: 16.0),
                 _buildTabSpecificUI(state, cubit),
@@ -184,8 +142,6 @@ class _FilterScreenState extends State<FilterScreen> {
 
   Widget _buildTabSpecificUI(FilterScreenState state, FilterScreenCubit cubit) {
     switch (state.selectedTabIndex) {
-      case 0:
-        return _buildAllFilterUI(state, cubit);
       case 1:
         return _buildRamFilterUI(state, cubit);
       case 2:
@@ -203,85 +159,17 @@ class _FilterScreenState extends State<FilterScreen> {
     }
   }
 
-  Widget _buildAllFilterUI(FilterScreenState state, FilterScreenCubit cubit) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        OptionFilter(
-          name: S.of(context).category,
-          enumValues: CategoryEnum.values,
-          selectedValues:
-              List<CategoryEnum>.from(state.filterArgument.categoryList),
-          onToggleSelection: (category) {
-            final selected =
-                List<CategoryEnum>.from(state.filterArgument.categoryList);
-
-            if (selected.contains(category)) {
-              selected.remove(category);
-            } else {
-              selected.add(category);
-            }
-
-            cubit.updateFilterArgument(
-              state.filterArgument.copyWith(categoryList: selected),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildRamFilterUI(FilterScreenState state, FilterScreenCubit cubit) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: S.of(context).bus,
-          enumValues: RAMBus.values,
-          selectedValues: List<RAMBus>.from(state.filterArgument.ramBusList),
-          onToggleSelection: (bus) {
-            final selected = List<RAMBus>.from(state.filterArgument.ramBusList);
-
-            if (selected.contains(bus)) {
-              selected.remove(bus);
-            } else {
-              selected.add(bus);
-            }
-
-            cubit.updateFilterArgument(
-              state.filterArgument.copyWith(ramBusList: selected),
-            );
-          },
-        ),
-        const SizedBox(height: 16.0),
-        OptionFilter(
-          name: S.of(context).capacity,
-          enumValues: RAMCapacity.values,
-          selectedValues:
-              List<RAMCapacity>.from(state.filterArgument.ramCapacityList),
-          onToggleSelection: (capacity) {
-            final selected =
-                List<RAMCapacity>.from(state.filterArgument.ramCapacityList);
-
-            if (selected.contains(capacity)) {
-              selected.remove(capacity);
-            } else {
-              selected.add(capacity);
-            }
-
-            cubit.updateFilterArgument(
-              state.filterArgument.copyWith(ramCapacityList: selected),
-            );
-          },
-        ),
-        const SizedBox(height: 16.0),
-        OptionFilter(
-          name: S.of(context).type,
+          name: 'Type',
           enumValues: RAMType.values,
-          selectedValues: List<RAMType>.from(state.filterArgument.ramTypeList),
+          selectedValues: List<RAMType>.from(state.filterArgument.ramType),
           onToggleSelection: (type) {
             final selected =
-                List<RAMType>.from(state.filterArgument.ramTypeList);
+            List<RAMType>.from(state.filterArgument.ramType);
 
             if (selected.contains(type)) {
               selected.remove(type);
@@ -290,9 +178,27 @@ class _FilterScreenState extends State<FilterScreen> {
             }
 
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(ramTypeList: selected),
+              state.filterArgument.copyWith(ramType: selected),
             );
           },
+        ),
+        const SizedBox(height: 16),
+        RangeFilter(
+          name: 'Total RAM (GB)',
+          fromController: TextEditingController(text: state.filterArgument.minMemoryGb),
+          toController: TextEditingController(text: state.filterArgument.maxMemoryGb),
+          onFromValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(minMemoryGb: value),
+            );
+          },
+          onToValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(maxMemoryGb: value),
+            );
+          },
+          fromValue: state.filterArgument.minMemoryGb,
+          toValue: state.filterArgument.maxMemoryGb,
         ),
       ],
     );
@@ -303,13 +209,13 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: S.of(context).family,
-          enumValues: CPUFamily.values,
+          name: 'Series',
+          enumValues: CPUSeries.getValues(),
           selectedValues:
-              List<CPUFamily>.from(state.filterArgument.cpuFamilyList),
+              List<CPUSeries>.from(state.filterArgument.cpuSeries),
           onToggleSelection: (family) {
             final selected =
-                List<CPUFamily>.from(state.filterArgument.cpuFamilyList);
+                List<CPUSeries>.from(state.filterArgument.cpuSeries);
 
             if (selected.contains(family)) {
               selected.remove(family);
@@ -318,64 +224,63 @@ class _FilterScreenState extends State<FilterScreen> {
             }
 
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(cpuFamilyList: selected),
+              state.filterArgument.copyWith(cpuSeries: selected),
             );
           },
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 16),
         RangeFilter(
-          name: S.of(context).cpuCore,
-          fromController: minCpuCoreController,
-          toController: maxCpuCoreController,
+          name: 'CPU clock speed (GHz)',
+          fromController: TextEditingController(text: state.filterArgument.minClockSpeed),
+          toController: TextEditingController(text: state.filterArgument.maxClockSpeed),
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(minCpuCore: value),
+              state.filterArgument.copyWith(minClockSpeed: value),
             );
           },
           onToValueChanged: (value) {
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(maxCpuCore: value),
+              state.filterArgument.copyWith(minClockSpeed: value),
             );
           },
-          fromValue: state.filterArgument.minCpuCore,
-          toValue: state.filterArgument.maxCpuCore,
+          fromValue: state.filterArgument.minClockSpeed,
+          toValue: state.filterArgument.minClockSpeed,
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 16),
         RangeFilter(
-          name: S.of(context).cpuThread,
-          fromController: minCpuThreadController,
-          toController: maxCpuThreadController,
+          name: 'TDP',
+          fromController: TextEditingController(text: state.filterArgument.minTdp),
+          toController: TextEditingController(text: state.filterArgument.maxTdp),
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(minCpuThread: value),
+              state.filterArgument.copyWith(minTdp: value),
             );
           },
           onToValueChanged: (value) {
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(maxCpuThread: value),
+              state.filterArgument.copyWith(maxTdp: value),
             );
           },
-          fromValue: state.filterArgument.minCpuThread,
-          toValue: state.filterArgument.maxCpuThread,
+          fromValue: state.filterArgument.minTdp,
+          toValue: state.filterArgument.maxTdp,
         ),
-        const SizedBox(height: 16.0),
-        RangeFilter(
-          name: S.of(context).cpuClockSpeed,
-          fromController: minCpuClockSpeedController,
-          toController: maxCpuClockSpeedController,
-          onFromValueChanged: (value) {
+        const SizedBox(height: 16),
+        OptionFilter(
+          name: 'CPU socket',
+          enumValues: Socket.getValues(),
+          selectedValues: List<Socket>.from(state.filterArgument.sockets),
+          onToggleSelection: (socket) {
+            final selected = List<Socket>.from(state.filterArgument.sockets);
+            if (selected.contains(socket)) {
+              selected.remove(socket);
+            } else {
+              selected.add(socket);
+            }
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(minCpuClockSpeed: value),
+              state.filterArgument.copyWith(sockets: selected),
             );
           },
-          onToValueChanged: (value) {
-            cubit.updateFilterArgument(
-              state.filterArgument.copyWith(maxCpuClockSpeed: value),
-            );
-          },
-          fromValue: state.filterArgument.minCpuClockSpeed,
-          toValue: state.filterArgument.maxCpuClockSpeed,
-        ),
+        )
       ],
     );
   }
@@ -385,13 +290,13 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: S.of(context).modular,
-          enumValues: PSUModular.values,
+          name: 'Modular',
+          enumValues: PSUModular.getValues(),
           selectedValues:
-              List<PSUModular>.from(state.filterArgument.psuModularList),
+              List<PSUModular>.from(state.filterArgument.psuModularity),
           onToggleSelection: (modular) {
             final selected =
-                List<PSUModular>.from(state.filterArgument.psuModularList);
+                List<PSUModular>.from(state.filterArgument.psuModularity);
 
             if (selected.contains(modular)) {
               selected.remove(modular);
@@ -400,19 +305,19 @@ class _FilterScreenState extends State<FilterScreen> {
             }
 
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(psuModularList: selected),
+              state.filterArgument.copyWith(psuModularity: selected),
             );
           },
         ),
         const SizedBox(height: 16.0),
         OptionFilter(
-          name: S.of(context).efficiency,
-          enumValues: PSUEfficiency.values,
+          name: 'Efficiency',
+          enumValues: PSUEfficiency.getValues(),
           selectedValues:
-              List<PSUEfficiency>.from(state.filterArgument.psuEfficiencyList),
+              List<PSUEfficiency>.from(state.filterArgument.psuEfficiency),
           onToggleSelection: (efficiency) {
             final selected = List<PSUEfficiency>.from(
-                state.filterArgument.psuEfficiencyList);
+                state.filterArgument.psuEfficiency);
 
             if (selected.contains(efficiency)) {
               selected.remove(efficiency);
@@ -421,27 +326,27 @@ class _FilterScreenState extends State<FilterScreen> {
             }
 
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(psuEfficiencyList: selected),
+              state.filterArgument.copyWith(psuEfficiency: selected),
             );
           },
         ),
         const SizedBox(height: 16.0),
         RangeFilter(
-          name: S.of(context).psuWattage,
-          fromController: minPsuWattageController,
-          toController: maxPsuWattageController,
+          name: 'PSU wattage',
+          fromController: TextEditingController(text: state.filterArgument.minTdp),
+          toController: TextEditingController(text: state.filterArgument.maxTdp),
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(minPsuWattage: value),
+              state.filterArgument.copyWith(minTdp: value),
             );
           },
           onToValueChanged: (value) {
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(maxPsuWattage: value),
+              state.filterArgument.copyWith(maxTdp: value),
             );
           },
-          fromValue: state.filterArgument.minPsuWattage,
-          toValue: state.filterArgument.maxPsuWattage,
+          fromValue: state.filterArgument.minTdp,
+          toValue: state.filterArgument.maxTdp,
         ),
       ],
     );
@@ -452,53 +357,13 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: S.of(context).bus,
-          enumValues: GPUBus.values,
-          selectedValues: List<GPUBus>.from(state.filterArgument.gpuBusList),
-          onToggleSelection: (bus) {
-            final selected = List<GPUBus>.from(state.filterArgument.gpuBusList);
-
-            if (selected.contains(bus)) {
-              selected.remove(bus);
-            } else {
-              selected.add(bus);
-            }
-
-            cubit.updateFilterArgument(
-              state.filterArgument.copyWith(gpuBusList: selected),
-            );
-          },
-        ),
-        const SizedBox(height: 16.0),
-        OptionFilter(
-          name: S.of(context).capacity,
-          enumValues: GPUCapacity.values,
+          name: 'GPU series',
+          enumValues: GPUSeries.getValues(),
           selectedValues:
-              List<GPUCapacity>.from(state.filterArgument.gpuCapacityList),
-          onToggleSelection: (capacity) {
-            final selected =
-                List<GPUCapacity>.from(state.filterArgument.gpuCapacityList);
-
-            if (selected.contains(capacity)) {
-              selected.remove(capacity);
-            } else {
-              selected.add(capacity);
-            }
-
-            cubit.updateFilterArgument(
-              state.filterArgument.copyWith(gpuCapacityList: selected),
-            );
-          },
-        ),
-        const SizedBox(height: 16.0),
-        OptionFilter(
-          name: S.of(context).series,
-          enumValues: GPUSeries.values,
-          selectedValues:
-              List<GPUSeries>.from(state.filterArgument.gpuSeriesList),
+              List<GPUSeries>.from(state.filterArgument.gpuSeries),
           onToggleSelection: (series) {
             final selected =
-                List<GPUSeries>.from(state.filterArgument.gpuSeriesList);
+                List<GPUSeries>.from(state.filterArgument.gpuSeries);
 
             if (selected.contains(series)) {
               selected.remove(series);
@@ -507,28 +372,85 @@ class _FilterScreenState extends State<FilterScreen> {
             }
 
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(gpuSeriesList: selected),
+              state.filterArgument.copyWith(gpuSeries: selected),
             );
           },
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 16),
+        OptionFilter(
+          name: 'GPU version',
+          enumValues: GPUVersion.getValues(),
+          selectedValues:
+          List<GPUVersion>.from(state.filterArgument.gpuVersion),
+          onToggleSelection: (capacity) {
+            final selected =
+            List<GPUVersion>.from(state.filterArgument.gpuVersion);
+
+            if (selected.contains(capacity)) {
+              selected.remove(capacity);
+            } else {
+              selected.add(capacity);
+            }
+
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(gpuVersion: selected),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
         RangeFilter(
-          name: S.of(context).gpuClockSpeed,
-          fromController: minGpuClockSpeedController,
-          toController: maxGpuClockSpeedController,
+          name: 'GPU clock speed',
+          fromController: TextEditingController(text: state.filterArgument.minClockSpeed),
+          toController: TextEditingController(text: state.filterArgument.maxClockSpeed),
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(minGpuClockSpeed: value),
+              state.filterArgument.copyWith(minClockSpeed: value),
             );
           },
           onToValueChanged: (value) {
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(maxGpuClockSpeed: value),
+              state.filterArgument.copyWith(maxClockSpeed: value),
             );
           },
-          fromValue: state.filterArgument.minGpuClockSpeed,
-          toValue: state.filterArgument.maxGpuClockSpeed,
+          fromValue: state.filterArgument.minTdp,
+          toValue: state.filterArgument.maxTdp,
         ),
+        const SizedBox(height: 16),
+        RangeFilter(
+          name: 'TDP',
+          fromController: TextEditingController(text: state.filterArgument.minTdp),
+          toController: TextEditingController(text: state.filterArgument.maxTdp),
+          onFromValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(minTdp: value),
+            );
+          },
+          onToValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(maxTdp: value),
+            );
+          },
+          fromValue: state.filterArgument.minTdp,
+          toValue: state.filterArgument.maxTdp,
+        ),
+        const SizedBox(height: 16),
+        RangeFilter(
+          name: 'Memory (GB)',
+          fromController: TextEditingController(text: state.filterArgument.minMemoryGb),
+          toController: TextEditingController(text: state.filterArgument.maxMemoryGb),
+          onFromValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(minMemoryGb: value),
+            );
+          },
+          onToValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(maxMemoryGb: value),
+            );
+          },
+          fromValue: state.filterArgument.minMemoryGb,
+          toValue: state.filterArgument.maxMemoryGb,
+        )
       ],
     );
   }
@@ -538,13 +460,11 @@ class _FilterScreenState extends State<FilterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: S.of(context).type,
-          enumValues: DriveType.values,
-          selectedValues:
-              List<DriveType>.from(state.filterArgument.driveTypeList),
+          name: 'Type',
+          enumValues: DriveType.getValues(),
+          selectedValues: List<DriveType>.from(state.filterArgument.driveType),
           onToggleSelection: (type) {
-            final selected =
-                List<DriveType>.from(state.filterArgument.driveTypeList);
+            final selected = List<DriveType>.from(state.filterArgument.driveType);
 
             if (selected.contains(type)) {
               selected.remove(type);
@@ -553,48 +473,19 @@ class _FilterScreenState extends State<FilterScreen> {
             }
 
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(driveTypeList: selected),
+              state.filterArgument.copyWith(driveType: selected),
             );
           },
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 16),
         OptionFilter(
-          name: S.of(context).capacity,
-          enumValues: DriveCapacity.values,
+          name: 'Drive form factor',
+          enumValues: DriveFormFactor.getValues(),
           selectedValues:
-              List<DriveCapacity>.from(state.filterArgument.driveCapacityList),
-          onToggleSelection: (capacity) {
-            final selected = List<DriveCapacity>.from(
-                state.filterArgument.driveCapacityList);
-
-            if (selected.contains(capacity)) {
-              selected.remove(capacity);
-            } else {
-              selected.add(capacity);
-            }
-
-            cubit.updateFilterArgument(
-              state.filterArgument.copyWith(driveCapacityList: selected),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMainboardFilterUI(
-      FilterScreenState state, FilterScreenCubit cubit) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        OptionFilter(
-          name: S.of(context).formFactor,
-          enumValues: MainboardFormFactor.values,
-          selectedValues: List<MainboardFormFactor>.from(
-              state.filterArgument.mainboardFormFactorList),
+              List<DriveFormFactor>.from(state.filterArgument.driveFormFactor),
           onToggleSelection: (formFactor) {
-            final selected = List<MainboardFormFactor>.from(
-                state.filterArgument.mainboardFormFactorList);
+            final selected = List<DriveFormFactor>.from(
+                state.filterArgument.driveFormFactor);
 
             if (selected.contains(formFactor)) {
               selected.remove(formFactor);
@@ -603,52 +494,178 @@ class _FilterScreenState extends State<FilterScreen> {
             }
 
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(mainboardFormFactorList: selected),
+              state.filterArgument.copyWith(driveFormFactor: selected),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        OptionFilter(
+          name: 'Interface',
+          enumValues: InterfaceType.getValues(),
+          selectedValues:
+              List<InterfaceType>.from(state.filterArgument.interfaceType),
+          onToggleSelection: (interfaceType) {
+            final selected = List<InterfaceType>.from(
+                state.filterArgument.interfaceType);
+            if (selected.contains(interfaceType)) {
+              selected.remove(interfaceType);
+            } else {
+              selected.add(interfaceType);
+            }
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(interfaceType: selected),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        OptionFilter(
+          name: 'Generation',
+          enumValues: DriveGen.getValues(),
+          selectedValues: List<DriveGen>.from(state.filterArgument.gen),
+          onToggleSelection: (gen) {
+            final selected = List<DriveGen>.from(state.filterArgument.gen);
+            if (selected.contains(gen)) {
+              selected.remove(gen);
+            } else {
+              selected.add(gen);
+            }
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(gen: selected),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        RangeFilter(
+          name: 'Capacity (GB)',
+          fromController: TextEditingController(text: state.filterArgument.minMemoryGb),
+          toController: TextEditingController(text: state.filterArgument.maxMemoryGb),
+          onFromValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(minMemoryGb: value),
+            );
+          },
+          onToValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(maxMemoryGb: value),
+            );
+          },
+          fromValue: state.filterArgument.minMemoryGb,
+          toValue: state.filterArgument.maxMemoryGb,
+        )
+      ],
+    );
+  }
+
+  Widget _buildMainboardFilterUI(FilterScreenState state, FilterScreenCubit cubit) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        OptionFilter(
+          name: 'Mainboard form factor',
+          enumValues: MainboardFormFactor.getValues(),
+          selectedValues: List<MainboardFormFactor>.from(state.filterArgument.mainboardFormFactor),
+          onToggleSelection: (formFactor) {
+            final selected = List<MainboardFormFactor>.from(state.filterArgument.mainboardFormFactor);
+
+            if (selected.contains(formFactor)) {
+              selected.remove(formFactor);
+            } else {
+              selected.add(formFactor);
+            }
+
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(mainboardFormFactor: selected),
             );
           },
         ),
         const SizedBox(height: 16.0),
         OptionFilter(
-          name: S.of(context).series,
-          enumValues: MainboardSeries.values,
-          selectedValues: List<MainboardSeries>.from(
-              state.filterArgument.mainboardSeriesList),
-          onToggleSelection: (series) {
-            final selected = List<MainboardSeries>.from(
-                state.filterArgument.mainboardSeriesList);
-
-            if (selected.contains(series)) {
-              selected.remove(series);
+          name: 'Socket',
+          enumValues: Socket.getValues(),
+          selectedValues:
+              List<Socket>.from(state.filterArgument.sockets),
+          onToggleSelection: (socket) {
+            final selected = List<Socket>.from(state.filterArgument.sockets);
+            if (selected.contains(socket)) {
+              selected.remove(socket);
             } else {
-              selected.add(series);
+              selected.add(socket);
             }
-
             cubit.updateFilterArgument(
-              state.filterArgument.copyWith(mainboardSeriesList: selected),
+              state.filterArgument.copyWith(sockets: selected),
             );
           },
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 16),
         OptionFilter(
-          name: S.of(context).compatibility,
-          enumValues: MainboardCompatibility.values,
-          selectedValues: List<MainboardCompatibility>.from(
-              state.filterArgument.mainboardCompatibilityList),
-          onToggleSelection: (compatibility) {
-            final selected = List<MainboardCompatibility>.from(
-                state.filterArgument.mainboardCompatibilityList);
-
-            if (selected.contains(compatibility)) {
-              selected.remove(compatibility);
+          name: 'RAM type',
+          enumValues: RAMType.getValues(),
+          selectedValues: List<RAMType>.from(state.filterArgument.ramType),
+          onToggleSelection: (type) {
+            final selected = List<RAMType>.from(state.filterArgument.ramType);
+            if (selected.contains(type)) {
+              selected.remove(type);
             } else {
-              selected.add(compatibility);
+              selected.add(type);
             }
-
             cubit.updateFilterArgument(
-              state.filterArgument
-                  .copyWith(mainboardCompatibilityList: selected),
+              state.filterArgument.copyWith(ramType: selected),
             );
           },
+        ),
+        const SizedBox(height: 16),
+        RangeFilter(
+          name: 'Total RAM (GB)',
+          fromController: TextEditingController(text: state.filterArgument.minMemoryGb),
+          toController: TextEditingController(text: state.filterArgument.maxMemoryGb),
+          onFromValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(minMemoryGb: value),
+            );
+          },
+          onToValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(maxMemoryGb: value),
+            );
+          },
+          fromValue: state.filterArgument.minMemoryGb,
+          toValue: state.filterArgument.maxMemoryGb,
+        ),
+        const SizedBox(height: 16),
+        RangeFilter(
+          name: 'M.2 Slots',
+          fromController: TextEditingController(text: state.filterArgument.minM2Slots),
+          toController: TextEditingController(text: state.filterArgument.maxM2Slots),
+          onFromValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(minM2Slots: value),
+            );
+          },
+          onToValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(maxM2Slots: value),
+            );
+          },
+          fromValue: state.filterArgument.minM2Slots,
+          toValue: state.filterArgument.maxM2Slots,
+        ),
+        const SizedBox(height: 16),
+        RangeFilter(
+          name: 'SATA Ports',
+          fromController: TextEditingController(text: state.filterArgument.minSataPorts),
+          toController: TextEditingController(text: state.filterArgument.maxSataPorts),
+          onFromValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(minSataPorts: value),
+            );
+          },
+          onToValueChanged: (value) {
+            cubit.updateFilterArgument(
+              state.filterArgument.copyWith(maxSataPorts: value),
+            );
+          },
+          fromValue: state.filterArgument.minSataPorts,
+          toValue: state.filterArgument.maxSataPorts,
         ),
       ],
     );

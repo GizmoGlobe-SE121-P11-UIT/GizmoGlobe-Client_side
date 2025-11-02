@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
+import '../../functions/helper.dart';
+
 class AIUserDataService {
   final FirebaseFirestore _firestore;
 
@@ -233,7 +235,7 @@ class AIUserDataService {
       final product = favorites[i];
       buffer.writeln('\n${i + 1}. ${product['productName']}');
       buffer.writeln(
-          '   Gia: ${formatPriceWithDiscount(product['sellingPrice'], product['discount'])}');
+          '   Gia: ${Helper.toCurrencyFormat(product['sellingPrice'] * product['discount'])}');
       buffer.writeln('   Kho: ${formatValue(product['stock'], 'stock')}');
     }
 
@@ -262,7 +264,7 @@ class AIUserDataService {
     if (isVietnamese) {
       buffer.writeln('Danh sách sản phẩm trong giỏ hàng:');
       buffer.writeln(
-          '📊 Tổng: $totalItems sản phẩm (từ $totalProducts loại) - ${formatPrice(totalValue)}');
+          '📊 Tổng: $totalItems sản phẩm (từ $totalProducts loại) - ${Helper.toCurrencyFormat(totalValue)}');
       buffer.writeln('----------------------------------------');
       for (var item in cartItems) {
         final name = item['productName'] ?? 'Unknown Product';
@@ -273,16 +275,16 @@ class AIUserDataService {
         final stockStatus = stock > 0 ? '🟢 Còn hàng' : '🔴 Hết hàng';
 
         buffer.writeln('📦 $name');
-        buffer.writeln('💰 Giá: ${formatPrice(price)}');
+        buffer.writeln('💰 Giá: ${Helper.toCurrencyFormat(price)}');
         buffer.writeln('🔢 Số lượng: $quantity');
-        buffer.writeln('💵 Tổng: ${formatPrice(total)}');
+        buffer.writeln('💵 Tổng: ${Helper.toCurrencyFormat(total)}');
         buffer.writeln('📊 $stockStatus');
         buffer.writeln('----------------------------------------');
       }
     } else {
       buffer.writeln('Items in your cart:');
       buffer.writeln(
-          '📊 Total: $totalItems items (from $totalProducts products) - ${formatPrice(totalValue)}');
+          '📊 Total: $totalItems items (from $totalProducts products) - ${Helper.toCurrencyFormat(totalValue)}');
       buffer.writeln('----------------------------------------');
       for (var item in cartItems) {
         final name = item['productName'] ?? 'Unknown Product';
@@ -293,9 +295,9 @@ class AIUserDataService {
         final stockStatus = stock > 0 ? '🟢 In Stock' : '🔴 Out of Stock';
 
         buffer.writeln('📦 $name');
-        buffer.writeln('💰 Price: ${formatPrice(price)}');
+        buffer.writeln('💰 Price: ${Helper.toCurrencyFormat(price)}');
         buffer.writeln('🔢 Quantity: $quantity');
-        buffer.writeln('💵 Total: ${formatPrice(total)}');
+        buffer.writeln('💵 Total: ${Helper.toCurrencyFormat(total)}');
         buffer.writeln('📊 $stockStatus');
         buffer.writeln('----------------------------------------');
       }
@@ -325,7 +327,7 @@ class AIUserDataService {
 
         buffer.writeln('📄 Mã hóa đơn: ${invoice['salesInvoiceID']}');
         buffer.writeln('📅 Ngày: $formattedDate');
-        buffer.writeln('💰 Tổng tiền: ${formatPrice(totalPrice)}');
+        buffer.writeln('💰 Tổng tiền: ${Helper.toCurrencyFormat(totalPrice)}');
         buffer.writeln(
             '💳 Trạng thái thanh toán: ${formatStatus(paymentStatus, isVietnamese)}');
         buffer.writeln(
@@ -344,7 +346,7 @@ class AIUserDataService {
 
         buffer.writeln('📄 Invoice ID: ${invoice['salesInvoiceID']}');
         buffer.writeln('📅 Date: $formattedDate');
-        buffer.writeln('💰 Total: ${formatPrice(totalPrice)}');
+        buffer.writeln('💰 Total: ${Helper.toCurrencyFormat(totalPrice)}');
         buffer.writeln(
             '💳 Payment Status: ${formatStatus(paymentStatus, isVietnamese)}');
         buffer.writeln(
@@ -381,10 +383,11 @@ class AIUserDataService {
 
         buffer.writeln('🎟️ $name');
         buffer.writeln(
-            '💰 Giảm giá: ${isPercentage ? '$discountValue%' : formatPrice(discountValue)}');
+            '💰 Giảm giá: ${isPercentage ? '$discountValue%' : Helper.toCurrencyFormat(discountValue)}');
+        buffer.writeln(
+            '💵 Áp dụng cho đơn hàng từ: ${Helper.toCurrencyFormat(minPurchase)}');
         buffer
-            .writeln('💵 Áp dụng cho đơn hàng từ: ${formatPrice(minPurchase)}');
-        buffer.writeln('🎯 Giảm tối đa: ${formatPrice(maxDiscount)}');
+            .writeln('🎯 Giảm tối đa: ${Helper.toCurrencyFormat(maxDiscount)}');
         buffer.writeln(
             '📅 Thời gian: ${DateFormat('dd/MM/yyyy').format(startTime)} - ${DateFormat('dd/MM/yyyy').format(endTime)}');
         buffer.writeln('📝 $description');
@@ -406,9 +409,11 @@ class AIUserDataService {
 
         buffer.writeln('🎟️ $name');
         buffer.writeln(
-            '💰 Discount: ${isPercentage ? '$discountValue%' : formatPrice(discountValue)}');
-        buffer.writeln('💵 Apply for orders from: ${formatPrice(minPurchase)}');
-        buffer.writeln('🎯 Maximum discount: ${formatPrice(maxDiscount)}');
+            '💰 Discount: ${isPercentage ? '$discountValue%' : Helper.toCurrencyFormat(discountValue)}');
+        buffer.writeln(
+            '💵 Apply for orders from: ${Helper.toCurrencyFormat(minPurchase)}');
+        buffer.writeln(
+            '🎯 Maximum discount: ${Helper.toCurrencyFormat(maxDiscount)}');
         buffer.writeln(
             '📅 Valid: ${DateFormat('MM/dd/yyyy').format(startTime)} - ${DateFormat('MM/dd/yyyy').format(endTime)}');
         buffer.writeln('📝 $description');
@@ -454,28 +459,5 @@ class AIUserDataService {
       default:
         return value.toString();
     }
-  }
-
-  String formatPriceWithDiscount(dynamic price, dynamic discount) {
-    if (price == null) return 'Price not available';
-    if (price is! num) return formatPrice((price as num).toDouble());
-
-    if (discount == null || discount == 0) {
-      return formatPrice((price).toDouble());
-    }
-
-    final discountAmount = price * (discount as num);
-    final finalPrice = price - discountAmount;
-
-    return '${formatPrice((finalPrice).toDouble())} (Original: ${formatPrice((price).toDouble())})';
-  }
-
-  String formatPrice(double price) {
-    final formatter = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 2,
-    );
-    return formatter.format(price);
   }
 }

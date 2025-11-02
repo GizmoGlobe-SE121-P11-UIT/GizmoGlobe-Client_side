@@ -8,6 +8,7 @@ import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_de
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:intl/intl.dart';
+import '../../../../functions/helper.dart';
 import 'voucher_detail_webview.dart';
 
 import '../../../../enums/processing/process_state_enum.dart';
@@ -95,7 +96,7 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
                                 .format(voucher.startTime)),
                         const SizedBox(height: 12),
                         _buildTextField(context, S.of(context).minimumPurchase,
-                            '\$${Converter.formatDouble(voucher.minimumPurchase)}'),
+                            Helper.toCurrencyFormat(voucher.minimumPurchase)),
                         const SizedBox(height: 12),
                         if (voucher.isLimited)
                           _buildTextField(context, S.of(context).usage,
@@ -112,8 +113,8 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
                           context,
                           S.of(context).discount,
                           voucher.isPercentage
-                              ? '${Converter.formatDouble(voucher.discountValue)}% maximum \$${Converter.formatDouble((voucher as PercentageInterface).maximumDiscountValue)}'
-                              : '\$${Converter.formatDouble(voucher.discountValue)}',
+                              ? '${Converter.formatDouble(voucher.discountValue)}% maximum ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
+                              : Helper.toCurrencyFormat(voucher.discountValue),
                         ),
                         const SizedBox(height: 12),
                         _buildTextField(

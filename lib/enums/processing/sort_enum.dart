@@ -3,8 +3,8 @@ enum SortEnum {
   releaseOldest('Release date: Oldest'),
   salesHighest('Sale: Highest'),
   salesLowest('Sale: Lowest'),
-  cheapest('Price: Cheapest'),
-  expensive('Price: Expensive'),
+  priceLowest('Price: Lowest'),
+  priceHighest('Price: Highest'),
   discountHighest('Discount: Highest'),
   discountLowest('Discount: Lowest');
 

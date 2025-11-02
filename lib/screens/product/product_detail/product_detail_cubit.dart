@@ -6,15 +6,15 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
 
 import '../../../data/firebase/firebase.dart';
+import '../../../objects/product_related/cpu_related/cpu.dart';
+import '../../../objects/product_related/drive_related/drive.dart';
+import '../../../objects/product_related/gpu_related/gpu.dart';
+import '../../../objects/product_related/mainboard_related/mainboard.dart';
+import '../../../objects/product_related/psu_related/psu.dart';
+import '../../../objects/product_related/ram_related/ram.dart';
 import '../../../services/local_guest_service_platform.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
-import '../../../objects/product_related/cpu.dart';
-import '../../../objects/product_related/drive.dart';
-import '../../../objects/product_related/gpu.dart';
-import '../../../objects/product_related/mainboard.dart';
-import '../../../objects/product_related/psu.dart';
-import '../../../objects/product_related/ram.dart';
 
 class ProductDetailCubit extends Cubit<ProductDetailState> {
   final Firebase _firebase = Firebase();
@@ -36,57 +36,77 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       case CategoryEnum.ram:
         final ram = product as RAM;
         specs.addAll({
-          'Bus': ram.bus.toString(),
-          'Capacity': ram.capacity.toString(),
-          'Type': ram.ramType.toString(),
+          'Type': ram.type.toString(),
+          'Bus': '${ram.bus} MHz',
+          'CL Latency': 'CL${ram.clLatency}',
+          'Kit Stick Count': ram.kitStickCount.toString(),
+          'Capacity per Stick': '${ram.capacityPerStickGb} GB',
         });
         break;
 
       case CategoryEnum.cpu:
         final cpu = product as CPU;
         specs.addAll({
-          'Family': cpu.family.toString(),
-          'Core': cpu.core.toString(),
-          'Thread': cpu.thread.toString(),
-          'Clock Speed': '${cpu.clockSpeed} GHz',
+          'Cores': cpu.core.toString(),
+          'Threads': cpu.thread.toString(),
+          'Base Clock': '${cpu.baseClock} GHz',
+          'Turbo Clock': '${cpu.turboClock} GHz',
+          'TDP': '${cpu.tdp} W',
+          'Socket': cpu.socket.toString(),
         });
         break;
 
       case CategoryEnum.gpu:
         final gpu = product as GPU;
         specs.addAll({
-          'Series': gpu.series.toString(),
-          'Memory': gpu.capacity.toString(),
-          'Bus Width': gpu.bus.toString(),
-          'Clock Speed': '${gpu.clockSpeed} MHz',
+          'Version': gpu.version.toString(),
+          'Memory': gpu.memory.toString(),
+          'Clock Speed': '${gpu.boostClock} MHz',
+          'TDP': '${gpu.tdp} W',
+          'I/O Ports': gpu.ports.map((port) => port.toString()).join('\n'),
         });
         break;
 
       case CategoryEnum.mainboard:
         final mainboard = product as Mainboard;
         specs.addAll({
+          'Chipset': mainboard.chipsetCode.toString(),
+          'Socket': mainboard.socket.toString(),
           'Form Factor': mainboard.formFactor.toString(),
-          'Series': mainboard.series.toString(),
-          'Compatibility': mainboard.compatibility.toString(),
+          'RAM Spec': mainboard.ramSpec.toString(),
+          'Storage:' : mainboard.storageSlot.toString(),
+          'PCIe Slots:': mainboard.pcieSlots.map((slot) => slot.toString()).join('\n'),
+          'I/O Ports:': mainboard.ioPorts.map((port) => port.toString()).join('\n'),
         });
         break;
 
       case CategoryEnum.drive:
         final drive = product as Drive;
         specs.addAll({
-          'Type': drive.type.toString(),
-          'Capacity': drive.capacity.toString(),
+          'Drive Type': drive.driveType.toString(),
+          'Generation': drive.gen.toString(),
+          'Capacity': '${drive.memoryGb} GB',
+          'Interface': drive.interfaceType.toString(),
+          'Form Factor': drive.formFactor.toString(),
+          'Read Speed': '${drive.speed.readMbps} MB/s',
+          'Write Speed': '${drive.speed.writeMbps} MB/s',
         });
         break;
 
       case CategoryEnum.psu:
         final psu = product as PSU;
         specs.addAll({
-          'Wattage': '${psu.wattage}W',
-          'Efficiency': psu.efficiency.toString(),
-          'Modular': psu.modular.toString(),
+          'Wattage': '${psu.maxWattage} W',
+          'Efficiency Rating': psu.efficiency.toString(),
+          'Modularity': psu.modularity.toString(),
+          'Connectors': psu.connectors.map((type) => type.toString()).join('\n'),
         });
         break;
+
+      default:
+        if (kDebugMode) {
+          print('Unknown category');
+        } //Danh mục không xác định
     }
 
     emit(state.copyWith(technicalSpecs: specs));

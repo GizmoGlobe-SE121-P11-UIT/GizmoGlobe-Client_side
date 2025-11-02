@@ -91,12 +91,12 @@ class LimitedPercentageVoucherWithoutEndTime extends Voucher
         Text(voucherName, style: AppTextStyle.regularTitle),
         const SizedBox(height: 4),
         Text(
-          'Discount $discountValue% maximum discount \$$maximumDiscountValue',
+          'Discount $discountValue% maximum discount ${Helper.toCurrencyFormat(maximumDiscountValue)}',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),
         Text(
-          'Minimum purchase: \$$minimumPurchase',
+          'Minimum purchase: ${Helper.toCurrencyFormat(minimumPurchase)}',
           style: AppTextStyle.regularText,
         ),
         const SizedBox(height: 4),

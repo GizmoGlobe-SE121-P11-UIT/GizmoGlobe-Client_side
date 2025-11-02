@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 import 'converter.dart';
 
 class Helper {
@@ -19,5 +21,15 @@ class Helper {
     } else {
       return "Ongoing";
     }
+  }
+
+  static String toMoneyFormat(num value) {
+    final formatter = NumberFormat.currency(locale: 'vi_VN', symbol: '', decimalDigits: 0);
+    return formatter.format(value * 1000);
+  }
+
+  static String toCurrencyFormat(num value) {
+    final formatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
+    return formatter.format(value * 1000);
   }
 }
