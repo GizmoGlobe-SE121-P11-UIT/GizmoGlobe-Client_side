@@ -280,12 +280,10 @@ class Firebase {
         if (kDebugMode) {
           print('Updating cart with:');
           print('New quantity: $newQuantity');
-          print('New subtotal: $subtotal');
         }
         // Update the cart item
         await cartRef.update({
           'quantity': newQuantity,
-          'subtotal': double.parse(subtotal),
           'updatedAt': FieldValue.serverTimestamp(),
         });
 
@@ -321,83 +319,6 @@ class Firebase {
       }
       rethrow;
     }
-  }
-
-  // Lấy tất cả sản phẩm trong giỏ hàng của user
-  Future<List<Map<String, dynamic>>> getCartItems(String customerID) async {
-    return await _retryOperation(() async {
-      try {
-        final cartSnapshot = await _firestore
-            .collection('customers')
-            .doc(customerID)
-            .collection('carts')
-            .get();
-
-        final List<Map<String, dynamic>> items = [];
-
-        // First, get all inactive manufacturer IDs to filter against
-        final manufacturerSnapshot = await FirebaseFirestore.instance
-            .collection('manufacturers')
-            .where('status', isEqualTo: 'inactive')
-            .get();
-
-        final List<String> inactiveManufacturerIDs =
-            manufacturerSnapshot.docs.map((doc) => doc.id).toList();
-
-        if (kDebugMode && inactiveManufacturerIDs.isNotEmpty) {
-          if (kDebugMode) {
-            print(
-                'Found ${inactiveManufacturerIDs.length} inactive manufacturers to filter from cart');
-          }
-        }
-
-        for (var doc in cartSnapshot.docs) {
-          final productID = doc.id;
-          final cartData = doc.data();
-
-          // Lấy thông tin sản phẩm
-          final productDoc =
-              await _firestore.collection('products').doc(productID).get();
-
-          if (productDoc.exists) {
-            final productData = productDoc.data()!;
-
-            // Check if the product's manufacturer is inactive
-            final manufacturerID = productData['manufacturerID'] as String;
-            if (inactiveManufacturerIDs.contains(manufacturerID)) {
-              if (kDebugMode) {
-                print(
-                    'Skipping cart item for product $productID from inactive manufacturer $manufacturerID');
-              }
-              continue; // Skip this cart item
-            }
-
-            final quantity = cartData['quantity'] as int;
-
-            // Tính lại subtotal
-            final price = (productData['sellingPrice'] as num).toDouble();
-            final discount =
-                (productData['discount'] as num?)?.toDouble() ?? 0.0;
-            final discountedPrice = price * (1 - discount / 100);
-            final subtotal = discountedPrice * quantity;
-
-            items.add({
-              'productID': productID,
-              'quantity': quantity,
-              'subtotal': subtotal,
-              'product': productData,
-            });
-          }
-        }
-
-        return items;
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error in getCartItems operation: $e');
-        }
-        rethrow;
-      }
-    });
   }
 
   // Xóa toàn bộ giỏ hàng của user
@@ -556,29 +477,6 @@ class Firebase {
     }
   }
 
-  Future<List<Product>> getProducts() async {
-    try {
-      final QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('products').get();
-
-      List<Product> products = [];
-      for (var doc in snapshot.docs) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-        // Tạo product instance thông qua factory
-        Product product = ProductFactory.createProduct(data);
-        products.add(product);
-      }
-
-      return products;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error getting products: $e');
-      } // Lỗi khi lấy danh sách sản phẩm
-      rethrow;
-    }
-  }
-
   Future<void> changeProductStatus(
       String productId, ProductStatusEnum status) async {
     try {
@@ -587,8 +485,7 @@ class Firebase {
           .doc(productId)
           .update({'status': status.getName()});
 
-      List<Product> products = await getProducts();
-      Database().updateProductList(products);
+      List<Product> products = await Database().getProducts();
     } catch (e) {
       if (kDebugMode) {
         print('Error changing product status: $e');
@@ -707,48 +604,64 @@ class Firebase {
     try {
       final QuerySnapshot snapshot =
           await _firestore.collection('vouchers').get();
-
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
         data['voucherID'] = doc.id;
 
-        // Debug logging
-        if (kDebugMode) {
-          print('Raw startTime type: ${data['startTime'].runtimeType}');
-          print('Raw startTime value: ${data['startTime']}');
-          if (data['hasEndTime'] == true) {
-            print('Raw endTime type: ${data['endTime'].runtimeType}');
-            print('Raw endTime value: ${data['endTime']}');
-          }
+        // Convert date strings to DateTime objects and ensure startTime is never null
+        if (data['startTime'] is String) {
+          data['startTime'] = DateTime.parse(data['startTime']);
+        } else if (data['startTime'] == null) {
+          data['startTime'] = DateTime.now();
         }
 
-        // Convert date to DateTime
-        if (data['startTime'] is Timestamp) {
-          data['startTime'] = (data['startTime'] as Timestamp).toDate();
-        } else if (data['startTime'] is String) {
-          data['startTime'] = DateTime.parse(data['startTime'] as String);
-        }
-
+        // Handle endTime for vouchers with end time
         if (data['hasEndTime'] == true) {
-          if (data['endTime'] is Timestamp) {
-            data['endTime'] = (data['endTime'] as Timestamp).toDate();
-          } else if (data['endTime'] is String) {
-            data['endTime'] = DateTime.parse(data['endTime'] as String);
+          if (data['endTime'] is String) {
+            data['endTime'] = DateTime.parse(data['endTime']);
+          } else if (data['endTime'] == null) {
+            data['endTime'] = DateTime.now()
+                .add(const Duration(days: 30)); // Default to 30 days from now
           }
         }
 
-        // Handle localized descriptions
-        if (data['description'] != null) {
-          // If there's only one description, use it for both languages
-          data['enDescription'] = data['description'];
-          data['viDescription'] = data['description'];
+        // Handle required fields with default values
+        data['voucherName'] ??= '';
+        data['discountValue'] ??= 0.0;
+        data['minimumPurchase'] ??= 0;
+        data['maxUsagePerPerson'] ??= 1;
+        data['isVisible'] ??= true;
+        data['isEnabled'] ??= true;
+        data['enDescription'] ??= '';
+        data['viDescription'] ??= '';
+        data['isPercentage'] ??= false;
+        data['hasEndTime'] ??= false;
+        data['isLimited'] ??= false;
+
+        // Handle fields for limited vouchers
+        if (data['isLimited'] == true) {
+          data['maximumUsage'] ??= 0;
+          data['usageLeft'] ??= 0;
+        }
+
+        // Handle fields for percentage vouchers
+        if (data['isPercentage'] == true) {
+          data['maximumDiscountValue'] ??= 0;
+        }
+
+        // Ensure all DateTime fields are properly set
+        if (data['startTime'] is! DateTime) {
+          data['startTime'] = DateTime.now();
+        }
+        if (data['hasEndTime'] == true && data['endTime'] is! DateTime) {
+          data['endTime'] = DateTime.now().add(const Duration(days: 30));
         }
 
         return VoucherFactory.fromMap(doc.id, data);
       }).toList();
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting vouchers data: $e');
+        print('Error getting vouchers: $e');
       }
       rethrow;
     }

@@ -8,7 +8,7 @@ import '../voucher_related/end_time_interface.dart';
 
 class UnlimitedPercentageVoucherWithEndTime extends Voucher
     implements EndTimeInterface, PercentageInterface {
-  double _maximumDiscountValue;
+  int _maximumDiscountValue;
   DateTime _endTime;
 
   UnlimitedPercentageVoucherWithEndTime({
@@ -26,7 +26,7 @@ class UnlimitedPercentageVoucherWithEndTime extends Voucher
     super.hasEndTime = true,
     super.isLimited = false,
     required DateTime endTime,
-    required double maximumDiscountValue,
+    required int maximumDiscountValue,
   })  : _endTime = endTime,
         _maximumDiscountValue = maximumDiscountValue;
 
@@ -36,9 +36,9 @@ class UnlimitedPercentageVoucherWithEndTime extends Voucher
   set endTime(DateTime value) => _endTime = value;
 
   @override
-  double get maximumDiscountValue => _maximumDiscountValue;
+  int get maximumDiscountValue => _maximumDiscountValue;
   @override
-  set maximumDiscountValue(double value) => _maximumDiscountValue = value;
+  set maximumDiscountValue(int value) => _maximumDiscountValue = value;
 
   @override
   void updateVoucher({
@@ -46,14 +46,14 @@ class UnlimitedPercentageVoucherWithEndTime extends Voucher
     String? voucherName,
     DateTime? startTime,
     double? discountValue,
-    double? minimumPurchase,
+    int? minimumPurchase,
     int? maxUsagePerPerson,
     bool? isVisible,
     bool? isEnabled,
     String? enDescription,
     String? viDescription,
     DateTime? endTime,
-    double? maximumDiscountValue,
+    int? maximumDiscountValue,
   }) {
     super.updateVoucher(
       voucherID: voucherID,

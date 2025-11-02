@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/objects/cart_item.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
@@ -12,6 +13,7 @@ import 'package:gizmoglobe_client/components/general/web_header.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../functions/helper.dart';
+import '../../../objects/product_related/product.dart';
 import 'cart_screen_cubit.dart';
 import 'cart_screen_state.dart';
 
@@ -216,23 +218,22 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
       itemCount: state.items.length,
       itemBuilder: (context, index) {
-        final item = state.items[index];
-        final product = item['product'] as Map<String, dynamic>;
-        return _buildCartItem(item, product);
+        final item = state.items.elementAt(index);
+        return _buildCartItem(item);
       },
     );
   }
 
-  Widget _buildCartItem(
-      Map<String, dynamic> item, Map<String, dynamic> product) {
+  Widget _buildCartItem(CartItem item) {
     final isSelected = context
         .read<CartScreenCubit>()
         .state
         .selectedItems
-        .contains(item['productID']);
-    final originalPrice = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
-    final discount = (product['discount'] as num?)?.toDouble() ?? 0;
-    final finalPrice = originalPrice * (1 - discount / 100);
+        .contains(item);
+    final product = item.product;
+    final originalPrice = product.price;
+    final discount = product.discount;
+    final finalPrice = product.discountedPrice;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -250,7 +251,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
               Checkbox(
                 value: isSelected,
                 onChanged: (value) {
-                  cubit.toggleItemSelection(item['productID']);
+                  cubit.toggleItemSelection(item);
                 },
                 activeColor: Theme.of(context).colorScheme.primary,
                 checkColor: Theme.of(context).colorScheme.surface,
@@ -276,7 +277,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                 ),
                 child: Center(
                   child: Icon(
-                    _getCategoryIcon(product['category']),
+                    _getCategoryIcon(product.category),
                     size: 40,
                     color: Colors.grey[600],
                   ),
@@ -289,7 +290,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      product['productName'],
+                      product.productName,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -344,7 +345,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Subtotal: ${(Helper.toCurrencyFormat(item['subtotal'] as num))}',
+                      'Subtotal: ${(Helper.toCurrencyFormat(item.subTotal()))}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -373,11 +374,10 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.remove, size: 20),
-                          onPressed: (item['quantity'] as int? ?? 0) > 1
+                          onPressed: (item.quantity) > 1
                               ? () {
                                   cubit.updateQuantity(
-                                    item['productID'] as String,
-                                    (item['quantity'] as int? ?? 0) - 1,
+                                    item, item.quantity - 1
                                   );
                                 }
                               : null,
@@ -387,7 +387,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                             minHeight: 40,
                           ),
                           style: IconButton.styleFrom(
-                            foregroundColor: (item['quantity'] as int? ?? 0) > 1
+                            foregroundColor: item.quantity > 1
                                 ? Theme.of(context).colorScheme.onSurface
                                 : Theme.of(context)
                                     .colorScheme
@@ -399,7 +399,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                           constraints: const BoxConstraints(minWidth: 40),
                           alignment: Alignment.center,
                           child: Text(
-                            (item['quantity'] as int? ?? 0).toString(),
+                            (item.quantity).toString(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onSurface,
@@ -412,8 +412,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                           icon: const Icon(Icons.add, size: 20),
                           onPressed: () {
                             cubit.updateQuantity(
-                              item['productID'] as String,
-                              (item['quantity'] as int? ?? 0) + 1,
+                              item, item.quantity + 1
                             );
                           },
                           padding: const EdgeInsets.all(8),
@@ -459,8 +458,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context);
-                                cubit.removeFromCart(
-                                    item['productID'] as String);
+                                cubit.removeFromCart(item);
                               },
                               child: Text(
                                 S.of(context).remove,
@@ -792,11 +790,8 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
     );
   }
 
-  IconData _getCategoryIcon(String category) {
-    CategoryEnum categoryEnum = CategoryEnum.values.firstWhere(
-      (element) => element.getName() == category,
-    );
-    switch (categoryEnum) {
+  IconData _getCategoryIcon(CategoryEnum category) {
+    switch (category) {
       case CategoryEnum.ram:
         return Icons.memory;
       case CategoryEnum.cpu:

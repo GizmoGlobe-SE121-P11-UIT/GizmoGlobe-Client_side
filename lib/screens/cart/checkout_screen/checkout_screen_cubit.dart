@@ -104,8 +104,8 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
     if (voucher.isPercentage) {
       final calculatedDiscount = totalBeforeDiscount * (voucher.discountValue / 100);
       final percentageVoucher = voucher as PercentageInterface;
-      return calculatedDiscount > percentageVoucher.maximumDiscountValue
-          ? percentageVoucher.maximumDiscountValue
+      return calculatedDiscount > percentageVoucher.maximumDiscountValue.toDouble()
+          ? percentageVoucher.maximumDiscountValue.toDouble()
           : calculatedDiscount;
     } else {
       return voucher.discountValue > totalBeforeDiscount ? totalBeforeDiscount : voucher.discountValue;

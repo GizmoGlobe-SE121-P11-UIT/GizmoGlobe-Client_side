@@ -25,9 +25,7 @@ class RamSpec {
   }
 
   factory RamSpec.fromJson(Map<String, dynamic> json) => RamSpec(
-        type: RAMType.values.firstWhere(
-            (e) => e.toString() == 'RAMType.${json['type']?.toString() ?? ''}',
-            orElse: () => RAMType.unknown),
+        type: RAMTypeExtension.fromName(json['type'].toString()),
         slots: (json['slots'] is num) ? (json['slots'] as num).toInt() : int.tryParse(json['slots']?.toString() ?? '') ?? 0,
         maxSingleDimmGb: (json['maxSingleDimmGb'] is num) ? (json['maxSingleDimmGb'] as num).toInt() : int.tryParse(json['maxSingleDimmGb']?.toString() ?? '') ?? 0,
   );

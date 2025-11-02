@@ -41,7 +41,7 @@ class UnlimitedAmountVoucherWithEndTime
     String? voucherName,
     DateTime? startTime,
     double? discountValue,
-    double? minimumPurchase,
+    int? minimumPurchase,
     int? maxUsagePerPerson,
     bool? isVisible,
     bool? isEnabled,

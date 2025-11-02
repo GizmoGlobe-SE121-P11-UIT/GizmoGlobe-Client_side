@@ -137,8 +137,8 @@ class _CartScreen extends State<CartScreen> {
             padding: const EdgeInsets.fromLTRB(0, 16, 16, 20),
             itemCount: state.items.length,
             itemBuilder: (context, index) {
-              final item = state.items[index];
-              final product = item['product'] as Map<String, dynamic>;
+              final item = state.items.elementAt(index);
+              final product = item.product;
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
@@ -147,9 +147,9 @@ class _CartScreen extends State<CartScreen> {
                   children: [
                     // Checkbox
                     Checkbox(
-                      value: state.selectedItems.contains(item['productID']),
+                      value: state.selectedItems.contains(item),
                       onChanged: (value) {
-                        cubit.toggleItemSelection(item['productID']);
+                        cubit.toggleItemSelection(item);
                       },
                       activeColor: Theme.of(context).colorScheme.primary,
                       checkColor: Theme.of(context).colorScheme.surface,
@@ -179,7 +179,7 @@ class _CartScreen extends State<CartScreen> {
                         ),
                         child: Center(
                           child: Icon(
-                            _getCategoryIcon(product['category']),
+                            _getCategoryIcon(product.category),
                             size: 36,
                             color: Colors.grey[600],
                           ),
@@ -193,7 +193,7 @@ class _CartScreen extends State<CartScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            product['productName'],
+                            product.productName,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -201,9 +201,9 @@ class _CartScreen extends State<CartScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          if (product['discount'] > 0) ...[
+                          if (product.discount > 0) ...[
                             Text(
-                              '${(product['sellingPrice']).toStringAsFixed(2)}',
+                              Helper.toCurrencyFormat(product.price),
                               style: TextStyle(
                                 decoration: TextDecoration.lineThrough,
                                 color: Theme.of(context)
@@ -216,7 +216,7 @@ class _CartScreen extends State<CartScreen> {
                             const SizedBox(width: 4),
                           ],
                           Text(
-                            Helper.toCurrencyFormat(product['sellingPrice'] * (1 - (product['discount'] ?? 0))),
+                            Helper.toCurrencyFormat(product.discountedPrice),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -250,11 +250,10 @@ class _CartScreen extends State<CartScreen> {
                                   Icons.remove,
                                   size: 16,
                                 ),
-                                onPressed: (item['quantity'] as int? ?? 0) > 1
+                                onPressed: item.quantity > 1
                                     ? () {
                                         cubit.updateQuantity(
-                                          item['productID'] as String,
-                                          (item['quantity'] as int? ?? 0) - 1,
+                                          item, item.quantity - 1
                                         );
                                       }
                                     : null,
@@ -262,7 +261,7 @@ class _CartScreen extends State<CartScreen> {
                                 constraints: const BoxConstraints(),
                                 style: IconButton.styleFrom(
                                   foregroundColor:
-                                      (item['quantity'] as int? ?? 0) > 1
+                                      item.quantity > 1
                                           ? Theme.of(context)
                                               .colorScheme
                                               .onSurface
@@ -276,7 +275,7 @@ class _CartScreen extends State<CartScreen> {
                                 constraints: const BoxConstraints(minWidth: 16),
                                 alignment: Alignment.center,
                                 child: Text(
-                                  (item['quantity'] as int? ?? 0).toString(),
+                                  item.quantity.toString(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color:
@@ -292,8 +291,7 @@ class _CartScreen extends State<CartScreen> {
                                 ),
                                 onPressed: () {
                                   cubit.updateQuantity(
-                                    item['productID'] as String,
-                                    (item['quantity'] as int? ?? 0) + 1,
+                                    item, item.quantity + 1
                                   );
                                 },
                                 padding: const EdgeInsets.all(4),
@@ -335,8 +333,7 @@ class _CartScreen extends State<CartScreen> {
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pop(context);
-                                      cubit.removeFromCart(
-                                          item['productID'] as String);
+                                      cubit.removeFromCart(item);
                                     },
                                     child: Text(
                                       S.of(context).remove,
@@ -475,11 +472,8 @@ class _CartScreen extends State<CartScreen> {
     );
   }
 
-  IconData _getCategoryIcon(String category) {
-    CategoryEnum categoryEnum = CategoryEnum.values.firstWhere(
-      (element) => element.getName() == category,
-    );
-    switch (categoryEnum) {
+  IconData _getCategoryIcon(CategoryEnum category) {
+    switch (category) {
       case CategoryEnum.ram:
         return Icons.memory;
       case CategoryEnum.cpu:
