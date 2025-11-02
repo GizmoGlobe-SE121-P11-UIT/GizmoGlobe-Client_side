@@ -22,7 +22,6 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
   static const String _lastAdminWelcomeTimeKey = 'last_admin_welcome_time';
   static const String _hasShownAdminReminderKey = 'has_shown_admin_reminder';
   SharedPreferences? _prefs;
-  bool _hasShownModeNotification = false;
   bool _hasShownAdminReplyMessage = false;
   StreamSubscription? _adminMessagesSubscription;
 
@@ -38,8 +37,6 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
 
   Future<void> _initPrefs() async {
     _prefs = await SharedPreferences.getInstance();
-    _hasShownModeNotification =
-        _prefs?.getBool('hasShownModeNotification') ?? false;
     _hasShownAdminReplyMessage =
         _prefs?.getBool(_hasShownAdminReminderKey) ?? false;
 

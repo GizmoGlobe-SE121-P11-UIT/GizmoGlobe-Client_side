@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
 import 'package:gizmoglobe_client/enums/processing/notify_message_enum.dart';
-import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'sign_up_state.dart';
 import '../../../enums/processing/process_state_enum.dart';
 

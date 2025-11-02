@@ -308,9 +308,7 @@ class AIConversationService {
 
       // Prioritize user's question over AI's answer for context extraction
       String? productName = _extractProductNameFromUserQuestion(question);
-      if (productName == null) {
-        productName = _extractProductNameFromText(question);
-      }
+      productName ??= _extractProductNameFromText(question);
 
       if (productName != null && _isValidProductName(productName)) {
         if (kDebugMode) {

@@ -2,7 +2,6 @@
 import 'package:bloc/bloc.dart';
 import '../../../data/database/database.dart';
 import '../../../enums/processing/process_state_enum.dart';
-import '../../../enums/voucher_related/voucher_status.dart';
 import '../../../objects/voucher_related/percentage_interface.dart';
 import '../../../objects/voucher_related/voucher.dart';
 import 'choose_voucher_screen_state.dart';
@@ -16,7 +15,8 @@ class ChooseVoucherScreenCubit extends Cubit<ChooseVoucherScreenState> {
   }
 
   void toLoading() {
-    emit(state.copyWith(processState: ProcessState.loading, errorMessage: null));
+    emit(
+        state.copyWith(processState: ProcessState.loading, errorMessage: null));
   }
 
   Future<void> loadAvailableVouchers(double totalAmount) async {
@@ -43,7 +43,9 @@ class ChooseVoucherScreenCubit extends Cubit<ChooseVoucherScreenState> {
           ? percentageVoucher.maximumDiscountValue
           : calculatedDiscount;
     } else {
-      return voucher.discountValue > totalAmount ? totalAmount : voucher.discountValue;
+      return voucher.discountValue > totalAmount
+          ? totalAmount
+          : voucher.discountValue;
     }
   }
 }

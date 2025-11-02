@@ -63,7 +63,7 @@ class WebChatMessages extends StatelessWidget {
                 boxShadow: isUser
                     ? [
                         BoxShadow(
-                          color: colorScheme.primary.withOpacity(0.1),
+                          color: colorScheme.primary.withValues(alpha: 0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -82,9 +82,9 @@ class WebChatMessages extends StatelessWidget {
                           isAdminBot ? Icons.support_agent : Icons.smart_toy,
                           size: 16,
                           color: isAdminBot
-                              ? colorScheme.onSurface.withOpacity(0.7)
+                              ? colorScheme.onSurface.withValues(alpha: 0.7)
                               : colorScheme.onSecondaryContainer
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -93,9 +93,9 @@ class WebChatMessages extends StatelessWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: isAdminBot
-                                ? colorScheme.onSurface.withOpacity(0.8)
+                                ? colorScheme.onSurface.withValues(alpha: 0.8)
                                 : colorScheme.onSecondaryContainer
-                                    .withOpacity(0.8),
+                                    .withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -125,7 +125,7 @@ class WebChatMessages extends StatelessWidget {
                         Icon(
                           Icons.person,
                           size: 12,
-                          color: colorScheme.onPrimary.withOpacity(0.7),
+                          color: colorScheme.onPrimary.withValues(alpha: 0.7),
                         ),
                         const SizedBox(width: 4),
                       ],
@@ -133,12 +133,12 @@ class WebChatMessages extends StatelessWidget {
                         DateFormat('HH:mm').format(message.timestamp),
                         style: TextStyle(
                           color: isUser
-                              ? colorScheme.onPrimary.withOpacity(0.7)
+                              ? colorScheme.onPrimary.withValues(alpha: 0.7)
                               : isAdminBot
                                   ? colorScheme.onSurfaceVariant
-                                      .withOpacity(0.7)
+                                      .withValues(alpha: 0.7)
                                   : colorScheme.onSecondaryContainer
-                                      .withOpacity(0.7),
+                                      .withValues(alpha: 0.7),
                           fontSize: 12,
                         ),
                       ),

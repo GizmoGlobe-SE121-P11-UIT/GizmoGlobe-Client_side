@@ -113,13 +113,13 @@ class MyApp extends StatelessWidget {
             print('Current locale: ${languageProvider.currentLocale}');
             print('Supported locales: ${[Locale('en'), Locale('vi')]}');
           }
-          final GlobalKey<NavigatorState> _rootNavigatorKey =
+          final GlobalKey<NavigatorState> rootNavigatorKey =
               GlobalKey<NavigatorState>();
           return BlocProvider(
             create: (context) => MainScreenCubit(),
             child: CartProvider(
               child: MaterialApp(
-                navigatorKey: _rootNavigatorKey,
+                navigatorKey: rootNavigatorKey,
                 title: 'GizmoGlobe',
                 themeMode: themeProvider.themeMode,
                 locale: languageProvider.currentLocale,
@@ -163,7 +163,7 @@ class MyApp extends StatelessWidget {
                   // Inject floating chat only on web
                   if (kIsWeb) {
                     return FloatingChat(
-                        child: wrapped, navigatorKey: _rootNavigatorKey);
+                        navigatorKey: rootNavigatorKey, child: wrapped);
                   }
                   return wrapped;
                 },
@@ -264,7 +264,8 @@ class MyApp extends StatelessWidget {
                   ),
                   navigationBarTheme: NavigationBarThemeData(
                     backgroundColor: const Color(0xFF0F4C81),
-                    indicatorColor: const Color(0xFF638CC7).withOpacity(0.3),
+                    indicatorColor:
+                        const Color(0xFF638CC7).withValues(alpha: 0.3),
                     labelTextStyle: WidgetStateProperty.all(
                       const TextStyle(color: Colors.white, fontSize: 12),
                     ),

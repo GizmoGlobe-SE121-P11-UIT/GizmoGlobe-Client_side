@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../enums/product_related/category_enum.dart';
 import '../../objects/invoice_related/sales_invoice_detail.dart';
-import '../general/app_text_style.dart';
 
 class InvoiceDetailsWidget extends StatelessWidget {
   final SalesInvoiceDetail detail;

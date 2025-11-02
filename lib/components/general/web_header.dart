@@ -13,7 +13,7 @@ import 'package:gizmoglobe_client/services/platform_actions.dart'
     as platform_actions;
 
 class WebHeader extends StatefulWidget {
-  const WebHeader({Key? key}) : super(key: key);
+  const WebHeader({super.key});
 
   @override
   State<WebHeader> createState() => _WebHeaderState();
@@ -237,7 +237,10 @@ class _WebHeaderState extends State<WebHeader> {
             child: Icon(Icons.person_outline,
                 color: _isUserMenuOpen
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
                 size: iconSize),
           ),
         ),
@@ -268,7 +271,7 @@ class _WebHeaderState extends State<WebHeader> {
           );
         }
 
-        return Container(
+        return SizedBox(
           width: 280,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -558,7 +561,10 @@ class _WebHeaderState extends State<WebHeader> {
             Icon(
               icon,
               size: 20,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
             ),
             const SizedBox(width: 12),
             Text(
@@ -593,7 +599,8 @@ class _WebHeaderState extends State<WebHeader> {
           ),
         ),
         child: Icon(icon,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             size: iconSize),
       ),
     );

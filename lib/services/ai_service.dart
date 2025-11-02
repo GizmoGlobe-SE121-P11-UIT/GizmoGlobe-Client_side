@@ -3,8 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:intl/intl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 // Import the new service classes
 import 'ai_services/ai_conversation_service.dart';
@@ -16,11 +14,7 @@ import 'ai_services/ai_utils.dart';
 import 'ai_services/ai_nlp_service.dart';
 
 class AIService {
-  final String _baseUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models';
-  final String _model = 'gemini-2.5-pro';
   final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Service instances
   late final AIConversationService _conversationService;
@@ -58,7 +52,7 @@ class AIService {
       final isFavoriteQuestion = _utils.isFavoriteQuestion(userMessage);
       final isCartQuestion = _utils.isCartQuestion(userMessage);
       final isCartQuantityQuestion = _utils.isCartQuantityQuestion(userMessage);
-      final isInvoiceQuestion = _utils.isInvoiceQuestion(userMessage);
+      // final isInvoiceQuestion = _utils.isInvoiceQuestion(userMessage);
       final isVoucherQuestion = _utils.isVoucherQuestion(userMessage);
       final isAddToCartRequest = _utils.isAddToCartRequest(userMessage);
 
@@ -165,9 +159,7 @@ class AIService {
         }
 
         // If still not found, try with original name
-        if (foundProduct == null) {
-          foundProduct = await _productService.findProductByName(productName);
-        }
+        foundProduct ??= await _productService.findProductByName(productName);
 
         if (foundProduct != null) {
           productName =
@@ -179,9 +171,7 @@ class AIService {
 
       if (productName == null || productName.isEmpty) {
         final response = _utils.getProductNotFoundResponse(isVietnamese);
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       }
 
@@ -191,9 +181,7 @@ class AIService {
       if (product == null) {
         final response = await _productService.getProductNotFoundResponse(
             productName, isVietnamese);
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       }
 
@@ -203,9 +191,7 @@ class AIService {
         final response = isVietnamese
             ? 'Xin lỗi, chỉ còn $stock sản phẩm trong kho. Vui lòng giảm số lượng hoặc chọn sản phẩm khác.'
             : 'Sorry, only $stock items available in stock. Please reduce the quantity or choose a different product.';
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       }
 
@@ -216,17 +202,13 @@ class AIService {
         final response = _cartService.getAddToCartSuccessResponse(
                 product, quantity, isVietnamese) +
             contextInfo;
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       } else {
         final response = isVietnamese
             ? 'Xin lỗi, có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng. Vui lòng thử lại sau.'
             : 'Sorry, an error occurred while adding the product to cart. Please try again later.';
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       }
     } catch (e) {
@@ -236,9 +218,7 @@ class AIService {
       final response = isVietnamese
           ? 'Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu thêm vào giỏ hàng. Vui lòng thử lại sau.'
           : 'Sorry, an error occurred while processing your add to cart request. Please try again later.';
-      if (userId != null) {
-        _conversationService.updateHistory(userId, userMessage, response);
-      }
+      _conversationService.updateHistory(userId, userMessage, response);
       return response;
     }
   }
@@ -260,7 +240,9 @@ class AIService {
       }
       return response;
     } catch (e) {
-      print('Error handling voucher question: $e');
+      if (kDebugMode) {
+        print('Error handling voucher question: $e');
+      }
       return isVietnamese
           ? 'Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.'
           : 'Sorry, an error occurred while processing your request. Please try again later.';
@@ -313,9 +295,7 @@ class AIService {
         basePrompt, sectionTitle, content, userMessage, isVietnamese);
     final response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
 
-    if (userId != null) {
-      _conversationService.updateHistory(userId, userMessage, response);
-    }
+    _conversationService.updateHistory(userId, userMessage, response);
     return response;
   }
 
@@ -427,7 +407,10 @@ class AIService {
     int retryCount = 0;
     while (retryCount < maxRetries) {
       try {
-        print('Calling Gemini API... (Attempt ${retryCount + 1}/$maxRetries)');
+        if (kDebugMode) {
+          print(
+              'Calling Gemini API... (Attempt ${retryCount + 1}/$maxRetries)');
+        }
         final response = await http.post(
           Uri.parse(
               'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey'),
@@ -449,8 +432,12 @@ class AIService {
           }),
         );
 
-        print('Gemini API response status: ${response.statusCode}');
-        print('Gemini API response body: ${response.body}');
+        if (kDebugMode) {
+          print('Gemini API response status: ${response.statusCode}');
+        }
+        if (kDebugMode) {
+          print('Gemini API response body: ${response.body}');
+        }
 
         if (response.statusCode == 200) {
           final responseData = jsonDecode(response.body);
@@ -466,7 +453,10 @@ class AIService {
         } else if (response.statusCode == 503) {
           retryCount++;
           if (retryCount < maxRetries) {
-            print('Model overloaded, retrying in ${retryCount * 2} seconds...');
+            if (kDebugMode) {
+              print(
+                  'Model overloaded, retrying in ${retryCount * 2} seconds...');
+            }
             await Future.delayed(Duration(seconds: retryCount * 2));
             continue;
           }
@@ -474,10 +464,14 @@ class AIService {
         throw Exception(
             'API call failed with status code: ${response.statusCode}, body: ${response.body}');
       } catch (e) {
-        print('Error calling Gemini API: $e');
+        if (kDebugMode) {
+          print('Error calling Gemini API: $e');
+        }
         retryCount++;
         if (retryCount < maxRetries) {
-          print('Retrying in ${retryCount * 2} seconds...');
+          if (kDebugMode) {
+            print('Retrying in ${retryCount * 2} seconds...');
+          }
           await Future.delayed(Duration(seconds: retryCount * 2));
           continue;
         }
@@ -515,8 +509,6 @@ class AIService {
   /// Debug method to check conversation context processing
   Future<String> debugContextProcessing(
       String userMessage, String userId) async {
-    if (userId == null) return 'No user ID provided';
-
     final processedMessage =
         await _conversationService.processContext(userMessage, userId);
     final isAddToCart = _utils.isAddToCartRequest(userMessage);

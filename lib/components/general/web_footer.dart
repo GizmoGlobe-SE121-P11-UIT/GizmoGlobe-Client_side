@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class WebFooter extends StatelessWidget {
-  const WebFooter({Key? key}) : super(key: key);
+  const WebFooter({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +57,7 @@ class WebFooter extends StatelessWidget {
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.6),
+                            .withValues(alpha: 0.6),
                         fontSize: 14,
                         height: 1.6,
                       ),
@@ -109,8 +109,10 @@ class WebFooter extends StatelessWidget {
               Text(
                 '© 2025 GizmoGlobe. All rights reserved.',
                 style: TextStyle(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                   fontSize: 14,
                 ),
               ),
@@ -151,8 +153,10 @@ class WebFooter extends StatelessWidget {
               child: Text(
                 link,
                 style: TextStyle(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                   fontSize: 14,
                 ),
               ),
@@ -169,14 +173,14 @@ class WebFooter extends StatelessWidget {
         color: Theme.of(context)
             .colorScheme
             .surfaceContainerHighest
-            .withOpacity(0.3),
+            .withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: Theme.of(context).dividerColor,
         ),
       ),
       child: Icon(icon,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           size: 18),
     );
   }

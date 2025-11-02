@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/objects/manufacturer.dart';
 
 import '../../enums/product_related/category_enum.dart';
@@ -73,12 +73,18 @@ abstract class Product {
 
   String? getDescription(BuildContext context) {
     final locale = Localizations.localeOf(context);
-    print('Current locale: ${locale.languageCode}');
+    if (kDebugMode) {
+      print('Current locale: ${locale.languageCode}');
+    }
     if (locale.languageCode == 'vi') {
-      print('Returning Vietnamese description: $viDescription');
+      if (kDebugMode) {
+        print('Returning Vietnamese description: $viDescription');
+      }
       return viDescription;
     } else {
-      print('Returning English description: $enDescription');
+      if (kDebugMode) {
+        print('Returning English description: $enDescription');
+      }
       return enDescription;
     }
   }

@@ -6,8 +6,7 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 class WebFavoritesSection extends StatelessWidget {
   final List<Product> products;
 
-  const WebFavoritesSection({Key? key, required this.products})
-      : super(key: key);
+  const WebFavoritesSection({super.key, required this.products});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +37,7 @@ class WebFavoritesSection extends StatelessWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.6),
+                          .withValues(alpha: 0.6),
                       fontSize: 16,
                     ),
                   ),

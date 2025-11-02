@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class WebFeaturesSection extends StatelessWidget {
-  const WebFeaturesSection({Key? key}) : super(key: key);
+  const WebFeaturesSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +55,7 @@ class WebFeaturesSection extends StatelessWidget {
         color: Theme.of(context)
             .colorScheme
             .surfaceContainerHighest
-            .withOpacity(0.3),
+            .withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).dividerColor,
@@ -86,7 +86,10 @@ class WebFeaturesSection extends StatelessWidget {
           Text(
             description,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
               fontSize: 14,
             ),
             textAlign: TextAlign.center,

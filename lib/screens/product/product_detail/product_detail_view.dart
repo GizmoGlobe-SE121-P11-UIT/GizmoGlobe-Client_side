@@ -16,7 +16,6 @@ import '../../../objects/product_related/product.dart';
 import '../../../objects/product_related/psu.dart';
 import '../../../objects/product_related/ram.dart';
 import '../../../widgets/dialog/information_dialog.dart';
-import '../../../widgets/general/field_with_icon.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
 import '../../cart/cart_screen/cart_screen_cubit.dart';
 import '../../cart/cart_screen/cart_screen_state.dart';
@@ -159,40 +158,41 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Container(
-                                  height: 250,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Theme.of(context)
-                                            .colorScheme
-                                            .surface
-                                            .withValues(alpha: 0.1)
-                                        : Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(12),
-                                    image: state.product.imageUrl != null
-                                        ? DecorationImage(
-                                      image: NetworkImage(
-                                          state.product.imageUrl!),
-                                      fit: BoxFit.contain,
-                                    )
-                                        : null,
-                                  ),
-                                  child: state.product.imageUrl == null ?
-                                    Center(
-                                      child: Icon(
-                                        _getCategoryIcon(),
-                                        size: 100,
-                                        color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                            ? Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withValues(alpha: 0.7)
-                                            : Colors.grey[600],
-                                          ),
-                                    ) : null
-                                ),
+                                    height: 250,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .surface
+                                              .withValues(alpha: 0.1)
+                                          : Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
+                                      image: state.product.imageUrl != null
+                                          ? DecorationImage(
+                                              image: NetworkImage(
+                                                  state.product.imageUrl!),
+                                              fit: BoxFit.contain,
+                                            )
+                                          : null,
+                                    ),
+                                    child: state.product.imageUrl == null
+                                        ? Center(
+                                            child: Icon(
+                                              _getCategoryIcon(),
+                                              size: 100,
+                                              color: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.dark
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .primary
+                                                      .withValues(alpha: 0.7)
+                                                  : Colors.grey[600],
+                                            ),
+                                          )
+                                        : null),
                               ),
                               Positioned(
                                 right: 24,
@@ -589,29 +589,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     widget.product.getDescription(context) != null
         ? specs.add(_buildSpecGroup(
-          S.of(context).description,
-          [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: Expanded(
-                child: Text(
-                  widget.product.getDescription(context)!,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+            S.of(context).description,
+            [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surface
+                      .withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                child: Expanded(
+                  child: Text(
+                    widget.product.getDescription(context)!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-            )
-          ],
-        )
-    )
+              )
+            ],
+          ))
         : const SizedBox();
 
     return Container(
@@ -815,4 +818,3 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }*/
 }
-

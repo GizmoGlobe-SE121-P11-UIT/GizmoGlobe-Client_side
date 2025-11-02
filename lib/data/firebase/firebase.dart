@@ -366,7 +366,10 @@ class Firebase {
             manufacturerSnapshot.docs.map((doc) => doc.id).toList();
 
         if (kDebugMode && inactiveManufacturerIDs.isNotEmpty) {
-          print('Found ${inactiveManufacturerIDs.length} inactive manufacturers to filter from cart');
+          if (kDebugMode) {
+            print(
+                'Found ${inactiveManufacturerIDs.length} inactive manufacturers to filter from cart');
+          }
         }
 
         for (var doc in cartSnapshot.docs) {
@@ -384,7 +387,8 @@ class Firebase {
             final manufacturerID = productData['manufacturerID'] as String;
             if (inactiveManufacturerIDs.contains(manufacturerID)) {
               if (kDebugMode) {
-                print('Skipping cart item for product ${productID} from inactive manufacturer ${manufacturerID}');
+                print(
+                    'Skipping cart item for product $productID from inactive manufacturer $manufacturerID');
               }
               continue; // Skip this cart item
             }
@@ -558,7 +562,10 @@ class Firebase {
         manufacturerID: data['manufacturerID'] ?? '',
         manufacturerName: data['manufacturerName'] ?? '',
         status: ManufacturerStatus.values.firstWhere(
-          (e) => e.getName().toLowerCase() == (docStatus?.toLowerCase() ?? ManufacturerStatus.active.getName().toLowerCase()),
+          (e) =>
+              e.getName().toLowerCase() ==
+              (docStatus?.toLowerCase() ??
+                  ManufacturerStatus.active.getName().toLowerCase()),
           orElse: () => ManufacturerStatus.active,
         ),
       );
@@ -579,16 +586,19 @@ class Firebase {
           .get();
 
       final List<Map<String, dynamic>> inactiveManufacturers =
-          manufacturerSnapshot.docs.map((doc) => {
-                'id': doc.id,
-                'status': doc['status'] ?? 'inactive'
-              }).toList();
+          manufacturerSnapshot.docs
+              .map((doc) =>
+                  {'id': doc.id, 'status': doc['status'] ?? 'inactive'})
+              .toList();
 
       final List<String> inactiveManufacturerIDs =
           inactiveManufacturers.map((m) => m['id'] as String).toList();
 
       if (kDebugMode && inactiveManufacturerIDs.isNotEmpty) {
-        print('Found ${inactiveManufacturerIDs.length} inactive manufacturers to exclude');
+        if (kDebugMode) {
+          print(
+              'Found ${inactiveManufacturerIDs.length} inactive manufacturers to exclude');
+        }
       }
 
       // Get all products
@@ -605,7 +615,8 @@ class Firebase {
         // Skip products from inactive manufacturers
         if (inactiveManufacturerIDs.contains(manufacturerId)) {
           if (kDebugMode) {
-            print('Skipping product ${doc.id} from inactive manufacturer $manufacturerId');
+            print(
+                'Skipping product ${doc.id} from inactive manufacturer $manufacturerId');
           }
           continue;
         }
@@ -627,7 +638,8 @@ class Firebase {
         // Skip products that are not active
         if (productStatus != ProductStatusEnum.active) {
           if (kDebugMode) {
-            print('Skipping product ${doc.id} with non-active status: ${productStatus.getName()}');
+            print(
+                'Skipping product ${doc.id} with non-active status: ${productStatus.getName()}');
           }
           continue;
         }

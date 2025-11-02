@@ -5,7 +5,7 @@ import 'package:gizmoglobe_client/providers/theme_provider.dart';
 import 'package:gizmoglobe_client/providers/language_provider.dart';
 
 class UserSettingsModal extends StatefulWidget {
-  const UserSettingsModal({Key? key}) : super(key: key);
+  const UserSettingsModal({super.key});
 
   static void show(BuildContext context) {
     showDialog(
@@ -21,7 +21,7 @@ class UserSettingsModal extends StatefulWidget {
 class _UserSettingsModalState extends State<UserSettingsModal> {
   late String _selectedLanguage;
   late ThemeMode _selectedTheme;
-  
+
   // Store original values to detect changes
   late String _originalLanguage;
   late ThemeMode _originalTheme;
@@ -32,13 +32,14 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
     _selectedLanguage =
         context.read<LanguageProvider>().currentLocale.languageCode;
     _selectedTheme = context.read<ThemeProvider>().themeMode;
-    
+
     _originalLanguage = _selectedLanguage;
     _originalTheme = _selectedTheme;
   }
-  
-  bool get _hasChanges => 
-      _selectedLanguage != _originalLanguage || _selectedTheme != _originalTheme;
+
+  bool get _hasChanges =>
+      _selectedLanguage != _originalLanguage ||
+      _selectedTheme != _originalTheme;
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +61,12 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surface
+                    .withValues(alpha: 0.3),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Row(
                 children: [
@@ -135,10 +140,8 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .primary
-                  .withValues(alpha: 0.1),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -223,10 +226,8 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .primary
-                  .withValues(alpha: 0.1),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -314,7 +315,10 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
             onPressed: () => Navigator.pop(context),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              foregroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              foregroundColor: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
             ),
             child: Text(
               S.of(context).cancel,
@@ -350,17 +354,17 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
   void _saveSettings() {
     final languageProvider = context.read<LanguageProvider>();
     final themeProvider = context.read<ThemeProvider>();
-    
+
     // Apply language change if different
     if (_selectedLanguage != _originalLanguage) {
       languageProvider.setLanguage(_selectedLanguage);
     }
-    
+
     // Apply theme change if different
     if (_selectedTheme != _originalTheme) {
       themeProvider.setTheme(_selectedTheme);
     }
-    
+
     // Close the modal
     Navigator.pop(context);
   }

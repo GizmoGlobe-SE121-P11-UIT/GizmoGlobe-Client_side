@@ -10,7 +10,7 @@ import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 class WebProductCard extends StatefulWidget {
   final Product product;
 
-  const WebProductCard({Key? key, required this.product}) : super(key: key);
+  const WebProductCard({super.key, required this.product});
 
   @override
   State<WebProductCard> createState() => _WebProductCardState();
@@ -36,11 +36,14 @@ class _WebProductCardState extends State<WebProductCard> {
               color: Theme.of(context)
                   .colorScheme
                   .surfaceContainerHighest
-                  .withOpacity(0.3),
+                  .withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isHovered
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
+                    ? Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.5)
                     : Theme.of(context).dividerColor,
                 width: isHovered ? 2 : 1,
               ),
@@ -66,7 +69,7 @@ class _WebProductCardState extends State<WebProductCard> {
                         color: Theme.of(context)
                             .colorScheme
                             .surfaceContainerHighest
-                            .withOpacity(0.5),
+                            .withValues(alpha: 0.5),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(12),
                           topRight: Radius.circular(12),
@@ -143,7 +146,7 @@ class _WebProductCardState extends State<WebProductCard> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .surface
-                                      .withOpacity(0.9),
+                                      .withValues(alpha: 0.9),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Icon(
@@ -220,7 +223,7 @@ class _WebProductCardState extends State<WebProductCard> {
                                         color: Theme.of(context)
                                             .colorScheme
                                             .onSurface
-                                            .withOpacity(0.5),
+                                            .withValues(alpha: 0.5),
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
                                         decoration: TextDecoration.lineThrough,

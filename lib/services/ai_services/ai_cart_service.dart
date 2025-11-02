@@ -105,14 +105,14 @@ class AICartService {
     if (price is! num) return formatPrice((price as num).toDouble());
 
     if (discount == null || discount == 0) {
-      return formatPrice((price as num).toDouble());
+      return formatPrice((price).toDouble());
     }
 
     // Fix: discount is percentage, not decimal
-    final discountAmount = (price as num) * ((discount as num) / 100);
-    final finalPrice = (price as num) - discountAmount;
+    final discountAmount = (price) * ((discount as num) / 100);
+    final finalPrice = (price) - discountAmount;
 
-    return '${formatPrice(finalPrice.toDouble())} (Original: ${formatPrice((price as num).toDouble())})';
+    return '${formatPrice(finalPrice.toDouble())} (Original: ${formatPrice((price).toDouble())})';
   }
 
   String formatPrice(double price) {
