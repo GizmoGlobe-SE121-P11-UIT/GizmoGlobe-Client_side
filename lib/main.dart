@@ -296,8 +296,25 @@ class MyApp extends StatelessWidget {
                 onGenerateRoute: (settings) {
                   // Clean the route name to remove any hash fragments
                   String cleanRouteName = settings.name ?? '';
-                  if (cleanRouteName.contains('#')) {
+                  // Normalize '/#/' prefix used by some web hash URLs
+                  if (cleanRouteName.startsWith('/#/')) {
+                    cleanRouteName = cleanRouteName.replaceFirst('/#', '');
+                  } else if (cleanRouteName.contains('#')) {
                     cleanRouteName = cleanRouteName.split('#')[0];
+                  }
+
+                  // Direct mapping for products page after normalization
+                  if (cleanRouteName == '/products') {
+                    return PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          ProductScreen.newInstance(),
+                      settings: RouteSettings(name: cleanRouteName),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 150),
+                    );
                   }
 
                   // User sub routes for web navigation

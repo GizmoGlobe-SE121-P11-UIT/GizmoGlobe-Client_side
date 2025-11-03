@@ -213,20 +213,25 @@ class _ProductScreenState extends State<ProductScreen>
                         searchText: state.searchText,
                         initialProducts: state.initialProducts),
                     ProductTab.newCpu(
-                        searchText: state.searchText,
-                        initialProducts: state.initialProducts,),
+                      searchText: state.searchText,
+                      initialProducts: state.initialProducts,
+                    ),
                     ProductTab.newPsu(
-                        searchText: state.searchText,
-                        initialProducts: state.initialProducts,),
+                      searchText: state.searchText,
+                      initialProducts: state.initialProducts,
+                    ),
                     ProductTab.newGpu(
-                        searchText: state.searchText,
-                        initialProducts: state.initialProducts,),
+                      searchText: state.searchText,
+                      initialProducts: state.initialProducts,
+                    ),
                     ProductTab.newDrive(
-                        searchText: state.searchText,
-                        initialProducts: state.initialProducts,),
+                      searchText: state.searchText,
+                      initialProducts: state.initialProducts,
+                    ),
                     ProductTab.newMainboard(
-                        searchText: state.searchText,
-                        initialProducts: state.initialProducts,),
+                      searchText: state.searchText,
+                      initialProducts: state.initialProducts,
+                    ),
                   ],
                 );
               },

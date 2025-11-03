@@ -13,14 +13,18 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../../enums/product_related/category_enum.dart';
 import '../../../generated/l10n.dart';
 import '../../../objects/product_related/product.dart';
+import 'package:gizmoglobe_client/components/general/web_header.dart';
+import 'package:gizmoglobe_client/components/general/web_footer.dart';
 
 class ProductScreenWebView extends StatefulWidget {
   final List<Product>? initialProducts;
   final SortEnum? initialSortOption;
 
-  const ProductScreenWebView({super.key, this.initialProducts, this.initialSortOption});
+  const ProductScreenWebView(
+      {super.key, this.initialProducts, this.initialSortOption});
 
-  static Widget newInstance({List<Product>? initialProducts, SortEnum? initialSortOption}) =>
+  static Widget newInstance(
+          {List<Product>? initialProducts, SortEnum? initialSortOption}) =>
       BlocProvider(
         create: (context) => ProductScreenCubit(),
         child: ProductScreenWebView(
@@ -51,8 +55,8 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
     searchFocusNode = FocusNode();
     tabController =
         TabController(length: CategoryEnum.getValues().length + 1, vsync: this);
-    cubit.initialize(
-        widget.initialProducts ?? [], widget.initialSortOption ?? SortEnum.releaseLatest);
+    cubit.initialize(widget.initialProducts ?? [],
+        widget.initialSortOption ?? SortEnum.releaseLatest);
     _speech = stt.SpeechToText();
   }
 
@@ -205,57 +209,64 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
         ),
       ),
       body: SafeArea(
-        child: BlocBuilder<ProductScreenCubit, ProductScreenState>(
-          builder: (context, state) {
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final bool isWide = constraints.maxWidth >= 1100;
-                final EdgeInsets pagePadding = EdgeInsets.symmetric(
-                  horizontal: isWide ? 24 : 12,
-                );
-                final double maxBodyWidth = isWide ? 1200 : constraints.maxWidth;
-                return Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: pagePadding,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxBodyWidth),
-                      child: TabBarView(
-                        controller: tabController,
-                        children: [
-                          ProductTab.newInstance(
-                              searchText: state.searchText,
-                              initialProducts: state.initialProducts),
-                          ProductTab.newRam(
-                              searchText: state.searchText,
-                              initialProducts: state.initialProducts),
-                          ProductTab.newCpu(
-                              searchText: state.searchText,
-                              initialProducts: state.initialProducts),
-                          ProductTab.newPsu(
-                              searchText: state.searchText,
-                              initialProducts: state.initialProducts),
-                          ProductTab.newGpu(
-                              searchText: state.searchText,
-                              initialProducts: state.initialProducts),
-                          ProductTab.newDrive(
-                              searchText: state.searchText,
-                              initialProducts: state.initialProducts),
-                          ProductTab.newMainboard(
-                              searchText: state.searchText,
-                              initialProducts: state.initialProducts),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
+        child: Column(
+          children: [
+            const WebHeader(),
+            Expanded(
+              child: BlocBuilder<ProductScreenCubit, ProductScreenState>(
+                builder: (context, state) {
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool isWide = constraints.maxWidth >= 1100;
+                      final EdgeInsets pagePadding = EdgeInsets.symmetric(
+                        horizontal: isWide ? 24 : 12,
+                      );
+                      final double maxBodyWidth =
+                          isWide ? 1200 : constraints.maxWidth;
+                      return Align(
+                        alignment: Alignment.topCenter,
+                        child: Padding(
+                          padding: pagePadding,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: maxBodyWidth),
+                            child: TabBarView(
+                              controller: tabController,
+                              children: [
+                                ProductTab.newInstance(
+                                    searchText: state.searchText,
+                                    initialProducts: state.initialProducts),
+                                ProductTab.newRam(
+                                    searchText: state.searchText,
+                                    initialProducts: state.initialProducts),
+                                ProductTab.newCpu(
+                                    searchText: state.searchText,
+                                    initialProducts: state.initialProducts),
+                                ProductTab.newPsu(
+                                    searchText: state.searchText,
+                                    initialProducts: state.initialProducts),
+                                ProductTab.newGpu(
+                                    searchText: state.searchText,
+                                    initialProducts: state.initialProducts),
+                                ProductTab.newDrive(
+                                    searchText: state.searchText,
+                                    initialProducts: state.initialProducts),
+                                ProductTab.newMainboard(
+                                    searchText: state.searchText,
+                                    initialProducts: state.initialProducts),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            const WebFooter(),
+          ],
         ),
       ),
     );
   }
 }
-
-
