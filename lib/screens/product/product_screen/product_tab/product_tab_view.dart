@@ -214,42 +214,42 @@ class _ProductTabState extends State<ProductTab>
                         ),
                       );
                     }
-                    return GridView.count(
-                      shrinkWrap: true,
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 0,
-                      crossAxisSpacing: 0,
-                      childAspectRatio: 0.65,
-                      children: List.generate(
-                        state.filteredProductList.length,
-                        (index) {
-                          final product = state.filteredProductList[index];
-                          return AnimatedOpacity(
-                            duration: const Duration(milliseconds: 200),
-                            opacity: state.selectedProduct == null ||
-                                    state.selectedProduct == product
-                                ? 1.0
-                                : 0.3,
-                            child: ProductCard(
-                              product: product,
-                              onTap: () async {
-                                cubit.setSelectedProduct(null);
-                                ProcessState result =
-                                    await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        ProductDetailScreen.newInstance(
-                                            product),
-                                  ),
-                                );
-                                if (result == ProcessState.success) {
-                                  await cubit.reloadProducts();
-                                }
-                              },
-                            ),
-                          );
-                        },
+                    return GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 0,
+                        crossAxisSpacing: 0,
+                        childAspectRatio: 0.65,
                       ),
+                      itemCount: state.filteredProductList.length,
+                      itemBuilder: (context, index) {
+                        final product = state.filteredProductList[index];
+                        return AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: state.selectedProduct == null ||
+                                  state.selectedProduct == product
+                              ? 1.0
+                              : 0.3,
+                          child: ProductCard(
+                            product: product,
+                            onTap: () async {
+                              cubit.setSelectedProduct(null);
+                              ProcessState result =
+                                  await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProductDetailScreen.newInstance(
+                                          product),
+                                ),
+                              );
+                              if (result == ProcessState.success) {
+                                await cubit.reloadProducts();
+                              }
+                            },
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

@@ -29,6 +29,28 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/chat/floating_chat.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'package:gizmoglobe_client/services/platform_actions_stub.dart'
+    if (dart.library.html) 'package:gizmoglobe_client/services/platform_actions_web.dart'
+    as platform_actions;
+
+// Function to get hash path from platform actions
+String getHashPath() {
+  if (kIsWeb) {
+    return platform_actions.getHashPath();
+  }
+  return '';
+}
+
+// Function to normalize initial URL for hash strategy
+void normalizeInitialUrlForHashStrategy() {
+  if (kIsWeb) {
+    platform_actions.normalizeInitialUrlForHashStrategy();
+  }
+}
+
+// Use a single navigator key instance to avoid rebuild-induced pops on web
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 class NoTransitionsBuilder extends PageTransitionsBuilder {
   const NoTransitionsBuilder();
@@ -47,7 +69,14 @@ class NoTransitionsBuilder extends PageTransitionsBuilder {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load .env uniformly; it's declared as an asset in pubspec
   await dotenv.load(fileName: ".env");
+
+  // Use hash-based URLs on web so refreshes work without server config
+  if (kIsWeb) {
+    setUrlStrategy(const HashUrlStrategy());
+    normalizeInitialUrlForHashStrategy();
+  }
   await _setup();
   try {
     await Firebase.initializeApp(
@@ -113,8 +142,6 @@ class MyApp extends StatelessWidget {
             print('Current locale: ${languageProvider.currentLocale}');
             print('Supported locales: ${[Locale('en'), Locale('vi')]}');
           }
-          final GlobalKey<NavigatorState> rootNavigatorKey =
-              GlobalKey<NavigatorState>();
           return BlocProvider(
             create: (context) => MainScreenCubit(),
             child: CartProvider(
@@ -280,6 +307,8 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 routes: {
+                  '/': (context) =>
+                      kIsWeb ? const MainScreen() : const AuthWrapper(),
                   '/home': (context) => const MainScreen(),
                   '/sign-in': (context) => SignInScreen.newInstance(),
                   '/sign-up': (context) => SignUpScreen.newInstance(),
@@ -294,16 +323,15 @@ class MyApp extends StatelessWidget {
                   '/vouchers': (context) => VoucherScreen.newInstance(),
                 },
                 onGenerateRoute: (settings) {
-                  // Clean the route name to remove any hash fragments
                   String cleanRouteName = settings.name ?? '';
-                  // Normalize '/#/' prefix used by some web hash URLs
-                  if (cleanRouteName.startsWith('/#/')) {
-                    cleanRouteName = cleanRouteName.replaceFirst('/#', '');
-                  } else if (cleanRouteName.contains('#')) {
-                    cleanRouteName = cleanRouteName.split('#')[0];
+                  // On web, if framework tries to build '/', prefer current hash route
+                  if (kIsWeb &&
+                      (cleanRouteName.isEmpty || cleanRouteName == '/')) {
+                    final hashPath = getHashPath();
+                    if (hashPath.isNotEmpty && hashPath.startsWith('/')) {
+                      cleanRouteName = hashPath;
+                    }
                   }
-
-                  // Direct mapping for products page after normalization
                   if (cleanRouteName == '/products') {
                     return PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
@@ -332,25 +360,20 @@ class MyApp extends StatelessWidget {
                     );
                   }
 
+                  // Handle order routes with hash-based navigation
                   if (cleanRouteName == '/orders' ||
-                      cleanRouteName.startsWith('/orders?')) {
-                    // Parse query parameters to determine initial tab
-                    final uri = Uri.parse(cleanRouteName);
-                    final tabParam = uri.queryParameters['tab'];
+                      cleanRouteName.startsWith('/orders/')) {
                     OrderOption initialTab = OrderOption.toShip;
 
-                    switch (tabParam) {
-                      case 'to-ship':
-                        initialTab = OrderOption.toShip;
-                        break;
-                      case 'to-receive':
-                        initialTab = OrderOption.toReceive;
-                        break;
-                      case 'completed':
-                        initialTab = OrderOption.completed;
-                        break;
-                      default:
-                        initialTab = OrderOption.toShip;
+                    // Parse hash-based URL path to determine initial tab
+                    if (cleanRouteName.endsWith('/to-ship')) {
+                      initialTab = OrderOption.toShip;
+                    } else if (cleanRouteName.endsWith('/to-receive')) {
+                      initialTab = OrderOption.toReceive;
+                    } else if (cleanRouteName.endsWith('/completed')) {
+                      initialTab = OrderOption.completed;
+                    } else if (cleanRouteName == '/orders') {
+                      initialTab = OrderOption.toShip; // Default
                     }
 
                     return PageRouteBuilder(
@@ -364,9 +387,24 @@ class MyApp extends StatelessWidget {
                       transitionDuration: const Duration(milliseconds: 300),
                     );
                   }
+
+                  // Handle product category routes
+                  if (cleanRouteName.startsWith('/products/')) {
+                    // The ProductScreenWebView will parse the category from initState
+                    return PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          ProductScreen.newInstance(),
+                      settings: RouteSettings(name: cleanRouteName),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 150),
+                    );
+                  }
                   return null;
                 },
-                home: const AuthWrapper(),
+                // Let the browser URL (hash) decide the initial route
               ),
             ),
           );

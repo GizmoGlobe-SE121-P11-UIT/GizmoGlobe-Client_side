@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_state.dart';
-import 'package:gizmoglobe_client/screens/product/product_screen/product_tab/product_tab_view.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -13,8 +14,17 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../../enums/product_related/category_enum.dart';
 import '../../../generated/l10n.dart';
 import '../../../objects/product_related/product.dart';
+import '../../../objects/product_related/filter_argument.dart';
 import 'package:gizmoglobe_client/components/general/web_header.dart';
-import 'package:gizmoglobe_client/components/general/web_footer.dart';
+import '../../../../enums/processing/process_state_enum.dart';
+import 'product_tab/product_tab_cubit.dart';
+import 'product_tab/product_tab_state.dart';
+import '../mixin/product_tab_mixin.dart';
+import 'package:gizmoglobe_client/components/general/web_product_card.dart';
+import '../filter/filter_screen/filter_screen_webview.dart' as filter_web;
+import 'package:gizmoglobe_client/data/database/database.dart';
+import 'package:gizmoglobe_client/services/platform_actions.dart'
+    as platform_actions;
 
 class ProductScreenWebView extends StatefulWidget {
   final List<Product>? initialProducts;
@@ -38,7 +48,7 @@ class ProductScreenWebView extends StatefulWidget {
 }
 
 class _ProductScreenWebViewState extends State<ProductScreenWebView>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TextEditingController searchController;
   late FocusNode searchFocusNode;
   ProductScreenCubit get cubit => context.read<ProductScreenCubit>();
@@ -47,23 +57,82 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
   late stt.SpeechToText _speech;
   bool _isListening = false;
   String _lastWords = '';
+  StreamSubscription<dynamic>? _popStateSub;
+  late AnimationController _micController;
 
   @override
   void initState() {
     super.initState();
     searchController = TextEditingController();
     searchFocusNode = FocusNode();
-    tabController =
-        TabController(length: CategoryEnum.getValues().length + 1, vsync: this);
+
+    // Initialize tab controller with proper initial index from URL
+    final initialTabIndex = _getInitialTabFromUrl();
+    tabController = TabController(
+      length: CategoryEnum.getValues().length + 1,
+      vsync: this,
+      initialIndex: initialTabIndex,
+    );
+
+    // Update breadcrumbs and URL when category tab changes
+    tabController.addListener(() {
+      if (mounted) {
+        setState(() {});
+        _updateUrlForTab(tabController.index);
+      }
+    });
+
     cubit.initialize(widget.initialProducts ?? [],
         widget.initialSortOption ?? SortEnum.releaseLatest);
     _speech = stt.SpeechToText();
+    _micController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+  }
+
+  int _getInitialTabFromUrl() {
+    if (!kIsWeb) return 0;
+
+    final hashPath = platform_actions.getHashPath();
+    if (hashPath.isEmpty) return 0;
+
+    // Check if hash path contains a product category
+    final categories = CategoryEnum.getValues();
+    for (int i = 0; i < categories.length; i++) {
+      if (hashPath.contains('/products/${categories[i].name.toLowerCase()}')) {
+        return i + 1; // +1 because index 0 is "All"
+      }
+    }
+
+    return 0; // Default to "All"
+  }
+
+  void _updateUrlForTab(int tabIndex) {
+    if (!kIsWeb) return;
+
+    String newUrl;
+    if (tabIndex == 0) {
+      newUrl = '/products';
+    } else {
+      final categories = CategoryEnum.getValues();
+      if (tabIndex <= categories.length) {
+        newUrl = '/products/${categories[tabIndex - 1].name.toLowerCase()}';
+      } else {
+        newUrl = '/products';
+      }
+    }
+
+    platform_actions.setHashUrl(newUrl);
   }
 
   @override
   void dispose() {
     searchController.dispose();
     searchFocusNode.dispose();
+    tabController.dispose();
+    _popStateSub?.cancel();
+    _micController.dispose();
     super.dispose();
   }
 
@@ -82,14 +151,17 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
           if (val == 'done' || val == 'notListening') {
             setState(() => _isListening = false);
             _speech.stop();
+            _micController.stop();
           }
         },
         onError: (val) {
           setState(() => _isListening = false);
+          _micController.stop();
         },
       );
       if (available) {
         setState(() => _isListening = true);
+        _micController.repeat();
         _speech.listen(
           onResult: (val) {
             setState(() {
@@ -106,167 +178,603 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
     } else {
       setState(() => _isListening = false);
       _speech.stop();
+      _micController.stop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(112),
-        child: AppBar(
-          elevation: 0,
-          titleSpacing: 0,
-          title: LayoutBuilder(
-            builder: (context, constraints) {
-              final bool isWide = constraints.maxWidth >= 900;
-              final EdgeInsets horizontalPadding = EdgeInsets.symmetric(
-                horizontal: isWide ? 24 : 12,
-              );
-              final double fieldMaxWidth = isWide ? 900 : constraints.maxWidth;
-              return Padding(
-                padding: horizontalPadding,
+      body: SafeArea(
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragStart: (_) {},
+          onHorizontalDragUpdate: (_) {},
+          onHorizontalDragEnd: (_) {},
+          child: Column(
+            children: [
+              const WebHeader(),
+              // Breadcrumbs: Home / Sản phẩm / <Category>
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: fieldMaxWidth),
-                          child: FieldWithIcon(
-                            height: 44,
-                            controller: searchController,
-                            focusNode: searchFocusNode,
-                            hintText: S.of(context).findYourItem,
-                            fillColor: Theme.of(context).colorScheme.surface,
-                            prefixIcon: Icon(
-                              Icons.search,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                            ),
-                            onChanged: (value) {
-                              cubit.updateSearchText(searchController.text);
-                            },
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                  RegExp(r'[a-zA-Z0-9\s-]')),
-                            ],
-                          ),
+                    // Home link
+                    InkWell(
+                      onTap: () {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/home',
+                          (route) => false,
+                        );
+                      },
+                      child: Text(
+                        S.of(context).homeTab,
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    IconButton(
-                      icon: Icon(
-                        _isListening ? Icons.mic : Icons.mic_none,
-                        color: _isListening
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.6),
+                    const SizedBox(width: 8),
+                    Text('/',
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.4),
+                        )),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Sản phẩm',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
                       ),
-                      onPressed: _listen,
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: TabBar(
-                  controller: tabController,
-                  labelColor: Theme.of(context).colorScheme.primary,
-                  unselectedLabelColor: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.7),
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  indicatorColor: Theme.of(context).colorScheme.primary,
-                  tabAlignment: TabAlignment.start,
-                  isScrollable: true,
-                  indicator: const BoxDecoration(),
-                  tabs: [
-                    Tab(text: S.of(context).all),
-                    Tab(text: S.of(context).ram),
-                    Tab(text: S.of(context).cpu),
-                    Tab(text: S.of(context).psu),
-                    Tab(text: S.of(context).gpu),
-                    Tab(text: S.of(context).drive),
-                    Tab(text: S.of(context).mainboard),
+                    const SizedBox(width: 8),
+                    Text('/',
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.4),
+                        )),
+                    const SizedBox(width: 8),
+                    Text(
+                      _currentCategoryLabel(context),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const WebHeader(),
-            Expanded(
-              child: BlocBuilder<ProductScreenCubit, ProductScreenState>(
-                builder: (context, state) {
-                  return LayoutBuilder(
-                    builder: (context, constraints) {
-                      final bool isWide = constraints.maxWidth >= 1100;
-                      final EdgeInsets pagePadding = EdgeInsets.symmetric(
-                        horizontal: isWide ? 24 : 12,
-                      );
-                      final double maxBodyWidth =
-                          isWide ? 1200 : constraints.maxWidth;
-                      return Align(
-                        alignment: Alignment.topCenter,
-                        child: Padding(
-                          padding: pagePadding,
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: maxBodyWidth),
-                            child: TabBarView(
-                              controller: tabController,
-                              children: [
-                                ProductTab.newInstance(
-                                    searchText: state.searchText,
-                                    initialProducts: state.initialProducts),
-                                ProductTab.newRam(
-                                    searchText: state.searchText,
-                                    initialProducts: state.initialProducts),
-                                ProductTab.newCpu(
-                                    searchText: state.searchText,
-                                    initialProducts: state.initialProducts),
-                                ProductTab.newPsu(
-                                    searchText: state.searchText,
-                                    initialProducts: state.initialProducts),
-                                ProductTab.newGpu(
-                                    searchText: state.searchText,
-                                    initialProducts: state.initialProducts),
-                                ProductTab.newDrive(
-                                    searchText: state.searchText,
-                                    initialProducts: state.initialProducts),
-                                ProductTab.newMainboard(
-                                    searchText: state.searchText,
-                                    initialProducts: state.initialProducts),
-                              ],
+              // Search section card-like
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final bool isWide = constraints.maxWidth >= 900;
+                  final EdgeInsets horizontalPadding = EdgeInsets.symmetric(
+                    horizontal: isWide ? 24 : 12,
+                  );
+                  final double fieldMaxWidth = isWide
+                      ? math.min(1600, constraints.maxWidth - 60)
+                      : constraints.maxWidth - 40;
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding.horizontal / 2,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: ConstrainedBox(
+                              constraints:
+                                  BoxConstraints(maxWidth: fieldMaxWidth),
+                              child: FieldWithIcon(
+                                height: 52,
+                                controller: searchController,
+                                focusNode: searchFocusNode,
+                                hintText: S.of(context).findYourItem,
+                                fillColor:
+                                    Theme.of(context).colorScheme.surface,
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.6),
+                                ),
+                                onChanged: (value) {
+                                  cubit.updateSearchText(searchController.text);
+                                },
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'[a-zA-Z0-9\\s-]')),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      );
-                    },
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _listen,
+                          child: SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: Center(
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 180),
+                                switchInCurve: Curves.easeOut,
+                                switchOutCurve: Curves.easeIn,
+                                child: _isListening
+                                    ? _MicVisualizer(
+                                        key: const ValueKey('mic_viz'),
+                                        controller: _micController,
+                                      )
+                                    : Icon(
+                                        Icons.mic,
+                                        key: const ValueKey('mic_icon'),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.6),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
+              // Categories + Sort row (restored below search)
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TabBar(
+                        controller: tabController,
+                        isScrollable: false,
+                        tabAlignment: TabAlignment.fill,
+                        labelPadding: EdgeInsets.zero,
+                        dividerColor: Colors.transparent,
+                        labelColor: Theme.of(context).colorScheme.onPrimary,
+                        unselectedLabelColor: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.9),
+                        indicator: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        tabs: [
+                          _buildChipTab(S.of(context).all),
+                          _buildChipTab(S.of(context).ram),
+                          _buildChipTab(S.of(context).cpu),
+                          _buildChipTab(S.of(context).psu),
+                          _buildChipTab(S.of(context).gpu),
+                          _buildChipTab(S.of(context).drive),
+                          _buildChipTab(S.of(context).mainboard),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    _SortDropdown(
+                      selected: context
+                          .watch<ProductScreenCubit>()
+                          .state
+                          .selectedSortOption,
+                      onChanged: (value) {
+                        context
+                            .read<ProductScreenCubit>()
+                            .updateSortOption(value);
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.filter_list_alt),
+                      tooltip: 'Filter',
+                      onPressed: () async {
+                        final tabCubit = context.read<TabCubit>();
+                        final state = tabCubit.state;
+                        final FilterArgument arguments = state.filterArgument
+                            .copy(filter: state.filterArgument);
+                        final result = await filter_web.showFilterModal(
+                          context,
+                          arguments: arguments,
+                          selectedTabIndex: tabController.index,
+                          manufacturerList: Database().manufacturerList,
+                        );
+                        if (result is FilterArgument) {
+                          tabCubit.updateFilter(filter: result);
+                          tabCubit.applyFilters();
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: BlocBuilder<ProductScreenCubit, ProductScreenState>(
+                  builder: (context, state) {
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final bool isWide = constraints.maxWidth >= 1100;
+                        final EdgeInsets pagePadding = EdgeInsets.symmetric(
+                          horizontal: isWide ? 24 : 12,
+                        );
+                        final double maxBodyWidth =
+                            isWide ? 1400 : constraints.maxWidth;
+                        return Align(
+                          alignment: Alignment.topCenter,
+                          child: Padding(
+                            padding: pagePadding,
+                            child: ConstrainedBox(
+                              constraints:
+                                  BoxConstraints(maxWidth: maxBodyWidth),
+                              child: TabBarView(
+                                controller: tabController,
+                                children: [
+                                  WebProductTab.newInstance(
+                                      searchText: state.searchText,
+                                      initialProducts: state.initialProducts),
+                                  WebProductTab.newRam(
+                                      searchText: state.searchText,
+                                      initialProducts: state.initialProducts),
+                                  WebProductTab.newCpu(
+                                      searchText: state.searchText,
+                                      initialProducts: state.initialProducts),
+                                  WebProductTab.newPsu(
+                                      searchText: state.searchText,
+                                      initialProducts: state.initialProducts),
+                                  WebProductTab.newGpu(
+                                      searchText: state.searchText,
+                                      initialProducts: state.initialProducts),
+                                  WebProductTab.newDrive(
+                                      searchText: state.searchText,
+                                      initialProducts: state.initialProducts),
+                                  WebProductTab.newMainboard(
+                                      searchText: state.searchText,
+                                      initialProducts: state.initialProducts),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _currentCategoryLabel(BuildContext context) {
+    switch (tabController.index) {
+      case 0:
+        return S.of(context).all;
+      case 1:
+        return S.of(context).ram;
+      case 2:
+        return S.of(context).cpu;
+      case 3:
+        return S.of(context).psu;
+      case 4:
+        return S.of(context).gpu;
+      case 5:
+        return S.of(context).drive;
+      case 6:
+        return S.of(context).mainboard;
+      default:
+        return S.of(context).all;
+    }
+  }
+}
+
+class _MicVisualizer extends StatelessWidget {
+  final AnimationController controller;
+  const _MicVisualizer({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color barColor = Theme.of(context).colorScheme.primary;
+    return SizedBox(
+      height: 20,
+      child: AnimatedBuilder(
+        animation: controller,
+        builder: (context, _) {
+          // Generate 5 bars with phase offsets
+          final values = List<double>.generate(5, (i) {
+            final phase = (controller.value + i * 0.12) * 2 * math.pi;
+            return 6 + (math.sin(phase) + 1) * 6; // from 6 to 18 px
+          });
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: values
+                .map((h) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 1.5),
+                      child: Container(
+                        width: 3,
+                        height: h,
+                        decoration: BoxDecoration(
+                          color: barColor,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          );
+        },
+      ),
+    );
+  }
+}
+
+Widget _buildChipTab(String label) {
+  return Tab(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+    ),
+  );
+}
+
+class _SortDropdown extends StatelessWidget {
+  final SortEnum selected;
+  final ValueChanged<SortEnum> onChanged;
+  const _SortDropdown({required this.selected, required this.onChanged});
+
+  String _label(BuildContext context, SortEnum value) {
+    switch (value) {
+      case SortEnum.releaseLatest:
+        return 'Mới nhất';
+      case SortEnum.releaseOldest:
+        return 'Cũ nhất';
+      case SortEnum.priceLowest:
+        return 'Giá: Thấp đến Cao';
+      case SortEnum.priceHighest:
+        return 'Giá: Cao đến Thấp';
+      case SortEnum.salesHighest:
+        return 'Bán chạy nhất';
+      case SortEnum.salesLowest:
+        return 'Ít bán nhất';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<SortEnum>(
+      initialValue: selected,
+      onSelected: onChanged,
+      itemBuilder: (context) => SortEnum.values
+          .map((v) => PopupMenuItem<SortEnum>(
+                value: v,
+                child: Text(_label(context, v)),
+              ))
+          .toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Sắp xếp: ${_label(context, selected)}',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            const WebFooter(),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.keyboard_arrow_down,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
+            )
           ],
         ),
       ),
+    );
+  }
+}
+
+class WebProductTab extends StatefulWidget {
+  const WebProductTab({super.key});
+  final bool showSort = false;
+
+  static Widget newInstance(
+          {String? searchText, required List<Product> initialProducts}) =>
+      BlocProvider<TabCubit>(
+        create: (context) => AllTabCubit()
+          ..initialize(const FilterArgument(),
+              searchText: searchText, initialProducts: initialProducts),
+        child: const WebProductTab(),
+      );
+
+  static Widget newRam(
+          {String? searchText, required List<Product> initialProducts}) =>
+      BlocProvider<TabCubit>(
+        create: (context) => RamTabCubit()
+          ..initialize(const FilterArgument(),
+              searchText: searchText, initialProducts: initialProducts),
+        child: const WebProductTab(),
+      );
+
+  static Widget newCpu(
+          {String? searchText, required List<Product> initialProducts}) =>
+      BlocProvider<TabCubit>(
+        create: (context) => CpuTabCubit()
+          ..initialize(const FilterArgument(),
+              searchText: searchText, initialProducts: initialProducts),
+        child: const WebProductTab(),
+      );
+
+  static Widget newPsu(
+          {String? searchText, required List<Product> initialProducts}) =>
+      BlocProvider<TabCubit>(
+        create: (context) => PsuTabCubit()
+          ..initialize(const FilterArgument(),
+              searchText: searchText, initialProducts: initialProducts),
+        child: const WebProductTab(),
+      );
+
+  static Widget newGpu(
+          {String? searchText, required List<Product> initialProducts}) =>
+      BlocProvider<TabCubit>(
+        create: (context) => GpuTabCubit()
+          ..initialize(const FilterArgument(),
+              searchText: searchText, initialProducts: initialProducts),
+        child: const WebProductTab(),
+      );
+
+  static Widget newDrive(
+          {String? searchText, required List<Product> initialProducts}) =>
+      BlocProvider<TabCubit>(
+        create: (context) => DriveTabCubit()
+          ..initialize(const FilterArgument(),
+              searchText: searchText, initialProducts: initialProducts),
+        child: const WebProductTab(),
+      );
+
+  static Widget newMainboard(
+          {String? searchText, required List<Product> initialProducts}) =>
+      BlocProvider<TabCubit>(
+        create: (context) => MainboardTabCubit()
+          ..initialize(const FilterArgument(),
+              searchText: searchText, initialProducts: initialProducts),
+        child: const WebProductTab(),
+      );
+
+  @override
+  State<WebProductTab> createState() => _WebProductTabState();
+}
+
+class _WebProductTabState extends State<WebProductTab>
+    with SingleTickerProviderStateMixin, TabMixin<WebProductTab> {
+  TabCubit get cubit => context.read<TabCubit>();
+
+  int widgetIndexFromCubit(TabCubit c) {
+    // Mirror TabCubit.getIndex mapping
+    return c.getIndex();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Stack(children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Column(
+            children: [
+              // Sort moved to header row; keep space minimal here
+              const SizedBox(height: 8),
+              Expanded(
+                child: BlocBuilder<TabCubit, TabState>(
+                  builder: (context, state) {
+                    if (state.filteredProductList.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No Products Found',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      );
+                    }
+                    // Use a denser grid on wide screens
+                    final width = MediaQuery.of(context).size.width;
+                    final crossAxisCount = width >= 1200
+                        ? 5
+                        : width >= 900
+                            ? 4
+                            : 3;
+                    return GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.75,
+                      ),
+                      itemCount: state.filteredProductList.length,
+                      itemBuilder: (context, index) {
+                        final product = state.filteredProductList[index];
+                        return AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: state.selectedProduct == null ||
+                                  state.selectedProduct == product
+                              ? 1.0
+                              : 0.3,
+                          child: WebProductCard(
+                            product: product,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        BlocBuilder<TabCubit, TabState>(
+          builder: (context, state) {
+            if (state.processState == ProcessState.loading) {
+              return Stack(
+                children: [
+                  ModalBarrier(
+                      dismissible: false,
+                      color: Colors.black.withValues(alpha: 0.5)),
+                  Center(
+                    child: CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ]),
     );
   }
 }
