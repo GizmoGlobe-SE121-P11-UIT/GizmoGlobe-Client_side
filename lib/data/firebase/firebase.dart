@@ -536,9 +536,18 @@ class Firebase {
 
   Future<List<SalesInvoice>> getSalesInvoices() async {
     try {
+      final userID = Database().userID;
+      // Check if userID is empty or null (e.g., for guest users)
+      if (userID.isEmpty) {
+        if (kDebugMode) {
+          print('User not logged in or is guest. Cannot fetch sales invoices.');
+        }
+        return [];
+      }
+
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('sales_invoices')
-          .where('customerID', isEqualTo: Database().userID)
+          .where('customerID', isEqualTo: userID)
           .get();
 
       return await Future.wait(snapshot.docs.map((doc) async {

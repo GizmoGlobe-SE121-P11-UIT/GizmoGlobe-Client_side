@@ -6,6 +6,7 @@ import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_state.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_tab/product_tab_view.dart';
+import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_webview.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
@@ -23,12 +24,17 @@ class ProductScreen extends StatefulWidget {
 
   static Widget newInstance(
           {List<Product>? initialProducts, SortEnum? initialSortOption}) =>
-      BlocProvider(
-        create: (context) => ProductScreenCubit(),
-        child: ProductScreen(
-            initialProducts: initialProducts,
-            initialSortOption: initialSortOption),
-      );
+      kIsWeb
+          ? ProductScreenWebView.newInstance(
+              initialProducts: initialProducts,
+              initialSortOption: initialSortOption,
+            )
+          : BlocProvider(
+              create: (context) => ProductScreenCubit(),
+              child: ProductScreen(
+                  initialProducts: initialProducts,
+                  initialSortOption: initialSortOption),
+            );
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();

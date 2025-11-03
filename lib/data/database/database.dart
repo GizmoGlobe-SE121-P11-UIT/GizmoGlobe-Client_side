@@ -493,6 +493,15 @@ class Database {
 
   Future<List<Product>> fetchFavoriteProducts(String customerID) async {
     try {
+      // Check if customerID is empty or null (e.g., for guest users)
+      if (customerID.isEmpty) {
+        if (kDebugMode) {
+          print(
+              'User not logged in or is guest. Cannot fetch favorites from Firebase.');
+        }
+        return [];
+      }
+
       if (productList.isEmpty) {
         if (kDebugMode) {
           print('Product list is empty, cannot fetch favorites');
@@ -652,6 +661,14 @@ class Database {
   List<Voucher> getUpcomingVouchers() => upcomingVouchers;
 
   Future<void> fetchSalesInvoice() async {
-    salesInvoiceList = await Firebase().getSalesInvoices();
+    try {
+      salesInvoiceList = await Firebase().getSalesInvoices();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching sales invoices: $e');
+      }
+      // For guest users or when userID is empty, just set empty list
+      salesInvoiceList = [];
+    }
   }
 }
