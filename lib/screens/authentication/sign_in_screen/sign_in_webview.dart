@@ -75,6 +75,8 @@ class _SignInWebModalState extends State<SignInWebModal> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   SignInCubit get cubit => context.read<SignInCubit>();
+  bool _isEmailLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -212,15 +214,15 @@ class _SignInWebModalState extends State<SignInWebModal> {
                             previous.processState != current.processState,
                         listener: (context, state) {
                           // Handle loading state
-                          if (state.processState == ProcessState.loading) {
-                            // Loading is handled by the button state
-                            return;
-                          }
+                          // We control loading locally per-button
 
                           // Handle failure state
                           if (state.processState == ProcessState.failure) {
-                            SnackbarService.showError(
-                              context,
+                            setState(() => _isEmailLoading = false);
+                            final overlayState =
+                                Overlay.of(context, rootOverlay: true);
+                            SnackbarService.showErrorAboveOverlay(
+                              overlayState,
                               title: state.dialogName.toString(),
                               message: state.message.toString(),
                             );
@@ -229,8 +231,11 @@ class _SignInWebModalState extends State<SignInWebModal> {
 
                           // Handle success state
                           if (state.processState == ProcessState.success) {
-                            SnackbarService.showSuccess(
-                              context,
+                            setState(() => _isEmailLoading = false);
+                            final overlayState =
+                                Overlay.of(context, rootOverlay: true);
+                            SnackbarService.showSuccessAboveOverlay(
+                              overlayState,
                               title: state.dialogName.toString(),
                               message: state.message.toString(),
                             );
@@ -257,9 +262,12 @@ class _SignInWebModalState extends State<SignInWebModal> {
                         listenWhen: (previous, current) =>
                             previous.processState != current.processState,
                         listener: (context, state) {
+                          final overlayState =
+                              Overlay.of(context, rootOverlay: true);
                           if (state.processState == ProcessState.success) {
-                            SnackbarService.showSuccess(
-                              context,
+                            setState(() => _isGoogleLoading = false);
+                            SnackbarService.showSuccessAboveOverlay(
+                              overlayState,
                               title: state.dialogName.toString(),
                               message: state.message.toString(),
                             );
@@ -273,15 +281,15 @@ class _SignInWebModalState extends State<SignInWebModal> {
                             }
                           } else if (state.processState ==
                               ProcessState.failure) {
-                            SnackbarService.showError(
-                              context,
+                            setState(() => _isGoogleLoading = false);
+                            SnackbarService.showErrorAboveOverlay(
+                              overlayState,
                               title: state.dialogName.toString(),
                               message: state.message.toString(),
                             );
                           } else if (state.processState == ProcessState.idle) {
+                            setState(() => _isGoogleLoading = false);
                             // Handle Google popup dismissal - show info snackbar above modal
-                            final overlayState =
-                                Overlay.of(context, rootOverlay: true);
                             SnackbarService.showGuestRestrictionAboveOverlay(
                               overlayState,
                               context: context,
@@ -302,9 +310,11 @@ class _SignInWebModalState extends State<SignInWebModal> {
                           listenWhen: (previous, current) =>
                               previous.processState != current.processState,
                           listener: (context, state) {
+                            final overlayState =
+                                Overlay.of(context, rootOverlay: true);
                             if (state.processState == ProcessState.success) {
-                              SnackbarService.showSuccess(
-                                context,
+                              SnackbarService.showSuccessAboveOverlay(
+                                overlayState,
                                 title: state.dialogName.toString(),
                                 message: state.message.toString(),
                               );
@@ -319,8 +329,8 @@ class _SignInWebModalState extends State<SignInWebModal> {
                               }
                             } else if (state.processState ==
                                 ProcessState.failure) {
-                              SnackbarService.showError(
-                                context,
+                              SnackbarService.showErrorAboveOverlay(
+                                overlayState,
                                 title: state.dialogName.toString(),
                                 message: state.message.toString(),
                               );
@@ -414,9 +424,10 @@ class _SignInWebModalState extends State<SignInWebModal> {
     final theme = Theme.of(context);
 
     return ElevatedButton(
-      onPressed: state.processState == ProcessState.loading
+      onPressed: _isEmailLoading
           ? null
           : () async {
+              setState(() => _isEmailLoading = true);
               await cubit.signInWithEmailPassword();
             },
       style: ElevatedButton.styleFrom(
@@ -441,7 +452,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
         child: Container(
           height: 50,
           alignment: Alignment.center,
-          child: state.processState == ProcessState.loading
+          child: _isEmailLoading
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -483,7 +494,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
     return SizedBox(
       width: double.infinity,
       height: 48,
-      child: state.processState == ProcessState.loading
+      child: _isGoogleLoading
           ? Container(
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
@@ -518,6 +529,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
             )
           : ElevatedButton(
               onPressed: () async {
+                setState(() => _isGoogleLoading = true);
                 await cubit.signInWithGoogle();
               },
               style: ElevatedButton.styleFrom(
