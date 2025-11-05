@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 enum NotifyMessage {
   empty('', ''),
   msg1('Welcome back! You have successfully signed in.',
@@ -37,6 +39,14 @@ enum NotifyMessage {
 
   @override
   String toString() {
+    try {
+      final String lang = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+      if (lang.toLowerCase().startsWith('vi')) {
+        return vietnameseDescription;
+      }
+    } catch (_) {
+      // Fallback if WidgetsBinding is not initialized
+    }
     return description;
   }
 
