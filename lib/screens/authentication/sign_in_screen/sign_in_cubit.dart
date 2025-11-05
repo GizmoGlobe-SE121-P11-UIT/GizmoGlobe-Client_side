@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
 import 'sign_in_state.dart';
@@ -157,13 +158,14 @@ class SignInCubit extends Cubit<SignInState> {
         }
       } else {
         // For mobile, use Google Sign-In plugin
-        // Pass the Web client ID as serverClientId to avoid DEVELOPER_ERROR (status 10)
-        // Web client ID from google-services.json (client_type 3)
-        const String webClientId =
-            '413433346211-mgedbl60a2q2824jvvf570hqsfa7m6k2.apps.googleusercontent.com';
+        // Read Web client ID from environment to avoid exposing it in code
+        final String? serverClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
 
         final GoogleSignIn googleSignIn = GoogleSignIn(
-          serverClientId: webClientId,
+          serverClientId:
+              (serverClientId != null && serverClientId.isNotEmpty)
+                  ? serverClientId
+                  : null,
           scopes: const ['email', 'profile'],
         );
 
@@ -196,7 +198,8 @@ class SignInCubit extends Cubit<SignInState> {
       }
     } on FirebaseAuthException catch (e) {
       if (kDebugMode) {
-        print('FirebaseAuthException during Google Sign-In: code=${e.code}, message=${e.message}');
+        print(
+            'FirebaseAuthException during Google Sign-In: code=${e.code}, message=${e.message}');
       }
       emit(state.copyWith(
         processState: ProcessState.failure,
