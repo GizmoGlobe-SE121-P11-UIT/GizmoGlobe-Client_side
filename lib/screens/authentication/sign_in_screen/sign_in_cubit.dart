@@ -83,29 +83,34 @@ class SignInCubit extends Cubit<SignInState> {
       UserCredential userCredential;
 
       if (kIsWeb) {
-        // For web, use redirect-based authentication
-        // The popup is closing because Firebase redirects to __/auth/handler which needs to redirect back
+        // For web: try popup first for localhost; fallback to redirect if blocked
         final GoogleAuthProvider googleProvider = GoogleAuthProvider();
         googleProvider.addScope('email');
         googleProvider.addScope('profile');
+        googleProvider.setCustomParameters({'prompt': 'select_account'});
 
         try {
-          // Clear guest data before redirect (user will be redirected away)
-          await _localGuestService.clearGuestUser();
-
-          if (kDebugMode) {
-            print('Initiating Google sign-in redirect...');
-            print('Current URL before redirect: ${Uri.base}');
-          }
-
-          // Use redirect flow - Firebase will redirect to __/auth/handler, then back to our app
-          // The redirect result will be handled in main.dart on app initialization
-          await _auth.signInWithRedirect(googleProvider);
-
-          // This line won't be reached as redirect navigates away
-          // The success will be handled when the redirect completes
-          return;
+          userCredential = await _auth.signInWithPopup(googleProvider);
         } on FirebaseAuthException catch (e) {
+          // If popup is blocked or closed, fallback to redirect
+          final popupBlocked = e.code == 'popup-blocked' ||
+              e.code == 'auth/popup-blocked' ||
+              e.code == 'popup-closed-by-user' ||
+              e.code == 'auth/popup-closed-by-user' ||
+              e.code == 'cancelled-popup-request';
+
+          if (popupBlocked) {
+            // Clear guest data before redirect (user will be redirected away)
+            await _localGuestService.clearGuestUser();
+
+            if (kDebugMode) {
+              print('Popup unavailable (${e.code}). Falling back to redirect...');
+              print('Current URL before redirect: ${Uri.base}');
+            }
+
+            await _auth.signInWithRedirect(googleProvider);
+            return; // Will navigate away
+          }
           // Handle specific Firebase Auth errors
           if (kDebugMode) {
             print(
@@ -162,10 +167,9 @@ class SignInCubit extends Cubit<SignInState> {
         final String? serverClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
 
         final GoogleSignIn googleSignIn = GoogleSignIn(
-          serverClientId:
-              (serverClientId != null && serverClientId.isNotEmpty)
-                  ? serverClientId
-                  : null,
+          serverClientId: (serverClientId != null && serverClientId.isNotEmpty)
+              ? serverClientId
+              : null,
           scopes: const ['email', 'profile'],
         );
 

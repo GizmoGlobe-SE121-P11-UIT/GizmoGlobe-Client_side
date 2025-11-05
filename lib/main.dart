@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:gizmoglobe_client/screens/authentication/forget_password_screen/forget_password_view.dart';
@@ -29,7 +30,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/chat/floating_chat.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:gizmoglobe_client/services/platform_actions_stub.dart'
     if (dart.library.html) 'package:gizmoglobe_client/services/platform_actions_web.dart'
     as platform_actions;
@@ -73,15 +73,33 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   // Use hash-based URLs on web so refreshes work without server config
+  // However, we need to check for Firebase Auth redirects BEFORE normalizing
+  // because Firebase Auth redirects use query parameters that hash routing might interfere with
   if (kIsWeb) {
-    setUrlStrategy(const HashUrlStrategy());
-    normalizeInitialUrlForHashStrategy();
+    // Check if we're returning from a Firebase Auth redirect BEFORE setting hash strategy
+    // This allows getRedirectResult() to work properly
+    final initialUrl = Uri.base.toString();
+    final hasAuthRedirect = initialUrl.contains('__/auth/handler') ||
+        initialUrl.contains('apiKey=') ||
+        initialUrl.contains('code=') ||
+        initialUrl.contains('state=');
+
+    if (!hasAuthRedirect) {
+      // Only set hash strategy if we're not handling an auth redirect
+      platform_actions.setUrlStrategyWeb();
+      normalizeInitialUrlForHashStrategy();
+    }
   }
   await _setup();
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+
+    // Ensure persistent auth session on web
+    if (kIsWeb) {
+      await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    }
 
     // final database = Database();
     // Initialize Firebase App Check only on mobile platforms (not web)
@@ -307,8 +325,7 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 routes: {
-                  '/': (context) =>
-                      kIsWeb ? const MainScreen() : const AuthWrapper(),
+                  '/': (context) => const AuthWrapper(),
                   '/home': (context) => const MainScreen(),
                   '/sign-in': (context) => SignInScreen.newInstance(),
                   '/sign-up': (context) => SignUpScreen.newInstance(),
@@ -324,6 +341,16 @@ class MyApp extends StatelessWidget {
                 },
                 onGenerateRoute: (settings) {
                   String cleanRouteName = settings.name ?? '';
+
+                  // Handle Firebase Auth handler path - this is needed for redirect flow
+                  if (kIsWeb && cleanRouteName.contains('__/auth/handler')) {
+                    // Let AuthWrapper handle the redirect result
+                    return MaterialPageRoute(
+                      builder: (context) => const AuthWrapper(),
+                      settings: settings,
+                    );
+                  }
+
                   // On web, if framework tries to build '/', prefer current hash route
                   if (kIsWeb &&
                       (cleanRouteName.isEmpty || cleanRouteName == '/')) {
@@ -428,25 +455,165 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   void initState() {
     super.initState();
-    _initializeWebGuest();
+    print('AuthWrapper initState called'); // Always print, not just in debug
+    _initializeWeb();
   }
 
-  Future<void> _initializeWebGuest() async {
+  Future<void> _initializeWeb() async {
     if (kIsWeb) {
       try {
-        // For web, only create a guest user if nobody is currently logged in
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser == null) {
-          await _webGuestService.createOrGetGuestUser();
-        } else {
-          if (kDebugMode) {
-            print(
-                'Skipping guest creation: user already logged in (${currentUser.uid})');
+        // Check for redirect result from Google sign-in
+        // This handles the redirect flow when user returns from Google authentication
+        // getRedirectResult() must be called before any other Firebase Auth operations
+        // and it can only be called once per redirect
+
+        // First check if there's already an authenticated user (might be set by redirect)
+        final initialUser = FirebaseAuth.instance.currentUser;
+        print(
+            'Initial currentUser check: ${initialUser != null ? initialUser.uid : "null"}');
+
+        print('Calling getRedirectResult()...');
+        print('Current URL: ${Uri.base}');
+        print('Current hash: ${Uri.base.fragment}');
+        print('Current path: ${Uri.base.path}');
+        print('Current query: ${Uri.base.query}');
+        print('Full URL: ${Uri.base.toString()}');
+
+        // Check if we're on the Firebase Auth handler path or have auth-related query params
+        final isAuthHandler = Uri.base.path.contains('__/auth/handler');
+        final hasAuthParams = Uri.base.query.contains('apiKey') ||
+            Uri.base.query.contains('mode') ||
+            Uri.base.query.contains('code') ||
+            Uri.base.query.contains('state');
+
+        // Also check hash for auth params (Firebase might put them in hash)
+        final hashHasAuthParams = Uri.base.fragment.contains('apiKey') ||
+            Uri.base.fragment.contains('mode') ||
+            Uri.base.fragment.contains('code') ||
+            Uri.base.fragment.contains('state');
+
+        if (isAuthHandler || hasAuthParams || hashHasAuthParams) {
+          print(
+              'Detected Firebase Auth handler path or auth params - processing redirect...');
+          print(
+              'isAuthHandler: $isAuthHandler, hasAuthParams: $hasAuthParams, hashHasAuthParams: $hashHasAuthParams');
+        }
+
+        // Call getRedirectResult() - this must be called before any other auth operations
+        // and it processes the redirect URL parameters automatically
+        final redirectResult = await FirebaseAuth.instance.getRedirectResult();
+        print('getRedirectResult() completed');
+
+        print(
+            'Redirect result - user: ${redirectResult.user != null ? redirectResult.user!.uid : "null"}, '
+            'credential: ${redirectResult.credential != null}, '
+            'additionalUserInfo: ${redirectResult.additionalUserInfo}');
+
+        // Wait a moment for Firebase to process the redirect result
+        // Sometimes Firebase needs a moment to set the user after redirect
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Check currentUser again after getRedirectResult and delay
+        final afterRedirectUser = FirebaseAuth.instance.currentUser;
+        print(
+            'CurrentUser after getRedirectResult (after delay): ${afterRedirectUser != null ? afterRedirectUser.uid : "null"}');
+
+        // Check for errors in the redirect result
+        if (redirectResult.user == null && redirectResult.credential == null) {
+          // Check if there's an error in the URL that might indicate why redirect failed
+          final currentUrl = Uri.base.toString();
+          final hash = Uri.base.fragment;
+          print(
+              'No redirect result found. Current URL: $currentUrl, Hash: $hash');
+
+          // Check if there are any error parameters in the URL
+          if (currentUrl.contains('error=') || hash.contains('error=')) {
+            print('ERROR: Found error in URL! This indicates redirect failed.');
           }
         }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error initializing web guest: $e');
+
+        // Use the user from redirectResult if available, otherwise check currentUser
+        // Firebase sometimes sets currentUser directly even if redirectResult.user is null
+        User? authenticatedUser = redirectResult.user ?? afterRedirectUser;
+
+        if (authenticatedUser != null) {
+          // User successfully signed in via redirect
+          print('Google sign-in redirect successful: ${authenticatedUser.uid}');
+          print('User email: ${authenticatedUser.email}');
+          print('User display name: ${authenticatedUser.displayName}');
+
+          // Clear guest data after successful authentication
+          await _webGuestService.clearGuestUser();
+
+          // Setup user data in Firestore (similar to popup flow)
+          await _setupUserDataFromRedirect(authenticatedUser);
+        } else {
+          // Check if there was an error in the redirect
+          if (redirectResult.credential != null) {
+            print('Redirect completed with credential but no user');
+          }
+
+          // Listen to authStateChanges for a short time to catch async auth state changes
+          // This is important because Firebase might set the user asynchronously after redirect
+          print('Waiting for authStateChanges to detect user...');
+          bool userDetected = false;
+          final subscription =
+              FirebaseAuth.instance.authStateChanges().listen((User? user) {
+            if (user != null && !userDetected) {
+              userDetected = true;
+              print('User detected via authStateChanges: ${user.uid}');
+              // Handle user setup asynchronously
+              _webGuestService.clearGuestUser().then((_) {
+                _setupUserDataFromRedirect(user);
+              });
+            }
+          });
+
+          // Wait up to 3 seconds for auth state to change
+          await Future.delayed(const Duration(milliseconds: 3000));
+          await subscription.cancel();
+
+          final finalUserCheck = FirebaseAuth.instance.currentUser;
+          print(
+              'Final currentUser check: ${finalUserCheck != null ? finalUserCheck.uid : "null"}');
+
+          if (finalUserCheck != null && !userDetected) {
+            print('User authenticated after waiting: ${finalUserCheck.uid}');
+            // User is authenticated, clear guest data and setup user data
+            await _webGuestService.clearGuestUser();
+            await _setupUserDataFromRedirect(finalUserCheck);
+          } else if (finalUserCheck == null && !userDetected) {
+            // No redirect result and no current user - check if we need to create a guest user
+            print(
+                'No redirect result and no authenticated user - creating guest user');
+            // For web, only create a guest user in local storage if nobody is currently logged in
+            // Note: Guest users are NOT created in Firebase Auth, only stored locally
+            await _webGuestService.createOrGetGuestUser();
+          }
+        }
+      } catch (e, stackTrace) {
+        print('Error initializing web: $e'); // Always print
+        print('Stack trace: $stackTrace'); // Always print
+        // Even if redirect check fails, try to create guest if no user exists
+        try {
+          final currentUser = FirebaseAuth.instance.currentUser;
+          if (currentUser != null) {
+            if (kDebugMode) {
+              print('Found authenticated user after error: ${currentUser.uid}');
+            }
+            // User is authenticated, clear guest data and setup user data
+            await _webGuestService.clearGuestUser();
+            await _setupUserDataFromRedirect(currentUser);
+          } else if (currentUser == null) {
+            if (kDebugMode) {
+              print('No authenticated user after error - creating guest user');
+            }
+            await _webGuestService.createOrGetGuestUser();
+          }
+        } catch (guestError) {
+          if (kDebugMode) {
+            print('Error creating guest user: $guestError');
+          }
         }
       }
     }
@@ -455,6 +622,59 @@ class _AuthWrapperState extends State<AuthWrapper> {
       setState(() {
         _isInitializing = false;
       });
+    }
+  }
+
+  Future<void> _setupUserDataFromRedirect(User user) async {
+    try {
+      // Import Firestore here to avoid circular dependencies
+      final firestore = FirebaseFirestore.instance;
+
+      // Check if user document already exists
+      final userDocRef = firestore.collection('users').doc(user.uid);
+      final customerDocRef = firestore.collection('customers').doc(user.uid);
+
+      final userDoc = await userDocRef.get();
+      final userExists = userDoc.exists;
+
+      // Prepare user data
+      final Map<String, dynamic> userData = {
+        'username': user.displayName ?? '',
+        'email': user.email ?? '',
+        'userid': user.uid,
+        'role': 'customer',
+        'isGuest': false,
+      };
+
+      // Prepare customer data
+      final Map<String, dynamic> customerData = {
+        'customerID': user.uid,
+        'customerName': user.displayName ?? '',
+        'email': user.email ?? '',
+        'phoneNumber': user.phoneNumber ?? '',
+        'isGuest': false,
+      };
+
+      // Only set createdAt for new users
+      if (!userExists) {
+        userData['createdAt'] = FieldValue.serverTimestamp();
+        customerData['createdAt'] = FieldValue.serverTimestamp();
+      }
+
+      // Use batch write to ensure both operations succeed or fail together
+      // Use merge to preserve existing data if user already exists
+      final batch = firestore.batch();
+      batch.set(userDocRef, userData, SetOptions(merge: true));
+      batch.set(customerDocRef, customerData, SetOptions(merge: true));
+      await batch.commit();
+
+      if (kDebugMode) {
+        print('User data setup completed for redirect sign-in');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error setting up user data from redirect: $e');
+      }
     }
   }
 
@@ -483,12 +703,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
           return SignUpScreen.newInstance();
         }
 
-        // For web, if user is authenticated (including guest), go to main screen
+        // For web, if user is authenticated via Firebase Auth, go to main screen
+        // Note: Guest users are stored locally, not in Firebase Auth
         if (kIsWeb && snapshot.hasData) {
           return const MainScreen();
         }
 
-        // For mobile or if user is authenticated, go to main screen
+        // For mobile or if user is authenticated via Firebase Auth, go to main screen
         if (snapshot.hasData) {
           return const MainScreen();
         }
