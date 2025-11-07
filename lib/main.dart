@@ -213,22 +213,24 @@ class MyApp extends StatelessWidget {
                   return wrapped;
                 },
                 theme: ThemeData(
-                  scaffoldBackgroundColor: Colors.transparent,
-                  canvasColor: Colors.transparent,
-                  colorScheme: ColorScheme(
+                  useMaterial3: true,
+                  colorScheme: const ColorScheme(
                     brightness: Brightness.light,
-                    primary: const Color(0xFF0F4C81),
+                    primary: Color(0xFF0F4C81),
                     onPrimary: Colors.white,
-                    secondary: const Color(0xFF638CC7),
+                    secondary: Color(0xFF638CC7),
                     onSecondary: Colors.white,
-                    primaryContainer: const Color(0xFF638CC7),
-                    secondaryContainer: const Color(0xFF0F4C81),
+                    primaryContainer: Color(0xFF638CC7),
+                    secondaryContainer: Color(0xFF0F4C81),
                     surface: Colors.white,
                     onSurface: Colors.black,
-                    onSurfaceVariant: Colors.black87,
-                    error: Colors.red[400]!,
+                    onSurfaceVariant: Color(0xFF757575),
+                    error: Color(0xFFD32F2F),
                     onError: Colors.white,
+                    shadow: Color(0x1A000000),
                   ),
+                  scaffoldBackgroundColor: Colors.white,
+                  canvasColor: Colors.white,
                   pageTransitionsTheme: kIsWeb
                       ? const PageTransitionsTheme(
                           builders: {
@@ -251,10 +253,11 @@ class MyApp extends StatelessWidget {
                       ),
                     ),
                   ),
-                  appBarTheme: const AppBarTheme(
+                  appBarTheme: AppBarTheme(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
                     elevation: 0,
+                    surfaceTintColor: Colors.transparent,
                   ),
                   textTheme: const TextTheme(
                     bodyLarge: TextStyle(color: Colors.black),
@@ -264,10 +267,9 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 darkTheme: ThemeData(
+                  useMaterial3: true,
                   colorScheme: const ColorScheme(
                     brightness: Brightness.dark,
-                    // primary: Color(0xFF638CC7),
-                    // onPrimary: Colors.black,
                     primary: Color(0xFF0F4C81),
                     onPrimary: Colors.white,
                     secondary: Color(0xFF638CC7),
@@ -276,10 +278,13 @@ class MyApp extends StatelessWidget {
                     secondaryContainer: Color(0xFF638CC7),
                     surface: Color(0xFF121212),
                     onSurface: Colors.white,
-                    onSurfaceVariant: Colors.white70,
-                    error: Colors.red,
+                    onSurfaceVariant: Color(0xFFE0E0E0),
+                    error: Color(0xFFEF5350),
                     onError: Colors.white,
+                    shadow: Color(0x33000000),
                   ),
+                  scaffoldBackgroundColor: const Color(0xFF121212),
+                  canvasColor: const Color(0xFF121212),
                   pageTransitionsTheme: kIsWeb
                       ? const PageTransitionsTheme(
                           builders: {
@@ -302,11 +307,11 @@ class MyApp extends StatelessWidget {
                       ),
                     ),
                   ),
-                  scaffoldBackgroundColor: Color(0xFF121212),
                   appBarTheme: const AppBarTheme(
                     backgroundColor: Color(0xFF121212),
                     foregroundColor: Colors.white,
                     elevation: 0,
+                    surfaceTintColor: Colors.transparent,
                   ),
                   navigationBarTheme: NavigationBarThemeData(
                     backgroundColor: const Color(0xFF0F4C81),

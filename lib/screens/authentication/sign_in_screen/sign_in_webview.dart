@@ -11,6 +11,7 @@ import 'sign_in_state.dart';
 import '../sign_up_screen/sign_up_webview.dart';
 import '../forget_password_screen/forget_password_webview.dart';
 import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
+import 'package:provider/provider.dart';
 
 /// Helper function to show the sign-in modal
 Future<void> showSignInModal(BuildContext context) {
@@ -87,6 +88,10 @@ class _SignInWebModalState extends State<SignInWebModal> {
 
   @override
   Widget build(BuildContext context) {
+    String _localizedMessage(SignInState state, BuildContext ctx) {
+      return state.message.toLocalizedString();
+    }
+
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -224,7 +229,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                             SnackbarService.showErrorAboveOverlay(
                               overlayState,
                               title: state.dialogName.toString(),
-                              message: state.message.toString(),
+                              message: _localizedMessage(state, context),
                             );
                             return;
                           }
@@ -237,7 +242,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                             SnackbarService.showSuccessAboveOverlay(
                               overlayState,
                               title: state.dialogName.toString(),
-                              message: state.message.toString(),
+                              message: _localizedMessage(state, context),
                             );
                             // Close modal and navigate on next frame using root navigator
                             Navigator.of(context, rootNavigator: true).pop();
@@ -269,7 +274,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                             SnackbarService.showSuccessAboveOverlay(
                               overlayState,
                               title: state.dialogName.toString(),
-                              message: state.message.toString(),
+                              message: _localizedMessage(state, context),
                             );
                             Navigator.of(context, rootNavigator: true).pop();
                             if (context.mounted) {
@@ -285,7 +290,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                             SnackbarService.showErrorAboveOverlay(
                               overlayState,
                               title: state.dialogName.toString(),
-                              message: state.message.toString(),
+                              message: _localizedMessage(state, context),
                             );
                           } else if (state.processState == ProcessState.idle) {
                             setState(() => _isGoogleLoading = false);

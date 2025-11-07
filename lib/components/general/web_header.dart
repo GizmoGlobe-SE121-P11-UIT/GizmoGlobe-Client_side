@@ -55,33 +55,54 @@ class _WebHeaderState extends State<WebHeader> {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
-    try {
-      // Clear local guest data
-      await _webGuestService.clearGuestUser();
+    if (kIsWeb) {
+      try {
+        // Clear local guest data first (this clears favorites, cart, etc.)
+        await _webGuestService.clearGuestUser();
 
-      // Sign out from Firebase
-      await FirebaseAuth.instance.signOut();
+        // Sign out from Firebase
+        await FirebaseAuth.instance.signOut();
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error during logout cleanup: $e');
+        }
+        // Continue with reload even if cleanup fails
+      }
 
-      if (context.mounted) {
-        if (kIsWeb) {
-          // Refresh the page to create a new guest instance
-          platform_actions.reloadPage();
-        } else {
-          // For mobile, navigate to home
+      // Wait a brief moment to ensure signOut completes and localStorage is cleared
+      // Then reload immediately to prevent StreamBuilder from creating a guest user
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      if (kDebugMode) {
+        print('Logout: Reloading page to reset app state...');
+      }
+
+      // Force immediate page reload - this will stop all further execution
+      platform_actions.reloadPage();
+
+      // This should never be reached as reload navigates away
+      return;
+    } else {
+      // For mobile, clear data and navigate to home
+      try {
+        await _webGuestService.clearGuestUser();
+        await FirebaseAuth.instance.signOut();
+
+        if (context.mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/',
             (Route<dynamic> route) => false,
           );
         }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        SnackbarService.showError(
-          context,
-          title: S.of(context).error,
-          message: '${S.of(context).signOut}: $e',
-        );
+      } catch (e) {
+        if (context.mounted) {
+          SnackbarService.showError(
+            context,
+            title: S.of(context).error,
+            message: '${S.of(context).signOut}: $e',
+          );
+        }
       }
     }
   }
@@ -213,14 +234,7 @@ class _WebHeaderState extends State<WebHeader> {
       children: [
         GestureDetector(
           onTap: () {
-            setState(() {
-              _isUserMenuOpen = !_isUserMenuOpen;
-            });
-            if (_isUserMenuOpen) {
-              _showOverlay(context, isMobile);
-            } else {
-              _removeOverlay();
-            }
+            _onUserIconTap(context, isMobile);
           },
           behavior: HitTestBehavior.opaque,
           child: Container(
@@ -246,6 +260,38 @@ class _WebHeaderState extends State<WebHeader> {
         ),
       ],
     );
+  }
+
+  Future<void> _onUserIconTap(BuildContext context, bool isMobile) async {
+    // If closing
+    if (_isUserMenuOpen) {
+      setState(() => _isUserMenuOpen = false);
+      _removeOverlay();
+      return;
+    }
+
+    // For web, ensure we have a guest user in local storage if no Firebase Auth user exists
+    // Note: Guest users are NOT created in Firebase Auth, only stored locally
+    if (kIsWeb) {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        final hasGuest = await _webGuestService.hasGuestUser();
+        if (!hasGuest) {
+          final guest = await _webGuestService.createOrGetGuestUser();
+          if (guest == null) {
+            // No guest available: show sign-in immediately
+            final cubit = SignInCubit();
+            await showSignInModalWithCubit(context, cubit);
+            return;
+          }
+          // Guest created in local storage, proceed to open menu (no reload needed)
+        }
+      }
+    }
+
+    // Open menu overlay
+    setState(() => _isUserMenuOpen = true);
+    _showOverlay(context, isMobile);
   }
 
   Widget _buildUserSubmenu(BuildContext context, bool isMobile) {
@@ -341,7 +387,7 @@ class _WebHeaderState extends State<WebHeader> {
         onTap: () {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          Navigator.pushNamed(context, '/orders?tab=completed');
+          Navigator.pushNamed(context, '/orders/completed');
         },
       ),
       _buildMenuItem(

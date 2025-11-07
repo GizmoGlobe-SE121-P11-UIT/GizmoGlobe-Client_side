@@ -104,10 +104,6 @@ abstract class TabCubit extends Cubit<TabState> {
   }
 
   void applyFilters() {
-    if (kDebugMode) {
-      print('Apply filter');
-    }
-
     final allProducts = state.productList;
     final fa = state.filterArgument;
     final activeCategory = state.activeCategory;
@@ -168,7 +164,30 @@ abstract class TabCubit extends Cubit<TabState> {
         filteredProducts.sort((a, b) => b.sales.compareTo(a.sales));
     }
 
-    emit(state.copyWith(filteredProductList: filteredProducts));
+    // Reset pagination when filters change (web only)
+    emit(state.copyWith(
+      filteredProductList: filteredProducts,
+      currentPage: kIsWeb ? 1 : state.currentPage,
+      isLoadingMore: false,
+    ));
+  }
+
+  // Pagination methods (web only)
+  void loadMoreItems() {
+    if (!kIsWeb) return;
+    if (state.isLoadingMore || !state.hasMoreItems) return;
+
+    emit(state.copyWith(isLoadingMore: true));
+
+    // Simulate async loading (small delay for smooth UX)
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!isClosed) {
+        emit(state.copyWith(
+          currentPage: state.currentPage + 1,
+          isLoadingMore: false,
+        ));
+      }
+    });
   }
 
   Future<void> changeStatus(Product product) async {

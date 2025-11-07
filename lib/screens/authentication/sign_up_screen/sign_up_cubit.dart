@@ -78,25 +78,38 @@ class SignUpCubit extends Cubit<SignUpState> {
 
       await userCredential.user!.sendEmailVerification();
 
-      // Save information to users collection
-      final CollectionReference usersCollection =
-          _firestore.collection('users');
-      await usersCollection.doc(userCredential.user!.uid).set({
+      // Prepare user data matching the structure used in Google sign-in
+      final Map<String, dynamic> userData = {
         'username': state.username,
         'email': state.email,
         'userid': userCredential.user!.uid,
         'role': 'customer',
-      });
+        'isGuest': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
 
-      // Save information to customers collection
-      final CollectionReference customersCollection =
-          _firestore.collection('customers');
-      await customersCollection.doc(userCredential.user!.uid).set({
+      // Prepare customer data matching the structure used in Google sign-in
+      final Map<String, dynamic> customerData = {
         'customerID': userCredential.user!.uid,
         'customerName': state.username,
         'email': state.email,
         'phoneNumber': state.phoneNumber,
-      });
+        'isGuest': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      // Use batch write to ensure both operations succeed or fail together
+      // This matches the approach used in Google sign-in
+      final batch = _firestore.batch();
+      batch.set(
+        _firestore.collection('users').doc(userCredential.user!.uid),
+        userData,
+      );
+      batch.set(
+        _firestore.collection('customers').doc(userCredential.user!.uid),
+        customerData,
+      );
+      await batch.commit();
 
       emit(state.copyWith(
         processState: ProcessState.success,

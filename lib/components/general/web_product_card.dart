@@ -56,7 +56,7 @@ class _WebProductCardState extends State<WebProductCard> {
               },
               borderRadius: BorderRadius.circular(12),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 100),
                 decoration: BoxDecoration(
                   color: Theme.of(context)
                       .colorScheme
@@ -144,13 +144,13 @@ class _WebProductCardState extends State<WebProductCard> {
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.red[600],
+                                      color: Theme.of(context).colorScheme.error,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       '-${widget.product.discount.toStringAsFixed(0)}%',
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onError,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -197,7 +197,7 @@ class _WebProductCardState extends State<WebProductCard> {
                                           ? Icons.favorite
                                           : Icons.favorite_border,
                                       color: isFavorite
-                                          ? Colors.red[400]
+                                          ? Theme.of(context).colorScheme.error
                                           : Theme.of(context)
                                               .colorScheme
                                               .onSurface,
@@ -320,7 +320,7 @@ class _WebProductCardState extends State<WebProductCard> {
                                     }
                                   },
                                   child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 150),
+                                    duration: const Duration(milliseconds: 100),
                                     width: 28,
                                     height: 28,
                                     decoration: BoxDecoration(

@@ -215,7 +215,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                               builder: (BuildContext context) =>
                                   InformationDialog(
                                 title: state.dialogName.toString(),
-                                content: state.message.toString(),
+                                content: state.message.toLocalizedString(),
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
@@ -232,7 +232,7 @@ class _SignUpScreen extends State<SignUpScreen> {
                               builder: (BuildContext context) =>
                                   InformationDialog(
                                 title: state.dialogName.toString(),
-                                content: state.message.toString(),
+                                content: state.message.toLocalizedString(),
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                   Navigator.pushNamedAndRemoveUntil(

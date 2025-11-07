@@ -104,7 +104,8 @@ class SignInCubit extends Cubit<SignInState> {
             await _localGuestService.clearGuestUser();
 
             if (kDebugMode) {
-              print('Popup unavailable (${e.code}). Falling back to redirect...');
+              print(
+                  'Popup unavailable (${e.code}). Falling back to redirect...');
               print('Current URL before redirect: ${Uri.base}');
             }
 

@@ -264,7 +264,10 @@ class _ProductTabState extends State<ProductTab>
                 children: [
                   ModalBarrier(
                       dismissible: false,
-                      color: Colors.black.withValues(alpha: 0.5)),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .shadow
+                          .withValues(alpha: 0.5)),
                   Center(
                     child: CircularProgressIndicator(
                       color: Theme.of(context).colorScheme.primary,

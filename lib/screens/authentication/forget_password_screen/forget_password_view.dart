@@ -115,7 +115,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                         context: context,
                         builder: (context) => InformationDialog(
                           title: state.dialogName.toString(),
-                          content: state.message.toString(),
+                          content: state.message.toLocalizedString(),
                           onPressed: () {
                             Navigator.pushReplacementNamed(context, '/sign-in');
                           },
@@ -126,7 +126,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                         context: context,
                         builder: (context) => InformationDialog(
                           title: state.dialogName.toString(),
-                          content: state.message.toString(),
+                          content: state.message.toLocalizedString(),
                         ),
                       );
                     }

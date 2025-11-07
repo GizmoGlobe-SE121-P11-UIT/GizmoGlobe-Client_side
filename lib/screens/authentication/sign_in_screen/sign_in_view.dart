@@ -178,7 +178,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                               builder: (BuildContext dialogContext) =>
                                   InformationDialog(
                                 dialogName: state.dialogName,
-                                content: state.message.toString(),
+                                content: state.message.toLocalizedString(),
                                 onPressed: () {
                                   Navigator.of(dialogContext).pop();
                                 },
@@ -210,7 +210,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 builder: (BuildContext dialogContext) =>
                                     InformationDialog(
                                   dialogName: state.dialogName,
-                                  content: state.message.toString(),
+                                  content: state.message.toLocalizedString(),
                                   onPressed: () {
                                     Navigator.of(dialogContext).pop();
                                     if (context.mounted) {
@@ -346,7 +346,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 builder: (BuildContext dialogContext) =>
                                     InformationDialog(
                                   dialogName: state.dialogName,
-                                  content: state.message.toString(),
+                                  content: state.message.toLocalizedString(),
                                   onPressed: () {
                                     Navigator.of(dialogContext).pop();
                                   },
@@ -365,7 +365,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 builder: (BuildContext dialogContext) =>
                                     InformationDialog(
                                   dialogName: state.dialogName,
-                                  content: state.message.toString(),
+                                  content: state.message.toLocalizedString(),
                                   onPressed: () {
                                     Navigator.of(dialogContext).pop();
                                     if (context.mounted) {

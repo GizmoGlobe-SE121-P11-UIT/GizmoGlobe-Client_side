@@ -9,6 +9,8 @@ import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/services/recommendation_service.dart';
+import 'package:gizmoglobe_client/services/platform_actions.dart'
+    as platform_actions;
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
@@ -34,6 +36,43 @@ class _ProductDetailScreenWebViewState
     extends State<ProductDetailScreenWebView> {
   ProductDetailCubit get cubit => context.read<ProductDetailCubit>();
   final WebGuestService _webGuestService = WebGuestService();
+
+  String? _previousHashPath;
+
+  @override
+  void initState() {
+    super.initState();
+    // Append the product ID to the current URL hash so deep links reflect the product
+    final productId = widget.product.productID;
+    if (productId != null && productId.isNotEmpty) {
+      _previousHashPath = platform_actions.getHashPath();
+      final current = _previousHashPath ?? '';
+      final normalized = current.endsWith('/$productId')
+          ? current
+          : (current.endsWith('/')
+              ? '$current$productId'
+              : '$current/$productId');
+      // Replace the hash without pushing history to avoid route changes
+      platform_actions.replaceHashUrl(normalized);
+    }
+  }
+
+  @override
+  void dispose() {
+    // Restore previous hash (remove the productId suffix) when leaving detail page
+    final productId = widget.product.productID;
+    if (productId != null && productId.isNotEmpty) {
+      final current = platform_actions.getHashPath();
+      if (current.endsWith('/$productId')) {
+        final restored =
+            current.substring(0, current.length - productId.length - 1);
+        // Avoid empty hash – default to '/products' if needed
+        platform_actions
+            .replaceHashUrl(restored.isEmpty ? '/products' : restored);
+      }
+    }
+    super.dispose();
+  }
 
   String _getCategoryLabel(BuildContext context, CategoryEnum category) {
     switch (category) {
@@ -277,7 +316,9 @@ class _ProductDetailScreenWebViewState
                                                                 .surface
                                                                 .withValues(
                                                                     alpha: 0.1)
-                                                            : Colors.grey[300],
+                                                            : Theme.of(context)
+                                                                .colorScheme
+                                                                .surfaceContainerHighest,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(12),
@@ -315,8 +356,10 @@ class _ProductDetailScreenWebViewState
                                                                         .withValues(
                                                                             alpha:
                                                                                 0.7)
-                                                                    : Colors.grey[
-                                                                        600],
+                                                                    : Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .onSurfaceVariant,
                                                               ),
                                                             )
                                                           : null,
@@ -384,7 +427,10 @@ class _ProductDetailScreenWebViewState
                                                                   .favorite_border,
                                                           color: state
                                                                   .isFavorite
-                                                              ? Colors.red[400]
+                                                              ? Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .error
                                                               : Theme.of(
                                                                       context)
                                                                   .colorScheme
@@ -776,7 +822,9 @@ class _ProductDetailScreenWebViewState
                                                               .surface
                                                               .withValues(
                                                                   alpha: 0.1)
-                                                          : Colors.grey[300],
+                                                          : Theme.of(context)
+                                                              .colorScheme
+                                                              .surfaceContainerHighest,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               12),
@@ -812,8 +860,10 @@ class _ProductDetailScreenWebViewState
                                                                       .withValues(
                                                                           alpha:
                                                                               0.7)
-                                                                  : Colors.grey[
-                                                                      600],
+                                                                  : Theme.of(
+                                                                          context)
+                                                                      .colorScheme
+                                                                      .onSurfaceVariant,
                                                             ),
                                                           )
                                                         : null,
@@ -851,7 +901,9 @@ class _ProductDetailScreenWebViewState
                                                           : Icons
                                                               .favorite_border,
                                                       color: state.isFavorite
-                                                          ? Colors.red[400]
+                                                          ? Theme.of(context)
+                                                              .colorScheme
+                                                              .error
                                                           : Theme.of(context)
                                                               .colorScheme
                                                               .onSurfaceVariant,
@@ -909,7 +961,9 @@ class _ProductDetailScreenWebViewState
                                                         decoration:
                                                             BoxDecoration(
                                                           color:
-                                                              Colors.red[700],
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .error,
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(6),
@@ -1162,7 +1216,9 @@ class _ProductDetailScreenWebViewState
                                                                 .colorScheme
                                                                 .primary,
                                                         foregroundColor:
-                                                            Colors.white,
+                                                            Theme.of(context)
+                                                                .colorScheme
+                                                                .onPrimary,
                                                         shape:
                                                             RoundedRectangleBorder(
                                                           borderRadius:

@@ -117,7 +117,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
-                            color: Colors.red,
+                            color: Theme.of(context).colorScheme.error,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           constraints: const BoxConstraints(
@@ -166,7 +166,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                               .colorScheme
                                               .surface
                                               .withValues(alpha: 0.1)
-                                          : Colors.grey[300],
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(12),
                                       image: state.product.imageUrl != null
                                           ? DecorationImage(
@@ -188,7 +190,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                       .colorScheme
                                                       .primary
                                                       .withValues(alpha: 0.7)
-                                                  : Colors.grey[600],
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
                                             ),
                                           )
                                         : null),
@@ -213,7 +217,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                         ? Icons.favorite
                                         : Icons.favorite_border,
                                     color: state.isFavorite
-                                        ? Colors.red[400]
+                                        ? Theme.of(context).colorScheme.error
                                         : Theme.of(context)
                                             .colorScheme
                                             .onSurfaceVariant,
@@ -255,7 +259,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                 ?.copyWith(
                                                   decoration: TextDecoration
                                                       .lineThrough,
-                                                  color: Colors.grey[500],
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                           ),
@@ -264,7 +270,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: Colors.red[700],
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .error,
                                               borderRadius:
                                                   BorderRadius.circular(4),
                                             ),
@@ -274,7 +282,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                   .textTheme
                                                   .labelSmall
                                                   ?.copyWith(
-                                                    color: Colors.white,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onError,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                             ),
@@ -324,7 +334,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       color: Theme.of(context).colorScheme.surface,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .shadow
+                              .withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, -4),
                         ),
@@ -464,7 +477,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   Theme.of(context).colorScheme.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimary,
                               elevation: 2,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -585,7 +600,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: Text(
               label,
               style: TextStyle(
-                color: Colors.grey[400],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 14,
               ),
             ),

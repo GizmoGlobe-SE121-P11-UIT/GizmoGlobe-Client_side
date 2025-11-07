@@ -7,7 +7,7 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import '../../../../enums/processing/sort_enum.dart';
 import '../../../../objects/product_related/filter_argument.dart';
 
-class TabState extends Equatable{
+class TabState extends Equatable {
   final String searchText;
   final List<Product> productList;
   final ProcessState processState;
@@ -17,6 +17,10 @@ class TabState extends Equatable{
   final Product? selectedProduct;
   final List<Manufacturer> manufacturerList;
   final List<Product> filteredProductList;
+  // Pagination fields (web only)
+  final int itemsPerPage;
+  final int currentPage;
+  final bool isLoadingMore;
 
   const TabState({
     this.searchText = '',
@@ -28,20 +32,26 @@ class TabState extends Equatable{
     this.activeCategory = CategoryEnum.empty,
     this.processState = ProcessState.idle,
     this.filteredProductList = const [],
+    this.itemsPerPage = 20,
+    this.currentPage = 1,
+    this.isLoadingMore = false,
   });
 
   @override
   List<Object?> get props => [
-    searchText,
-    productList,
-    manufacturerList,
-    selectedSortOption,
-    selectedProduct,
-    filterArgument,
-    activeCategory,
-    processState,
-    filteredProductList,
-  ];
+        searchText,
+        productList,
+        manufacturerList,
+        selectedSortOption,
+        selectedProduct,
+        filterArgument,
+        activeCategory,
+        processState,
+        filteredProductList,
+        itemsPerPage,
+        currentPage,
+        isLoadingMore,
+      ];
 
   TabState copyWith({
     String? searchText,
@@ -53,6 +63,9 @@ class TabState extends Equatable{
     ProcessState? processState,
     List<Manufacturer>? manufacturerList,
     List<Product>? filteredProductList,
+    int? itemsPerPage,
+    int? currentPage,
+    bool? isLoadingMore,
   }) {
     return TabState(
       searchText: searchText ?? this.searchText,
@@ -64,6 +77,24 @@ class TabState extends Equatable{
       processState: processState ?? this.processState,
       manufacturerList: manufacturerList ?? this.manufacturerList,
       filteredProductList: filteredProductList ?? this.filteredProductList,
+      itemsPerPage: itemsPerPage ?? this.itemsPerPage,
+      currentPage: currentPage ?? this.currentPage,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
+  }
+
+  // Helper getters for pagination
+  // Returns all items from page 1 to currentPage (accumulated)
+  List<Product> get displayedProducts {
+    if (itemsPerPage <= 0) return filteredProductList;
+    final totalItemsToShow = currentPage * itemsPerPage;
+    if (totalItemsToShow >= filteredProductList.length) {
+      return filteredProductList;
+    }
+    return filteredProductList.sublist(0, totalItemsToShow);
+  }
+
+  bool get hasMoreItems {
+    return currentPage * itemsPerPage < filteredProductList.length;
   }
 }

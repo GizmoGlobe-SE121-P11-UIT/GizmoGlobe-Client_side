@@ -51,9 +51,8 @@ Future<FilterArgument?> showFilterModal(
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: theme.brightness == Brightness.light
-                    ? Colors.black.withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.3),
+                color: theme.colorScheme.shadow.withValues(
+                    alpha: theme.brightness == Brightness.light ? 0.1 : 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -79,7 +78,6 @@ class _FilterScreenWebView extends StatefulWidget {
   final List<Manufacturer> manufacturerList;
 
   const _FilterScreenWebView({
-    super.key,
     required this.arguments,
     required this.selectedTabIndex,
     required this.manufacturerList,
@@ -117,8 +115,23 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
   @override
   void initState() {
     super.initState();
+    // Initialize controllers from widget arguments initially
+    // They will be synced with state in didChangeDependencies
     minPriceController.text = widget.arguments.minPrice;
     maxPriceController.text = widget.arguments.maxPrice;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Sync controllers with current state when widget is rebuilt or reopened
+    final state = cubit.state;
+    if (minPriceController.text != state.filterArgument.minPrice) {
+      minPriceController.text = state.filterArgument.minPrice;
+    }
+    if (maxPriceController.text != state.filterArgument.maxPrice) {
+      maxPriceController.text = state.filterArgument.maxPrice;
+    }
   }
 
   @override

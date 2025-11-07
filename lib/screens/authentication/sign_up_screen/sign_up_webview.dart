@@ -193,23 +193,27 @@ class _SignUpWebModalState extends State<SignUpWebModal> {
 
                           // Handle failure state
                           if (state.processState == ProcessState.failure) {
-                            SnackbarService.showError(
-                              context,
+                            final overlayState =
+                                Overlay.of(context, rootOverlay: true);
+                            SnackbarService.showErrorAboveOverlay(
+                              overlayState,
                               title: state.dialogName.toString(),
-                              message: state.message.toString(),
+                              message: state.message.toLocalizedString(),
                             );
                             return;
                           }
 
                           // Handle success state
                           if (state.processState == ProcessState.success) {
-                            SnackbarService.showSuccess(
-                              context,
+                            final overlayState =
+                                Overlay.of(context, rootOverlay: true);
+                            SnackbarService.showSuccessAboveOverlay(
+                              overlayState,
                               title: state.dialogName.toString(),
-                              message: state.message.toString(),
+                              message: state.message.toLocalizedString(),
                             );
                             // Close modal after showing success snackbar
-                            Navigator.of(context).pop();
+                            Navigator.of(context, rootNavigator: true).pop();
                           }
                         },
                         buildWhen: (previous, current) =>

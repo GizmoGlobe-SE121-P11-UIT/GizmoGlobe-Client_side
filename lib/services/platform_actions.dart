@@ -13,4 +13,11 @@ void replaceHashUrl(String path) => impl.replaceHashUrl(path);
 
 void pushHashUrl(String path) => impl.pushHashUrl(path);
 
-void normalizeInitialUrlForHashStrategy() => impl.normalizeInitialUrlForHashStrategy();
+void clearHash() => impl.clearHash();
+
+void normalizeInitialUrlForHashStrategy() =>
+    impl.normalizeInitialUrlForHashStrategy();
+
+void setUrlStrategyWeb() => impl.setUrlStrategyWeb();
+
+void setHashFragment(String path) => impl.setHashFragment(path);
