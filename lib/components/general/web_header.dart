@@ -182,10 +182,7 @@ class _WebHeaderState extends State<WebHeader> {
             // Action buttons (chat icon removed)
             Row(
               children: [
-                _buildIconButton(context, Icons.shopping_cart_outlined,
-                    isMobile: true, onPressed: () {
-                  _handleCartNavigation(context);
-                }),
+                _buildCartIconButton(context, isMobile: true),
                 const SizedBox(width: 8),
                 _buildUserIconButton(context, isMobile: true),
               ],
@@ -216,9 +213,7 @@ class _WebHeaderState extends State<WebHeader> {
         ),
         const Spacer(),
         // Action Buttons (chat icon removed)
-        _buildIconButton(context, Icons.shopping_cart_outlined, onPressed: () {
-          _handleCartNavigation(context);
-        }),
+        _buildCartIconButton(context),
         const SizedBox(width: 16),
         _buildUserIconButton(context),
       ],
@@ -627,13 +622,65 @@ class _WebHeaderState extends State<WebHeader> {
     );
   }
 
-  Widget _buildIconButton(BuildContext context, IconData icon,
-      {bool isMobile = false, VoidCallback? onPressed}) {
+  Widget _buildCartIconButton(BuildContext context, {bool isMobile = false}) {
     final size = isMobile ? 32.0 : 40.0;
     final iconSize = isMobile ? 16.0 : 20.0;
 
-    return GestureDetector(
-      onTap: onPressed,
+    final cartStream = _getCartStream();
+    
+    if (cartStream != null) {
+      // Authenticated user - use stream for real-time updates
+      return StreamBuilder<QuerySnapshot>(
+        stream: cartStream,
+        builder: (context, snapshot) {
+          int cartCount = 0;
+          
+          if (snapshot.hasData && snapshot.data != null) {
+            // Calculate total quantity of items in cart
+            for (var doc in snapshot.data!.docs) {
+              final data = doc.data() as Map<String, dynamic>;
+              cartCount += (data['quantity'] as num?)?.toInt() ?? 0;
+            }
+          }
+
+          return _buildCartIconWithBadge(
+            context,
+            cartCount: cartCount,
+            size: size,
+            iconSize: iconSize,
+          );
+        },
+      );
+    } else {
+      // Guest user - use FutureBuilder to get initial count
+      return FutureBuilder<int>(
+        future: _getGuestCartCount(),
+        builder: (context, snapshot) {
+          final cartCount = snapshot.data ?? 0;
+          return _buildCartIconWithBadge(
+            context,
+            cartCount: cartCount,
+            size: size,
+            iconSize: iconSize,
+          );
+        },
+      );
+    }
+  }
+
+  Widget _buildCartIconWithBadge(
+    BuildContext context, {
+    required int cartCount,
+    required double size,
+    required double iconSize,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GestureDetector(
+          onTap: () {
+            _handleCartNavigation(context);
+          },
       child: Container(
         width: size,
         height: size,
@@ -644,12 +691,83 @@ class _WebHeaderState extends State<WebHeader> {
             color: Theme.of(context).dividerColor,
           ),
         ),
-        child: Icon(icon,
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            child: Icon(Icons.shopping_cart_outlined,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7),
             size: iconSize),
       ),
+        ),
+        if (cartCount > 0)
+          Positioned(
+            right: -4,
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Center(
+                child: Text(
+                  cartCount > 99 ? '99+' : '$cartCount',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onError,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
+  }
+
+  Stream<QuerySnapshot>? _getCartStream() {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        // Return stream for authenticated users
+        return FirebaseFirestore.instance
+            .collection('customers')
+            .doc(currentUser.uid)
+            .collection('carts')
+            .snapshots();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting cart stream: $e');
+      }
+    }
+    // Return null stream for guests or errors
+    return null;
+  }
+
+  Future<int> _getGuestCartCount() async {
+    try {
+      final isGuest = await _webGuestService.isCurrentUserGuest();
+      if (isGuest) {
+        final cartItems = await _webGuestService.getGuestCart();
+        // Calculate total quantity
+        int totalCount = 0;
+        for (var item in cartItems) {
+          totalCount += (item['quantity'] as num?)?.toInt() ?? 0;
+        }
+        return totalCount;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting guest cart count: $e');
+      }
+    }
+    return 0;
   }
 
   void _showOverlay(BuildContext context, bool isMobile) {

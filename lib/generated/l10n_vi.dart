@@ -632,6 +632,32 @@ class SVI extends S {
   String totalItems(int count, String total) => 'Tổng $count sản phẩm: $total';
 
   @override
+  String itemsCount(int count) => 'Sản phẩm ($count)';
+
+  @override
+  String get originalPrice => 'Giá gốc';
+
+  @override
+  String get free => 'Miễn phí';
+
+  @override
+  String get clearCart => 'Xóa giỏ hàng';
+
+  @override
+  String get clearCartConfirmation =>
+      'Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi giỏ hàng không?';
+
+  @override
+  String get clearAll => 'Xóa tất cả';
+
+  @override
+  String get voucherAppliedSuccessfully => 'Áp dụng mã giảm giá thành công';
+
+  @override
+  String get shippingAddressUpdatedSuccessfully =>
+      'Cập nhật địa chỉ giao hàng thành công';
+
+  @override
   String get orderProcessingStatus => 'Đơn hàng của bạn đang được xử lý.';
 
   @override

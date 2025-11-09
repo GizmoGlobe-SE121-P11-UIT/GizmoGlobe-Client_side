@@ -534,6 +534,64 @@ class Firebase {
     }
   }
 
+  /// Update an existing sales invoice in Firebase
+  Future<void> updateSalesInvoice(SalesInvoice salesInvoice) async {
+    try {
+      if (salesInvoice.salesInvoiceID == null ||
+          salesInvoice.salesInvoiceID!.isEmpty) {
+        throw Exception('Cannot update invoice: No invoice ID');
+      }
+
+      final invoiceRef = _firestore
+          .collection('sales_invoices')
+          .doc(salesInvoice.salesInvoiceID);
+
+      // Update the main invoice document
+      await invoiceRef.update({
+        'salesInvoiceID': salesInvoice.salesInvoiceID,
+        'customerID': salesInvoice.customerID,
+        'customerName': salesInvoice.customerName ?? '',
+        'address': salesInvoice.address?.addressID ?? '',
+        'date': salesInvoice.date,
+        'paymentStatus': salesInvoice.paymentStatus.getName(),
+        'salesStatus': salesInvoice.salesStatus.getName(),
+        'totalPrice': salesInvoice.totalPrice,
+        'voucherID': salesInvoice.voucher?.voucherID,
+        'voucherDiscount': salesInvoice.voucherDiscount,
+      });
+
+      // Delete existing invoice details
+      final existingDetailsSnapshot = await _firestore
+          .collection('sales_invoice_details')
+          .where('salesInvoiceID', isEqualTo: salesInvoice.salesInvoiceID)
+          .get();
+
+      for (var doc in existingDetailsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Add updated invoice details
+      for (SalesInvoiceDetail detail in salesInvoice.details) {
+        await _firestore
+            .collection('sales_invoice_details')
+            .add(detail.toMap(salesInvoice.salesInvoiceID!));
+      }
+
+      // Update voucher usage if a voucher was applied
+      if (salesInvoice.voucher != null) {
+        await _updateVoucherUses(
+            salesInvoice.customerID, salesInvoice.voucher!);
+      }
+
+      await Database().fetchSalesInvoice();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating sales invoice: $e');
+      }
+      rethrow;
+    }
+  }
+
   Future<List<SalesInvoice>> getSalesInvoices() async {
     try {
       final userID = Database().userID;
@@ -561,13 +619,24 @@ class Firebase {
 
         salesInvoice.details = detailsSnapshot.docs.map((detailDoc) {
           final detailData = detailDoc.data() as Map<String, dynamic>;
-          final productID = detailData['productID'] as String;
+          final productID = detailData['productID'] as String?;
 
+          if (productID == null || productID.isEmpty) {
+            throw Exception('Product ID is missing in sales invoice detail');
+          }
+
+          // Try to find product in fullProductList first, then productList
           final product = Database().fullProductList.firstWhere(
-                (product) => product.productID == productID,
-                orElse: () =>
-                    throw Exception('Product not found for ID: $productID'),
-              );
+            (product) => product.productID == productID,
+            orElse: () {
+              // Fallback to productList if not found in fullProductList
+              return Database().productList.firstWhere(
+                    (product) => product.productID == productID,
+                    orElse: () => throw Exception(
+                        'Product not found in any product list: $productID'),
+                  );
+            },
+          );
 
           return SalesInvoiceDetail(
             salesInvoiceDetailID: detailDoc.id,
@@ -589,6 +658,118 @@ class Firebase {
     }
   }
 
+  Future<SalesInvoice?> getSalesInvoiceById(String salesInvoiceID) async {
+    try {
+      final userID = Database().userID;
+      // Check if userID is empty or null (e.g., for guest users)
+      if (userID.isEmpty) {
+        if (kDebugMode) {
+          print('User not logged in or is guest. Cannot fetch sales invoice.');
+        }
+        return null;
+      }
+
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('sales_invoices')
+          .doc(salesInvoiceID)
+          .get();
+
+      if (!docSnapshot.exists) {
+        if (kDebugMode) {
+          print('Sales invoice not found: $salesInvoiceID');
+        }
+        return null;
+      }
+
+      final data = docSnapshot.data() as Map<String, dynamic>;
+
+      // Verify that the invoice belongs to the current user
+      if (data['customerID'] != userID) {
+        if (kDebugMode) {
+          print('Sales invoice does not belong to current user');
+        }
+        return null;
+      }
+
+      SalesInvoice salesInvoice = SalesInvoice.fromMap(docSnapshot.id, data);
+
+      final QuerySnapshot detailsSnapshot = await FirebaseFirestore.instance
+          .collection('sales_invoice_details')
+          .where('salesInvoiceID', isEqualTo: salesInvoiceID)
+          .get();
+
+      salesInvoice.details = detailsSnapshot.docs.map((detailDoc) {
+        final detailData = detailDoc.data() as Map<String, dynamic>;
+        final productID = detailData['productID'] as String?;
+
+        if (productID == null || productID.isEmpty) {
+          throw Exception('Product ID is missing in sales invoice detail');
+        }
+
+        // Try to find product in fullProductList first, then productList
+        final product = Database().fullProductList.firstWhere(
+          (product) => product.productID == productID,
+          orElse: () {
+            // Fallback to productList if not found in fullProductList
+            return Database().productList.firstWhere(
+                  (product) => product.productID == productID,
+                  orElse: () => throw Exception(
+                      'Product not found in any product list: $productID'),
+                );
+          },
+        );
+
+        return SalesInvoiceDetail(
+          salesInvoiceDetailID: detailDoc.id,
+          salesInvoiceID: salesInvoice.salesInvoiceID,
+          product: product,
+          quantity: detailData['quantity'] as int,
+          sellingPrice: (detailData['sellingPrice'] as num).toDouble(),
+          subtotal: (detailData['subtotal'] as num).toDouble(),
+        );
+      }).toList();
+
+      // Load voucher if voucherID exists
+      final voucherID = data['voucherID'] as String?;
+      if (voucherID != null && voucherID.isNotEmpty) {
+        try {
+          final voucher = Database().allVoucherList.firstWhere(
+                (v) => v.voucherID == voucherID,
+                orElse: () => throw Exception('Voucher not found: $voucherID'),
+              );
+          // Note: SalesInvoice.fromMap doesn't load voucher, so we need to update it
+          // We'll need to create a new invoice with the voucher
+          return SalesInvoice(
+            salesInvoiceID: salesInvoice.salesInvoiceID,
+            customerID: salesInvoice.customerID,
+            customerName: salesInvoice.customerName,
+            address: salesInvoice.address,
+            date: salesInvoice.date,
+            salesStatus: salesInvoice.salesStatus,
+            totalPrice: salesInvoice.totalPrice,
+            paymentStatus: salesInvoice.paymentStatus,
+            details: salesInvoice.details,
+            voucher: voucher,
+            voucherDiscount:
+                (data['voucherDiscount'] as num?)?.toDouble() ?? 0.0,
+          );
+        } catch (e) {
+          if (kDebugMode) {
+            print('Warning: Could not load voucher: $e');
+          }
+          // Continue without voucher if not found
+        }
+      }
+
+      return salesInvoice;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting sales invoice by ID: $e');
+      }
+      rethrow;
+    }
+  }
+
   Future<void> confirmDelivery(SalesInvoice salesInvoice) async {
     try {
       await _firestore
@@ -603,6 +784,82 @@ class Firebase {
         print('Error confirming delivery: $e');
       }
       // print('Lỗi khi xác nhận giao hàng: $e');
+      rethrow;
+    }
+  }
+
+  /// Cancel a sales invoice (mark as cancelled status)
+  /// Optionally reverts voucher usage if a voucher was applied
+  Future<void> cancelSalesInvoice(String salesInvoiceID,
+      {bool revertVoucherUsage = true}) async {
+    try {
+      // Get the invoice to check if it has a voucher
+      final invoiceDoc = await _firestore
+          .collection('sales_invoices')
+          .doc(salesInvoiceID)
+          .get();
+
+      if (!invoiceDoc.exists) {
+        throw Exception('Invoice not found: $salesInvoiceID');
+      }
+
+      final invoiceData = invoiceDoc.data() as Map<String, dynamic>;
+      final voucherID = invoiceData['voucherID'] as String?;
+
+      // Revert voucher usage if voucher was applied and revertVoucherUsage is true
+      if (revertVoucherUsage && voucherID != null && voucherID.isNotEmpty) {
+        try {
+          final voucher = Database().allVoucherList.firstWhere(
+                (v) => v.voucherID == voucherID,
+                orElse: () => throw Exception('Voucher not found: $voucherID'),
+              );
+          final customerID = invoiceData['customerID'] as String;
+          await _revertVoucherUses(customerID, voucher);
+        } catch (e) {
+          if (kDebugMode) {
+            print('Warning: Could not revert voucher usage: $e');
+          }
+          // Continue with cancellation even if voucher revert fails
+        }
+      }
+
+      // Mark invoice as cancelled
+      await _firestore.collection('sales_invoices').doc(salesInvoiceID).update({
+        'salesStatus': SalesStatus.cancelled.getName(),
+      });
+      await Database().fetchSalesInvoice();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error cancelling sales invoice: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Delete a sales invoice and its details (use with caution)
+  Future<void> deleteSalesInvoice(String salesInvoiceID) async {
+    try {
+      // Delete all invoice details first
+      final detailsSnapshot = await _firestore
+          .collection('sales_invoice_details')
+          .where('salesInvoiceID', isEqualTo: salesInvoiceID)
+          .get();
+
+      for (var doc in detailsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete the invoice
+      await _firestore
+          .collection('sales_invoices')
+          .doc(salesInvoiceID)
+          .delete();
+
+      await Database().fetchSalesInvoice();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error deleting sales invoice: $e');
+      }
       rethrow;
     }
   }
@@ -734,6 +991,66 @@ class Firebase {
         print('Error getting owned vouchers: $e');
       }
       return [];
+    }
+  }
+
+  /// Revert voucher usage (increase usage count by 1)
+  /// Used when an invoice with a voucher is cancelled
+  Future<void> _revertVoucherUses(String customerId, Voucher voucher) async {
+    try {
+      // 1. Increase owned voucher usage count (revert the reduction)
+      final ownedVoucherQuery = await _firestore
+          .collection('owned_vouchers')
+          .where('customerID', isEqualTo: customerId)
+          .where('voucherID', isEqualTo: voucher.voucherID)
+          .limit(1)
+          .get();
+
+      if (ownedVoucherQuery.docs.isNotEmpty) {
+        final ownedVoucherDoc = ownedVoucherQuery.docs.first;
+        final currentUsage = ownedVoucherDoc.data()['numberOfUses'] as int;
+        // Increase usage by 1 to revert the previous reduction
+        await ownedVoucherDoc.reference
+            .update({'numberOfUses': currentUsage + 1});
+        if (kDebugMode) {
+          print('Reverted owned voucher usage count to ${currentUsage + 1}');
+        }
+      } else {
+        if (kDebugMode) {
+          print(
+              'No owned voucher found for customer $customerId and voucher ${voucher.voucherID}');
+        }
+      }
+
+      // 2. If it's a limited voucher, increase usageLeft by 1 (revert the reduction)
+      if (voucher.isLimited) {
+        final voucherDoc = await _firestore
+            .collection('vouchers')
+            .doc(voucher.voucherID)
+            .get();
+
+        if (voucherDoc.exists) {
+          final currentUsageLeft = voucherDoc.data()?['usageLeft'] as int? ?? 0;
+          await voucherDoc.reference
+              .update({'usageLeft': currentUsageLeft + 1});
+          if (kDebugMode) {
+            print('Reverted voucher usageLeft to ${currentUsageLeft + 1}');
+          }
+        } else {
+          if (kDebugMode) {
+            print('Voucher document not found for ID: ${voucher.voucherID}');
+          }
+        }
+      }
+
+      // Update local voucher lists to reflect changes
+      await Database().updateVoucherLists();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error reverting voucher usage: $e');
+        print('Error details: ${e.toString()}');
+      }
+      rethrow;
     }
   }
 

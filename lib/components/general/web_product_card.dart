@@ -144,13 +144,16 @@ class _WebProductCardState extends State<WebProductCard> {
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.error,
+                                      color:
+                                          Theme.of(context).colorScheme.error,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       '-${widget.product.discount.toStringAsFixed(0)}%',
                                       style: TextStyle(
-                                        color: Theme.of(context).colorScheme.onError,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onError,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -170,16 +173,34 @@ class _WebProductCardState extends State<WebProductCard> {
                                       if (isGuest) {
                                         SnackbarService.showGuestRestriction(
                                           context,
-                                          actionType: 'favorite',
+                                          actionType: 'favorites',
                                         );
                                         return;
                                       }
 
-                                      context
-                                          .read<FavoritesCubit>()
-                                          .toggleFavorite(
-                                            widget.product.productID!,
+                                      try {
+                                        final favoritesCubit =
+                                            context.read<FavoritesCubit>();
+                                        final wasFavorite = favoritesCubit.state
+                                            .contains(
+                                                widget.product.productID!);
+                                        await favoritesCubit.toggleFavorite(
+                                          widget.product.productID!,
+                                        );
+                                        // Show success notification
+                                        final isNowFavorite =
+                                            favoritesCubit.state.contains(
+                                                widget.product.productID!);
+                                        if (wasFavorite != isNowFavorite) {
+                                          SnackbarService.showFavoriteSuccess(
+                                            context,
+                                            isNowFavorite ? 'added' : 'removed',
                                           );
+                                        }
+                                      } catch (e) {
+                                        SnackbarService.showFavoriteError(
+                                            context);
+                                      }
                                     }
                                   },
                                   child: Container(

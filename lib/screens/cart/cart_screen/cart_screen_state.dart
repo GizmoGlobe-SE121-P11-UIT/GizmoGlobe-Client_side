@@ -33,14 +33,49 @@ class CartScreenState extends Equatable {
     return total;
   }
 
+  // Calculate totals for selected items only
+  double get selectedItemsTotalAmount {
+    double total = 0;
+    for (var item in selectedItems) {
+      total += item.subTotal();
+    }
+    return total;
+  }
+
+  double get selectedItemsTotalBeforeDiscount {
+    double total = 0;
+    for (var item in selectedItems) {
+      total += item.subTotalBeforeDiscount().toDouble();
+    }
+    return total;
+  }
+
+  bool get selectedItemsHasDiscounts {
+    return selectedItems.any((item) {
+      return item.product.discountedPrice < item.product.price;
+    });
+  }
+
   bool get hasDiscounts {
     return items.any((item) {
       return item.product.discountedPrice < item.product.price;
     });
   }
 
-  bool get isAllSelected => 
-    items.isNotEmpty && selectedItems.length == items.length;
+  bool get isAllSelected {
+    if (items.isEmpty) return false;
+    // Check that all items (by productID) are in selectedItems
+    final selectedProductIDs = selectedItems
+        .map((item) => item.product.productID)
+        .where((id) => id != null)
+        .toSet();
+    final allProductIDs = items
+        .map((item) => item.product.productID)
+        .where((id) => id != null)
+        .toSet();
+    return selectedProductIDs.length == allProductIDs.length &&
+        selectedProductIDs.containsAll(allProductIDs);
+  }
 
   int get selectedCount => selectedItems.length;
 

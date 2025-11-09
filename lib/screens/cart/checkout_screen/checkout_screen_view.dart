@@ -20,17 +20,31 @@ import 'checkout_screen_cubit.dart';
 import 'checkout_screen_state.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  final List<Map<Product, int>> cartItems;
+  final List<Map<Product, int>>? cartItems;
+  final String? salesInvoiceID;
 
   const CheckoutScreen({
     super.key,
-    required this.cartItems,
-  });
+    required List<Map<Product, int>> cartItems,
+  })  : cartItems = cartItems,
+        salesInvoiceID = null;
+
+  const CheckoutScreen.fromInvoiceId({
+    super.key,
+    required String salesInvoiceID,
+  })  : cartItems = null,
+        salesInvoiceID = salesInvoiceID;
 
   static Widget newInstance({required List<Map<Product, int>> cartItems}) =>
       BlocProvider(
         create: (context) => CheckoutScreenCubit(),
         child: CheckoutScreen(cartItems: cartItems),
+      );
+
+  static Widget newInstanceFromInvoiceId({required String salesInvoiceID}) =>
+      BlocProvider(
+        create: (context) => CheckoutScreenCubit(),
+        child: CheckoutScreen.fromInvoiceId(salesInvoiceID: salesInvoiceID),
       );
 
   @override
@@ -43,7 +57,11 @@ class _CheckoutScreen extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    cubit.initialize(widget.cartItems);
+    if (widget.salesInvoiceID != null) {
+      cubit.initializeFromInvoiceId(widget.salesInvoiceID!);
+    } else if (widget.cartItems != null) {
+      cubit.initialize(widget.cartItems!);
+    }
   }
 
   @override

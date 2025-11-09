@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/cart_item.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_cubit.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_webview.dart';
@@ -205,7 +206,11 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                 ),
               ],
             ),
-            child: _buildOrderSummary(state),
+            child: BlocBuilder<CartScreenCubit, CartScreenState>(
+              builder: (context, currentState) {
+                return _buildOrderSummary(currentState);
+              },
+            ),
           ),
         ],
       ),
@@ -218,14 +223,17 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
       itemCount: state.items.length,
       itemBuilder: (context, index) {
         final item = state.items.elementAt(index);
-        return _buildCartItem(item);
+        return _buildCartItem(item, state);
       },
     );
   }
 
-  Widget _buildCartItem(CartItem item) {
-    final isSelected =
-        context.read<CartScreenCubit>().state.selectedItems.contains(item);
+  Widget _buildCartItem(CartItem item, CartScreenState state) {
+    // Check selection by productID for reliability using the state passed in
+    final productID = item.product.productID;
+    final isSelected = state.selectedItems.any(
+      (selectedItem) => selectedItem.product.productID == productID,
+    );
     final product = item.product;
     final originalPrice = product.price;
     final discount = product.discount;
@@ -341,7 +349,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Subtotal: ${(Helper.toCurrencyFormat(item.subTotal()))}',
+                      '${S.of(context).subtotal}: ${(Helper.toCurrencyFormat(item.subTotal()))}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -482,7 +490,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Order Summary',
+              S.of(context).orderSummary,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -534,7 +542,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Items (${state.selectedCount})',
+                  S.of(context).itemsCount(state.selectedCount),
                   style: TextStyle(
                     color: Theme.of(context)
                         .colorScheme
@@ -544,7 +552,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                   ),
                 ),
                 Text(
-                  Helper.toCurrencyFormat(state.totalAmount),
+                  Helper.toCurrencyFormat(state.selectedItemsTotalAmount),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -555,12 +563,12 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
             ),
             const SizedBox(height: 16),
             // Discount Display
-            if (state.hasDiscounts && state.selectedCount > 0) ...[
+            if (state.selectedItemsHasDiscounts && state.selectedCount > 0) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Original Price',
+                    S.of(context).originalPrice,
                     style: TextStyle(
                       color: Theme.of(context)
                           .colorScheme
@@ -570,7 +578,8 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                   ),
                   Text(
-                    Helper.toCurrencyFormat(state.totalBeforeDiscount),
+                    Helper.toCurrencyFormat(
+                        state.selectedItemsTotalBeforeDiscount),
                     style: TextStyle(
                       decoration: TextDecoration.lineThrough,
                       color: Theme.of(context)
@@ -587,7 +596,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Discount',
+                    S.of(context).discount,
                     style: TextStyle(
                       color: Colors.green[700],
                       fontSize: 16,
@@ -595,7 +604,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                   ),
                   Text(
-                    '-${Helper.toCurrencyFormat(state.totalBeforeDiscount - state.totalAmount)}',
+                    '-${Helper.toCurrencyFormat(state.selectedItemsTotalBeforeDiscount - state.selectedItemsTotalAmount)}',
                     style: TextStyle(
                       color: Colors.green[700],
                       fontSize: 16,
@@ -611,7 +620,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Shipping',
+                  S.of(context).shippingFee,
                   style: TextStyle(
                     color: Theme.of(context)
                         .colorScheme
@@ -620,8 +629,8 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     fontSize: 16,
                   ),
                 ),
-                const Text(
-                  'Free',
+                Text(
+                  S.of(context).free,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
@@ -642,7 +651,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total',
+                  S.of(context).totalCost,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -650,7 +659,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                   ),
                 ),
                 Text(
-                  Helper.toCurrencyFormat(state.totalAmount),
+                  Helper.toCurrencyFormat(state.selectedItemsTotalAmount),
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -666,14 +675,44 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
               child: ElevatedButton(
                 onPressed: state.selectedCount > 0
                     ? () async {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => CheckoutScreen.newInstance(
-                              cartItems:
-                                  cubit.convertItemsToProductQuantityList(),
-                            ),
-                          ),
-                        );
+                        // Create invoice first, then navigate to checkout with invoice ID
+                        final checkoutCubit = CheckoutScreenCubit();
+                        try {
+                          final invoiceID =
+                              await checkoutCubit.createInvoiceFromCartItems(
+                            cubit.convertItemsToProductQuantityList(),
+                          );
+
+                          if (kIsWeb) {
+                            // Navigate using route on web
+                            Navigator.pushNamed(
+                              context,
+                              '/checkout/$invoiceID',
+                            );
+                          } else {
+                            // Navigate directly on mobile
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CheckoutScreen.newInstanceFromInvoiceId(
+                                  salesInvoiceID: invoiceID,
+                                ),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (kDebugMode) {
+                            print('Error creating invoice: $e');
+                          }
+                          // Show error to user
+                          if (context.mounted) {
+                            SnackbarService.showError(
+                              context,
+                              title: S.of(context).error,
+                              message: 'Failed to create invoice: $e',
+                            );
+                          }
+                        }
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
@@ -716,13 +755,13 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                             backgroundColor:
                                 Theme.of(context).colorScheme.surface,
                             title: Text(
-                              'Clear Cart',
+                              S.of(context).clearCart,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             content: Text(
-                              'Are you sure you want to clear all items from your cart?',
+                              S.of(context).clearCartConfirmation,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
@@ -737,9 +776,9 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                                   Navigator.pop(context);
                                   cubit.clearCart();
                                 },
-                                child: const Text(
-                                  'Clear All',
-                                  style: TextStyle(color: Colors.red),
+                                child: Text(
+                                  S.of(context).clearAll,
+                                  style: const TextStyle(color: Colors.red),
                                 ),
                               ),
                             ],
@@ -762,7 +801,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                   ),
                 ),
                 child: Text(
-                  'Clear Cart',
+                  S.of(context).clearCart,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

@@ -11,7 +11,6 @@ import 'sign_in_state.dart';
 import '../sign_up_screen/sign_up_webview.dart';
 import '../forget_password_screen/forget_password_webview.dart';
 import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
-import 'package:provider/provider.dart';
 
 /// Helper function to show the sign-in modal
 Future<void> showSignInModal(BuildContext context) {

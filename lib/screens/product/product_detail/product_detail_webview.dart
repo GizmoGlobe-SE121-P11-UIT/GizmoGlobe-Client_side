@@ -16,6 +16,7 @@ import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
+import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 
 class ProductDetailScreenWebView extends StatefulWidget {
   final Product product;
@@ -117,35 +118,54 @@ class _ProductDetailScreenWebViewState
     return BlocConsumer<ProductDetailCubit, ProductDetailState>(
       listener: (context, state) {
         if (state.processState == ProcessState.success) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => InformationDialog(
-              title: S.of(context).orderPlaced,
-              content: state.message,
-              dialogName: DialogName.success,
-              buttonText: S.of(context).ok,
-              onPressed: () {
-                Navigator.pop(context);
-                cubit.setIdleState();
-              },
-            ),
-          );
+          // Check if it's a cart addition success
+          if (state.message.toLowerCase().contains('added') &&
+              state.message.toLowerCase().contains('cart')) {
+            // Extract product name from message or use widget.product.productName
+            SnackbarService.showCartSuccess(
+              context,
+              widget.product.productName,
+            );
+            cubit.setIdleState();
+          } else {
+            // Other success cases (like order placed) show dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => InformationDialog(
+                title: S.of(context).orderPlaced,
+                content: state.message,
+                dialogName: DialogName.success,
+                buttonText: S.of(context).ok,
+                onPressed: () {
+                  Navigator.pop(context);
+                  cubit.setIdleState();
+                },
+              ),
+            );
+          }
         } else if (state.processState == ProcessState.failure) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => InformationDialog(
-              title: S.of(context).error,
-              content: state.message,
-              dialogName: DialogName.failure,
-              buttonText: S.of(context).ok,
-              onPressed: () {
-                Navigator.pop(context);
-                cubit.setIdleState();
-              },
-            ),
-          );
+          // Check if it's a cart failure
+          if (state.message.toLowerCase().contains('cart')) {
+            SnackbarService.showCartError(context);
+            cubit.setIdleState();
+          } else {
+            // Other failure cases show dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => InformationDialog(
+                title: S.of(context).error,
+                content: state.message,
+                dialogName: DialogName.failure,
+                buttonText: S.of(context).ok,
+                onPressed: () {
+                  Navigator.pop(context);
+                  cubit.setIdleState();
+                },
+              ),
+            );
+          }
         }
       },
       builder: (context, state) {
@@ -408,16 +428,43 @@ class _ProductDetailScreenWebViewState
                                                                 await _webGuestService
                                                                     .isCurrentUserGuest();
                                                             if (isGuest) {
-                                                              // Show guest restriction
-                                                              // You can add snackbar here
+                                                              SnackbarService
+                                                                  .showGuestRestriction(
+                                                                context,
+                                                                actionType:
+                                                                    'favorites',
+                                                              );
                                                               return;
                                                             }
-                                                            cubit
-                                                                .toggleFavorite();
-                                                            context
-                                                                .read<
-                                                                    FavoritesCubit>()
-                                                                .loadFavorites();
+                                                            try {
+                                                              final wasFavorite =
+                                                                  state
+                                                                      .isFavorite;
+                                                              await cubit
+                                                                  .toggleFavorite();
+                                                              context
+                                                                  .read<
+                                                                      FavoritesCubit>()
+                                                                  .loadFavorites();
+                                                              // Show snackbar notification
+                                                              final newState =
+                                                                  cubit.state;
+                                                              if (newState
+                                                                      .isFavorite !=
+                                                                  wasFavorite) {
+                                                                SnackbarService
+                                                                    .showFavoriteSuccess(
+                                                                  context,
+                                                                  newState.isFavorite
+                                                                      ? 'added'
+                                                                      : 'removed',
+                                                                );
+                                                              }
+                                                            } catch (e) {
+                                                              SnackbarService
+                                                                  .showFavoriteError(
+                                                                      context);
+                                                            }
                                                           }
                                                         },
                                                         child: Icon(
@@ -726,7 +773,12 @@ class _ProductDetailScreenWebViewState
                                                                         await _webGuestService
                                                                             .isCurrentUserGuest();
                                                                     if (isGuest) {
-                                                                      // Show guest restriction
+                                                                      SnackbarService
+                                                                          .showGuestRestriction(
+                                                                        context,
+                                                                        actionType:
+                                                                            'cart',
+                                                                      );
                                                                       return;
                                                                     }
                                                                     cubit
@@ -886,13 +938,42 @@ class _ProductDetailScreenWebViewState
                                                             await _webGuestService
                                                                 .isCurrentUserGuest();
                                                         if (isGuest) {
+                                                          SnackbarService
+                                                              .showGuestRestriction(
+                                                            context,
+                                                            actionType:
+                                                                'favorites',
+                                                          );
                                                           return;
                                                         }
-                                                        cubit.toggleFavorite();
-                                                        context
-                                                            .read<
-                                                                FavoritesCubit>()
-                                                            .loadFavorites();
+                                                        try {
+                                                          final wasFavorite =
+                                                              state.isFavorite;
+                                                          await cubit
+                                                              .toggleFavorite();
+                                                          context
+                                                              .read<
+                                                                  FavoritesCubit>()
+                                                              .loadFavorites();
+                                                          // Show snackbar notification
+                                                          final newState =
+                                                              cubit.state;
+                                                          if (newState
+                                                                  .isFavorite !=
+                                                              wasFavorite) {
+                                                            SnackbarService
+                                                                .showFavoriteSuccess(
+                                                              context,
+                                                              newState.isFavorite
+                                                                  ? 'added'
+                                                                  : 'removed',
+                                                            );
+                                                          }
+                                                        } catch (e) {
+                                                          SnackbarService
+                                                              .showFavoriteError(
+                                                                  context);
+                                                        }
                                                       }
                                                     },
                                                     child: Icon(
@@ -1200,6 +1281,12 @@ class _ProductDetailScreenWebViewState
                                                               await _webGuestService
                                                                   .isCurrentUserGuest();
                                                           if (isGuest) {
+                                                            SnackbarService
+                                                                .showGuestRestriction(
+                                                              context,
+                                                              actionType:
+                                                                  'cart',
+                                                            );
                                                             return;
                                                           }
                                                           cubit.addToCart(

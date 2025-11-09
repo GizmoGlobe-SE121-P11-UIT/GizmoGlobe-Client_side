@@ -16,6 +16,9 @@ import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_view.dart
 import 'package:gizmoglobe_client/screens/user/user_screen/user_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_view.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_success_webview.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_webview.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
@@ -343,6 +346,7 @@ class MyApp extends StatelessWidget {
                   '/user': (context) => UserScreen.newInstance(),
                   '/user-settings': (context) => UserScreen.newInstance(),
                   '/vouchers': (context) => VoucherScreen.newInstance(),
+                  // Note: /checkout-success is handled in onGenerateRoute to support query parameters
                 },
                 onGenerateRoute: (settings) {
                   String cleanRouteName = settings.name ?? '';
@@ -364,7 +368,14 @@ class MyApp extends StatelessWidget {
                       cleanRouteName = hashPath;
                     }
                   }
-                  if (cleanRouteName == '/products') {
+
+                  // Extract base route name (remove query parameters for route matching)
+                  // Query parameters may be in the route name or in the hash fragment
+                  String baseRouteName = cleanRouteName;
+                  if (baseRouteName.contains('?')) {
+                    baseRouteName = baseRouteName.split('?').first;
+                  }
+                  if (baseRouteName == '/products') {
                     return PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           ProductScreen.newInstance(),
@@ -378,8 +389,8 @@ class MyApp extends StatelessWidget {
                   }
 
                   // User sub routes for web navigation
-                  if (cleanRouteName == '/user/personal-information' ||
-                      cleanRouteName == '/user/addresses') {
+                  if (baseRouteName == '/user/personal-information' ||
+                      baseRouteName == '/user/addresses') {
                     return PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           UserScreen.newInstance(),
@@ -392,19 +403,74 @@ class MyApp extends StatelessWidget {
                     );
                   }
 
+                  // Handle checkout route with sales invoice ID
+                  // Format: /checkout/{sales_invoice_id}
+                  if (baseRouteName.startsWith('/checkout/')) {
+                    final parts = baseRouteName.split('/');
+                    if (parts.length >= 3) {
+                      final salesInvoiceID = parts[2];
+                      if (kIsWeb) {
+                        return PageRouteBuilder(
+                          pageBuilder: (context, animation,
+                                  secondaryAnimation) =>
+                              CheckoutScreenWebView.newInstanceFromInvoiceId(
+                            salesInvoiceID: salesInvoiceID,
+                          ),
+                          settings: RouteSettings(name: cleanRouteName),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                                opacity: animation, child: child);
+                          },
+                          transitionDuration: const Duration(milliseconds: 300),
+                        );
+                      } else {
+                        return PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  CheckoutScreen.newInstanceFromInvoiceId(
+                            salesInvoiceID: salesInvoiceID,
+                          ),
+                          settings: RouteSettings(name: cleanRouteName),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                                opacity: animation, child: child);
+                          },
+                          transitionDuration: const Duration(milliseconds: 300),
+                        );
+                      }
+                    }
+                  }
+
+                  // Handle checkout success route (Stripe Checkout redirect)
+                  // This route may include query parameters like ?session_id=...
+                  if (baseRouteName == '/checkout-success') {
+                    return PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const CheckoutSuccessWebView(),
+                      settings: RouteSettings(name: cleanRouteName),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 300),
+                    );
+                  }
+
                   // Handle order routes with hash-based navigation
-                  if (cleanRouteName == '/orders' ||
-                      cleanRouteName.startsWith('/orders/')) {
+                  if (baseRouteName == '/orders' ||
+                      baseRouteName.startsWith('/orders/')) {
                     OrderOption initialTab = OrderOption.toShip;
 
                     // Parse hash-based URL path to determine initial tab
-                    if (cleanRouteName.endsWith('/to-ship')) {
+                    if (baseRouteName.endsWith('/to-ship')) {
                       initialTab = OrderOption.toShip;
-                    } else if (cleanRouteName.endsWith('/to-receive')) {
+                    } else if (baseRouteName.endsWith('/to-receive')) {
                       initialTab = OrderOption.toReceive;
-                    } else if (cleanRouteName.endsWith('/completed')) {
+                    } else if (baseRouteName.endsWith('/completed')) {
                       initialTab = OrderOption.completed;
-                    } else if (cleanRouteName == '/orders') {
+                    } else if (baseRouteName == '/orders') {
                       initialTab = OrderOption.toShip; // Default
                     }
 
@@ -421,7 +487,7 @@ class MyApp extends StatelessWidget {
                   }
 
                   // Handle product category routes
-                  if (cleanRouteName.startsWith('/products/')) {
+                  if (baseRouteName.startsWith('/products/')) {
                     // The ProductScreenWebView will parse the category from initState
                     return PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
@@ -460,7 +526,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   void initState() {
     super.initState();
-    print('AuthWrapper initState called'); // Always print, not just in debug
+
     _initializeWeb();
   }
 
@@ -473,17 +539,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
         // and it can only be called once per redirect
 
         // First check if there's already an authenticated user (might be set by redirect)
-        final initialUser = FirebaseAuth.instance.currentUser;
-        print(
-            'Initial currentUser check: ${initialUser != null ? initialUser.uid : "null"}');
-
-        print('Calling getRedirectResult()...');
-        print('Current URL: ${Uri.base}');
-        print('Current hash: ${Uri.base.fragment}');
-        print('Current path: ${Uri.base.path}');
-        print('Current query: ${Uri.base.query}');
-        print('Full URL: ${Uri.base.toString()}');
-
         // Check if we're on the Firebase Auth handler path or have auth-related query params
         final isAuthHandler = Uri.base.path.contains('__/auth/handler');
         final hasAuthParams = Uri.base.query.contains('apiKey') ||
@@ -528,13 +583,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
           // Check if there's an error in the URL that might indicate why redirect failed
           final currentUrl = Uri.base.toString();
           final hash = Uri.base.fragment;
-          print(
-              'No redirect result found. Current URL: $currentUrl, Hash: $hash');
-
           // Check if there are any error parameters in the URL
-          if (currentUrl.contains('error=') || hash.contains('error=')) {
-            print('ERROR: Found error in URL! This indicates redirect failed.');
-          }
+          if (currentUrl.contains('error=') || hash.contains('error=')) {}
         }
 
         // Use the user from redirectResult if available, otherwise check currentUser

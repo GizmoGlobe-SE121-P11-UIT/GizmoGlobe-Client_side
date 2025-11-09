@@ -147,7 +147,9 @@ class _CartScreen extends State<CartScreen> {
                   children: [
                     // Checkbox
                     Checkbox(
-                      value: state.selectedItems.contains(item),
+                      value: state.selectedItems.any(
+                        (selectedItem) => selectedItem.product.productID == item.product.productID,
+                      ),
                       onChanged: (value) {
                         cubit.toggleItemSelection(item);
                       },
@@ -406,9 +408,9 @@ class _CartScreen extends State<CartScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      if (state.hasDiscounts && state.selectedCount > 0) ...[
+                      if (state.selectedItemsHasDiscounts && state.selectedCount > 0) ...[
                         Text(
-                          Helper.toCurrencyFormat(state.totalBeforeDiscount),
+                          Helper.toCurrencyFormat(state.selectedItemsTotalBeforeDiscount),
                           style: TextStyle(
                             decoration: TextDecoration.lineThrough,
                             color: Theme.of(context)
@@ -421,7 +423,7 @@ class _CartScreen extends State<CartScreen> {
                         // const SizedBox(height: 2),
                       ],
                       Text(
-                        Helper.toCurrencyFormat(state.totalAmount),
+                        Helper.toCurrencyFormat(state.selectedItemsTotalAmount),
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,

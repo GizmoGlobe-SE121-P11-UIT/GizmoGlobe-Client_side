@@ -385,6 +385,28 @@ class S {
         name: 'totalItems',
         args: [count, total],
       );
+  String itemsCount(int count) => Intl.message(
+        'Items ($count)',
+        name: 'itemsCount',
+        args: [count],
+      );
+  String get originalPrice =>
+      Intl.message('Original Price', name: 'originalPrice');
+  String get free => Intl.message('Free', name: 'free');
+  String get clearCart => Intl.message('Clear Cart', name: 'clearCart');
+  String get clearCartConfirmation => Intl.message(
+        'Are you sure you want to clear all items from your cart?',
+        name: 'clearCartConfirmation',
+      );
+  String get clearAll => Intl.message('Clear All', name: 'clearAll');
+  String get voucherAppliedSuccessfully => Intl.message(
+        'Voucher applied successfully',
+        name: 'voucherAppliedSuccessfully',
+      );
+  String get shippingAddressUpdatedSuccessfully => Intl.message(
+        'Shipping address updated successfully',
+        name: 'shippingAddressUpdatedSuccessfully',
+      );
 
   String get orderProcessingStatus => Intl.message(
         'Your order is being processed.',
