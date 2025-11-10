@@ -161,6 +161,62 @@ class S {
       Intl.message('Choose Address', name: 'chooseAddress');
   String get paymentMethod =>
       Intl.message('Payment Method', name: 'paymentMethod');
+  String get cashOnDelivery =>
+      Intl.message('Cash on Delivery', name: 'cashOnDelivery');
+  String get payWhenYouReceive =>
+      Intl.message('Pay when you receive your order',
+          name: 'payWhenYouReceive');
+  String get sepay => Intl.message('SePay', name: 'sepay');
+  String get sepayDescription => Intl.message(
+        'Local payment method (Coming soon)',
+        name: 'sepayDescription',
+      );
+  String get sepayScanInstructionsTitle => Intl.message(
+        'Scan QR code to pay',
+        name: 'sepayScanInstructionsTitle',
+      );
+  String get sepayScanInstructionsSubtitle => Intl.message(
+        'Open your banking app and scan the QR code below to complete the payment.',
+        name: 'sepayScanInstructionsSubtitle',
+      );
+  String get sepayPaymentDetailsTitle => Intl.message(
+        'Payment Details',
+        name: 'sepayPaymentDetailsTitle',
+      );
+  String get sepayAmountLabel =>
+      Intl.message('Amount', name: 'sepayAmountLabel');
+  String get sepayBankAccountLabel =>
+      Intl.message('Bank Account', name: 'sepayBankAccountLabel');
+  String get sepayBankLabel => Intl.message('Bank', name: 'sepayBankLabel');
+  String get sepayOrderIdLabel =>
+      Intl.message('Order ID', name: 'sepayOrderIdLabel');
+  String get sepayWaitingForPayment => Intl.message(
+        'Waiting for payment...',
+        name: 'sepayWaitingForPayment',
+      );
+  String get sepayManualInstructionsTitle => Intl.message(
+        'Manual Transfer Instructions',
+        name: 'sepayManualInstructionsTitle',
+      );
+  String get sepayManualInstructions => Intl.message(
+        '1. Open your banking app\n2. Select transfer/scan QR\n3. Scan the code or enter account details\n4. Enter the exact amount\n5. Complete the transfer',
+        name: 'sepayManualInstructions',
+      );
+  String get sepayClose => Intl.message('Close', name: 'sepayClose');
+  String get sepayRestoringCart =>
+      Intl.message('Restoring cart...', name: 'sepayRestoringCart');
+  String get sepayPaymentSuccessMessage => Intl.message(
+        'Your payment has been confirmed successfully.',
+        name: 'sepayPaymentSuccessMessage',
+      );
+  String get sepayPaymentInitFailed => Intl.message(
+        'Failed to initialize payment',
+        name: 'sepayPaymentInitFailed',
+      );
+  String get sepayGoBack => Intl.message('Go Back', name: 'sepayGoBack');
+  String get stripe => Intl.message('Stripe', name: 'stripe');
+  String get stripeDescription =>
+      Intl.message('Credit/Debit card payment', name: 'stripeDescription');
   String get orderSummary =>
       Intl.message('Order Summary', name: 'orderSummary');
   String get subtotal => Intl.message('Subtotal', name: 'subtotal');

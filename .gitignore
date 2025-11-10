@@ -154,3 +154,4 @@ ios/Flutter/flutter_export_environment.sh
 android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 ios/Flutter/flutter_export_environment.sh
 android/local.properties
+functions/package-lock.json

@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/cart_item.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
-import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_cubit.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_webview.dart';
+
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_webview.dart';
@@ -675,43 +676,27 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
               child: ElevatedButton(
                 onPressed: state.selectedCount > 0
                     ? () async {
-                        // Create invoice first, then navigate to checkout with invoice ID
-                        final checkoutCubit = CheckoutScreenCubit();
-                        try {
-                          final invoiceID =
-                              await checkoutCubit.createInvoiceFromCartItems(
-                            cubit.convertItemsToProductQuantityList(),
-                          );
-
-                          if (kIsWeb) {
-                            // Navigate using route on web
-                            Navigator.pushNamed(
-                              context,
-                              '/checkout/$invoiceID',
-                            );
-                          } else {
-                            // Navigate directly on mobile
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    CheckoutScreen.newInstanceFromInvoiceId(
-                                  salesInvoiceID: invoiceID,
-                                ),
+                        // Navigate to checkout with cart items
+                        // Invoice will be created in Firebase when checkout screen loads
+                        final cartItems =
+                            cubit.convertItemsToProductQuantityList();
+                        if (kIsWeb) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  CheckoutScreenWebView.newInstance(
+                                cartItems: cartItems,
                               ),
-                            );
-                          }
-                        } catch (e) {
-                          if (kDebugMode) {
-                            print('Error creating invoice: $e');
-                          }
-                          // Show error to user
-                          if (context.mounted) {
-                            SnackbarService.showError(
-                              context,
-                              title: S.of(context).error,
-                              message: 'Failed to create invoice: $e',
-                            );
-                          }
+                            ),
+                          );
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => CheckoutScreen.newInstance(
+                                cartItems: cartItems,
+                              ),
+                            ),
+                          );
                         }
                       }
                     : null,

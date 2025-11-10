@@ -403,7 +403,41 @@ class MyApp extends StatelessWidget {
                     );
                   }
 
-                  // Handle checkout route with sales invoice ID
+                  // Handle checkout route
+                  if (baseRouteName == '/checkout') {
+                    // New checkout flow - invoice created locally
+                    if (kIsWeb) {
+                      return PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            CheckoutScreenWebView.newInstance(
+                          cartItems: [], // Will be initialized from cart
+                        ),
+                        settings: RouteSettings(name: cleanRouteName),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                              opacity: animation, child: child);
+                        },
+                        transitionDuration: const Duration(milliseconds: 300),
+                      );
+                    } else {
+                      return PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            CheckoutScreen.newInstance(
+                          cartItems: [], // Will be initialized from cart
+                        ),
+                        settings: RouteSettings(name: cleanRouteName),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                              opacity: animation, child: child);
+                        },
+                        transitionDuration: const Duration(milliseconds: 300),
+                      );
+                    }
+                  }
+
+                  // Handle checkout route with sales invoice ID (legacy)
                   // Format: /checkout/{sales_invoice_id}
                   if (baseRouteName.startsWith('/checkout/')) {
                     final parts = baseRouteName.split('/');

@@ -85,6 +85,13 @@ class _ChooseAddressPopupWebViewState
     extends State<_ChooseAddressPopupWebView> {
   ChooseAddressScreenCubit get cubit =>
       context.read<ChooseAddressScreenCubit>();
+  Address? _selectedAddress;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedAddress = widget.address;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +128,8 @@ class _ChooseAddressPopupWebViewState
                     GradientText(text: S.of(context).address, fontSize: 24),
                     const Spacer(),
                     IconButton(
-                      onPressed: () => Navigator.pop(context, widget.address),
+                      onPressed: () => Navigator.pop(
+                          context, _selectedAddress ?? Address.nullAddress),
                       icon: Icon(
                         Icons.check,
                         color: Theme.of(context)
@@ -184,7 +192,8 @@ class _ChooseAddressPopupWebViewState
                   GradientText(text: S.of(context).address, fontSize: 24),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => Navigator.pop(context, widget.address),
+                    onPressed: () => Navigator.pop(
+                        context, _selectedAddress ?? Address.nullAddress),
                     icon: Icon(
                       Icons.check,
                       color: Theme.of(context)
@@ -212,10 +221,12 @@ class _ChooseAddressPopupWebViewState
                 children: [
                   ...state.addressList.map((address) {
                     final isSelected =
-                        widget.address.addressID == address.addressID;
+                        _selectedAddress?.addressID == address.addressID;
                     return GestureDetector(
                       onTap: () {
-                        Navigator.pop(context, address);
+                        setState(() {
+                          _selectedAddress = address;
+                        });
                       },
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 12),

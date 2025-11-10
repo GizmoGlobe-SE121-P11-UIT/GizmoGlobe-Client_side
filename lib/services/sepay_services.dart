@@ -8,9 +8,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// SePay allows businesses to accept payments via bank transfers without payment gateway fees.
 ///
 /// Required setup:
-/// 1. Register application with SePay to get client_id and client_secret
-/// 2. Add SEPAY_CLIENT_ID and SEPAY_CLIENT_SECRET to .env file
-/// 3. Add SEPAY_API_BASE_URL to .env file (e.g., https://api.sepay.vn)
+/// 1. Register SePay account and create API Token at: Cấu hình Công ty -> API Access
+/// 2. Add SEPAY_API_TOKEN to .env file
+/// 3. Optionally add SEPAY_API_BASE_URL to .env file (default: https://my.sepay.vn/userapi)
 ///
 /// Documentation: https://docs.sepay.vn/
 class SePayServices {
@@ -18,231 +18,80 @@ class SePayServices {
 
   static final SePayServices instance = SePayServices._();
 
-  // OAuth2 token cache
-  String? _accessToken;
-  DateTime? _tokenExpiry;
-
-  /// Get OAuth2 access token
-  /// SePay uses OAuth2 for API authentication
-  Future<String> _getAccessToken() async {
-    // Check if token is still valid
-    if (_accessToken != null &&
-        _tokenExpiry != null &&
-        DateTime.now().isBefore(_tokenExpiry!)) {
-      return _accessToken!;
-    }
-
+  /// Get API Token from environment variables
+  /// SePay uses Bearer token authentication (API Token)
+  String _getApiToken() {
     try {
-      final clientId = dotenv.env['SEPAY_CLIENT_ID'];
-      final clientSecret = dotenv.env['SEPAY_CLIENT_SECRET'];
-      final baseUrl =
-          dotenv.env['SEPAY_API_BASE_URL'] ?? 'https://api.sepay.vn';
-
-      if (clientId == null || clientSecret == null) {
+      // Check if dotenv is loaded by checking if it has any keys
+      if (dotenv.env.isEmpty) {
         throw Exception(
-            'SePay credentials not configured. Please add SEPAY_CLIENT_ID and SEPAY_CLIENT_SECRET to .env file');
+            'Environment variables not loaded. Please restart the app (not hot reload) to load .env file.');
       }
 
-      final dio = Dio();
-      final response = await dio.post(
-        '$baseUrl/oauth2/token',
-        data: {
-          'grant_type': 'client_credentials',
-          'client_id': clientId,
-          'client_secret': clientSecret,
-        },
-        options: Options(
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        ),
-      );
+      // Try to get the token and trim any whitespace
+      final apiTokenRaw = dotenv.env['SEPAY_API_TOKEN'];
+      final apiToken = apiTokenRaw?.trim();
 
-      if (response.statusCode == 200 && response.data != null) {
-        _accessToken = response.data['access_token'];
-        final expiresIn = response.data['expires_in'] ?? 3600;
-        _tokenExpiry = DateTime.now().add(
-            Duration(seconds: expiresIn - 60)); // Refresh 1 min before expiry
+      if (apiToken == null || apiToken.isEmpty) {
+        // Debug: Check what keys are available (only when error occurs)
+        final allKeys = dotenv.env.keys.toList();
+        final sepayKeys =
+            allKeys.where((k) => k.toUpperCase().contains('SEPAY')).toList();
+        final stripeKeyExists = dotenv.env.containsKey('STRIPE_SECRET_KEY');
 
-        if (kDebugMode) {
-          print('SePay OAuth2 token obtained successfully');
-        }
+        // Provide detailed error message with troubleshooting steps
+        final errorMessage = StringBuffer();
+        errorMessage.writeln('SePay API Token not found in .env file.');
+        errorMessage.writeln('');
+        errorMessage.writeln('Troubleshooting steps:');
+        errorMessage.writeln('1. Verify SEPAY_API_TOKEN exists in .env file');
+        errorMessage.writeln('2. Check that .env file is in project root');
+        errorMessage.writeln('3. Verify .env is listed in pubspec.yaml assets');
+        errorMessage.writeln(
+            '4. IMPORTANT: Fully restart the app (stop and start, not hot reload)');
+        errorMessage.writeln(
+            '   - On web: Stop the dev server and restart with "flutter run -d chrome"');
+        errorMessage.writeln('   - Hot reload does NOT reload .env files');
+        errorMessage
+            .writeln('5. Get your token from: Cấu hình Công ty -> API Access');
+        errorMessage.writeln('');
+        errorMessage.writeln('Debug info:');
+        errorMessage.writeln('- Total .env keys loaded: ${dotenv.env.length}');
+        errorMessage
+            .writeln('- SePay keys found: ${sepayKeys.length} ($sepayKeys)');
+        errorMessage.writeln(
+            '- STRIPE_SECRET_KEY exists: $stripeKeyExists (to verify .env loading)');
 
-        return _accessToken!;
-      } else {
-        throw Exception(
-            'Failed to obtain OAuth2 token: ${response.statusCode}');
+        throw Exception(errorMessage.toString());
       }
+      return apiToken;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error obtaining SePay OAuth2 token: $e');
-      }
-      throw Exception('Authentication failed: $e');
+      rethrow;
     }
   }
 
-  /// Create Virtual Account (VA) for an order
-  ///
-  /// SePay creates a unique virtual account for each order,
-  /// allowing automatic payment verification when customer transfers money.
-  ///
-  /// [orderId] - Unique order identifier
-  /// [amount] - Payment amount in VND
-  /// [customerName] - Customer name (optional)
-  /// [description] - Order description (optional)
-  ///
-  /// Returns Virtual Account details including:
-  /// - accountNumber: Virtual account number
-  /// - bankName: Bank name
-  /// - qrCode: QR code data for payment
-  /// - expiresAt: VA expiration time
-  Future<SePayVirtualAccount> createVirtualAccount({
-    required String orderId,
-    required double amount,
-    String? customerName,
-    String? description,
-  }) async {
-    try {
-      final accessToken = await _getAccessToken();
-      final baseUrl =
-          dotenv.env['SEPAY_API_BASE_URL'] ?? 'https://api.sepay.vn';
-
-      final dio = Dio();
-
-      // Convert amount to VND (smallest unit)
-      final amountInVND =
-          (amount * 1000).toInt(); // Assuming amount is in thousands of VND
-
-      final response = await dio.post(
-        '$baseUrl/api/va/create',
-        data: {
-          'order_id': orderId,
-          'amount': amountInVND,
-          'customer_name': customerName,
-          'description': description ?? 'Order payment',
-          'currency': 'VND',
-        },
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-            'Content-Type': 'application/json',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (kDebugMode) {
-          print('SePay VA created: ${response.data}');
-        }
-
-        return SePayVirtualAccount.fromJson(response.data);
-      } else {
-        throw Exception(
-            'Failed to create VA: ${response.statusCode} - ${response.data}');
+  /// Get base URL for SePay API
+  /// On web, uses Cloud Function proxy to bypass CORS
+  String _getBaseUrl() {
+    // On web, use Cloud Function proxy to bypass CORS
+    if (kIsWeb) {
+      final proxy = dotenv.env['SEPAY_PROXY_BASE_URL']?.trim();
+      if (proxy != null && proxy.isNotEmpty) {
+        return proxy;
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error creating SePay VA: $e');
-      }
-      throw Exception('Failed to create virtual account: $e');
+      // Default Cloud Function proxy URL (if not configured)
+      return 'https://us-central1-se121p11-gizmoglobe.cloudfunctions.net/sepayApiProxy';
     }
+    return dotenv.env['SEPAY_API_BASE_URL'] ?? 'https://my.sepay.vn/userapi';
   }
 
-  /// Check transaction status by order ID
-  ///
-  /// [orderId] - Order identifier to check payment status
-  ///
-  /// Returns transaction status and details
-  Future<SePayTransaction> checkTransactionStatus(String orderId) async {
-    try {
-      final accessToken = await _getAccessToken();
-      final baseUrl =
-          dotenv.env['SEPAY_API_BASE_URL'] ?? 'https://api.sepay.vn';
-
-      final dio = Dio();
-
-      final response = await dio.get(
-        '$baseUrl/api/transactions',
-        queryParameters: {
-          'order_id': orderId,
-        },
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-            'Content-Type': 'application/json',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        // SePay may return a list or single transaction
-        final data = response.data;
-        if (data is List && data.isNotEmpty) {
-          return SePayTransaction.fromJson(data.first as Map<String, dynamic>);
-        } else if (data is Map) {
-          return SePayTransaction.fromJson(data as Map<String, dynamic>);
-        } else {
-          throw Exception('No transaction found for order: $orderId');
-        }
-      } else {
-        throw Exception('Failed to check transaction: ${response.statusCode}');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error checking SePay transaction: $e');
-      }
-      throw Exception('Failed to check transaction status: $e');
+  /// Check if using proxy (Cloud Function)
+  bool _isUsingProxy() {
+    if (kIsWeb) {
+      final baseUrl = _getBaseUrl();
+      return baseUrl.contains('cloudfunctions.net');
     }
-  }
-
-  /// Poll transaction status until payment is confirmed or timeout
-  ///
-  /// [orderId] - Order identifier
-  /// [pollInterval] - Time between polls in seconds (default: 5 seconds)
-  /// [maxAttempts] - Maximum number of polling attempts (default: 60 = 5 minutes)
-  ///
-  /// Returns transaction when paid, or null if timeout
-  Future<SePayTransaction?> pollPaymentStatus({
-    required String orderId,
-    int pollInterval = 5,
-    int maxAttempts = 60,
-  }) async {
-    int attempts = 0;
-
-    while (attempts < maxAttempts) {
-      try {
-        final transaction = await checkTransactionStatus(orderId);
-
-        if (transaction.status == SePayTransactionStatus.paid) {
-          if (kDebugMode) {
-            print('Payment confirmed for order: $orderId');
-          }
-          return transaction;
-        }
-
-        // Wait before next poll
-        await Future.delayed(Duration(seconds: pollInterval));
-        attempts++;
-
-        if (kDebugMode && attempts % 12 == 0) {
-          print('Polling payment status... Attempt $attempts/$maxAttempts');
-        }
-      } catch (e) {
-        // If transaction not found yet, continue polling
-        if (e.toString().contains('No transaction found')) {
-          await Future.delayed(Duration(seconds: pollInterval));
-          attempts++;
-          continue;
-        }
-        // For other errors, throw
-        rethrow;
-      }
-    }
-
-    if (kDebugMode) {
-      print('Payment polling timeout for order: $orderId');
-    }
-    return null;
+    return false;
   }
 
   /// Get list of bank accounts
@@ -250,104 +99,699 @@ class SePayServices {
   /// Returns list of bank accounts configured in SePay
   Future<List<SePayBankAccount>> getBankAccounts() async {
     try {
-      final accessToken = await _getAccessToken();
-      final baseUrl =
-          dotenv.env['SEPAY_API_BASE_URL'] ?? 'https://api.sepay.vn';
-
+      final baseUrl = _getBaseUrl();
       final dio = Dio();
 
-      final response = await dio.get(
-        '$baseUrl/api/bank-accounts',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-            'Content-Type': 'application/json',
-          },
-        ),
-      );
+      Response response;
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        if (data is List) {
-          return data
-              .map((json) =>
-                  SePayBankAccount.fromJson(json as Map<String, dynamic>))
-              .toList();
-        } else if (data is Map && data['accounts'] != null) {
-          return (data['accounts'] as List)
-              .map((json) =>
-                  SePayBankAccount.fromJson(json as Map<String, dynamic>))
-              .toList();
+      if (_isUsingProxy()) {
+        // Use Cloud Function proxy (for web to bypass CORS)
+        response = await dio.post(
+          baseUrl,
+          data: {
+            'endpoint': 'bank-accounts',
+            'method': 'GET',
+            'data': {},
+          },
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+
+        // Proxy returns { success: true/false, data: {...}, error: ... }
+        if (response.statusCode == 200 && response.data is Map) {
+          final proxyResponse = response.data as Map<String, dynamic>;
+
+          // Check if proxy returned an error
+          if (proxyResponse['success'] == false) {
+            // Return empty list to allow upstream fallback to .env account
+            return [];
+          }
+
+          if (proxyResponse['success'] == true &&
+              proxyResponse['data'] != null) {
+            final data = proxyResponse['data'];
+            if (data is Map &&
+                data['status'] == 200 &&
+                data['bank_accounts'] != null) {
+              final accounts = data['bank_accounts'] as List;
+              return accounts
+                  .map((json) =>
+                      SePayBankAccount.fromJson(json as Map<String, dynamic>))
+                  .toList();
+            } else if (data is Map && data['bank_accounts'] != null) {
+              // Some APIs return bank_accounts directly without status wrapper
+              final accounts = data['bank_accounts'] as List;
+              return accounts
+                  .map((json) =>
+                      SePayBankAccount.fromJson(json as Map<String, dynamic>))
+                  .toList();
+            } else if (data is List) {
+              return data
+                  .map((json) =>
+                      SePayBankAccount.fromJson(json as Map<String, dynamic>))
+                  .toList();
+            }
+          }
         }
-        return [];
       } else {
-        throw Exception('Failed to get bank accounts: ${response.statusCode}');
+        // Direct API call (for mobile)
+        final apiToken = _getApiToken();
+        response = await dio.get(
+          '$baseUrl/bank-accounts',
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $apiToken',
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          final data = response.data;
+          if (data is Map &&
+              data['status'] == 200 &&
+              data['bank_accounts'] != null) {
+            final accounts = data['bank_accounts'] as List;
+            return accounts
+                .map((json) =>
+                    SePayBankAccount.fromJson(json as Map<String, dynamic>))
+                .toList();
+          } else if (data is List) {
+            return data
+                .map((json) =>
+                    SePayBankAccount.fromJson(json as Map<String, dynamic>))
+                .toList();
+          }
+        } else if (response.statusCode == 404) {
+          // Allow fallback when endpoint not available on this plan/bank
+          return [];
+        }
       }
+
+      return [];
     } catch (e) {
+      // Swallow errors here to enable fallback to .env account upstream
       if (kDebugMode) {
-        print('Error getting SePay bank accounts: $e');
+        print('Warning: Failed to get bank accounts: $e');
       }
-      throw Exception('Failed to get bank accounts: $e');
+      return [];
     }
   }
 
-  /// Main payment method - creates VA and waits for payment
+  /// Create Virtual Account (VA) for an order using bank account
   ///
-  /// [orderId] - Unique order identifier
-  /// [amount] - Payment amount (in VND, or convert from your currency)
+  /// SePay creates a unique virtual account for each order using the specified bank account,
+  /// allowing automatic payment verification when customer transfers money.
+  ///
+  /// Note: The exact endpoint may vary based on bank. This implementation uses the BIDV endpoint format.
+  /// You may need to adjust the endpoint based on your SePay configuration.
+  ///
+  /// [orderId] - Unique order identifier (invoice ID)
+  /// [amount] - Payment amount in VND (database format: thousands of VND, e.g., 5589.6 = 5,589,600 VND)
+  /// [bankAccountId] - Bank account ID from getBankAccounts()
   /// [customerName] - Customer name (optional)
   /// [description] - Order description (optional)
-  /// [waitForPayment] - Whether to wait for payment confirmation (default: false)
   ///
-  /// Returns transaction ID if payment is confirmed, or VA details if waiting
-  Future<SePayPaymentResult> makePayment({
+  /// Returns Virtual Account details including:
+  /// - accountNumber: Virtual account number
+  /// - bankName: Bank name
+  /// - qrCodeUrl: QR code URL for payment
+  /// - expiresAt: VA expiration time
+  Future<SePayVirtualAccount> createVirtualAccount({
     required String orderId,
     required double amount,
+    required String bankAccountId,
     String? customerName,
     String? description,
-    bool waitForPayment = false,
   }) async {
     try {
-      // Create Virtual Account
-      final va = await createVirtualAccount(
-        orderId: orderId,
-        amount: amount,
-        customerName: customerName,
-        description: description,
+      final baseUrl = _getBaseUrl();
+      final dio = Dio();
+
+      // Get bank account to determine bank code
+      final bankAccounts = await getBankAccounts();
+      final bankAccount = bankAccounts.firstWhere(
+        (acc) => acc.accountId == bankAccountId,
+        orElse: () => bankAccounts.first,
       );
 
-      if (waitForPayment) {
-        // Poll for payment confirmation
-        final transaction = await pollPaymentStatus(orderId: orderId);
+      // Convert amount to integer (DB uses thousands → convert to VND)
+      final amountInVND = (amount * 1000).round();
 
-        if (transaction != null &&
-            transaction.status == SePayTransactionStatus.paid) {
-          return SePayPaymentResult(
-            success: true,
-            transactionId: transaction.transactionId,
-            virtualAccount: va,
-            transaction: transaction,
+      // Try to create VA - endpoint format may vary: /bidv/{bank_account_id} or /va/create
+      // First, try the VA create endpoint with bank account ID
+      try {
+        Response response;
+
+        if (_isUsingProxy()) {
+          // Use Cloud Function proxy (for web to bypass CORS)
+          response = await dio.post(
+            baseUrl,
+            data: {
+              'endpoint': 'va/create',
+              'method': 'POST',
+              'data': {
+                'order_id': orderId,
+                'amount': amountInVND.toString(),
+                'bank_account_id': bankAccountId,
+                'customer_name': customerName ?? '',
+                'description': description ?? 'Order payment',
+              },
+            },
+            options: Options(
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            ),
           );
+
+          // Proxy returns { success: true, data: {...} }
+          if (response.statusCode == 200 && response.data is Map) {
+            final proxyResponse = response.data as Map<String, dynamic>;
+            if (proxyResponse['success'] == true &&
+                proxyResponse['data'] != null) {
+              final responseData = proxyResponse['data'] is Map
+                  ? proxyResponse['data'] as Map<String, dynamic>
+                  : {'data': proxyResponse['data']};
+
+              return SePayVirtualAccount.fromJson(
+                responseData,
+                orderId: orderId,
+                amount: amountInVND.toDouble(),
+              );
+            }
+          }
         } else {
-          return SePayPaymentResult(
-            success: false,
-            virtualAccount: va,
-            message: 'Payment timeout or not confirmed',
+          // Direct API call (for mobile)
+          final apiToken = _getApiToken();
+          response = await dio.post(
+            '$baseUrl/va/create',
+            data: {
+              'order_id': orderId,
+              'amount': amountInVND.toString(),
+              'bank_account_id': bankAccountId,
+              'customer_name': customerName ?? '',
+              'description': description ?? 'Order payment',
+            },
+            options: Options(
+              headers: {
+                'Authorization': 'Bearer $apiToken',
+                'Content-Type': 'application/json',
+              },
+            ),
           );
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            final responseData = response.data is Map
+                ? response.data as Map<String, dynamic>
+                : {'data': response.data};
+
+            return SePayVirtualAccount.fromJson(
+              responseData,
+              orderId: orderId,
+              amount: amountInVND.toDouble(),
+            );
+          }
+        }
+      } catch (e) {
+        // VA create endpoint failed, will use fallback
+      }
+
+      // Fallback: Use bank account number directly (if VA creation not available)
+      // In this case, we'll use the bank account number and generate QR code
+      // This is a workaround if VA creation endpoint is not available
+      return SePayVirtualAccount(
+        accountNumber: bankAccount.accountNumber,
+        bankName: bankAccount.bankName,
+        bankCode: bankAccount.bankCode,
+        amount: amountInVND.toDouble(),
+        currency: 'VND',
+        orderId: orderId,
+      );
+    } catch (e) {
+      throw Exception('Failed to create virtual account: $e');
+    }
+  }
+
+  /// Generate QR code URL for payment
+  ///
+  /// [accountNumber] - Bank account number or virtual account number
+  /// [bankCode] - Bank code (e.g., VCB, TCB, BIDV)
+  /// [amount] - Payment amount in VND
+  /// [description] - Payment description
+  ///
+  /// Returns QR code image URL
+  String generateQRCodeUrl({
+    required String accountNumber,
+    required String bankCode,
+    required double amount,
+    String? description,
+  }) {
+    // Convert amount to integer VND (DB uses thousands → convert to VND)
+    final amountInVND = (amount * 1000).round();
+
+    final descriptionParam = description != null && description.isNotEmpty
+        ? Uri.encodeComponent(description)
+        : 'Order payment';
+
+    // SePay VietQR expects bank name at `bank` param per docs:
+    // https://docs.sepay.vn/tao-qr-code-vietqr-dong.html
+    // Use bank name resolved from bank code for better compatibility.
+    final bankNameForQr = Uri.encodeComponent(
+      _bankNameFromCode(bankCode),
+    );
+
+    // QR code URL format: https://qr.sepay.vn/img?acc={account}&bank={bankName}&amount={amount}&des={description}
+    return 'https://qr.sepay.vn/img?acc=$accountNumber&bank=$bankNameForQr&amount=$amountInVND&des=$descriptionParam';
+  }
+
+  /// Map common bank codes to display names acceptable by qr.sepay.vn
+  String _bankNameFromCode(String bankCode) {
+    final code = bankCode.trim().toUpperCase();
+    switch (code) {
+      case 'VCB':
+      case 'VIETCOMBANK':
+        return 'Vietcombank';
+      case 'BIDV':
+        return 'BIDV';
+      case 'TCB':
+      case 'TECHCOMBANK':
+        return 'Techcombank';
+      case 'VIB':
+      case 'VIETINBANK':
+        return 'VietinBank';
+      case 'ACB':
+        return 'ACB';
+      default:
+        // Fallback to code itself; qr.sepay.vn may still accept it
+        return code;
+    }
+  }
+
+  /// Get transaction details by transaction ID
+  ///
+  /// [transactionId] - Transaction ID to get details
+  ///
+  /// Returns transaction details
+  Future<SePayTransaction> getTransactionDetails(String transactionId) async {
+    try {
+      final baseUrl = _getBaseUrl();
+      final dio = Dio();
+
+      Response response;
+
+      if (_isUsingProxy()) {
+        // Use Cloud Function proxy (for web to bypass CORS)
+        response = await dio.post(
+          baseUrl,
+          data: {
+            'endpoint': 'transactions/details/$transactionId',
+            'method': 'GET',
+            'data': {},
+          },
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+
+        // Proxy returns { success: true, data: {...} }
+        if (response.statusCode == 200 && response.data is Map) {
+          final proxyResponse = response.data as Map<String, dynamic>;
+          if (proxyResponse['success'] == true &&
+              proxyResponse['data'] != null) {
+            final data = proxyResponse['data'];
+            if (data is Map &&
+                data['status'] == 200 &&
+                data['transaction'] != null) {
+              return SePayTransaction.fromJson(
+                  data['transaction'] as Map<String, dynamic>);
+            } else if (data is Map) {
+              return SePayTransaction.fromJson(data as Map<String, dynamic>);
+            } else {
+              throw Exception('Invalid transaction data format');
+            }
+          }
         }
       } else {
-        // Return VA details, payment will be checked separately
-        return SePayPaymentResult(
-          success: true,
-          virtualAccount: va,
-          message: 'Virtual account created. Waiting for payment.',
+        // Direct API call (for mobile)
+        final apiToken = _getApiToken();
+        response = await dio.get(
+          '$baseUrl/transactions/details/$transactionId',
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $apiToken',
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          final data = response.data;
+          if (data is Map &&
+              data['status'] == 200 &&
+              data['transaction'] != null) {
+            return SePayTransaction.fromJson(
+                data['transaction'] as Map<String, dynamic>);
+          } else if (data is Map) {
+            return SePayTransaction.fromJson(data as Map<String, dynamic>);
+          } else {
+            throw Exception('Invalid transaction data format');
+          }
+        }
+      }
+
+      throw Exception(
+          'Failed to get transaction details: ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Failed to get transaction details: $e');
+    }
+  }
+
+  /// Get transactions list with filters
+  ///
+  /// [referenceNumber] - Reference number (order ID) to filter transactions
+  /// [accountNumber] - Bank account number to filter
+  /// [amountIn] - Amount in to filter (exact match)
+  /// [limit] - Maximum number of transactions to return (default: 100, max: 5000)
+  /// [sinceId] - Get transactions from this ID onwards
+  ///
+  /// Returns list of transactions
+  Future<List<SePayTransaction>> getTransactionsList({
+    String? referenceNumber,
+    String? accountNumber,
+    double? amountIn,
+    int limit = 100,
+    String? sinceId,
+  }) async {
+    try {
+      final baseUrl = _getBaseUrl();
+      final dio = Dio();
+
+      final queryParams = <String, dynamic>{
+        'limit': limit > 5000 ? 5000 : limit,
+      };
+
+      if (referenceNumber != null && referenceNumber.isNotEmpty) {
+        queryParams['reference_number'] = referenceNumber;
+      }
+      if (accountNumber != null && accountNumber.isNotEmpty) {
+        queryParams['account_number'] = accountNumber;
+      }
+      if (amountIn != null) {
+        // Convert to VND for API filter
+        queryParams['amount_in'] = (amountIn * 1000).round().toString();
+      }
+      if (sinceId != null && sinceId.isNotEmpty) {
+        queryParams['since_id'] = sinceId;
+      }
+
+      Response response;
+
+      if (_isUsingProxy()) {
+        // Use Cloud Function proxy (for web to bypass CORS)
+        response = await dio.post(
+          baseUrl,
+          data: {
+            'endpoint': 'transactions/list',
+            'method': 'GET',
+            'data': queryParams,
+          },
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+
+        // Proxy returns { success: true, data: {...} }
+        if (response.statusCode == 200 && response.data is Map) {
+          final proxyResponse = response.data as Map<String, dynamic>;
+          if (proxyResponse['success'] == true &&
+              proxyResponse['data'] != null) {
+            final data = proxyResponse['data'];
+            if (data is Map &&
+                data['status'] == 200 &&
+                data['transactions'] != null) {
+              final transactions = data['transactions'] as List;
+              return transactions
+                  .map((json) =>
+                      SePayTransaction.fromJson(json as Map<String, dynamic>))
+                  .toList();
+            } else if (data is List) {
+              return data
+                  .map((json) =>
+                      SePayTransaction.fromJson(json as Map<String, dynamic>))
+                  .toList();
+            }
+          }
+        }
+      } else {
+        // Direct API call (for mobile)
+        final apiToken = _getApiToken();
+        response = await dio.get(
+          '$baseUrl/transactions/list',
+          queryParameters: queryParams,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $apiToken',
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          final data = response.data;
+          if (data is Map &&
+              data['status'] == 200 &&
+              data['transactions'] != null) {
+            final transactions = data['transactions'] as List;
+            return transactions
+                .map((json) =>
+                    SePayTransaction.fromJson(json as Map<String, dynamic>))
+                .toList();
+          } else if (data is List) {
+            return data
+                .map((json) =>
+                    SePayTransaction.fromJson(json as Map<String, dynamic>))
+                .toList();
+          }
+        }
+      }
+
+      return [];
+    } catch (e) {
+      throw Exception('Failed to get transactions: $e');
+    }
+  }
+
+  /// Check if payment was made for an order by reference number
+  ///
+  /// [orderId] - Order identifier (reference number) to check payment status
+  /// [amount] - Expected payment amount in VND
+  ///
+  /// Returns transaction if payment found and matches amount, null otherwise
+  Future<SePayTransaction?> checkPaymentByOrderId({
+    required String orderId,
+    required double amount,
+  }) async {
+    try {
+      // Convert to VND for comparison (DB uses thousands)
+      final amountInVND = (amount * 1000).round();
+
+      // Get transactions filtered by reference number (order ID) and amount
+      final transactions = await getTransactionsList(
+        referenceNumber: orderId,
+        amountIn: amount,
+        limit: 10,
+      );
+
+      // Find transaction that matches the order ID and amount
+      for (var transaction in transactions) {
+        // Check if transaction amount matches (within small tolerance for rounding)
+        final transactionAmount = (transaction.amount * 1000).round();
+        if (transactionAmount == amountInVND &&
+            transaction.referenceNumber == orderId) {
+          // Check if transaction is a payment (amount_in > 0)
+          if (transaction.amountIn > 0) {
+            return transaction;
+          }
+        }
+      }
+
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error checking payment by order ID: $e');
+      }
+      return null;
+    }
+  }
+
+  /// Poll payment status until payment is confirmed or timeout
+  ///
+  /// [orderId] - Order identifier (reference number)
+  /// [amount] - Expected payment amount in VND
+  /// [pollInterval] - Time between polls in seconds (default: 5 seconds)
+  /// [maxAttempts] - Maximum number of polling attempts (default: 120 = 10 minutes)
+  ///
+  /// Returns transaction when paid, or null if timeout
+  Future<SePayTransaction?> pollPaymentStatus({
+    required String orderId,
+    required double amount,
+    int pollInterval = 5,
+    int maxAttempts = 120,
+  }) async {
+    int attempts = 0;
+
+    while (attempts < maxAttempts) {
+      try {
+        final transaction = await checkPaymentByOrderId(
+          orderId: orderId,
+          amount: amount,
+        );
+
+        if (transaction != null) {
+          return transaction;
+        }
+
+        // Wait before next poll
+        await Future.delayed(Duration(seconds: pollInterval));
+        attempts++;
+      } catch (e) {
+        // Continue polling on error
+        await Future.delayed(Duration(seconds: pollInterval));
+        attempts++;
+      }
+    }
+
+    return null;
+  }
+
+  /// Get default bank account from environment variables (for dev/fallback)
+  /// Used when API call fails due to CORS or network issues
+  SePayBankAccount? _getDefaultBankAccount() {
+    try {
+      final accountNumber = dotenv.env['SEPAY_DEFAULT_ACCOUNT_NUMBER']?.trim();
+      final bankName =
+          dotenv.env['SEPAY_DEFAULT_BANK_NAME']?.trim() ?? 'Vietcombank';
+      final bankCode = dotenv.env['SEPAY_DEFAULT_BANK_CODE']?.trim() ?? 'VCB';
+      final accountName =
+          dotenv.env['SEPAY_DEFAULT_ACCOUNT_NAME']?.trim() ?? 'Default Account';
+
+      if (accountNumber != null && accountNumber.isNotEmpty) {
+        return SePayBankAccount(
+          accountId: 'default',
+          accountNumber: accountNumber,
+          bankName: bankName,
+          bankCode: bankCode,
+          accountName: accountName,
         );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('SePay payment error: $e');
+      // Ignore errors when getting default bank account
+    }
+    return null;
+  }
+
+  /// Main payment method - creates VA for payment
+  ///
+  /// [orderId] - Unique order identifier (invoice ID)
+  /// [amount] - Payment amount (database format: thousands of VND, e.g., 5589.6 = 5,589,600 VND)
+  /// [bankAccountId] - Bank account ID from getBankAccounts(). If not provided, uses first available account.
+  /// [customerName] - Customer name (optional)
+  /// [description] - Order description (optional)
+  ///
+  /// Returns Virtual Account details with QR code URL
+  Future<SePayPaymentResult> createPayment({
+    required String orderId,
+    required double amount,
+    String? bankAccountId,
+    String? customerName,
+    String? description,
+  }) async {
+    try {
+      // Try to get bank accounts from API
+      List<SePayBankAccount> bankAccounts = [];
+      SePayBankAccount? defaultBankAccount;
+
+      // getBankAccounts() returns [] on errors to allow fallback
+      bankAccounts = await getBankAccounts();
+
+      if (bankAccounts.isEmpty) {
+        // Try to use default bank account from .env as last resort (all platforms, all modes)
+        defaultBankAccount = _getDefaultBankAccount();
+        if (defaultBankAccount != null) {
+          bankAccounts = [defaultBankAccount];
+        } else {
+          throw Exception(
+              'Cannot connect to SePay API and no default bank account configured.\n'
+              'Please set these variables in .env:\n'
+              'SEPAY_DEFAULT_ACCOUNT_NUMBER=your_account_number\n'
+              'SEPAY_DEFAULT_BANK_NAME=Bank Name\n'
+              'SEPAY_DEFAULT_BANK_CODE=VCB\n'
+              'SEPAY_DEFAULT_ACCOUNT_NAME=Account Name');
+        }
       }
-      throw Exception('Payment failed: $e');
+
+      // Use provided bank account ID or default to first account
+      final selectedBankAccountId =
+          bankAccountId ?? bankAccounts.first.accountId;
+      final selectedBankAccount = bankAccounts.firstWhere(
+        (acc) => acc.accountId == selectedBankAccountId,
+        orElse: () => bankAccounts.first,
+      );
+
+      // Create Virtual Account (or use fallback)
+      SePayVirtualAccount va;
+      try {
+        va = await createVirtualAccount(
+          orderId: orderId,
+          amount: amount,
+          bankAccountId: selectedBankAccountId,
+          customerName: customerName,
+          description: description,
+        );
+      } catch (e) {
+        // If VA creation fails (e.g., API unavailable), use fallback with bank account directly
+        if (kIsWeb && kDebugMode) {
+          // Use bank account directly to generate QR code
+          final amountInVND = (amount * 1000).round();
+          va = SePayVirtualAccount(
+            accountNumber: selectedBankAccount.accountNumber,
+            bankName: selectedBankAccount.bankName,
+            bankCode: selectedBankAccount.bankCode,
+            amount: amountInVND.toDouble(),
+            currency: 'VND',
+            orderId: orderId,
+          );
+        } else {
+          rethrow;
+        }
+      }
+
+      // Generate QR code URL
+      final qrCodeUrl = generateQRCodeUrl(
+        accountNumber: va.accountNumber,
+        bankCode: va.bankCode,
+        amount: amount,
+        description: description,
+      );
+
+      // Update VA with QR code URL
+      final vaWithQR = va.copyWith(qrCode: qrCodeUrl);
+
+      return SePayPaymentResult(
+        success: true,
+        virtualAccount: vaWithQR,
+        message: 'Virtual account created. Please scan QR code to pay.',
+      );
+    } catch (e) {
+      throw Exception('Failed to create payment: $e');
     }
   }
 }
@@ -360,8 +804,9 @@ class SePayVirtualAccount {
   final String? qrCode;
   final double amount;
   final String currency;
-  final DateTime expiresAt;
+  final DateTime? expiresAt;
   final String orderId;
+  final String? subAccount;
 
   SePayVirtualAccount({
     required this.accountNumber,
@@ -369,25 +814,97 @@ class SePayVirtualAccount {
     required this.bankCode,
     this.qrCode,
     required this.amount,
-    required this.currency,
-    required this.expiresAt,
+    this.currency = 'VND',
+    this.expiresAt,
     required this.orderId,
+    this.subAccount,
   });
 
-  factory SePayVirtualAccount.fromJson(Map<String, dynamic> json) {
+  factory SePayVirtualAccount.fromJson(
+    Map<String, dynamic> json, {
+    required String orderId,
+    required double amount,
+  }) {
+    // Parse account number - could be in various fields
+    final accountNumber = json['account_number'] ??
+        json['accountNumber'] ??
+        json['sub_account'] ??
+        json['subAccount'] ??
+        '';
+
+    // Parse bank information
+    final bankName = json['bank_name'] ??
+        json['bankName'] ??
+        json['bank_brand_name'] ??
+        json['bankBrandName'] ??
+        '';
+
+    final bankCode = json['bank_code'] ??
+        json['bankCode'] ??
+        extractBankCodeFromName(bankName);
+
+    // Parse expiration date if available
+    DateTime? expiresAt;
+    if (json['expires_at'] != null || json['expiresAt'] != null) {
+      try {
+        expiresAt = DateTime.parse(json['expires_at'] ?? json['expiresAt']);
+      } catch (e) {
+        // Ignore parsing errors
+      }
+    }
+
     return SePayVirtualAccount(
-      accountNumber: json['account_number'] ?? json['accountNumber'] ?? '',
-      bankName: json['bank_name'] ?? json['bankName'] ?? '',
-      bankCode: json['bank_code'] ?? json['bankCode'] ?? '',
+      accountNumber: accountNumber,
+      bankName: bankName,
+      bankCode: bankCode,
       qrCode: json['qr_code'] ?? json['qrCode'],
-      amount:
-          (json['amount'] ?? 0).toDouble() / 1000, // Convert from smallest unit
+      amount: amount, // Amount is passed as parameter
       currency: json['currency'] ?? 'VND',
-      expiresAt: DateTime.parse(json['expires_at'] ??
-          json['expiresAt'] ??
-          DateTime.now().add(Duration(days: 1)).toIso8601String()),
-      orderId: json['order_id'] ?? json['orderId'] ?? '',
+      expiresAt: expiresAt,
+      orderId: orderId,
+      subAccount: json['sub_account'] ?? json['subAccount'],
     );
+  }
+
+  SePayVirtualAccount copyWith({
+    String? accountNumber,
+    String? bankName,
+    String? bankCode,
+    String? qrCode,
+    double? amount,
+    String? currency,
+    DateTime? expiresAt,
+    String? orderId,
+    String? subAccount,
+  }) {
+    return SePayVirtualAccount(
+      accountNumber: accountNumber ?? this.accountNumber,
+      bankName: bankName ?? this.bankName,
+      bankCode: bankCode ?? this.bankCode,
+      qrCode: qrCode ?? this.qrCode,
+      amount: amount ?? this.amount,
+      currency: currency ?? this.currency,
+      expiresAt: expiresAt ?? this.expiresAt,
+      orderId: orderId ?? this.orderId,
+      subAccount: subAccount ?? this.subAccount,
+    );
+  }
+
+  static String extractBankCodeFromName(String bankName) {
+    // Extract bank code from bank name
+    final name = bankName.toLowerCase();
+    if (name.contains('vietcombank') || name.contains('vcb')) {
+      return 'VCB';
+    } else if (name.contains('bidv')) {
+      return 'BIDV';
+    } else if (name.contains('techcombank') || name.contains('tcb')) {
+      return 'TCB';
+    } else if (name.contains('vietinbank') || name.contains('vib')) {
+      return 'VIB';
+    } else if (name.contains('acb')) {
+      return 'ACB';
+    }
+    return 'VCB'; // Default
   }
 }
 
@@ -403,63 +920,129 @@ enum SePayTransactionStatus {
 /// Transaction model
 class SePayTransaction {
   final String transactionId;
-  final String orderId;
+  final String? orderId;
   final SePayTransactionStatus status;
-  final double amount;
+  final double amount; // Total amount (amount_in - amount_out)
+  final double amountIn; // Amount received
+  final double amountOut; // Amount sent
   final String currency;
-  final DateTime? paidAt;
+  final DateTime transactionDate;
   final String? payerName;
   final String? payerAccount;
   final String? description;
+  final String? referenceNumber;
+  final String accountNumber;
+  final String? subAccount;
+  final String bankBrandName;
+  final String bankAccountId;
+  final String? transactionContent;
+  final String? code;
+  final double? accumulated;
 
   SePayTransaction({
     required this.transactionId,
-    required this.orderId,
+    this.orderId,
     required this.status,
     required this.amount,
-    required this.currency,
-    this.paidAt,
+    required this.amountIn,
+    required this.amountOut,
+    this.currency = 'VND',
+    required this.transactionDate,
     this.payerName,
     this.payerAccount,
     this.description,
+    this.referenceNumber,
+    required this.accountNumber,
+    this.subAccount,
+    required this.bankBrandName,
+    required this.bankAccountId,
+    this.transactionContent,
+    this.code,
+    this.accumulated,
   });
 
   factory SePayTransaction.fromJson(Map<String, dynamic> json) {
+    // Parse transaction ID
+    final transactionId = json['id']?.toString() ??
+        json['transaction_id']?.toString() ??
+        json['transactionId']?.toString() ??
+        '';
+
+    // Parse amounts - SePay API returns amounts as strings
+    final amountInStr = json['amount_in'] ?? json['amountIn'] ?? '0.00';
+    final amountOutStr = json['amount_out'] ?? json['amountOut'] ?? '0.00';
+    final amountIn = double.tryParse(amountInStr.toString()) ?? 0.0;
+    final amountOut = double.tryParse(amountOutStr.toString()) ?? 0.0;
+    final amount = amountIn - amountOut;
+
+    // Parse transaction date
+    DateTime transactionDate = DateTime.now();
+    if (json['transaction_date'] != null || json['transactionDate'] != null) {
+      try {
+        transactionDate =
+            DateTime.parse(json['transaction_date'] ?? json['transactionDate']);
+      } catch (e) {
+        // Use current date if parsing fails
+      }
+    }
+
+    // Determine status based on amount_in
+    // If amount_in > 0, payment was received (paid)
+    final status = amountIn > 0
+        ? SePayTransactionStatus.paid
+        : SePayTransactionStatus.pending;
+
+    // Parse reference number (order ID)
+    final referenceNumber = json['reference_number'] ??
+        json['referenceNumber'] ??
+        json['order_id'] ??
+        json['orderId'];
+
+    // Extract payer name from transaction content
+    String? payerName;
+    final transactionContent =
+        json['transaction_content'] ?? json['transactionContent'] ?? '';
+    if (transactionContent is String && transactionContent.isNotEmpty) {
+      // Try to extract payer name from transaction content
+      // Format is usually: "NGUYEN VAN A chuyen tien..."
+      final parts = transactionContent.split(' ');
+      if (parts.isNotEmpty) {
+        payerName = parts.take(3).join(' '); // Take first 3 words as name
+      }
+    }
+
     return SePayTransaction(
-      transactionId:
-          json['transaction_id'] ?? json['transactionId'] ?? json['id'] ?? '',
-      orderId: json['order_id'] ?? json['orderId'] ?? '',
-      status: _parseStatus(json['status'] ?? 'pending'),
-      amount:
-          (json['amount'] ?? 0).toDouble() / 1000, // Convert from smallest unit
+      transactionId: transactionId,
+      orderId: referenceNumber,
+      status: status,
+      amount: amount,
+      amountIn: amountIn,
+      amountOut: amountOut,
       currency: json['currency'] ?? 'VND',
-      paidAt: json['paid_at'] != null || json['paidAt'] != null
-          ? DateTime.parse(json['paid_at'] ?? json['paidAt'])
-          : null,
-      payerName: json['payer_name'] ?? json['payerName'],
+      transactionDate: transactionDate,
+      payerName: payerName ?? json['payer_name'] ?? json['payerName'],
       payerAccount: json['payer_account'] ?? json['payerAccount'],
-      description: json['description'],
+      description: json['description'] ?? transactionContent,
+      referenceNumber: referenceNumber,
+      accountNumber: json['account_number'] ?? json['accountNumber'] ?? '',
+      subAccount: json['sub_account'] ?? json['subAccount'],
+      bankBrandName: json['bank_brand_name'] ??
+          json['bankBrandName'] ??
+          json['bank_name'] ??
+          json['bankName'] ??
+          '',
+      bankAccountId: json['bank_account_id']?.toString() ??
+          json['bankAccountId']?.toString() ??
+          '',
+      transactionContent: transactionContent,
+      code: json['code'],
+      accumulated: json['accumulated'] != null
+          ? double.tryParse(json['accumulated'].toString())
+          : null,
     );
   }
 
-  static SePayTransactionStatus _parseStatus(String status) {
-    switch (status.toLowerCase()) {
-      case 'paid':
-      case 'completed':
-      case 'success':
-        return SePayTransactionStatus.paid;
-      case 'failed':
-      case 'error':
-        return SePayTransactionStatus.failed;
-      case 'expired':
-        return SePayTransactionStatus.expired;
-      case 'cancelled':
-      case 'canceled':
-        return SePayTransactionStatus.cancelled;
-      default:
-        return SePayTransactionStatus.pending;
-    }
-  }
+  bool get isPaid => status == SePayTransactionStatus.paid && amountIn > 0;
 }
 
 /// Bank Account model
@@ -481,15 +1064,38 @@ class SePayBankAccount {
   });
 
   factory SePayBankAccount.fromJson(Map<String, dynamic> json) {
+    // Parse account ID
+    final accountId = json['id']?.toString() ??
+        json['account_id']?.toString() ??
+        json['bank_account_id']?.toString() ??
+        json['accountId']?.toString() ??
+        '';
+
+    // Parse bank name and code
+    final bankName = json['bank_name'] ??
+        json['bankName'] ??
+        json['bank_brand_name'] ??
+        json['bankBrandName'] ??
+        '';
+
+    final bankCode = json['bank_code'] ??
+        json['bankCode'] ??
+        SePayVirtualAccount.extractBankCodeFromName(bankName);
+
+    // Parse balance if available
+    double? balance;
+    if (json['balance'] != null) {
+      balance = double.tryParse(json['balance'].toString());
+    }
+
     return SePayBankAccount(
-      accountId: json['account_id'] ?? json['accountId'] ?? json['id'] ?? '',
+      accountId: accountId,
       accountNumber: json['account_number'] ?? json['accountNumber'] ?? '',
-      bankName: json['bank_name'] ?? json['bankName'] ?? '',
-      bankCode: json['bank_code'] ?? json['bankCode'] ?? '',
-      accountName: json['account_name'] ?? json['accountName'] ?? '',
-      balance: json['balance'] != null
-          ? (json['balance'] as num).toDouble() / 1000
-          : null,
+      bankName: bankName,
+      bankCode: bankCode,
+      accountName:
+          json['account_name'] ?? json['accountName'] ?? json['name'] ?? '',
+      balance: balance,
     );
   }
 }

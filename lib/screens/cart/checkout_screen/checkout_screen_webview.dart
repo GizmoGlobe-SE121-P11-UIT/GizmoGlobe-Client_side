@@ -13,10 +13,13 @@ import 'package:gizmoglobe_client/screens/cart/choose_voucher_screen/choose_vouc
 import 'package:gizmoglobe_client/screens/cart/choose_voucher_screen/choose_voucher_popup_webview.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_view.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
+import '../../../enums/invoice_related/payment_method.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/order_option_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
+import '../sepay_payment_screen/sepay_payment_screen.dart';
+import '../sepay_payment_screen/sepay_payment_modal_webview.dart';
 import 'checkout_screen_cubit.dart';
 import 'checkout_screen_state.dart';
 
@@ -55,13 +58,16 @@ class CheckoutScreenWebView extends StatefulWidget {
 
 class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
   CheckoutScreenCubit get cubit => context.read<CheckoutScreenCubit>();
+  bool _hasNavigatedToSePay = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.salesInvoiceID != null) {
       cubit.initializeFromInvoiceId(widget.salesInvoiceID!);
-    } else if (widget.cartItems != null) {
+    } else if (widget.cartItems != null && widget.cartItems!.isNotEmpty) {
+      // Create invoice in memory only (not in Firebase)
+      // Invoice will be saved to Firebase only when user places the order
       cubit.initialize(widget.cartItems!);
     }
   }
@@ -175,7 +181,60 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
             Expanded(
               child: BlocConsumer<CheckoutScreenCubit, CheckoutScreenState>(
                 listener: (context, state) {
-                  if (state.processState == ProcessState.success) {
+                  // Handle SePay payment navigation
+                  if (state.selectedPaymentMethod == PaymentMethod.sepay &&
+                      state.processState == ProcessState.idle &&
+                      !_hasNavigatedToSePay &&
+                      state.salesInvoice != null &&
+                      state.salesInvoice!.salesInvoiceID != null &&
+                      state.salesInvoice!.salesInvoiceID!.isNotEmpty) {
+                    _hasNavigatedToSePay = true;
+                    // On web: show compact modal; otherwise push full screen
+                    WidgetsBinding.instance.addPostFrameCallback((_) async {
+                      bool? paymentSuccess;
+                      if (kIsWeb) {
+                        paymentSuccess = await showSePayPaymentModal(
+                          context,
+                          orderId: state.salesInvoice!.salesInvoiceID!,
+                          amount: state.salesInvoice!.totalPrice,
+                          customerName: state.salesInvoice!.customerName,
+                          description:
+                              'Order ${state.salesInvoice!.salesInvoiceID}',
+                        );
+                      } else {
+                        paymentSuccess = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SePayPaymentScreen.newInstance(
+                              orderId: state.salesInvoice!.salesInvoiceID!,
+                              amount: state.salesInvoice!.totalPrice,
+                              customerName: state.salesInvoice!.customerName,
+                              description:
+                                  'Order ${state.salesInvoice!.salesInvoiceID}',
+                            ),
+                          ),
+                        );
+                      }
+                      _hasNavigatedToSePay = false;
+                      if (paymentSuccess == true) {
+                        final currentState = cubit.state;
+                        if (currentState.salesInvoice != null &&
+                            currentState.salesInvoice!.salesInvoiceID != null) {
+                          cubit.completeSePayPayment(
+                              currentState.salesInvoice!.salesInvoiceID!);
+                        }
+                      } else {
+                        if (mounted) {
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/cart',
+                            (route) => false,
+                          );
+                        }
+                      }
+                    });
+                  } else if (state.processState == ProcessState.success) {
                     showDialog(
                       context: context,
                       barrierDismissible: false,
@@ -267,6 +326,9 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                 // Address Section
                 _buildAddressSection(state),
                 const SizedBox(height: 24),
+                // Payment Method Section
+                _buildPaymentMethodSection(state),
+                const SizedBox(height: 24),
                 // Summary Section (scrollable on mobile)
                 _buildSummarySection(state, isMobile: true),
                 const SizedBox(height: 24),
@@ -303,6 +365,8 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                       _buildVoucherSection(state),
                       const SizedBox(height: 24),
                       _buildAddressSection(state),
+                      const SizedBox(height: 24),
+                      _buildPaymentMethodSection(state),
                     ],
                   ),
                 ),
@@ -527,11 +591,6 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
 
               if (voucher != null) {
                 await cubit.updateVoucher(voucher);
-                SnackbarService.showSuccess(
-                  context,
-                  title: S.of(context).success,
-                  message: S.of(context).voucherAppliedSuccessfully,
-                );
               }
             },
             borderRadius: BorderRadius.circular(8),
@@ -652,11 +711,6 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
 
               if (address != Address.nullAddress) {
                 await cubit.updateAddress(address);
-                SnackbarService.showSuccess(
-                  context,
-                  title: S.of(context).success,
-                  message: S.of(context).shippingAddressUpdatedSuccessfully,
-                );
               }
             },
             borderRadius: BorderRadius.circular(8),
@@ -865,6 +919,8 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          _buildPaymentMethodSummary(state),
           const SizedBox(height: 24),
           // Place Order Button
           SizedBox(
@@ -872,7 +928,8 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
             height: 56,
             child: ElevatedButton(
               onPressed: () async {
-                if (state.salesInvoice?.address == Address.nullAddress) {
+                if (state.salesInvoice?.address == null ||
+                    state.salesInvoice?.address == Address.nullAddress) {
                   SnackbarService.showWarning(
                     context,
                     title: S.of(context).chooseAddress,
@@ -902,6 +959,218 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPaymentMethodSection(CheckoutScreenState state) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            S.of(context).paymentMethod,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildPaymentMethodOption(
+            selectedMethod: state.selectedPaymentMethod,
+            method: PaymentMethod.cod,
+            title: S.of(context).cashOnDelivery,
+            description: S.of(context).payWhenYouReceive,
+            icon: Icons.money,
+            isSelected: state.selectedPaymentMethod == PaymentMethod.cod,
+            onTap: () => cubit.updatePaymentMethod(PaymentMethod.cod),
+          ),
+          const SizedBox(height: 12),
+          _buildPaymentMethodOption(
+            selectedMethod: state.selectedPaymentMethod,
+            method: PaymentMethod.sepay,
+            title: S.of(context).sepay,
+            description: S.of(context).sepayDescription,
+            icon: Icons.account_balance,
+            isSelected: state.selectedPaymentMethod == PaymentMethod.sepay,
+            onTap: () => cubit.updatePaymentMethod(PaymentMethod.sepay),
+          ),
+          const SizedBox(height: 12),
+          _buildPaymentMethodOption(
+            selectedMethod: state.selectedPaymentMethod,
+            method: PaymentMethod.stripe,
+            title: S.of(context).stripe,
+            description: S.of(context).stripeDescription,
+            icon: Icons.credit_card,
+            isSelected: state.selectedPaymentMethod == PaymentMethod.stripe,
+            onTap: () => cubit.updatePaymentMethod(PaymentMethod.stripe),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodOption({
+    required PaymentMethod selectedMethod,
+    required PaymentMethod method,
+    required String title,
+    required String description,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+    bool isDisabled = false,
+  }) {
+    return InkWell(
+      onTap: isDisabled ? null : onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context)
+                  .colorScheme
+                  .primaryContainer
+                  .withValues(alpha: 0.3)
+              : Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).dividerColor,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Radio<PaymentMethod>(
+              value: method,
+              groupValue: selectedMethod,
+              onChanged: isDisabled ? null : (_) => onTap(),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              icon,
+              color: isDisabled
+                  ? Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.4)
+                  : Theme.of(context).colorScheme.primary,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isDisabled
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.4)
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDisabled
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.4)
+                          : Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodSummary(CheckoutScreenState state) {
+    String title;
+    String description;
+    IconData icon;
+
+    switch (state.selectedPaymentMethod) {
+      case PaymentMethod.cod:
+        title = S.of(context).cashOnDelivery;
+        description = S.of(context).payWhenYouReceive;
+        icon = Icons.money;
+        break;
+      case PaymentMethod.sepay:
+        title = S.of(context).sepay;
+        description = S.of(context).sepayDescription;
+        icon = Icons.account_balance;
+        break;
+      case PaymentMethod.stripe:
+        title = S.of(context).stripe;
+        description = S.of(context).stripeDescription;
+        icon = Icons.credit_card;
+        break;
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          color: Theme.of(context).colorScheme.primary,
+          size: 24,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

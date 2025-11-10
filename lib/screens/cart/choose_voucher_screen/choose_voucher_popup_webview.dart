@@ -106,35 +106,95 @@ class _ChooseVoucherPopupWebViewState
     _temporarySelectedVoucher = widget.currentVoucher;
   }
 
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.card_giftcard,
+            color: Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: 0.9),
+          ),
+          const SizedBox(width: 8),
+          GradientText(text: S.of(context).chooseVoucher, fontSize: 24),
+          const Spacer(),
+          IconButton(
+            onPressed: () {
+              Navigator.pop(context, _temporarySelectedVoucher);
+            },
+            icon: Icon(
+              Icons.check,
+              color: Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: 0.6),
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChooseVoucherScreenCubit, ChooseVoucherScreenState>(
       builder: (context, state) {
         if (state.processState == ProcessState.loading) {
-          return Container(
-            constraints: const BoxConstraints(
-              minHeight: 200,
-              maxHeight: 400,
-            ),
-            child: const Center(child: CircularProgressIndicator()),
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(context),
+              Container(
+                constraints: const BoxConstraints(
+                  minHeight: 200,
+                  maxHeight: 400,
+                ),
+                alignment: Alignment.center,
+                child: const CircularProgressIndicator(),
+              ),
+            ],
           );
         }
 
         if (state.availableVouchers.isEmpty) {
-          return Container(
-            constraints: const BoxConstraints(
-              minHeight: 200,
-              maxHeight: 400,
-            ),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 60.0),
-                child: Text(
-                  S.of(context).noVouchersAvailable,
-                  style: AppTextStyle.regularText,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(context),
+              Container(
+                constraints: const BoxConstraints(
+                  minHeight: 200,
+                  maxHeight: 400,
+                ),
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60.0),
+                  child: Text(
+                    S.of(context).noVouchersAvailable,
+                    style: AppTextStyle.regularText,
+                  ),
                 ),
               ),
-            ),
+            ],
           );
         }
 
@@ -142,53 +202,7 @@ class _ChooseVoucherPopupWebViewState
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                border: Border(
-                  bottom: BorderSide(
-                    color:
-                        Theme.of(context).dividerColor.withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.card_giftcard,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.9),
-                  ),
-                  const SizedBox(width: 8),
-                  GradientText(text: S.of(context).chooseVoucher, fontSize: 24),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () {
-                      // Apply the selection when tick is pressed
-                      Navigator.pop(context, _temporarySelectedVoucher);
-                    },
-                    icon: Icon(
-                      Icons.check,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.6),
-                    ),
-                    style: IconButton.styleFrom(
-                      backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildHeader(context),
             // Content - Size to content, scroll when needed
             Padding(
               padding: const EdgeInsets.all(8.0),

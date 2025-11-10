@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
 import '../../../data/firebase/firebase.dart';
+import '../../../enums/invoice_related/payment_method.dart';
 import '../../../enums/invoice_related/payment_status.dart';
 import '../../../enums/invoice_related/sales_status.dart';
 import '../../../objects/address_related/address.dart';
@@ -19,20 +21,57 @@ import '../../../enums/processing/process_state_enum.dart';
 
 class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
   final Firebase _firebase = Firebase();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   CheckoutScreenCubit() : super(const CheckoutScreenState());
 
-  /// Create a new sales invoice from cart items and save it to Firebase
+  double _roundToThreeDecimals(double value) =>
+      double.parse(value.toStringAsFixed(3));
+
+  /// Get customer name from Firebase
+  Future<String> _getCustomerName() async {
+    try {
+      final userID = Database().userID;
+      if (userID.isEmpty) {
+        return '';
+      }
+
+      final customerDoc =
+          await _firestore.collection('customers').doc(userID).get();
+
+      if (customerDoc.exists) {
+        final data = customerDoc.data() as Map<String, dynamic>;
+        return data['customerName'] as String? ?? '';
+      }
+      return '';
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting customer name: $e');
+      }
+      return '';
+    }
+  }
+
+  /// Update selected payment method
+  void updatePaymentMethod(PaymentMethod paymentMethod) {
+    emit(state.copyWith(selectedPaymentMethod: paymentMethod));
+  }
+
+  /// Create a new sales invoice from cart items and save to Firebase
+  /// This creates an unpaid invoice so it can be recovered on page refresh
   /// Returns the created invoice ID
   Future<String> createInvoiceFromCartItems(
       List<Map<Product, int>> cartItems) async {
     emit(state.copyWith(processState: ProcessState.loading));
     try {
+      final customerName = await _getCustomerName();
+
       List<SalesInvoiceDetail> details = cartItems.map((item) {
         final product = item.keys.first;
         final quantity = item.values.first;
         // Use the already-calculated discountedPrice from the product
         // discountedPrice is already in the correct unit (price after discount)
+        // Don't round here - store exact values for accurate calculations
         final sellingPrice = product.discountedPrice;
         final subtotal = sellingPrice * quantity;
 
@@ -45,18 +84,22 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         );
       }).toList();
 
+      // Calculate total without rounding - will be rounded once at checkout
+      final totalPrice = details.fold(
+          0.0, (previousValue, element) => previousValue + element.subtotal);
+
       SalesInvoice salesInvoice = SalesInvoice(
         customerID: Database().userID,
+        customerName: customerName,
         date: DateTime.now(),
         salesStatus: SalesStatus.pending,
         address: Address.nullAddress,
         paymentStatus: PaymentStatus.unpaid,
-        totalPrice: details.fold(
-            0.0, (previousValue, element) => previousValue + element.subtotal),
+        totalPrice: totalPrice,
         details: details,
       );
 
-      // Save invoice to Firebase to get the ID
+      // Save invoice to Firebase to get ID (for page refresh recovery)
       await _firebase.addSalesInvoice(salesInvoice);
 
       // Get the created invoice with ID
@@ -81,13 +124,16 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
   }
 
   /// Initialize from cart items (legacy method, kept for backward compatibility)
-  /// This creates the invoice in memory only, use createInvoiceFromCartItems for new flow
-  void initialize(List<Map<Product, int>> cartItems) {
+  /// This creates the invoice in memory only
+  Future<void> initialize(List<Map<Product, int>> cartItems) async {
+    final customerName = await _getCustomerName();
+
     List<SalesInvoiceDetail> details = cartItems.map((item) {
       final product = item.keys.first;
       final quantity = item.values.first;
       // Use the already-calculated discountedPrice from the product
       // discountedPrice is already in the correct unit (price after discount)
+      // Don't round here - store exact values for accurate calculations
       final sellingPrice = product.discountedPrice;
       final subtotal = sellingPrice * quantity;
 
@@ -100,14 +146,18 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       );
     }).toList();
 
+    // Calculate total without rounding - will be rounded once at checkout
+    final totalPrice = details.fold(
+        0.0, (previousValue, element) => previousValue + element.subtotal);
+
     SalesInvoice salesInvoice = SalesInvoice(
       customerID: Database().userID,
+      customerName: customerName,
       date: DateTime.now(),
       salesStatus: SalesStatus.pending,
       address: Address.nullAddress,
       paymentStatus: PaymentStatus.unpaid,
-      totalPrice: details.fold(
-          0.0, (previousValue, element) => previousValue + element.subtotal),
+      totalPrice: totalPrice,
       details: details,
     );
 
@@ -171,87 +221,179 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
   Future<void> checkout() async {
     emit(state.copyWith(processState: ProcessState.loading));
     try {
-      // Update the invoice with current state (address, voucher, etc.) before payment
-      if (state.salesInvoice?.salesInvoiceID != null &&
-          state.salesInvoice!.salesInvoiceID!.isNotEmpty) {
-        // Invoice already exists, update it
-        await _firebase.updateSalesInvoice(state.salesInvoice!);
-      } else {
-        // Legacy flow: invoice doesn't exist yet, create it
-        if (state.salesInvoice == null) {
-          throw Exception('No invoice to checkout');
-        }
-        await saveSalesInvoice();
+      if (state.salesInvoice == null) {
+        throw Exception('No invoice to checkout');
       }
 
-      // On web, store invoice data before redirect for post-payment completion
-      if (kIsWeb && state.salesInvoice != null) {
-        await _storeCheckoutDataForWeb();
+      // Ensure customerName is set
+      if (state.salesInvoice!.customerName == null ||
+          state.salesInvoice!.customerName!.isEmpty) {
+        final customerName = await _getCustomerName();
+        final updatedInvoice = state.salesInvoice!.copyWith(
+          customerName: customerName,
+        );
+        emit(state.copyWith(salesInvoice: updatedInvoice));
       }
 
-      String? result;
-      try {
-        result = await StripeServices.instance
-            .makePayment(state.salesInvoice!.totalPrice);
-      } catch (paymentError) {
-        // Payment initiation failed - cancel the invoice
-        if (state.salesInvoice?.salesInvoiceID != null &&
-            state.salesInvoice!.salesInvoiceID!.isNotEmpty) {
-          await cancelInvoice();
-        }
-        emit(state.copyWith(
-            processState: ProcessState.failure,
-            message: 'Payment failed: ${paymentError.toString()}'));
-        return;
+      final paymentMethod = state.selectedPaymentMethod;
+
+      // Ensure customerName is set before creating invoice
+      SalesInvoice invoiceToProcess = state.salesInvoice!;
+      if (invoiceToProcess.customerName == null ||
+          invoiceToProcess.customerName!.isEmpty) {
+        final customerName = await _getCustomerName();
+        invoiceToProcess = invoiceToProcess.copyWith(
+          customerName: customerName,
+        );
       }
 
-      // On web, makePayment returns null because it redirects to Stripe Checkout
-      // The payment will be completed after redirect, so we don't emit success here
-      if (kIsWeb && result == null) {
-        // Payment redirect initiated, will be handled by checkout success page
-        // Don't emit failure - the redirect is in progress
-        return;
-      }
+      // Calculate final total: sum all items, apply voucher discount, then round once
+      final totalBeforeVoucher = invoiceToProcess.getTotalBasedPrice();
+      final voucherDiscount = invoiceToProcess.voucherDiscount;
+      final totalAfterDiscount = totalBeforeVoucher - voucherDiscount;
+      final finalTotal = totalAfterDiscount > 0.0 ? totalAfterDiscount : 0.0;
 
-      if (result == null) {
-        if (kDebugMode) {
-          print('Payment failed');
-        }
-        // Payment failed - cancel the invoice
-        if (state.salesInvoice?.salesInvoiceID != null &&
-            state.salesInvoice!.salesInvoiceID!.isNotEmpty) {
-          await cancelInvoice();
-        }
-        emit(state.copyWith(
-            processState: ProcessState.failure, message: 'Payment failed'));
-        return;
-      }
+      // Round only once at the end - round to 3 decimal places
+      final roundedTotalPrice = _roundToThreeDecimals(finalTotal);
 
-      // Update invoice payment status to paid
-      final updatedInvoice = state.salesInvoice!.copyWith(
-        paymentStatus: PaymentStatus.paid,
+      // Update invoice with rounded total price and current state
+      final invoiceWithRoundedTotal = invoiceToProcess.copyWith(
+        totalPrice: roundedTotalPrice,
       );
-      emit(state.copyWith(salesInvoice: updatedInvoice));
 
-      if (updatedInvoice.salesInvoiceID != null &&
-          updatedInvoice.salesInvoiceID!.isNotEmpty) {
-        await _firebase.updateSalesInvoice(updatedInvoice);
+      // Create invoice in Firebase only when user places the order
+      // Invoice was only in memory until now
+      if (invoiceWithRoundedTotal.salesInvoiceID == null ||
+          invoiceWithRoundedTotal.salesInvoiceID!.isEmpty) {
+        // Create invoice in Firebase
+        await _firebase.addSalesInvoice(invoiceWithRoundedTotal);
+        if (invoiceWithRoundedTotal.salesInvoiceID == null ||
+            invoiceWithRoundedTotal.salesInvoiceID!.isEmpty) {
+          throw Exception('Failed to create invoice: No ID returned');
+        }
+        // Update state with invoice that now has ID
+        emit(state.copyWith(salesInvoice: invoiceWithRoundedTotal));
       } else {
-        await saveSalesInvoice();
+        // Invoice already exists in Firebase (e.g., from page refresh recovery), update it
+        await _firebase.updateSalesInvoice(invoiceWithRoundedTotal);
       }
 
-      // Clear cart items after successful payment
-      for (var detail in state.salesInvoice!.details) {
-        await _firebase.removeFromCart(
-            Database().userID, detail.product.productID ?? '');
-      }
+      // Handle different payment methods
+      if (paymentMethod == PaymentMethod.cod) {
+        // COD: Invoice already exists with unpaid status, just update to pending
+        final invoiceToSave = invoiceWithRoundedTotal.copyWith(
+          salesStatus: SalesStatus.pending,
+          paymentStatus: PaymentStatus.unpaid,
+        );
 
-      emit(state.copyWith(processState: ProcessState.success));
+        // Update invoice in Firebase
+        await _firebase.updateSalesInvoice(invoiceToSave);
+
+        // Clear cart items
+        for (var detail in invoiceToSave.details) {
+          await _firebase.removeFromCart(
+              Database().userID, detail.product.productID ?? '');
+        }
+
+        emit(state.copyWith(
+          salesInvoice: invoiceToSave,
+          processState: ProcessState.success,
+        ));
+        return;
+      } else if (paymentMethod == PaymentMethod.sepay) {
+        // SePay: Create invoice and navigate to SePay payment screen
+        // Invoice is already created in Firebase above
+        // Update invoice status to pending (payment not yet confirmed)
+        final invoiceToSave = invoiceWithRoundedTotal.copyWith(
+          salesStatus: SalesStatus.pending,
+          paymentStatus: PaymentStatus.unpaid,
+        );
+
+        // Update invoice in Firebase
+        await _firebase.updateSalesInvoice(invoiceToSave);
+
+        // Clear cart items (invoice is created, payment will be handled separately)
+        for (var detail in invoiceToSave.details) {
+          await _firebase.removeFromCart(
+              Database().userID, detail.product.productID ?? '');
+        }
+
+        // Emit special state to indicate SePay payment screen should be shown
+        // The UI will handle navigation to SePay payment screen
+        emit(state.copyWith(
+          salesInvoice: invoiceToSave,
+          processState:
+              ProcessState.idle, // Don't emit success yet - wait for payment
+        ));
+        return;
+      } else if (paymentMethod == PaymentMethod.stripe) {
+        // Stripe: Handle payment first, then update invoice on success
+        // Invoice is already created in Firebase above, now store checkout data
+        // Store checkout data with rounded total before redirect
+        if (kIsWeb) {
+          await _storeCheckoutDataForWeb(roundedTotalPrice);
+        }
+
+        String? result;
+        try {
+          result = await StripeServices.instance.makePayment(roundedTotalPrice);
+        } catch (paymentError) {
+          // Payment initiation failed - cancel the invoice
+          if (invoiceWithRoundedTotal.salesInvoiceID != null &&
+              invoiceWithRoundedTotal.salesInvoiceID!.isNotEmpty) {
+            await cancelInvoiceFromId(invoiceWithRoundedTotal.salesInvoiceID!);
+          }
+          emit(state.copyWith(
+              processState: ProcessState.failure,
+              message: 'Payment failed: ${paymentError.toString()}'));
+          return;
+        }
+
+        // On web, makePayment returns null because it redirects to Stripe Checkout
+        // The payment will be completed after redirect, so we don't emit success here
+        if (kIsWeb && result == null) {
+          // Payment redirect initiated, will be handled by checkout success page
+          // Don't emit failure - the redirect is in progress
+          return;
+        }
+
+        if (result == null) {
+          if (kDebugMode) {
+            print('Payment failed');
+          }
+          // Payment failed - cancel the invoice
+          if (invoiceWithRoundedTotal.salesInvoiceID != null &&
+              invoiceWithRoundedTotal.salesInvoiceID!.isNotEmpty) {
+            await cancelInvoiceFromId(invoiceWithRoundedTotal.salesInvoiceID!);
+          }
+          emit(state.copyWith(
+              processState: ProcessState.failure, message: 'Payment failed'));
+          return;
+        }
+
+        // Payment successful - update invoice to paid status with rounded total
+        final invoiceToSave = invoiceWithRoundedTotal.copyWith(
+          paymentStatus: PaymentStatus.paid,
+        );
+
+        await _firebase.updateSalesInvoice(invoiceToSave);
+
+        // Clear cart items after successful payment
+        for (var detail in invoiceToSave.details) {
+          await _firebase.removeFromCart(
+              Database().userID, detail.product.productID ?? '');
+        }
+
+        emit(state.copyWith(
+          salesInvoice: invoiceToSave,
+          processState: ProcessState.success,
+        ));
+      }
     } catch (e) {
-      // Any error during checkout - cancel the invoice
+      // Any error during checkout - cancel the invoice if it was created
       if (state.salesInvoice?.salesInvoiceID != null &&
           state.salesInvoice!.salesInvoiceID!.isNotEmpty) {
-        await cancelInvoice();
+        await cancelInvoiceFromId(state.salesInvoice!.salesInvoiceID!);
       }
       emit(state.copyWith(
           processState: ProcessState.failure, message: e.toString()));
@@ -259,12 +401,16 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
   }
 
   /// Store checkout data in sessionStorage for web (before redirect)
-  Future<void> _storeCheckoutDataForWeb() async {
+  /// Uses the rounded total price passed from checkout() method
+  Future<void> _storeCheckoutDataForWeb(double roundedTotalPrice) async {
     if (!kIsWeb || state.salesInvoice == null) return;
 
     try {
       // Store invoice summary - convert DateTime to ISO string for JSON encoding
       final invoiceMap = state.salesInvoice!.toMap();
+      // Update totalPrice with rounded value (already calculated in checkout)
+      invoiceMap['totalPrice'] = roundedTotalPrice;
+
       // Convert DateTime to ISO string for JSON encoding
       final invoiceMapEncodable = Map<String, dynamic>.from(invoiceMap);
       if (invoiceMapEncodable['date'] is DateTime) {
@@ -300,7 +446,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
   }
 
   /// Complete checkout after successful payment (called from checkout success page)
-  /// This method updates the existing invoice with paid status
+  /// This method updates the existing invoice to paid status after successful Stripe payment
   Future<void> completeCheckoutFromStoredData(String paymentIntentId) async {
     if (!kIsWeb) return;
 
@@ -349,6 +495,42 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
     }
   }
 
+  /// Complete SePay payment - called when payment is confirmed
+  /// Updates the invoice to paid status after successful SePay payment
+  Future<void> completeSePayPayment(String salesInvoiceID) async {
+    try {
+      // Load the existing invoice from Firebase
+      final salesInvoice = await _firebase.getSalesInvoiceById(salesInvoiceID);
+      if (salesInvoice == null) {
+        throw Exception('Invoice not found: $salesInvoiceID');
+      }
+
+      // Update invoice with paid status
+      final updatedInvoice = salesInvoice.copyWith(
+        paymentStatus: PaymentStatus.paid,
+        salesStatus: SalesStatus.pending, // Keep as pending until shipped
+      );
+
+      // Update invoice in Firebase
+      await _firebase.updateSalesInvoice(updatedInvoice);
+
+      // Emit success state
+      emit(state.copyWith(
+        salesInvoice: updatedInvoice,
+        processState: ProcessState.success,
+      ));
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error completing SePay payment: $e');
+      }
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        message: e.toString(),
+      ));
+      rethrow;
+    }
+  }
+
   Future<void> saveSalesInvoice() async {
     try {
       await Firebase().addSalesInvoice(state.salesInvoice!);
@@ -368,66 +550,56 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
     final updatedInvoice = state.salesInvoice!.copyWith(address: address);
     emit(state.copyWith(salesInvoice: updatedInvoice));
 
-    // Update invoice in Firebase if it already exists
-    if (updatedInvoice.salesInvoiceID != null &&
-        updatedInvoice.salesInvoiceID!.isNotEmpty) {
-      try {
-        await _firebase.updateSalesInvoice(updatedInvoice);
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error updating address in invoice: $e');
-        }
-        // Don't emit error - user can still continue
-      }
-    }
+    // Invoice is only in memory until checkout, so no need to update Firebase here
+    // Changes will be saved to Firebase when user places the order
   }
 
   Future<void> updateVoucher(Voucher voucher) async {
     if (state.salesInvoice == null) return;
 
+    // Calculate voucher discount without rounding
+    final voucherDiscount = _calculateVoucherDiscount(voucher);
+
     final updatedInvoice = state.salesInvoice!.copyWith(
       voucher: voucher,
-      voucherDiscount: _calculateVoucherDiscount(voucher),
+      voucherDiscount: voucherDiscount,
     );
 
-    // Recalculate total price with voucher discount
-    final totalAfterDiscount =
-        updatedInvoice.getTotalBasedPrice() - updatedInvoice.voucherDiscount;
+    // Calculate total price with voucher discount (without rounding)
+    // Rounding will happen only once at checkout
+    final totalBeforeDiscount = updatedInvoice.getTotalBasedPrice();
+    final totalAfterDiscount = totalBeforeDiscount - voucherDiscount;
+    final finalTotal = totalAfterDiscount > 0 ? totalAfterDiscount : 0.0;
+
     final finalInvoice = updatedInvoice.copyWith(
-      totalPrice: totalAfterDiscount > 0 ? totalAfterDiscount : 0,
+      totalPrice: finalTotal,
     );
 
     emit(state.copyWith(salesInvoice: finalInvoice));
 
-    // Update invoice in Firebase if it already exists
-    if (finalInvoice.salesInvoiceID != null &&
-        finalInvoice.salesInvoiceID!.isNotEmpty) {
-      try {
-        await _firebase.updateSalesInvoice(finalInvoice);
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error updating voucher in invoice: $e');
-        }
-        // Don't emit error - user can still continue
-      }
-    }
+    // Invoice is only in memory until checkout, so no need to update Firebase here
+    // Changes will be saved to Firebase when user places the order
   }
 
   double _calculateVoucherDiscount(Voucher voucher) {
     final totalBeforeDiscount = state.salesInvoice!.getTotalBasedPrice();
 
+    double discount;
     if (voucher.isPercentage) {
       final calculatedDiscount =
           totalBeforeDiscount * (voucher.discountValue / 100);
       final percentageVoucher = voucher as PercentageInterface;
-      return calculatedDiscount >
-              percentageVoucher.maximumDiscountValue.toDouble()
-          ? percentageVoucher.maximumDiscountValue.toDouble()
-          : calculatedDiscount;
+      discount =
+          calculatedDiscount > percentageVoucher.maximumDiscountValue.toDouble()
+              ? percentageVoucher.maximumDiscountValue.toDouble()
+              : calculatedDiscount;
     } else {
-      return voucher.discountValue > totalBeforeDiscount
+      discount = voucher.discountValue > totalBeforeDiscount
           ? totalBeforeDiscount
           : voucher.discountValue;
     }
+
+    // Don't round here - rounding will happen once at checkout
+    return discount;
   }
 }

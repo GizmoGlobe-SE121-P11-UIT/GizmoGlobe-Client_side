@@ -505,12 +505,13 @@ class Firebase {
       await _firestore.collection('sales_invoices').doc(salesInvoiceID).set({
         'salesInvoiceID': salesInvoiceID,
         'customerID': salesInvoice.customerID,
-        'customerName': salesInvoice.customerName,
-        'address': salesInvoice.address?.addressID,
+        'customerName': salesInvoice.customerName ?? '',
+        'address': salesInvoice.address?.addressID ?? '',
         'date': salesInvoice.date,
         'paymentStatus': salesInvoice.paymentStatus.getName(),
         'salesStatus': salesInvoice.salesStatus.getName(),
         'totalPrice': salesInvoice.totalPrice,
+        'voucherID': salesInvoice.voucher?.voucherID,
       });
 
       for (SalesInvoiceDetail detail in salesInvoice.details) {
@@ -557,7 +558,6 @@ class Firebase {
         'salesStatus': salesInvoice.salesStatus.getName(),
         'totalPrice': salesInvoice.totalPrice,
         'voucherID': salesInvoice.voucher?.voucherID,
-        'voucherDiscount': salesInvoice.voucherDiscount,
       });
 
       // Delete existing invoice details

@@ -262,6 +262,72 @@ class SVI extends S {
   String get paymentMethod => 'Phương thức thanh toán';
 
   @override
+  String get cashOnDelivery => 'Thanh toán khi nhận hàng';
+
+  @override
+  String get payWhenYouReceive => 'Thanh toán khi bạn nhận được đơn hàng';
+
+  @override
+  String get sepay => 'SePay';
+
+  @override
+  String get sepayDescription => 'Chuyển khoản ngân hàng VietQR';
+
+  @override
+  String get sepayScanInstructionsTitle => 'Quét mã QR để thanh toán';
+
+  @override
+  String get sepayScanInstructionsSubtitle =>
+      'Mở ứng dụng ngân hàng và quét mã QR bên dưới để hoàn tất thanh toán.';
+
+  @override
+  String get sepayPaymentDetailsTitle => 'Chi tiết thanh toán';
+
+  @override
+  String get sepayAmountLabel => 'Số tiền';
+
+  @override
+  String get sepayBankAccountLabel => 'Số tài khoản';
+
+  @override
+  String get sepayBankLabel => 'Ngân hàng';
+
+  @override
+  String get sepayOrderIdLabel => 'Mã đơn hàng';
+
+  @override
+  String get sepayWaitingForPayment => 'Đang chờ thanh toán...';
+
+  @override
+  String get sepayManualInstructionsTitle => 'Hướng dẫn chuyển khoản thủ công';
+
+  @override
+  String get sepayManualInstructions =>
+      '1. Mở ứng dụng ngân hàng\n2. Chọn chuyển khoản/quét QR\n3. Quét mã hoặc nhập thông tin tài khoản\n4. Nhập đúng số tiền\n5. Hoàn tất giao dịch';
+
+  @override
+  String get sepayClose => 'Đóng';
+
+  @override
+  String get sepayRestoringCart => 'Đang khôi phục giỏ hàng...';
+
+  @override
+  String get sepayPaymentSuccessMessage =>
+      'Thanh toán của bạn đã được xác nhận thành công.';
+
+  @override
+  String get sepayPaymentInitFailed => 'Không thể khởi tạo thanh toán';
+
+  @override
+  String get sepayGoBack => 'Quay lại';
+
+  @override
+  String get stripe => 'Stripe';
+
+  @override
+  String get stripeDescription => 'Thanh toán bằng thẻ tín dụng/ghi nợ';
+
+  @override
   String get orderSummary => 'Tổng quan đơn hàng';
 
   @override
