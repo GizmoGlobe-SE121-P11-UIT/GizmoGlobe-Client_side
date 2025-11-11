@@ -35,21 +35,21 @@ class StripeServices {
   }
 
   Future<String?> _makePaymentMobile(double amount) async {
-      String? paymentIntentClientSecret =
+    String? paymentIntentClientSecret =
         await _createPaymentIntent(amount, "vnd");
-      if (paymentIntentClientSecret == null) {
-        return null;
-      }
-      await Stripe.instance.initPaymentSheet(
-          paymentSheetParameters: SetupPaymentSheetParameters(
-        paymentIntentClientSecret: paymentIntentClientSecret,
-        style: ThemeMode.dark,
-        merchantDisplayName: 'Gizmo Globe',
-      ));
-      String? result = await _processPayment(paymentIntentClientSecret);
-      if (result != null) {
-        return result;
-      }
+    if (paymentIntentClientSecret == null) {
+      return null;
+    }
+    await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+      paymentIntentClientSecret: paymentIntentClientSecret,
+      style: ThemeMode.dark,
+      merchantDisplayName: 'Gizmo Globe',
+    ));
+    String? result = await _processPayment(paymentIntentClientSecret);
+    if (result != null) {
+      return result;
+    }
     return null;
   }
 
@@ -92,26 +92,52 @@ class StripeServices {
         "currency": currency,
       };
 
-      var response = await dio.post("https://api.stripe.com/v1/payment_intents",
-          data: data,
-          options: Options(
-            contentType: Headers.formUrlEncodedContentType,
-            headers: {
-              "Authorization": "Bearer ${dotenv.env['STRIPE_SECRET_KEY']}",
-              "Content-Type": 'application/x-www-form-urlencoded',
-            },
-          ));
+      if (kDebugMode) {
+        print('Stripe: Creating PaymentIntent');
+        print('  currency=$currency');
+        print('  dbAmount=$amount (k VND)');
+        print('  amountForStripe=${data["amount"]} VND');
+      }
+
+      var response = await dio.post(
+        "https://api.stripe.com/v1/payment_intents",
+        data: data,
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+          headers: {
+            "Authorization": "Bearer ${dotenv.env['STRIPE_SECRET_KEY']}",
+            "Content-Type": 'application/x-www-form-urlencoded',
+          },
+          // Do not throw on 4xx; let us surface Stripe's error message
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
 
       if (response.data != null) {
-        if (kDebugMode) {
-          print(response.data);
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (kDebugMode) {
+            print('Stripe: PaymentIntent created');
+          }
+          return response.data['client_secret'];
+        } else {
+          // Extract Stripe error for clarity
+          final stripeError = response.data is Map
+              ? (response.data['error'] ?? response.data)
+              : response.data;
+          final message = stripeError is Map
+              ? (stripeError['message'] ?? stripeError.toString())
+              : '$stripeError';
+          if (kDebugMode) {
+            print(
+                'Stripe: PaymentIntent error (${response.statusCode}): $message');
+          }
+          throw Exception(message);
         }
-        return response.data['client_secret'];
       }
       return null;
     } catch (e) {
       if (kDebugMode) {
-        print(e);
+        print('Stripe: Exception creating PaymentIntent: $e');
       }
       throw Exception(
           'Payment method creation failed'); //Khởi tạo phương thức thanh toán thất bại
@@ -139,6 +165,13 @@ class StripeServices {
         "cancel_url": cancelUrl,
       };
 
+      if (kDebugMode) {
+        print('Stripe: Creating Checkout Session');
+        print('  dbAmount=$amount (k VND)');
+        print(
+            '  unit_amount=${data["line_items[0][price_data][unit_amount]"]} VND');
+      }
+
       var response = await dio.post(
         "https://api.stripe.com/v1/checkout/sessions",
         data: data,
@@ -148,14 +181,29 @@ class StripeServices {
             "Authorization": "Bearer ${dotenv.env['STRIPE_SECRET_KEY']}",
             "Content-Type": 'application/x-www-form-urlencoded',
           },
+          validateStatus: (status) => status != null && status < 500,
         ),
       );
 
       if (response.data != null) {
-        if (kDebugMode) {
-          print('Checkout session created: ${response.data}');
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (kDebugMode) {
+            print('Stripe: Checkout session created: ${response.data['id']}');
+          }
+          return response.data['id'];
+        } else {
+          final stripeError = response.data is Map
+              ? (response.data['error'] ?? response.data)
+              : response.data;
+          final message = stripeError is Map
+              ? (stripeError['message'] ?? stripeError.toString())
+              : '$stripeError';
+          if (kDebugMode) {
+            print(
+                'Stripe: Checkout session error (${response.statusCode}): $message');
+          }
+          throw Exception(message);
         }
-        return response.data['id'];
       }
       return null;
     } catch (e) {
@@ -288,7 +336,15 @@ class StripeServices {
   String _calculateAmountVND(double amount) {
     // Round to avoid floating point precision errors
     // e.g., 5589.6 * 1000 might result in 5589599.9999999 instead of 5589600.0
-    final int amountVND = (amount * 1000).round();
+    int amountVND = (amount * 1000).round();
+    // Enforce a small minimum to avoid Stripe 400 on tiny amounts (defensive)
+    if (amountVND < 1000) {
+      if (kDebugMode) {
+        print(
+            'Stripe: amount below minimum, raising to 1000 VND (was $amountVND)');
+      }
+      amountVND = 1000;
+    }
     return amountVND.toString();
   }
 }

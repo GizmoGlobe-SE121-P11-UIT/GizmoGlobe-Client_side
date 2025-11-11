@@ -289,6 +289,15 @@ class S {
   String get appLogo => Intl.message('App Logo', name: 'appLogo');
   String get chatButton => Intl.message('Chat Support', name: 'chatButton');
 
+  // Survey
+  String get surveyJoin => Intl.message('Join the survey', name: 'surveyJoin');
+  String get surveyTitle => Intl.message('Survey', name: 'surveyTitle');
+  String get surveyBack => Intl.message('Back', name: 'surveyBack');
+  String get surveyNext => Intl.message('Next', name: 'surveyNext');
+  String get surveySubmit => Intl.message('Submit', name: 'surveySubmit');
+  String get surveySubmitted =>
+      Intl.message('Survey submitted', name: 'surveySubmitted');
+
   // Main Screen
   String get homeTab => Intl.message('Home', name: 'homeTab');
   String get productsTab => Intl.message('Products', name: 'productsTab');

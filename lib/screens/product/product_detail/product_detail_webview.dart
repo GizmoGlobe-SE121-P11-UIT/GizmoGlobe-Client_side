@@ -343,8 +343,12 @@ class _ProductDetailScreenWebViewState
                                                             BorderRadius
                                                                 .circular(12),
                                                         image: state.product
-                                                                    .imageUrl !=
-                                                                null
+                                                                        .imageUrl !=
+                                                                    null &&
+                                                                state
+                                                                    .product
+                                                                    .imageUrl!
+                                                                    .isNotEmpty
                                                             ? DecorationImage(
                                                                 image: NetworkImage(
                                                                     state
@@ -356,8 +360,12 @@ class _ProductDetailScreenWebViewState
                                                             : null,
                                                       ),
                                                       child: state.product
-                                                                  .imageUrl ==
-                                                              null
+                                                                      .imageUrl ==
+                                                                  null ||
+                                                              state
+                                                                  .product
+                                                                  .imageUrl!
+                                                                  .isEmpty
                                                           ? Center(
                                                               child: Icon(
                                                                 _getCategoryIcon(
@@ -881,8 +889,12 @@ class _ProductDetailScreenWebViewState
                                                           BorderRadius.circular(
                                                               12),
                                                       image: state.product
-                                                                  .imageUrl !=
-                                                              null
+                                                                      .imageUrl !=
+                                                                  null &&
+                                                              state
+                                                                  .product
+                                                                  .imageUrl!
+                                                                  .isNotEmpty
                                                           ? DecorationImage(
                                                               image: NetworkImage(
                                                                   state.product
@@ -893,8 +905,12 @@ class _ProductDetailScreenWebViewState
                                                           : null,
                                                     ),
                                                     child: state.product
-                                                                .imageUrl ==
-                                                            null
+                                                                    .imageUrl ==
+                                                                null ||
+                                                            state
+                                                                .product
+                                                                .imageUrl!
+                                                                .isEmpty
                                                         ? Center(
                                                             child: Icon(
                                                               _getCategoryIcon(

@@ -170,7 +170,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                               .colorScheme
                                               .surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(12),
-                                      image: state.product.imageUrl != null
+                                      image: state.product.imageUrl != null &&
+                                              state.product.imageUrl!.isNotEmpty
                                           ? DecorationImage(
                                               image: NetworkImage(
                                                   state.product.imageUrl!),
@@ -178,7 +179,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                             )
                                           : null,
                                     ),
-                                    child: state.product.imageUrl == null
+                                    child: state.product.imageUrl == null ||
+                                            state.product.imageUrl!.isEmpty
                                         ? Center(
                                             child: Icon(
                                               _getCategoryIcon(),

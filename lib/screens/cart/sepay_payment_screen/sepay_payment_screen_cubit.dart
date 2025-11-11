@@ -61,9 +61,44 @@ class SePayPaymentScreenCubit extends Cubit<SePayPaymentScreenState> {
         ));
       }
     } catch (e) {
+      // Extract user-friendly error message
+      String errorMessage = 'Failed to create payment';
+      final errorString = e.toString().toLowerCase();
+
+      if (errorString.contains('no bank accounts') ||
+          errorString.contains('cannot connect')) {
+        errorMessage =
+            'SePay service is currently unavailable. Please try again later or use a different payment method.';
+      } else if (errorString.contains('bad state') ||
+          errorString.contains('no element')) {
+        errorMessage =
+            'Payment processing error. Please try again or contact support.';
+      } else if (errorString.contains('virtual account')) {
+        errorMessage =
+            'Failed to create virtual account. Please try again or use a different payment method.';
+      } else if (errorString.contains('network') ||
+          errorString.contains('timeout')) {
+        errorMessage =
+            'Network error. Please check your connection and try again.';
+      } else {
+        // For other errors, try to extract a meaningful message
+        final exceptionStr = e.toString();
+        if (exceptionStr.contains('Exception: ')) {
+          // Remove "Exception: " prefix and take first line
+          final cleanMessage = exceptionStr
+              .replaceFirst('Exception: ', '')
+              .split('\n')
+              .first
+              .trim();
+          if (cleanMessage.isNotEmpty && cleanMessage.length < 200) {
+            errorMessage = cleanMessage;
+          }
+        }
+      }
+
       emit(state.copyWith(
         processState: ProcessState.failure,
-        message: e.toString(),
+        message: errorMessage,
       ));
     }
   }

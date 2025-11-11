@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
+import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
@@ -95,9 +96,12 @@ class _CartScreen extends State<CartScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(
+                      // Navigate to MainScreen with products tab (index 1) to preserve bottom navigation bar
+                      Navigator.pushAndRemoveUntil(
                         context,
-                        '/products',
+                        MaterialPageRoute(
+                          builder: (context) => const MainScreen(initialIndex: 1),
+                        ),
                         (route) => false,
                       );
                     },

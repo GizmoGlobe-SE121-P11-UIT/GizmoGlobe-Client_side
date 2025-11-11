@@ -12,11 +12,14 @@ import '../../../enums/processing/order_option_enum.dart';
 import '../../../providers/language_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../widgets/avatar_picker.dart';
+import '../../../widgets/dialog/information_dialog.dart';
+import '../../../enums/processing/dialog_name_enum.dart';
 import '../../authentication/sign_in_screen/sign_in_view.dart';
 import '../../authentication/sign_up_screen/sign_up_view.dart';
 import '../../user/voucher/list/voucher_screen_view.dart';
 import '../address_screen/address_screen_view.dart';
 import '../order_screen/order_screen_view.dart';
+import '../survey_screen/survey_screen_view.dart';
 import 'user_screen_cubit.dart';
 import 'user_screen_state.dart';
 import 'user_screen_webview.dart';
@@ -558,7 +561,8 @@ class _UserScreen extends State<UserScreen> {
                                               const EdgeInsets.only(right: 12),
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            image: state.avatarUrl != null
+                                            image: state.avatarUrl != null &&
+                                                    state.avatarUrl!.isNotEmpty
                                                 ? DecorationImage(
                                                     image: NetworkImage(
                                                         state.avatarUrl!),
@@ -566,7 +570,8 @@ class _UserScreen extends State<UserScreen> {
                                                   )
                                                 : null,
                                           ),
-                                          child: state.avatarUrl == null
+                                          child: state.avatarUrl == null ||
+                                                  state.avatarUrl!.isEmpty
                                               ? const Icon(Icons.person,
                                                   size: 20, color: Colors.white)
                                               : null,
@@ -912,6 +917,88 @@ class _UserScreen extends State<UserScreen> {
                               ),
                             ),
                           ),
+                        ),
+                        // Survey entry (hide for guest)
+                        BlocBuilder<UserScreenCubit, UserScreenState>(
+                          builder: (context, state) {
+                            if (state.isGuest) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                              child: Card(
+                                elevation: 4,
+                                shadowColor: Colors.black12,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: InkWell(
+                                  onTap: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            SurveyScreen.newInstance(),
+                                      ),
+                                    );
+                                    if (!mounted) return;
+                                    if (result == 'survey_success') {
+                                      showDialog(
+                                        context: context,
+                                        builder: (ctx) =>
+                                            const InformationDialog(
+                                          dialogName: DialogName.success,
+                                          title: '',
+                                          content: '',
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.tune,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          size: 28,
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Text(
+                                          S.of(context).surveyJoin,
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          size: 20,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
 
                         // App Settings Card

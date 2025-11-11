@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizmoglobe_client/services/platform_actions.dart'
     as platform_actions;
+import 'package:gizmoglobe_client/screens/user/survey_screen/survey_screen_webview.dart';
 
 class WebHeader extends StatefulWidget {
   const WebHeader({super.key});
@@ -314,11 +315,20 @@ class _WebHeaderState extends State<WebHeader> {
 
         return SizedBox(
           width: 280,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: isGuest
-                ? _buildGuestMenuItems(context)
-                : _buildAuthenticatedMenuItems(context),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              // Keep in sync with overlay container maxHeight
+              maxHeight: 300,
+            ),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.zero,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: isGuest
+                    ? _buildGuestMenuItems(context)
+                    : _buildAuthenticatedMenuItems(context),
+              ),
+            ),
           ),
         );
       },
@@ -367,12 +377,35 @@ class _WebHeaderState extends State<WebHeader> {
       _buildUserInfoSection(context),
       _buildMenuItem(
         context,
-        icon: Icons.person,
-        title: S.of(context).accountInfo,
-        onTap: () {
+        icon: Icons.tune,
+        title: S.of(context).surveyJoin,
+        onTap: () async {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          Navigator.pushNamed(context, '/user');
+          if (kIsWeb) {
+            // Capture overlay before awaiting to avoid deactivated context
+            final OverlayState? rootOverlay =
+                Overlay.of(context, rootOverlay: true);
+            final result = await showSurveyModal(context);
+            if (result == 'survey_success') {
+              if (rootOverlay != null) {
+                SnackbarService.showSuccessAboveOverlay(
+                  rootOverlay,
+                  title: S.of(context).success,
+                  message: S.of(context).surveySubmitted,
+                );
+              } else {
+                // Fallback to ScaffoldMessenger
+                SnackbarService.showSuccess(
+                  context,
+                  title: S.of(context).success,
+                  message: S.of(context).surveySubmitted,
+                );
+              }
+            }
+          } else {
+            Navigator.pushNamed(context, '/user'); // fallback mobile route
+          }
         },
       ),
       _buildMenuItem(
@@ -419,120 +452,128 @@ class _WebHeaderState extends State<WebHeader> {
   }
 
   Widget _buildUserInfoSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
-      ),
-      child: Row(
-        children: [
-          FutureBuilder<Map<String, dynamic>?>(
-            future: _getCurrentUserInfo(),
-            builder: (context, snapshot) {
-              final avatarUrl = snapshot.data?['avatarUrl'] as String?;
-              return Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.1),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: (avatarUrl != null && avatarUrl.isNotEmpty)
-                    ? Image.network(avatarUrl, fit: BoxFit.cover)
-                    : Icon(
-                        Icons.person,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 22,
-                      ),
-              );
-            },
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FutureBuilder<Map<String, dynamic>?>(
-                  future: _getCurrentUserInfo(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+    return InkWell(
+      onTap: () {
+        setState(() => _isUserMenuOpen = false);
+        _removeOverlay();
+        Navigator.pushNamed(context, '/user');
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+        ),
+        child: Row(
+          children: [
+            FutureBuilder<Map<String, dynamic>?>(
+              future: _getCurrentUserInfo(),
+              builder: (context, snapshot) {
+                final avatarUrl = snapshot.data?['avatarUrl'] as String?;
+                return Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: (avatarUrl != null && avatarUrl.isNotEmpty)
+                      ? Image.network(avatarUrl, fit: BoxFit.cover)
+                      : Icon(
+                          Icons.person,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 22,
+                        ),
+                );
+              },
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FutureBuilder<Map<String, dynamic>?>(
+                    future: _getCurrentUserInfo(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 16,
+                              width: 120,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              height: 12,
+                              width: 180,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      final userInfo = snapshot.data;
+                      final displayName = userInfo?['displayName'] ??
+                          userInfo?['username'] ??
+                          userInfo?['email']?.split('@')[0] ??
+                          'User';
+                      final email = userInfo?['email'] ?? '';
+
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            height: 16,
-                            width: 120,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            height: 12,
-                            width: 180,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-
-                    final userInfo = snapshot.data;
-                    final displayName = userInfo?['displayName'] ??
-                        userInfo?['username'] ??
-                        userInfo?['email']?.split('@')[0] ??
-                        'User';
-                    final email = userInfo?['email'] ?? '';
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayName,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (email.isNotEmpty) ...[
-                          const SizedBox(height: 2),
                           Text(
-                            email,
+                            displayName,
                             style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          if (email.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              email,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ],
-                      ],
-                    );
-                  },
-                ),
-              ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -627,14 +668,14 @@ class _WebHeaderState extends State<WebHeader> {
     final iconSize = isMobile ? 16.0 : 20.0;
 
     final cartStream = _getCartStream();
-    
+
     if (cartStream != null) {
       // Authenticated user - use stream for real-time updates
       return StreamBuilder<QuerySnapshot>(
         stream: cartStream,
         builder: (context, snapshot) {
           int cartCount = 0;
-          
+
           if (snapshot.hasData && snapshot.data != null) {
             // Calculate total quantity of items in cart
             for (var doc in snapshot.data!.docs) {
@@ -681,23 +722,23 @@ class _WebHeaderState extends State<WebHeader> {
           onTap: () {
             _handleCartNavigation(context);
           },
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Theme.of(context).dividerColor,
-          ),
-        ),
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).dividerColor,
+              ),
+            ),
             child: Icon(Icons.shopping_cart_outlined,
                 color: Theme.of(context)
                     .colorScheme
                     .onSurface
                     .withValues(alpha: 0.7),
-            size: iconSize),
-      ),
+                size: iconSize),
+          ),
         ),
         if (cartCount > 0)
           Positioned(

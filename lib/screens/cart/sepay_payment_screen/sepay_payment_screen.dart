@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
@@ -353,6 +354,69 @@ class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
                           S.of(context).sepayOrderIdLabel,
                           va.orderId,
                         ),
+                        const SizedBox(height: 12),
+                        // Transfer content required for webhook auto-matching
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 100,
+                              child: Text(
+                                'Nội dung',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      'Order ${va.orderId}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    tooltip: 'Copy',
+                                    icon: const Icon(Icons.copy, size: 18),
+                                    onPressed: () async {
+                                      await Clipboard.setData(
+                                        ClipboardData(
+                                            text: 'Order ${va.orderId}'),
+                                      );
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                'Đã sao chép nội dung chuyển khoản'),
+                                            duration:
+                                                const Duration(seconds: 2),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ],
                   ),
@@ -412,7 +476,9 @@ class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        S.of(context).sepayManualInstructions,
+                        // Emphasize that content must include "Order {orderId}" for webhook auto-match
+                        '${S.of(context).sepayManualInstructions}\n\n'
+                        'Lưu ý: Nội dung chuyển khoản phải có "Order ${va.orderId}" để hệ thống tự động xác nhận thanh toán.',
                         style: TextStyle(
                           fontSize: 14,
                           color: Theme.of(context).colorScheme.onSurface,

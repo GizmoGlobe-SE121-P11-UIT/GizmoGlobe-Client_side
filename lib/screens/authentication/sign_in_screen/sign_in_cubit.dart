@@ -78,6 +78,7 @@ class SignInCubit extends Cubit<SignInState> {
 
   Future<void> signInWithGoogle() async {
     try {
+      if (isClosed) return;
       emit(state.copyWith(processState: ProcessState.loading));
 
       UserCredential userCredential;
@@ -124,7 +125,9 @@ class SignInCubit extends Cubit<SignInState> {
               e.code == 'auth/popup-closed-by-user' ||
               e.code == 'cancelled-popup-request') {
             // Popup was closed - treat as user cancellation
-            emit(state.copyWith(processState: ProcessState.idle));
+            if (!isClosed) {
+              emit(state.copyWith(processState: ProcessState.idle));
+            }
             return;
           } else if (e.code == 'popup-blocked' ||
               e.code == 'auth/popup-blocked') {
@@ -133,20 +136,24 @@ class SignInCubit extends Cubit<SignInState> {
               print(
                   'Popup blocked by browser. Please allow popups for this site.');
             }
+            if (!isClosed) {
+              emit(state.copyWith(
+                processState: ProcessState.failure,
+                dialogName: DialogName.failure,
+                message: NotifyMessage.msg2,
+              ));
+            }
+            return;
+          }
+
+          // Other Firebase Auth errors
+          if (!isClosed) {
             emit(state.copyWith(
               processState: ProcessState.failure,
               dialogName: DialogName.failure,
               message: NotifyMessage.msg2,
             ));
-            return;
           }
-
-          // Other Firebase Auth errors
-          emit(state.copyWith(
-            processState: ProcessState.failure,
-            dialogName: DialogName.failure,
-            message: NotifyMessage.msg2,
-          ));
           return;
         } catch (error) {
           // Handle other types of errors
@@ -155,11 +162,13 @@ class SignInCubit extends Cubit<SignInState> {
             print('Error type: ${error.runtimeType}');
           }
 
-          emit(state.copyWith(
-            processState: ProcessState.failure,
-            dialogName: DialogName.failure,
-            message: NotifyMessage.msg2,
-          ));
+          if (!isClosed) {
+            emit(state.copyWith(
+              processState: ProcessState.failure,
+              dialogName: DialogName.failure,
+              message: NotifyMessage.msg2,
+            ));
+          }
           return;
         }
       } else {
@@ -176,7 +185,9 @@ class SignInCubit extends Cubit<SignInState> {
 
         final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
         if (googleUser == null) {
-          emit(state.copyWith(processState: ProcessState.idle));
+          if (!isClosed) {
+            emit(state.copyWith(processState: ProcessState.idle));
+          }
           return;
         }
 
@@ -195,31 +206,37 @@ class SignInCubit extends Cubit<SignInState> {
         await _localGuestService.clearGuestUser();
 
         await _setupUserData(userCredential.user!);
-        emit(state.copyWith(
-          processState: ProcessState.success,
-          dialogName: DialogName.success,
-          message: NotifyMessage.msg1,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            processState: ProcessState.success,
+            dialogName: DialogName.success,
+            message: NotifyMessage.msg1,
+          ));
+        }
       }
     } on FirebaseAuthException catch (e) {
       if (kDebugMode) {
         print(
             'FirebaseAuthException during Google Sign-In: code=${e.code}, message=${e.message}');
       }
-      emit(state.copyWith(
-        processState: ProcessState.failure,
-        dialogName: DialogName.failure,
-        message: NotifyMessage.msg2,
-      ));
+      if (!isClosed) {
+        emit(state.copyWith(
+          processState: ProcessState.failure,
+          dialogName: DialogName.failure,
+          message: NotifyMessage.msg2,
+        ));
+      }
     } catch (error) {
       if (kDebugMode) {
         print('Google Sign-In error: $error');
       }
-      emit(state.copyWith(
-        processState: ProcessState.failure,
-        dialogName: DialogName.failure,
-        message: NotifyMessage.msg2,
-      ));
+      if (!isClosed) {
+        emit(state.copyWith(
+          processState: ProcessState.failure,
+          dialogName: DialogName.failure,
+          message: NotifyMessage.msg2,
+        ));
+      }
     }
   }
 

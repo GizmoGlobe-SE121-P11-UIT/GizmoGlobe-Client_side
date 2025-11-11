@@ -408,6 +408,20 @@ class SVI extends S {
   @override
   String get chatButton => 'Hỗ trợ trò chuyện';
 
+  // Survey
+  @override
+  String get surveyJoin => 'Tham gia khảo sát';
+  @override
+  String get surveyTitle => 'Khảo sát';
+  @override
+  String get surveyBack => 'Quay lại';
+  @override
+  String get surveyNext => 'Tiếp tục';
+  @override
+  String get surveySubmit => 'Gửi';
+  @override
+  String get surveySubmitted => 'Đã gửi khảo sát';
+
   @override
   String get homeTab => 'Trang chủ';
 
