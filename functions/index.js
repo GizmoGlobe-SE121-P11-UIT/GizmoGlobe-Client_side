@@ -69,15 +69,6 @@ exports.sepayWebhook = functions.https.onRequest(async (req, res) => {
     const sepayId = webhookData.id;
 
     // Deduplication: avoid processing the same webhook multiple times
-    if (sepayId) {
-      const dedupeRef = admin.firestore().collection('sepay_webhooks_processed').doc(String(sepayId));
-      const dedupeDoc = await dedupeRef.get();
-      if (dedupeDoc.exists) {
-        console.log(`Duplicate webhook ignored for SePay ID: ${sepayId}`);
-        return res.status(200).json({ success: true, message: 'Duplicate ignored' });
-      }
-    }
-
     // Determine invoice ID:
     // - Prefer webhookData.code if your SePay "Cấu trúc mã thanh toán" extracts it
     // - Fallback: parse "Order {invoiceId}" pattern from content/description
@@ -95,13 +86,6 @@ exports.sepayWebhook = functions.https.onRequest(async (req, res) => {
 
     if (!referenceNumber) {
       console.error('Unable to determine invoice ID (code/content missing or unparsable)');
-      await admin.firestore().collection('sepay_webhooks').add({
-        invoiceId: null,
-        webhookData: webhookData,
-        processedAt: admin.firestore.FieldValue.serverTimestamp(),
-        status: 'error',
-        error: 'Missing invoice reference (code/content)',
-      });
       return res.status(400).json({ 
         success: false, 
         error: 'Missing invoice reference (code/content)' 
@@ -129,16 +113,6 @@ exports.sepayWebhook = functions.https.onRequest(async (req, res) => {
 
     if (!invoiceDoc.exists) {
       console.error(`Invoice not found: ${referenceNumber}`);
-      
-      // Log webhook for debugging
-      await admin.firestore().collection('sepay_webhooks').add({
-        invoiceId: referenceNumber,
-        webhookData: webhookData,
-        processedAt: admin.firestore.FieldValue.serverTimestamp(),
-        status: 'error',
-        error: 'Invoice not found',
-      });
-
       return res.status(404).json({ 
         success: false, 
         error: `Invoice not found: ${referenceNumber}` 
@@ -166,16 +140,6 @@ exports.sepayWebhook = functions.https.onRequest(async (req, res) => {
     const tolerance = 100;
     if (Math.abs(paymentAmount - invoiceAmount) > tolerance) {
       console.error(`Payment amount mismatch: expected ${invoiceAmount}, received ${paymentAmount}`);
-      
-      // Log webhook for debugging
-      await admin.firestore().collection('sepay_webhooks').add({
-        invoiceId: referenceNumber,
-        webhookData: webhookData,
-        processedAt: admin.firestore.FieldValue.serverTimestamp(),
-        status: 'error',
-        error: `Payment amount mismatch: expected ${invoiceAmount}, received ${paymentAmount}`,
-      });
-
       return res.status(400).json({ 
         success: false, 
         error: `Payment amount mismatch: expected ${invoiceAmount} VND, received ${paymentAmount} VND` 
@@ -196,24 +160,6 @@ exports.sepayWebhook = functions.https.onRequest(async (req, res) => {
     console.log(`Successfully updated invoice ${referenceNumber} to paid status`);
 
     // Mark this webhook as processed for idempotency
-    if (sepayId) {
-      await admin.firestore().collection('sepay_webhooks_processed').doc(String(sepayId)).set({
-        processedAt: admin.firestore.FieldValue.serverTimestamp(),
-        invoiceId: referenceNumber,
-        amount: transferAmount,
-      }, { merge: true });
-    }
-
-    // Log webhook receipt for audit trail
-    await admin.firestore().collection('sepay_webhooks').add({
-      invoiceId: referenceNumber,
-      webhookData: webhookData,
-      processedAt: admin.firestore.FieldValue.serverTimestamp(),
-      status: 'success',
-      paymentAmount: paymentAmount,
-      invoiceAmount: invoiceAmount,
-    });
-
     // Return success response to SePay
     return res.status(200).json({ 
       success: true,
@@ -224,19 +170,6 @@ exports.sepayWebhook = functions.https.onRequest(async (req, res) => {
   } catch (error) {
     console.error('Error processing SePay webhook:', error);
     console.error('Error stack:', error.stack);
-
-    // Log error
-    try {
-      await admin.firestore().collection('sepay_webhooks').add({
-        webhookData: req.body,
-        processedAt: admin.firestore.FieldValue.serverTimestamp(),
-        status: 'error',
-        error: error.message,
-        errorStack: error.stack,
-      });
-    } catch (logError) {
-      console.error('Error logging webhook error:', logError);
-    }
 
     return res.status(500).json({ 
       success: false, 

@@ -3,11 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'survey_screen_cubit.dart';
 import 'survey_screen_view.dart';
+import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
 
 /// Web-only helper to show the Survey screen as a modal dialog.
 /// Returns the value passed to Navigator.pop from the embedded screen.
 Future<String?> showSurveyModal(BuildContext context) async {
   assert(kIsWeb, 'showSurveyModal is intended for web usage');
+  ModalOverlayService.setOpen(true);
   return showDialog<String>(
     context: context,
     barrierDismissible: true,
@@ -50,5 +52,5 @@ Future<String?> showSurveyModal(BuildContext context) async {
         ),
       );
     },
-  );
+  ).whenComplete(() => ModalOverlayService.setOpen(false));
 }

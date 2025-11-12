@@ -8,6 +8,8 @@ import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import 'sepay_payment_screen_cubit.dart';
 import 'sepay_payment_screen_state.dart';
+import 'package:flutter/services.dart';
+import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 
 /// Web-only helper to show SePay payment as a modal dialog and return success boolean
 Future<bool?> showSePayPaymentModal(
@@ -356,6 +358,67 @@ class _SePayPaymentModalState extends State<_SePayPaymentModal> {
                                     context,
                                     S.of(context).sepayOrderIdLabel,
                                     va.orderId),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        S.of(context).transactionContentLabel,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.7),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              'Order ${va.orderId}',
+                                              textAlign: TextAlign.right,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.copy,
+                                                size: 18),
+                                            tooltip: S.of(context).copy,
+                                            onPressed: () async {
+                                              await Clipboard.setData(
+                                                ClipboardData(
+                                                    text:
+                                                        'Order ${va.orderId}'),
+                                              );
+                                              if (context.mounted) {
+                                                SnackbarService.showSuccess(
+                                                  context,
+                                                  title: S.of(context).success,
+                                                  message: S
+                                                      .of(context)
+                                                      .transactionContentCopied,
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ],
                           ),

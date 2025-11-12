@@ -17,6 +17,115 @@ import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
+import '../../cart/checkout_screen/checkout_screen_webview.dart';
+import '../../cart/checkout_screen/checkout_screen_view.dart';
+
+class _AutoScrollingButtonContent extends StatefulWidget {
+  final Widget child;
+
+  const _AutoScrollingButtonContent({required this.child});
+
+  @override
+  State<_AutoScrollingButtonContent> createState() =>
+      _AutoScrollingButtonContentState();
+
+  @override
+  String toStringShort() => 'AutoScrollingButtonContent';
+}
+
+class _AutoScrollingButtonContentState
+    extends State<_AutoScrollingButtonContent> {
+  late ScrollController _scrollController;
+  bool _isScrolling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndStartScrolling();
+    });
+  }
+
+  void _checkAndStartScrolling() {
+    if (!_scrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) _checkAndStartScrolling();
+      });
+      return;
+    }
+
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    if (maxScroll > 0 && !_isScrolling) {
+      setState(() {
+        _isScrolling = true;
+      });
+      _startAutoScroll();
+    }
+  }
+
+  void _startAutoScroll() {
+    if (!_scrollController.hasClients || !_isScrolling) return;
+
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    if (maxScroll <= 0) {
+      setState(() {
+        _isScrolling = false;
+      });
+      return;
+    }
+
+    // Scroll to end
+    _scrollController
+        .animateTo(
+      maxScroll,
+      duration: const Duration(seconds: 2),
+      curve: Curves.easeInOut,
+    )
+        .then((_) {
+      if (!mounted || !_isScrolling) return;
+      // Pause at end
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!mounted || !_isScrolling) return;
+        // Scroll back to start
+        _scrollController
+            .animateTo(
+          0,
+          duration: const Duration(seconds: 2),
+          curve: Curves.easeInOut,
+        )
+            .then((_) {
+          if (!mounted || !_isScrolling) return;
+          // Pause at start, then repeat
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted && _isScrolling) {
+              _startAutoScroll();
+            }
+          });
+        });
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _isScrolling = false;
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      key: const ValueKey('auto_scrolling_content'),
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      child: widget.child,
+    );
+  }
+}
 
 class ProductDetailScreenWebView extends StatefulWidget {
   final Product product;
@@ -37,6 +146,39 @@ class _ProductDetailScreenWebViewState
     extends State<ProductDetailScreenWebView> {
   ProductDetailCubit get cubit => context.read<ProductDetailCubit>();
   final WebGuestService _webGuestService = WebGuestService();
+
+  Future<void> _handleBuyNow(ProductDetailState state,
+      {required bool isWeb}) async {
+    final productId = widget.product.productID;
+    if (productId == null) return;
+
+    final isGuest = await _webGuestService.isCurrentUserGuest();
+    if (isGuest) {
+      if (!mounted) return;
+      SnackbarService.showGuestRestriction(context, actionType: 'cart');
+      return;
+    }
+
+    final cartItem = <Product, int>{widget.product: state.quantity};
+    if (!mounted) return;
+
+    if (isWeb) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (ctx) =>
+              CheckoutScreenWebView.newInstance(cartItems: [cartItem]),
+        ),
+      );
+    } else {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (ctx) => CheckoutScreen.newInstance(cartItems: [cartItem]),
+        ),
+      );
+    }
+  }
 
   String? _previousHashPath;
 
@@ -629,7 +771,8 @@ class _ProductDetailScreenWebViewState
                                                                         .w600,
                                                               ),
                                                             ),
-                                                            const Spacer(),
+                                                            const SizedBox(
+                                                                width: 24),
                                                             Container(
                                                               decoration:
                                                                   BoxDecoration(
@@ -766,83 +909,149 @@ class _ProductDetailScreenWebViewState
                                                               ],
                                                             ),
                                                             const Spacer(),
-                                                            SizedBox(
-                                                              width: 300,
-                                                              height: 56,
-                                                              child:
-                                                                  ElevatedButton(
-                                                                onPressed:
-                                                                    () async {
-                                                                  if (widget
-                                                                          .product
-                                                                          .productID !=
-                                                                      null) {
-                                                                    final isGuest =
-                                                                        await _webGuestService
-                                                                            .isCurrentUserGuest();
-                                                                    if (isGuest) {
-                                                                      SnackbarService
-                                                                          .showGuestRestriction(
-                                                                        context,
-                                                                        actionType:
-                                                                            'cart',
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: SizedBox(
+                                                                height: 56,
+                                                                child:
+                                                                    ElevatedButton(
+                                                                  onPressed:
+                                                                      () async {
+                                                                    if (widget
+                                                                            .product
+                                                                            .productID !=
+                                                                        null) {
+                                                                      final isGuest =
+                                                                          await _webGuestService
+                                                                              .isCurrentUserGuest();
+                                                                      if (isGuest) {
+                                                                        SnackbarService
+                                                                            .showGuestRestriction(
+                                                                          context,
+                                                                          actionType:
+                                                                              'cart',
+                                                                        );
+                                                                        return;
+                                                                      }
+                                                                      cubit
+                                                                          .addToCart(
+                                                                        widget
+                                                                            .product
+                                                                            .productID!,
+                                                                        state
+                                                                            .quantity,
                                                                       );
-                                                                      return;
                                                                     }
-                                                                    cubit
-                                                                        .addToCart(
-                                                                      widget
-                                                                          .product
-                                                                          .productID!,
-                                                                      state
-                                                                          .quantity,
-                                                                    );
-                                                                  }
-                                                                },
-                                                                style: ElevatedButton
-                                                                    .styleFrom(
-                                                                  backgroundColor: Theme.of(
-                                                                          context)
-                                                                      .colorScheme
-                                                                      .primary,
-                                                                  foregroundColor:
-                                                                      Colors
-                                                                          .white,
-                                                                  shape:
-                                                                      RoundedRectangleBorder(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            12),
+                                                                  },
+                                                                  style: ElevatedButton
+                                                                      .styleFrom(
+                                                                    backgroundColor: Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .primary,
+                                                                    foregroundColor:
+                                                                        Colors
+                                                                            .white,
+                                                                    shape:
+                                                                        RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              12),
+                                                                    ),
+                                                                  ),
+                                                                  child: Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .center,
+                                                                    children: [
+                                                                      const Icon(
+                                                                        Icons
+                                                                            .shopping_cart_outlined,
+                                                                        size:
+                                                                            20,
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              8),
+                                                                      Expanded(
+                                                                        child:
+                                                                            _AutoScrollingButtonContent(
+                                                                          child:
+                                                                              Align(
+                                                                            alignment:
+                                                                                Alignment.center,
+                                                                            child:
+                                                                                Text(
+                                                                              S.of(context).addToCart,
+                                                                              style: const TextStyle(
+                                                                                fontSize: 18,
+                                                                                fontWeight: FontWeight.bold,
+                                                                                letterSpacing: 0.5,
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
                                                                   ),
                                                                 ),
-                                                                child: Row(
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .center,
-                                                                  children: [
-                                                                    Icon(
-                                                                      Icons
-                                                                          .shopping_cart_outlined,
-                                                                      size: 20,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 16),
+                                                            Expanded(
+                                                              flex: 1,
+                                                              child: SizedBox(
+                                                                height: 56,
+                                                                child:
+                                                                    OutlinedButton(
+                                                                  onPressed: () =>
+                                                                      _handleBuyNow(
+                                                                          state,
+                                                                          isWeb:
+                                                                              true),
+                                                                  style: OutlinedButton
+                                                                      .styleFrom(
+                                                                    foregroundColor: Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .primary,
+                                                                    side:
+                                                                        BorderSide(
+                                                                      color: Theme.of(
+                                                                              context)
+                                                                          .colorScheme
+                                                                          .primary,
                                                                     ),
-                                                                    const SizedBox(
-                                                                        width:
-                                                                            8),
-                                                                    Text(
-                                                                      S
-                                                                          .of(context)
-                                                                          .addToCart,
-                                                                      style:
-                                                                          const TextStyle(
-                                                                        fontSize:
-                                                                            18,
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                        letterSpacing:
-                                                                            0.5,
+                                                                    shape:
+                                                                        RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              12),
+                                                                    ),
+                                                                  ),
+                                                                  child:
+                                                                      _AutoScrollingButtonContent(
+                                                                    child:
+                                                                        Align(
+                                                                      alignment:
+                                                                          Alignment
+                                                                              .center,
+                                                                      child:
+                                                                          Text(
+                                                                        S
+                                                                            .of(context)
+                                                                            .buyNow,
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                        ),
                                                                       ),
                                                                     ),
-                                                                  ],
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ),
@@ -1334,28 +1543,87 @@ class _ProductDetailScreenWebViewState
                                                             MainAxisAlignment
                                                                 .center,
                                                         children: [
-                                                          Icon(
+                                                          const Icon(
                                                             Icons
                                                                 .shopping_cart_outlined,
                                                             size: 20,
                                                           ),
                                                           const SizedBox(
                                                               width: 8),
-                                                          Text(
-                                                            S
-                                                                .of(context)
-                                                                .addToCart,
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize: 18,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              letterSpacing:
-                                                                  0.5,
+                                                          Expanded(
+                                                            child:
+                                                                _AutoScrollingButtonContent(
+                                                              child: Align(
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                child: Text(
+                                                                  S
+                                                                      .of(context)
+                                                                      .addToCart,
+                                                                  style:
+                                                                      const TextStyle(
+                                                                    fontSize:
+                                                                        18,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    letterSpacing:
+                                                                        0.5,
+                                                                  ),
+                                                                ),
+                                                              ),
                                                             ),
                                                           ),
                                                         ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  SizedBox(
+                                                    width: double.infinity,
+                                                    height: 56,
+                                                    child: OutlinedButton(
+                                                      onPressed: () =>
+                                                          _handleBuyNow(state,
+                                                              isWeb: false),
+                                                      style: OutlinedButton
+                                                          .styleFrom(
+                                                        foregroundColor:
+                                                            Theme.of(context)
+                                                                .colorScheme
+                                                                .primary,
+                                                        side: BorderSide(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .primary,
+                                                        ),
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(12),
+                                                        ),
+                                                      ),
+                                                      child:
+                                                          _AutoScrollingButtonContent(
+                                                        child: Align(
+                                                          alignment:
+                                                              Alignment.center,
+                                                          child: Text(
+                                                            S
+                                                                .of(context)
+                                                                .buyNow,
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
                                                   ),

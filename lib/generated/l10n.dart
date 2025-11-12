@@ -217,6 +217,13 @@ class S {
   String get stripe => Intl.message('Stripe', name: 'stripe');
   String get stripeDescription =>
       Intl.message('Credit/Debit card payment', name: 'stripeDescription');
+  String get transactionContentLabel =>
+      Intl.message('Transfer content', name: 'transactionContentLabel');
+  String get transactionContentCopied => Intl.message(
+        'Transfer content copied to clipboard',
+        name: 'transactionContentCopied',
+      );
+  String get copy => Intl.message('Copy', name: 'copy');
   String get orderSummary =>
       Intl.message('Order Summary', name: 'orderSummary');
   String get subtotal => Intl.message('Subtotal', name: 'subtotal');
@@ -361,6 +368,7 @@ class S {
       Intl.message('Add to Wishlist', name: 'addToWishlist');
   String get totalPrice => Intl.message('Total Price', name: 'totalPrice');
   String get addToCart => Intl.message('Add to Cart', name: 'addToCart');
+  String get buyNow => Intl.message('Buy Now', name: 'buyNow');
   String get productSpecifications =>
       Intl.message('Product Specifications', name: 'productSpecifications');
   String get memorySpecifications =>

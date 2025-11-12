@@ -328,6 +328,15 @@ class SVI extends S {
   String get stripeDescription => 'Thanh toán bằng thẻ tín dụng/ghi nợ';
 
   @override
+  String get transactionContentLabel => 'Nội dung chuyển khoản';
+
+  @override
+  String get transactionContentCopied => 'Đã sao chép nội dung chuyển khoản';
+
+  @override
+  String get copy => 'Sao chép';
+
+  @override
   String get orderSummary => 'Tổng quan đơn hàng';
 
   @override
@@ -526,6 +535,8 @@ class SVI extends S {
 
   @override
   String get addToCart => 'Thêm vào giỏ hàng';
+  @override
+  String get buyNow => 'Mua ngay';
 
   @override
   String get productSpecifications => 'Thông số kỹ thuật sản phẩm';
