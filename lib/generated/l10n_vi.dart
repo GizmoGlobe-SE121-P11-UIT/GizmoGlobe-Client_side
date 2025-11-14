@@ -1072,6 +1072,22 @@ class SVI extends S {
   @override
   String get retry => 'Thử lại';
 
+  @override
+  String get unableToNavigate => 'Không thể điều hướng. Vui lòng thử lại.';
+
+  @override
+  String get productInfoLoading =>
+      'Đang tải thông tin sản phẩm. Vui lòng thử lại sau.';
+
+  @override
+  String inStockItems(int count) => 'Còn hàng ($count sản phẩm)';
+
+  @override
+  String get outOfStock => 'Hết hàng';
+
+  @override
+  String get viewDetails => 'Xem chi tiết';
+
   // Hero Section
   @override
   String get limitedTimeOffer => 'ƯU ĐÃI CÓ THỜI HẠN';

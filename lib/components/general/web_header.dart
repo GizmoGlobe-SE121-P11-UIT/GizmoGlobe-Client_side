@@ -12,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizmoglobe_client/services/platform_actions.dart'
     as platform_actions;
 import 'package:gizmoglobe_client/screens/user/survey_screen/survey_screen_webview.dart';
+import 'package:gizmoglobe_client/components/general/web_sidebar.dart';
 
 class WebHeader extends StatefulWidget {
   const WebHeader({super.key});
@@ -24,6 +25,7 @@ class _WebHeaderState extends State<WebHeader> {
   final WebGuestService _webGuestService = WebGuestService();
   bool _isUserMenuOpen = false;
   OverlayEntry? _overlayEntry;
+  OverlayEntry? _sidebarOverlay;
   final GlobalKey _userIconKey = GlobalKey();
   final GlobalKey _headerKey = GlobalKey();
 
@@ -32,6 +34,88 @@ class _WebHeaderState extends State<WebHeader> {
       setState(() => _isUserMenuOpen = false);
       _removeOverlay();
     }
+  }
+
+  bool get _isSidebarOpen => _sidebarOverlay != null;
+
+  void _toggleSidebar() {
+    if (_isSidebarOpen) {
+      _hideSidebarOverlay();
+    } else {
+      _showSidebarOverlay();
+    }
+    setState(() {});
+  }
+
+  Widget _buildSidebarToggleButton(BuildContext context, bool isTablet) {
+    final size = isTablet ? 36.0 : 40.0;
+    final iconSize = isTablet ? 18.0 : 20.0;
+
+    return GestureDetector(
+      onTap: _toggleSidebar,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).dividerColor,
+          ),
+        ),
+        child: Icon(
+          _isSidebarOpen ? Icons.menu_open : Icons.menu,
+          color: _isSidebarOpen
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+          size: iconSize,
+        ),
+      ),
+    );
+  }
+
+  void _showSidebarOverlay() {
+    final overlayState = Overlay.of(context, rootOverlay: true);
+    if (_sidebarOverlay != null) return;
+
+    _sidebarOverlay = OverlayEntry(
+      builder: (context) {
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _toggleSidebar,
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.25),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SafeArea(
+                child: Material(
+                  color: Colors.transparent,
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height,
+                    child: WebSidebar(
+                      isOpen: true,
+                      onToggle: _toggleSidebar,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    overlayState.insert(_sidebarOverlay!);
+  }
+
+  void _hideSidebarOverlay() {
+    _sidebarOverlay?.remove();
+    _sidebarOverlay = null;
   }
 
   Future<void> _handleCartNavigation(BuildContext context) async {
@@ -111,6 +195,7 @@ class _WebHeaderState extends State<WebHeader> {
   @override
   void dispose() {
     _removeOverlay();
+    _hideSidebarOverlay();
     super.dispose();
   }
 
@@ -160,25 +245,31 @@ class _WebHeaderState extends State<WebHeader> {
   Widget _buildMobileHeader(BuildContext context) {
     return Column(
       children: [
-        // Top row with logo and menu button
+        // Top row with sidebar toggle, logo and menu button
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Logo
-            GestureDetector(
-              onTap: () {
-                _closeUserMenuIfOpen();
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/home',
-                  (route) => false,
-                );
-              },
-              child: Image.asset(
-                'lib/GizmoGlobeLogo.png',
-                height: 32,
-                fit: BoxFit.contain,
-              ),
+            // Sidebar toggle and Logo
+            Row(
+              children: [
+                _buildSidebarToggleButton(context, false),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    _closeUserMenuIfOpen();
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/home',
+                      (route) => false,
+                    );
+                  },
+                  child: Image.asset(
+                    'lib/GizmoGlobeLogo.png',
+                    height: 32,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ],
             ),
             // Action buttons (chat icon removed)
             Row(
@@ -197,6 +288,9 @@ class _WebHeaderState extends State<WebHeader> {
   Widget _buildDesktopHeader(bool isTablet, BuildContext context) {
     return Row(
       children: [
+        // Sidebar toggle button
+        _buildSidebarToggleButton(context, isTablet),
+        const SizedBox(width: 12),
         // Logo
         GestureDetector(
           onTap: () {

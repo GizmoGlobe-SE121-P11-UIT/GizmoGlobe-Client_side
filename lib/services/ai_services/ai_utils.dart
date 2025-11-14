@@ -324,8 +324,12 @@ class AIUtils {
       RegExp(r'add\s+(.+?)\s+to\s+basket', caseSensitive: false),
       RegExp(r'put\s+(.+?)\s+in\s+cart', caseSensitive: false),
       RegExp(r'put\s+(.+?)\s+into\s+cart', caseSensitive: false),
-      RegExp(r'thêm\s+(.+?)\s+vào\s+giỏ\s+hàng', caseSensitive: false),
-      RegExp(r'cho\s+(.+?)\s+vào\s+giỏ\s+hàng', caseSensitive: false),
+      RegExp(r'thêm\s+(.+?)\s+vào\s+giỏ\s+hàng',
+          caseSensitive: false, unicode: true),
+      RegExp(r'cho\s+(.+?)\s+vào\s+giỏ\s+hàng',
+          caseSensitive: false, unicode: true),
+      RegExp(r'thêm\s+(.+?)\s+cho\s+tôi', caseSensitive: false, unicode: true),
+      RegExp(r'thêm\s+(.+?)\s+giúp\s+tôi', caseSensitive: false, unicode: true),
     ];
 
     for (final pattern in addToCartPatterns) {
@@ -515,12 +519,19 @@ class AIUtils {
   /// Extract product name from text
   String? extractProductNameFromText(String text) {
     final productPatterns = [
+      // Match "CPU Intel Core Ultra 7 265" or "CPU Intel Core i7 12700K" format
+      RegExp(
+          r'\b(?:CPU\s+)?(?:Intel|AMD|NVIDIA|Samsung|Kingston|Corsair|ASUS|MSI|Gigabyte)\s+(?:Core\s+(?:Ultra\s*[3579]\s*\d+|i[3579]\s*\d+[A-Z]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*|HyperX\s+Fury|DDR\d+)\b',
+          caseSensitive: false,
+          unicode: true),
       RegExp(
           r'\b(?:Kingston|Intel|AMD|NVIDIA|Samsung|Corsair|ASUS|MSI|Gigabyte)\s+(?:HyperX\s+)?(?:Fury|Core|Ryzen|RTX|GTX|DDR\d+)\s+(?:\d+[A-Z]*|[^\s]+(?:\s+[^\s]+)*)',
-          caseSensitive: false),
+          caseSensitive: false,
+          unicode: true),
       RegExp(
-          r'\b(?:Core i[3579]\s*\d+[A-Z]*|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*)\b',
-          caseSensitive: false),
+          r'\b(?:Core\s+(?:Ultra\s*[3579]\s*\d+|i[3579]\s*\d+[A-Z]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*)\b',
+          caseSensitive: false,
+          unicode: true),
       RegExp(r'\b(?:DDR\d+)\s+(?:\d+)\s*(?:GB|MB)\s*(?:\d+)?\s*(?:MHz)?\b',
           caseSensitive: false),
       RegExp(
@@ -724,14 +735,31 @@ class AIUtils {
       'trong',
       'trên',
       'tại',
-      'đến'
+      'đến',
+      'bạn',
+      'bạn đề cập',
+      'đề cập',
+      'mới nhất',
+      'mới',
+      'nhất',
+      'giúp tôi',
+      'giúp',
+      'tôi',
+      'cho tôi',
     ];
 
     var cleanedName = productName;
 
-    for (final word in unwantedWords) {
+    // Remove unwanted words (order matters - longer phrases first)
+    final sortedWords = unwantedWords.toList()
+      ..sort((a, b) => b.length.compareTo(a.length));
+
+    for (final word in sortedWords) {
+      // Use word boundary or space boundaries for better matching
       cleanedName = cleanedName.replaceAll(
-          RegExp(r'\b$word\b', caseSensitive: false), '');
+          RegExp('\\b${RegExp.escape(word)}\\b',
+              caseSensitive: false, unicode: true),
+          ' ');
     }
 
     final cartPhrases = [
@@ -749,20 +777,77 @@ class AIUtils {
       'into basket',
       'vào giỏ hàng',
       'trong giỏ hàng',
-      'cho vào giỏ hàng'
+      'cho vào giỏ hàng',
+      'cho tôi',
+      'giúp tôi',
     ];
 
     for (final phrase in cartPhrases) {
-      cleanedName =
-          cleanedName.replaceAll(RegExp(phrase, caseSensitive: false), '');
+      cleanedName = cleanedName.replaceAll(
+          RegExp(RegExp.escape(phrase), caseSensitive: false, unicode: true),
+          ' ');
     }
 
+    // Only remove punctuation, preserve Unicode letters and numbers
+    // Be more permissive - only remove specific punctuation marks
+    // Keep all Unicode characters (including Vietnamese diacritics)
+    // Build regex pattern by escaping each character
+    final punctuationList = [
+      '.',
+      ',',
+      ';',
+      ':',
+      '!',
+      '?',
+      '(',
+      ')',
+      '[',
+      ']',
+      '{',
+      '}',
+      '"',
+      "'",
+      '`',
+      '~',
+      '@',
+      '#',
+      r'$',
+      '%',
+      '^',
+      '&',
+      '*',
+      '+',
+      '=',
+      '|',
+      r'\',
+      '/',
+      '<',
+      '>'
+    ];
+    final punctuationPattern =
+        punctuationList.map((char) => RegExp.escape(char)).join('');
+    final punctuationToRemove = RegExp('[$punctuationPattern]', unicode: true);
     cleanedName = cleanedName
-        .replaceAll(RegExp(r'[^\w\s-]'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(punctuationToRemove, ' ')
+        .replaceAll(RegExp(r'\s+', unicode: true), ' ')
         .trim();
 
     return cleanedName;
+  }
+
+  /// Check if a word is a pronoun or reference word (like "nó", "it", "this", "that")
+  bool isPronounOrReference(String word) {
+    final pronounsAndReferences = [
+      // English pronouns
+      'it', 'its', 'this', 'that', 'these', 'those', 'them', 'they',
+      // Vietnamese pronouns
+      'nó', 'đó', 'đây', 'kia', 'ấy', 'cái này', 'cái đó', 'cái kia',
+      'những cái đó', 'những cái này',
+    ];
+
+    final cleanedWord = word.toLowerCase().trim();
+    return pronounsAndReferences.contains(cleanedWord) ||
+        cleanedWord.length <= 3; // Very short words are likely pronouns
   }
 
   /// Check if the cleaned message contains only common words

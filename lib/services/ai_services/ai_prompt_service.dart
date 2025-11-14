@@ -44,108 +44,106 @@ RESPONSE GUIDELINES:
 
   /// Create prompt without products
   String createPromptWithoutProducts(String userMessage, bool isVietnamese) {
+    // Check if userMessage contains conversation context
+    final hasContext = userMessage.contains('CONVERSATION CONTEXT:');
+
+    if (hasContext) {
+      // Context is already included in userMessage, use it directly
+      return '${createBasePrompt(isVietnamese)}\n\n$userMessage\n\n${isVietnamese ? 'Trả lời bằng Tiếng Việt:' : 'Reply in English:'}';
+    }
+
     return '${createBasePrompt(isVietnamese)}\n\nCUSTOMER QUESTION: $userMessage\n\n${isVietnamese ? 'Trả lời bằng Tiếng Việt:' : 'Reply in English:'}';
   }
 
   /// Create general prompt
   String createGeneralPrompt(String userMessage, bool isVietnamese) {
+    // Check if userMessage contains conversation context
+    final hasContext = userMessage.contains('CONVERSATION CONTEXT:');
+
+    if (hasContext) {
+      // Context is already included in userMessage, use it directly
+      return '${createBasePrompt(isVietnamese)}\n\n$userMessage\n\n${isVietnamese ? 'Trả lời bằng Tiếng Việt:' : 'Reply in English:'}';
+    }
+
     return '${createBasePrompt(isVietnamese)}\n\nCUSTOMER QUESTION: $userMessage\n\n${isVietnamese ? 'Trả lời bằng Tiếng Việt:' : 'Reply in English:'}';
   }
 
   /// Create prompt with products
-  String createPromptWithProducts(String userMessage, QuerySnapshot productsSnapshot, bool isVietnamese) {
-    final formattedProducts = formatProductsInfo(productsSnapshot.docs, isVietnamese);
+  String createPromptWithProducts(
+      String userMessage, QuerySnapshot productsSnapshot, bool isVietnamese) {
+    final formattedProducts =
+        formatProductsInfo(productsSnapshot.docs, isVietnamese);
     final basePrompt = createBasePrompt(isVietnamese);
+
+    // Check if userMessage contains conversation context
+    final hasContext = userMessage.contains('CONVERSATION CONTEXT:');
 
     return isVietnamese
         ? '''
 $basePrompt
 
-DANH SÁCH SẢN PHẨM:
-$formattedProducts
+${hasContext ? '' : 'DANH SÁCH SẢN PHẨM:\n$formattedProducts\n\nHƯỚNG DẪN TRẢ LỜI:\n1. Phân tích yêu cầu của khách hàng\n2. Cung cấp thông tin chi tiết về sản phẩm\n3. Đề xuất sản phẩm phù hợp\n4. Hướng dẫn mua hàng trong ứng dụng\n5. LUÔN đề cập đến giá và tình trạng hàng\n\n'}$userMessage
 
-HƯỚNG DẪN TRẢ LỜI:
-1. Phân tích yêu cầu của khách hàng
-2. Cung cấp thông tin chi tiết về sản phẩm
-3. Đề xuất sản phẩm phù hợp
-4. Hướng dẫn mua hàng trong ứng dụng
-5. LUÔN đề cập đến giá và tình trạng hàng
-
-CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
-
-Trả lời bằng Tiếng Việt:
+${hasContext ? '\nDANH SÁCH SẢN PHẨM:\n$formattedProducts\n\nHƯỚNG DẪN:\n- Sử dụng ngữ cảnh cuộc trò chuyện để hiểu yêu cầu của khách hàng\n- Cung cấp thông tin chi tiết về sản phẩm từ danh sách trên\n- LUÔN đề cập đến giá và tình trạng hàng\n\n' : ''}Trả lời bằng Tiếng Việt:
 '''
         : '''
 $basePrompt
 
-PRODUCT LIST:
-$formattedProducts
+${hasContext ? '' : 'PRODUCT LIST:\n$formattedProducts\n\nRESPONSE GUIDELINES:\n1. Analyze customer request\n2. Provide detailed product information\n3. Suggest suitable products\n4. Guide in-app purchase\n5. ALWAYS mention price and stock availability\n\n'}$userMessage
 
-RESPONSE GUIDELINES:
-1. Analyze customer request
-2. Provide detailed product information
-3. Suggest suitable products
-4. Guide in-app purchase
-5. ALWAYS mention price and stock availability
-
-CUSTOMER QUESTION: $userMessage
-
-Reply in English:
+${hasContext ? '\nPRODUCT LIST:\n$formattedProducts\n\nGUIDELINES:\n- Use conversation context to understand customer request\n- Provide detailed product information from the list above\n- ALWAYS mention price and stock availability\n\n' : ''}Reply in English:
 ''';
   }
 
   /// Create voucher prompt
-  String createVoucherPrompt(String basePrompt, String formattedVouchers, String userMessage, bool isVietnamese) {
+  String createVoucherPrompt(String basePrompt, String formattedVouchers,
+      String userMessage, bool isVietnamese) {
+    // Check if userMessage contains conversation context
+    final hasContext = userMessage.contains('CONVERSATION CONTEXT:');
+
     return isVietnamese
         ? '''
 $basePrompt
 
-VOUCHER:
-$formattedVouchers
+${hasContext ? '' : 'VOUCHER:\n$formattedVouchers\n\n'}$userMessage
 
-CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
-
-Trả lời bằng Tiếng Việt:
+${hasContext ? '\nVOUCHER:\n$formattedVouchers\n\nHƯỚNG DẪN:\n- Sử dụng ngữ cảnh cuộc trò chuyện để hiểu yêu cầu của khách hàng\n- Cung cấp thông tin về voucher từ danh sách trên\n\n' : ''}Trả lời bằng Tiếng Việt:
 '''
         : '''
 $basePrompt
 
-VOUCHERS:
-$formattedVouchers
+${hasContext ? '' : 'VOUCHERS:\n$formattedVouchers\n\n'}$userMessage
 
-CUSTOMER QUESTION: $userMessage
-
-Reply in English:
+${hasContext ? '\nVOUCHERS:\n$formattedVouchers\n\nGUIDELINES:\n- Use conversation context to understand customer request\n- Provide information about vouchers from the list above\n\n' : ''}Reply in English:
 ''';
   }
 
   /// Create user data prompt (favorites, cart, etc.)
-  String createUserDataPrompt(String basePrompt, String sectionTitle, String content, String userMessage, bool isVietnamese) {
+  String createUserDataPrompt(String basePrompt, String sectionTitle,
+      String content, String userMessage, bool isVietnamese) {
+    // Check if userMessage contains conversation context
+    final hasContext = userMessage.contains('CONVERSATION CONTEXT:');
+
     return isVietnamese
         ? '''
 $basePrompt
 
-$sectionTitle:
-$content
+${hasContext ? '' : '$sectionTitle:\n$content\n\n'}$userMessage
 
-CÂU HỎI CỦA KHÁCH HÀNG: $userMessage
-
-Trả lời bằng Tiếng Việt:
+${hasContext ? '\n$sectionTitle:\n$content\n\nHƯỚNG DẪN:\n- Sử dụng ngữ cảnh cuộc trò chuyện để hiểu yêu cầu của khách hàng\n- Cung cấp thông tin từ danh sách trên\n\n' : ''}Trả lời bằng Tiếng Việt:
 '''
         : '''
 $basePrompt
 
-$sectionTitle:
-$content
+${hasContext ? '' : '$sectionTitle:\n$content\n\n'}$userMessage
 
-CUSTOMER QUESTION: $userMessage
-
-Reply in English:
+${hasContext ? '\n$sectionTitle:\n$content\n\nGUIDELINES:\n- Use conversation context to understand customer request\n- Provide information from the list above\n\n' : ''}Reply in English:
 ''';
   }
 
   /// Format products information for AI prompts
-  String formatProductsInfo(List<QueryDocumentSnapshot> products, bool isVietnamese) {
+  String formatProductsInfo(
+      List<QueryDocumentSnapshot> products, bool isVietnamese) {
     final buffer = StringBuffer();
     final Map<String, List<Map<String, dynamic>>> groupedProducts = {};
 
@@ -169,45 +167,66 @@ Reply in English:
       for (final data in productList) {
         final productName = data['productName'] ?? 'Unknown Product';
         buffer.writeln('$productCount. 🏷️ [PRODUCT_NAME:$productName]');
-        buffer.writeln('\n   💰 Price: ${formatPriceWithDiscount(data['sellingPrice'], data['discount'])}');
+        buffer.writeln(
+            '\n   💰 Price: ${formatPriceWithDiscount(data['sellingPrice'], data['discount'])}');
 
         // Technical specifications by category
         buffer.writeln('\n   📝 Technical Specifications:');
         switch (category) {
           case 'gpu':
-            buffer.writeln('      • Series: ${data['series']?.toString() ?? 'N/A'}');
-            buffer.writeln('      • Memory: ${formatValue(data['capacity'], 'capacity')}');
-            buffer.writeln('      • Bus Width: ${formatValue(data['bus'], 'bus')}');
-            buffer.writeln('      • Clock Speed: ${formatValue(data['clockSpeed'], 'clock')}');
+            buffer.writeln(
+                '      • Series: ${data['series']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Memory: ${formatValue(data['capacity'], 'capacity')}');
+            buffer.writeln(
+                '      • Bus Width: ${formatValue(data['bus'], 'bus')}');
+            buffer.writeln(
+                '      • Clock Speed: ${formatValue(data['clockSpeed'], 'clock')}');
             break;
           case 'cpu':
-            buffer.writeln('      • Family: ${data['family']?.toString() ?? 'N/A'}');
-            buffer.writeln('      • Cores: ${data['core']?.toString() ?? 'N/A'} cores');
-            buffer.writeln('      • Threads: ${data['thread']?.toString() ?? 'N/A'} threads');
-            buffer.writeln('      • Clock Speed: ${formatValue(data['clockSpeed'], 'clock')}');
+            buffer.writeln(
+                '      • Family: ${data['family']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Cores: ${data['core']?.toString() ?? 'N/A'} cores');
+            buffer.writeln(
+                '      • Threads: ${data['thread']?.toString() ?? 'N/A'} threads');
+            buffer.writeln(
+                '      • Clock Speed: ${formatValue(data['clockSpeed'], 'clock')}');
             break;
           case 'ram':
-            buffer.writeln('      • Type: ${data['ramType']?.toString() ?? 'N/A'}');
-            buffer.writeln('      • Capacity: ${formatValue(data['capacity'], 'capacity')}');
-            buffer.writeln('      • Speed: ${formatValue(data['bus'], 'speed')}');
+            buffer.writeln(
+                '      • Type: ${data['ramType']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Capacity: ${formatValue(data['capacity'], 'capacity')}');
+            buffer
+                .writeln('      • Speed: ${formatValue(data['bus'], 'speed')}');
             break;
           case 'psu':
-            buffer.writeln('      • Wattage: ${data['wattage'] != null ? '${data['wattage']}W' : 'N/A'}');
-            buffer.writeln('      • Efficiency: ${data['efficiency']?.toString() ?? 'N/A'}');
-            buffer.writeln('      • Modular: ${formatValue(data['modular'], 'modular')}');
+            buffer.writeln(
+                '      • Wattage: ${data['wattage'] != null ? '${data['wattage']}W' : 'N/A'}');
+            buffer.writeln(
+                '      • Efficiency: ${data['efficiency']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Modular: ${formatValue(data['modular'], 'modular')}');
             break;
           case 'drive':
-            buffer.writeln('      • Type: ${data['type']?.toString() ?? 'N/A'}');
-            buffer.writeln('      • Capacity: ${formatValue(data['capacity'], 'capacity')}');
+            buffer
+                .writeln('      • Type: ${data['type']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Capacity: ${formatValue(data['capacity'], 'capacity')}');
             break;
           case 'mainboard':
-            buffer.writeln('      • Form Factor: ${data['formFactor']?.toString() ?? 'N/A'}');
-            buffer.writeln('      • Series: ${data['series']?.toString() ?? 'N/A'}');
-            buffer.writeln('      • Compatibility: ${data['compatibility']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Form Factor: ${data['formFactor']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Series: ${data['series']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Compatibility: ${data['compatibility']?.toString() ?? 'N/A'}');
             break;
         }
 
-        buffer.writeln('\n   🏭 Manufacturer: ${data['manufacturerID'] ?? 'N/A'}');
+        buffer.writeln(
+            '\n   🏭 Manufacturer: ${data['manufacturerID'] ?? 'N/A'}');
         buffer.writeln('   📦 ${formatValue(data['stock'], 'stock')}');
 
         // Add product description if available
@@ -297,8 +316,9 @@ Reply in English:
       return formatValue(price, 'price');
     }
 
-    final discountAmount = price * (discount as num);
-    final finalPrice = price - discountAmount;
+    // Discount is stored as percentage (0-100), not multiplier (0-1)
+    final discountPercent = (discount as num).toDouble();
+    final finalPrice = price * (1 - discountPercent / 100);
 
     return '${formatValue(finalPrice, 'price')} (Original: ${formatValue(price, 'price')})';
   }

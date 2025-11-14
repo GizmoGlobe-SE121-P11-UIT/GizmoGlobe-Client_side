@@ -22,6 +22,9 @@ class AIConversationService {
   /// Initialize conversation history for a user
   Future<void> initializeUserHistory(String userId) async {
     if (_conversationHistory.containsKey(userId)) {
+      // Ensure existing history is properly converted (in case it contains IdentityMaps)
+      final existingHistory = _conversationHistory[userId]!;
+      _conversationHistory[userId] = _normalizeHistory(existingHistory);
       return; // Already initialized
     }
 
@@ -35,7 +38,7 @@ class AIConversationService {
       if (historyJson != null) {
         final history = _parseHistoryFromJson(historyJson);
         if (history.isNotEmpty) {
-          _conversationHistory[userId] = history;
+          _conversationHistory[userId] = _normalizeHistory(history);
           if (kDebugMode) {
             print(
                 'Loaded ${history.length} conversations from SharedPreferences for user: $userId');
@@ -54,6 +57,25 @@ class AIConversationService {
     }
   }
 
+  /// Normalize history to ensure all maps are regular Map<String, dynamic>, not IdentityMaps
+  List<Map<String, dynamic>> _normalizeHistory(
+      List<Map<String, dynamic>> history) {
+    return history.map((interaction) {
+      return <String, dynamic>{
+        'question': interaction['question']?.toString() ?? '',
+        'answer': interaction['answer']?.toString() ?? '',
+        'timestamp': interaction['timestamp'] is DateTime
+            ? interaction['timestamp'] as DateTime
+            : (interaction['timestamp'] is String
+                ? DateTime.tryParse(interaction['timestamp'] as String) ??
+                    DateTime.now()
+                : DateTime.now()),
+        'messageId': interaction['messageId']?.toString() ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
+      };
+    }).toList();
+  }
+
   /// Sync conversation history from Firebase
   Future<void> _syncFromFirebase(String userId) async {
     try {
@@ -64,14 +86,24 @@ class AIConversationService {
         final messages = <Map<String, dynamic>>[];
 
         // Convert Firebase document to conversation format
-        data.forEach((key, value) {
-          if (value is Map<String, dynamic>) {
-            final message = value;
+        // Convert the entire data map to avoid IdentityMap issues
+        final dataMap = Map<String, dynamic>.from(data);
+        dataMap.forEach((key, value) {
+          if (value is Map) {
+            // Convert IdentityMap to regular Map to avoid type errors
+            final message = Map<String, dynamic>.from(value);
             if (message['content'] != null && message['timestamp'] != null) {
+              // Ensure timestamp is properly converted
+              final timestamp = message['timestamp'];
+              final timestampDate = timestamp is Timestamp
+                  ? timestamp.toDate()
+                  : (timestamp is DateTime ? timestamp : DateTime.now());
+
               final newMessage = <String, dynamic>{
-                'question': message['content'] as String,
-                'answer': message['aiResponse'] ?? 'No response available',
-                'timestamp': (message['timestamp'] as Timestamp).toDate(),
+                'question': message['content']?.toString() ?? '',
+                'answer': (message['aiResponse'] ?? 'No response available')
+                    .toString(),
+                'timestamp': timestampDate,
                 'messageId': key,
               };
               messages.add(newMessage);
@@ -83,10 +115,10 @@ class AIConversationService {
         messages.sort((a, b) =>
             (a['timestamp'] as DateTime).compareTo(b['timestamp'] as DateTime));
 
-        // Keep only recent messages
+        // Keep only recent messages and normalize them
         final recentMessages = messages.take(_maxHistoryLength).toList();
 
-        _conversationHistory[userId] = recentMessages;
+        _conversationHistory[userId] = _normalizeHistory(recentMessages);
 
         // Save to SharedPreferences
         await _saveToSharedPreferences(userId);
@@ -201,6 +233,7 @@ class AIConversationService {
   }
 
   /// Process context for user messages
+  /// Always includes conversation context when history exists
   Future<String> processContext(String userMessage, String userId) async {
     // Ensure user history is initialized
     await initializeUserHistory(userId);
@@ -208,70 +241,150 @@ class AIConversationService {
     final now = DateTime.now();
     final history = _conversationHistory[userId];
 
-    // Clear old history if exists
-    if (history != null && history.isNotEmpty) {
-      final lastInteraction = history.last['timestamp'] as DateTime;
-      if (now.difference(lastInteraction) > _historyExpiration) {
-        _conversationHistory.remove(userId);
-        await _saveToSharedPreferences(userId);
-        return userMessage;
-      }
-
-      // Check if current message contains context references
-      final hasContextReferences = _hasContextReferences(userMessage);
-      final isAddToCartRequest = _utils.isAddToCartRequest(userMessage);
-
-      if (hasContextReferences || isAddToCartRequest) {
-        // Build detailed context for reference resolution and add-to-cart actions
-        final contextBuilder = StringBuffer();
-        contextBuilder
-            .writeln('CONVERSATION CONTEXT (with product references):');
-        contextBuilder
-            .writeln('==============================================');
-
-        // Include last 5 interactions for better context
-        final recentHistory = history.take(5).toList().reversed.toList();
-        for (int i = 0; i < recentHistory.length; i++) {
-          final interaction = recentHistory[i];
-          final question = interaction['question'] as String;
-          final answer = interaction['answer'] as String;
-          final timestamp = interaction['timestamp'] as DateTime;
-          final timeAgo = _formatTimeAgo(now.difference(timestamp));
-
-          contextBuilder.writeln('Interaction ${i + 1} ($timeAgo ago):');
-          contextBuilder.writeln('Q: $question');
-          contextBuilder.writeln('A: $answer');
-
-          // Extract key entities from the interaction
-          final entities = _extractEntities(question, answer);
-          if (entities.isNotEmpty) {
-            contextBuilder.writeln('Key entities: ${entities.join(', ')}');
-          }
-
-          // Extract product information if available
-          final productInfo = _extractProductInfo(answer);
-          if (productInfo.isNotEmpty) {
-            contextBuilder.writeln('Product info: $productInfo');
-          }
-          contextBuilder.writeln('---');
-        }
-
-        contextBuilder.writeln('CURRENT QUESTION: $userMessage');
-        if (isAddToCartRequest) {
-          contextBuilder.writeln(
-              'NOTE: This appears to be an add-to-cart request. Use context to identify the product.');
-        } else {
-          contextBuilder.writeln(
-              'NOTE: User may be referring to previous topics using words like "it", "that", "this", etc.');
-        }
-        contextBuilder
-            .writeln('==============================================');
-
-        return contextBuilder.toString();
-      }
+    // If no history, return message as-is
+    if (history == null || history.isEmpty) {
+      return userMessage;
     }
 
-    return userMessage;
+    // Clear old history if exists
+    final lastInteraction = history.last['timestamp'] as DateTime;
+    if (now.difference(lastInteraction) > _historyExpiration) {
+      _conversationHistory.remove(userId);
+      await _saveToSharedPreferences(userId);
+      return userMessage;
+    }
+
+    // Always include context when history exists
+    final hasContextReferences = _hasContextReferences(userMessage);
+    final isAddToCartRequest = _utils.isAddToCartRequest(userMessage);
+
+    // Build context - include more details for explicit references or add-to-cart
+    final includeDetailedContext = hasContextReferences || isAddToCartRequest;
+
+    final contextBuilder = StringBuffer();
+    contextBuilder.writeln('CONVERSATION CONTEXT:');
+    contextBuilder.writeln('==============================================');
+
+    // Include last 3-5 interactions depending on context need
+    final contextLength = includeDetailedContext ? 5 : 3;
+    final recentHistory =
+        history.take(contextLength).toList().reversed.toList();
+
+    for (int i = 0; i < recentHistory.length; i++) {
+      final interaction = recentHistory[i];
+      final question = interaction['question'] as String;
+      final answer = interaction['answer'] as String;
+      final timestamp = interaction['timestamp'] as DateTime;
+      final timeAgo = _formatTimeAgo(now.difference(timestamp));
+
+      contextBuilder.writeln('Interaction ${i + 1} ($timeAgo ago):');
+      contextBuilder.writeln('Q: $question');
+
+      if (includeDetailedContext) {
+        // Full answer for detailed context
+        contextBuilder.writeln('A: $answer');
+
+        // Extract key entities from the interaction
+        final entities = _extractEntities(question, answer);
+        if (entities.isNotEmpty) {
+          contextBuilder.writeln('Key entities: ${entities.join(', ')}');
+        }
+
+        // Extract product information if available
+        final productInfo = _extractProductInfo(answer);
+        if (productInfo.isNotEmpty) {
+          contextBuilder.writeln('Product info: $productInfo');
+        }
+      } else {
+        // Summary for general context (keep it concise)
+        final summary = _summarizeAnswer(answer);
+        contextBuilder.writeln('A: $summary');
+      }
+      contextBuilder.writeln('---');
+    }
+
+    contextBuilder.writeln('CURRENT QUESTION: $userMessage');
+    if (isAddToCartRequest) {
+      contextBuilder.writeln(
+          'NOTE: This appears to be an add-to-cart request. Use context to identify the product.');
+    } else if (hasContextReferences) {
+      contextBuilder.writeln(
+          'NOTE: User may be referring to previous topics. Use context to understand references.');
+    } else {
+      contextBuilder.writeln(
+          'NOTE: Use conversation context to provide relevant and coherent responses.');
+    }
+    contextBuilder.writeln('==============================================');
+
+    return contextBuilder.toString();
+  }
+
+  /// Summarize answer for concise context inclusion
+  String _summarizeAnswer(String answer) {
+    // Extract key information: product names, prices, stock
+    final productNames = _extractProductNames(answer);
+    final priceInfo = _extractPriceInfo(answer);
+    final stockInfo = _extractStockInfo(answer);
+
+    final parts = <String>[];
+    if (productNames.isNotEmpty) {
+      parts.add('Products: ${productNames.join(', ')}');
+    }
+    if (priceInfo.isNotEmpty) {
+      parts.add('Prices: ${priceInfo.join(', ')}');
+    }
+    if (stockInfo.isNotEmpty) {
+      parts.add('Stock: ${stockInfo.join(', ')}');
+    }
+
+    // If we have key info, return summary; otherwise return first 100 chars
+    if (parts.isNotEmpty) {
+      return parts.join(' | ');
+    }
+
+    // Fallback: return first 100 characters
+    return answer.length > 100 ? '${answer.substring(0, 100)}...' : answer;
+  }
+
+  /// Extract product names from text
+  List<String> _extractProductNames(String text) {
+    final names = <String>[];
+    // Look for patterns like [PRODUCT_NAME:...] or product names in quotes
+    final productPattern = RegExp(r'\[PRODUCT_NAME:([^\]]+)\]|"([^"]+)"');
+    final matches = productPattern.allMatches(text);
+    for (final match in matches) {
+      final name = match.group(1) ?? match.group(2) ?? '';
+      if (name.isNotEmpty && name.length > 3) {
+        names.add(name);
+      }
+    }
+    return names;
+  }
+
+  /// Extract price information from text
+  List<String> _extractPriceInfo(String text) {
+    final prices = <String>[];
+    // Look for currency patterns
+    final pricePattern = RegExp(r'\d+[.,]\d+\s*₫|\d+\s*₫');
+    final matches = pricePattern.allMatches(text);
+    for (final match in matches.take(3)) {
+      prices.add(match.group(0)!);
+    }
+    return prices;
+  }
+
+  /// Extract stock information from text
+  List<String> _extractStockInfo(String text) {
+    final stock = <String>[];
+    // Look for stock patterns
+    final stockPattern = RegExp(
+        r'(?:stock|kho|tồn kho|available|available|in stock|còn hàng)[:\s]+(\d+)',
+        caseSensitive: false);
+    final matches = stockPattern.allMatches(text);
+    for (final match in matches.take(2)) {
+      stock.add(match.group(1)!);
+    }
+    return stock;
   }
 
   /// Extract product name from conversation context
@@ -323,12 +436,35 @@ class AIConversationService {
         }
       }
 
-      // Only use AI answer if no product found in user question
-      if (productName == null) {
+      // Always check AI answer for product names (may have more specific info)
+      // Extract all product names from answer, not just one
+      final answerProductNames = _extractAllProductNames(answer);
+      for (final answerProductName in answerProductNames) {
+        if (answerProductName != null &&
+            _isValidProductName(answerProductName) &&
+            !foundProducts.contains(answerProductName)) {
+          if (kDebugMode) {
+            print(
+                'Extracted product name from AI answer: "$answerProductName"');
+          }
+          foundProducts.add(answerProductName);
+
+          // Store additional context about this product
+          final productDetail =
+              _extractProductDetail(answer, answerProductName);
+          if (productDetail.isNotEmpty) {
+            foundProductDetails.add('$answerProductName: $productDetail');
+          }
+        }
+      }
+
+      // If still no product found, try the original single extraction
+      if (productName == null && foundProducts.isEmpty) {
         productName = _extractProductNameFromText(answer);
         if (productName != null && _isValidProductName(productName)) {
           if (kDebugMode) {
-            print('Extracted product name from AI answer: "$productName"');
+            print(
+                'Extracted product name from AI answer (fallback): "$productName"');
           }
           foundProducts.add(productName);
 
@@ -424,7 +560,9 @@ class AIConversationService {
       String userId) async {
     // Ensure user history is initialized
     await initializeUserHistory(userId);
-    return _conversationHistory[userId] ?? [];
+    final history = _conversationHistory[userId] ?? [];
+    // Normalize to ensure no IdentityMaps
+    return _normalizeHistory(history);
   }
 
   /// Get formatted conversation history for model fine-tuning
@@ -750,6 +888,49 @@ class AIConversationService {
 
   String? _extractProductNameFromText(String text) {
     return _utils.extractProductNameFromText(text);
+  }
+
+  /// Extract all product names from text (not just the first one)
+  List<String?> _extractAllProductNames(String text) {
+    final productNames = <String?>[];
+
+    // Use the same patterns as extractProductNameFromText but get all matches
+    final productPatterns = [
+      // Match "CPU Intel Core Ultra 7 265" or "CPU Intel Core i7 12700K" format
+      RegExp(
+          r'\b(?:CPU\s+)?(?:Intel|AMD|NVIDIA|Samsung|Kingston|Corsair|ASUS|MSI|Gigabyte)\s+(?:Core\s+(?:Ultra\s*[3579]\s*\d+|i[3579]\s*\d+[A-Z]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*|HyperX\s+Fury|DDR\d+)\b',
+          caseSensitive: false,
+          unicode: true),
+      RegExp(
+          r'\b(?:Kingston|Intel|AMD|NVIDIA|Samsung|Corsair|ASUS|MSI|Gigabyte)\s+(?:HyperX\s+)?(?:Fury|Core|Ryzen|RTX|GTX|DDR\d+)\s+(?:\d+[A-Z]*|[^\s]+(?:\s+[^\s]+)*)',
+          caseSensitive: false,
+          unicode: true),
+      RegExp(
+          r'\b(?:Core\s+(?:Ultra\s*[3579]\s*\d+|i[3579]\s*\d+[A-Z]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*)\b',
+          caseSensitive: false,
+          unicode: true),
+    ];
+
+    for (final pattern in productPatterns) {
+      final matches = pattern.allMatches(text);
+      for (final match in matches) {
+        String? productName = match.group(0)?.trim();
+        if (productName != null && productName.length > 3) {
+          productName = _utils.cleanProductName(productName);
+          if (productName.isNotEmpty && _isValidProductName(productName)) {
+            productNames.add(productName);
+          }
+        }
+      }
+    }
+
+    // Also try the standard extraction method
+    final singleExtraction = _utils.extractProductNameFromText(text);
+    if (singleExtraction != null && !productNames.contains(singleExtraction)) {
+      productNames.add(singleExtraction);
+    }
+
+    return productNames;
   }
 
   String? _extractProductNameFromUserQuestion(String question) {

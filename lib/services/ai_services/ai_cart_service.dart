@@ -90,9 +90,10 @@ class AICartService {
   String getAddToCartSuccessResponse(
       Map<String, dynamic> product, int quantity, bool isVietnamese) {
     final productDisplayName = product['productName'] ?? 'Unknown Product';
-    final price = product['sellingPrice'] ?? 0.0;
-    final discount = product['discount'] ?? 0.0;
-    final finalPrice = price * (1 - discount / 100);
+    final price = (product['sellingPrice'] ?? 0.0) as num;
+    final discount = (product['discount'] ?? 0.0) as num;
+    // Discount is stored as percentage (0-100), not multiplier (0-1)
+    final finalPrice = price * (1 - discount.toDouble() / 100);
 
     return isVietnamese
         ? '✅ Đã thêm $quantity ${quantity > 1 ? 'sản phẩm' : 'sản phẩm'} "$productDisplayName" vào giỏ hàng thành công!\n\n💰 Giá: ${Helper.toCurrencyFormat(finalPrice)}\n📦 Số lượng: $quantity\n💵 Tổng: ${Helper.toCurrencyFormat(finalPrice * quantity)}\n\nBạn có thể xem giỏ hàng của mình trong ứng dụng.'

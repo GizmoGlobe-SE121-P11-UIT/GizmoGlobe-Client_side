@@ -233,9 +233,13 @@ class AIUserDataService {
 
     for (var i = 0; i < favorites.length; i++) {
       final product = favorites[i];
+      final price = (product['sellingPrice'] ?? 0.0) as num;
+      final discount = (product['discount'] ?? 0.0) as num;
+      // Discount is stored as percentage (0-100), not multiplier (0-1)
+      final discountedPrice = price * (1 - discount.toDouble() / 100);
+
       buffer.writeln('\n${i + 1}. ${product['productName']}');
-      buffer.writeln(
-          '   Gia: ${Helper.toCurrencyFormat(product['sellingPrice'] * product['discount'])}');
+      buffer.writeln('   Gia: ${Helper.toCurrencyFormat(discountedPrice)}');
       buffer.writeln('   Kho: ${formatValue(product['stock'], 'stock')}');
     }
 
@@ -256,9 +260,12 @@ class AIUserDataService {
         0, (sum, item) => sum + (item['quantity'] as int? ?? 0));
     final totalProducts = cartItems.length;
     final totalValue = cartItems.fold<double>(0.0, (sum, item) {
-      final price = (item['sellingPrice'] ?? 0.0) as double;
+      final price = (item['sellingPrice'] ?? 0.0) as num;
+      final discount = (item['discount'] ?? 0.0) as num;
+      // Discount is stored as percentage (0-100), not multiplier (0-1)
+      final discountedPrice = price * (1 - discount.toDouble() / 100);
       final quantity = (item['quantity'] ?? 0) as int;
-      return sum + (price * quantity);
+      return sum + (discountedPrice * quantity);
     });
 
     if (isVietnamese) {
@@ -268,14 +275,17 @@ class AIUserDataService {
       buffer.writeln('----------------------------------------');
       for (var item in cartItems) {
         final name = item['productName'] ?? 'Unknown Product';
-        final price = item['sellingPrice'] ?? 0.0;
+        final price = (item['sellingPrice'] ?? 0.0) as num;
+        final discount = (item['discount'] ?? 0.0) as num;
+        // Discount is stored as percentage (0-100), not multiplier (0-1)
+        final discountedPrice = price * (1 - discount.toDouble() / 100);
         final quantity = item['quantity'] ?? 0;
-        final total = price * quantity;
+        final total = discountedPrice * quantity;
         final stock = item['stock'] ?? 0;
         final stockStatus = stock > 0 ? '🟢 Còn hàng' : '🔴 Hết hàng';
 
         buffer.writeln('📦 $name');
-        buffer.writeln('💰 Giá: ${Helper.toCurrencyFormat(price)}');
+        buffer.writeln('💰 Giá: ${Helper.toCurrencyFormat(discountedPrice)}');
         buffer.writeln('🔢 Số lượng: $quantity');
         buffer.writeln('💵 Tổng: ${Helper.toCurrencyFormat(total)}');
         buffer.writeln('📊 $stockStatus');
@@ -288,14 +298,17 @@ class AIUserDataService {
       buffer.writeln('----------------------------------------');
       for (var item in cartItems) {
         final name = item['productName'] ?? 'Unknown Product';
-        final price = item['sellingPrice'] ?? 0.0;
+        final price = (item['sellingPrice'] ?? 0.0) as num;
+        final discount = (item['discount'] ?? 0.0) as num;
+        // Discount is stored as percentage (0-100), not multiplier (0-1)
+        final discountedPrice = price * (1 - discount.toDouble() / 100);
         final quantity = item['quantity'] ?? 0;
-        final total = price * quantity;
+        final total = discountedPrice * quantity;
         final stock = item['stock'] ?? 0;
         final stockStatus = stock > 0 ? '🟢 In Stock' : '🔴 Out of Stock';
 
         buffer.writeln('📦 $name');
-        buffer.writeln('💰 Price: ${Helper.toCurrencyFormat(price)}');
+        buffer.writeln('💰 Price: ${Helper.toCurrencyFormat(discountedPrice)}');
         buffer.writeln('🔢 Quantity: $quantity');
         buffer.writeln('💵 Total: ${Helper.toCurrencyFormat(total)}');
         buffer.writeln('📊 $stockStatus');

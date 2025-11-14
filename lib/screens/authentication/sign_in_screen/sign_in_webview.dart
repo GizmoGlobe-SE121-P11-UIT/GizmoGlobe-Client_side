@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
+import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
 import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
@@ -88,7 +89,11 @@ class _SignInWebModalState extends State<SignInWebModal> {
   @override
   Widget build(BuildContext context) {
     String _localizedMessage(SignInState state, BuildContext ctx) {
-      return state.message.toLocalizedString();
+      final locale = Localizations.localeOf(ctx);
+      if (locale.languageCode.toLowerCase().startsWith('vi')) {
+        return state.message.toVietnameseString();
+      }
+      return state.message.description;
     }
 
     final theme = Theme.of(context);
@@ -213,21 +218,25 @@ class _SignInWebModalState extends State<SignInWebModal> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      // Single BlocConsumer to handle all sign-in methods and avoid duplicate notifications
                       BlocConsumer<SignInCubit, SignInState>(
                         listenWhen: (previous, current) =>
                             previous.processState != current.processState,
                         listener: (context, state) {
-                          // Handle loading state
-                          // We control loading locally per-button
+                          final overlayState =
+                              Overlay.of(context, rootOverlay: true);
 
                           // Handle failure state
                           if (state.processState == ProcessState.failure) {
-                            setState(() => _isEmailLoading = false);
-                            final overlayState =
-                                Overlay.of(context, rootOverlay: true);
+                            setState(() {
+                              _isEmailLoading = false;
+                              _isGoogleLoading = false;
+                            });
                             SnackbarService.showErrorAboveOverlay(
                               overlayState,
-                              title: state.dialogName.toString(),
+                              title: state.dialogName == DialogName.failure
+                                  ? S.of(context).failure
+                                  : S.of(context).error,
                               message: _localizedMessage(state, context),
                             );
                             return;
@@ -235,12 +244,13 @@ class _SignInWebModalState extends State<SignInWebModal> {
 
                           // Handle success state
                           if (state.processState == ProcessState.success) {
-                            setState(() => _isEmailLoading = false);
-                            final overlayState =
-                                Overlay.of(context, rootOverlay: true);
+                            setState(() {
+                              _isEmailLoading = false;
+                              _isGoogleLoading = false;
+                            });
                             SnackbarService.showSuccessAboveOverlay(
                               overlayState,
-                              title: state.dialogName.toString(),
+                              title: S.of(context).success,
                               message: _localizedMessage(state, context),
                             );
                             // Close modal and navigate on next frame using root navigator
@@ -252,101 +262,34 @@ class _SignInWebModalState extends State<SignInWebModal> {
                                         '/main', (r) => false);
                               });
                             }
-                          }
-                        },
-                        buildWhen: (previous, current) =>
-                            previous.processState != current.processState,
-                        builder: (context, state) {
-                          return _buildSignInButton(context, state);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Google Sign In Button
-                      BlocConsumer<SignInCubit, SignInState>(
-                        listenWhen: (previous, current) =>
-                            previous.processState != current.processState,
-                        listener: (context, state) {
-                          final overlayState =
-                              Overlay.of(context, rootOverlay: true);
-                          if (state.processState == ProcessState.success) {
-                            setState(() => _isGoogleLoading = false);
-                            SnackbarService.showSuccessAboveOverlay(
-                              overlayState,
-                              title: state.dialogName.toString(),
-                              message: _localizedMessage(state, context),
-                            );
-                            Navigator.of(context, rootNavigator: true).pop();
-                            if (context.mounted) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                Navigator.of(context, rootNavigator: true)
-                                    .pushNamedAndRemoveUntil(
-                                        '/main', (r) => false);
-                              });
-                            }
-                          } else if (state.processState ==
-                              ProcessState.failure) {
-                            setState(() => _isGoogleLoading = false);
-                            SnackbarService.showErrorAboveOverlay(
-                              overlayState,
-                              title: state.dialogName.toString(),
-                              message: _localizedMessage(state, context),
-                            );
                           } else if (state.processState == ProcessState.idle) {
-                            setState(() => _isGoogleLoading = false);
-                            // Handle Google popup dismissal - show info snackbar above modal
-                            SnackbarService.showGuestRestrictionAboveOverlay(
-                              overlayState,
-                              context: context,
-                              actionType: 'google_cancelled',
-                            );
+                            // Handle Google popup dismissal - only show if Google was loading
+                            if (_isGoogleLoading) {
+                              setState(() => _isGoogleLoading = false);
+                              SnackbarService.showGuestRestrictionAboveOverlay(
+                                overlayState,
+                                context: context,
+                                actionType: 'google_cancelled',
+                              );
+                            }
                           }
                         },
                         buildWhen: (previous, current) =>
                             previous.processState != current.processState,
                         builder: (context, state) {
-                          return _buildGoogleSignInButton(context, state);
+                          return Column(
+                            children: [
+                              _buildSignInButton(context, state),
+                              const SizedBox(height: 12),
+                              _buildGoogleSignInButton(context, state),
+                              if (widget.showGuestOption) ...[
+                                const SizedBox(height: 12),
+                                _buildGuestSignInButton(context, state),
+                              ],
+                            ],
+                          );
                         },
                       ),
-                      // Guest Login - only show if showGuestOption is true
-                      if (widget.showGuestOption) ...[
-                        const SizedBox(height: 12),
-                        BlocConsumer<SignInCubit, SignInState>(
-                          listenWhen: (previous, current) =>
-                              previous.processState != current.processState,
-                          listener: (context, state) {
-                            final overlayState =
-                                Overlay.of(context, rootOverlay: true);
-                            if (state.processState == ProcessState.success) {
-                              SnackbarService.showSuccessAboveOverlay(
-                                overlayState,
-                                title: state.dialogName.toString(),
-                                message: state.message.toString(),
-                              );
-                              Navigator.of(context, rootNavigator: true).pop();
-                              if (context.mounted) {
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
-                                  Navigator.of(context, rootNavigator: true)
-                                      .pushNamedAndRemoveUntil(
-                                          '/main', (r) => false);
-                                });
-                              }
-                            } else if (state.processState ==
-                                ProcessState.failure) {
-                              SnackbarService.showErrorAboveOverlay(
-                                overlayState,
-                                title: state.dialogName.toString(),
-                                message: state.message.toString(),
-                              );
-                            }
-                          },
-                          buildWhen: (previous, current) =>
-                              previous.processState != current.processState,
-                          builder: (context, state) {
-                            return _buildGuestSignInButton(context, state);
-                          },
-                        ),
-                      ],
                       const SizedBox(height: 20),
                       // Register Link - moved to bottom
                       Row(

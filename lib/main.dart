@@ -16,6 +16,7 @@ import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_view.dart
 import 'package:gizmoglobe_client/screens/user/user_screen/user_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_view.dart';
+import 'package:gizmoglobe_client/screens/build/builder/pc_builder_view.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_success_webview.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_webview.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
@@ -346,6 +347,7 @@ class MyApp extends StatelessWidget {
                   '/user': (context) => UserScreen.newInstance(),
                   '/user-settings': (context) => UserScreen.newInstance(),
                   '/vouchers': (context) => VoucherScreen.newInstance(),
+                  '/builder': (context) => PCBuilderScreen.newInstance(),
                   // Note: /checkout-success is handled in onGenerateRoute to support query parameters
                 },
                 onGenerateRoute: (settings) {
@@ -526,6 +528,30 @@ class MyApp extends StatelessWidget {
                     return PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           ProductScreen.newInstance(),
+                      settings: RouteSettings(name: cleanRouteName),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 150),
+                    );
+                  }
+
+                  if (baseRouteName.startsWith('/builder/')) {
+                    final uri = Uri.parse(cleanRouteName);
+                    final segments = uri.pathSegments;
+                    final sessionId = segments.length > 1 ? segments[1] : null;
+                    final tabParam = uri.queryParameters['tab'];
+                    final parsedTab = int.tryParse(tabParam ?? '') ?? 1;
+                    final normalizedTab =
+                        parsedTab < 1 ? 1 : (parsedTab > 5 ? 5 : parsedTab);
+                    final tabIndex = normalizedTab - 1;
+                    return PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          PCBuilderScreen.newInstance(
+                        sessionId: sessionId,
+                        initialTabIndex: tabIndex,
+                      ),
                       settings: RouteSettings(name: cleanRouteName),
                       transitionsBuilder:
                           (context, animation, secondaryAnimation, child) {

@@ -643,8 +643,9 @@ class AIProductService {
       return formatValue(price, 'price');
     }
 
-    final discountAmount = price * (discount as num);
-    final finalPrice = price - discountAmount;
+    // Discount is stored as percentage (0-100), not multiplier (0-1)
+    final discountPercent = (discount as num).toDouble();
+    final finalPrice = price * (1 - discountPercent / 100);
 
     return '${formatValue(finalPrice, 'price')} (Original: ${formatValue(price, 'price')})';
   }

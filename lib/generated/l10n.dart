@@ -708,6 +708,23 @@ class S {
 
   String get retry => Intl.message('Retry', name: 'retry');
 
+  // Product mini card localization
+  String get unableToNavigate => Intl.message(
+        'Unable to navigate. Please try again.',
+        name: 'unableToNavigate',
+      );
+  String get productInfoLoading => Intl.message(
+        'Product information is loading. Please try again in a moment.',
+        name: 'productInfoLoading',
+      );
+  String inStockItems(int count) => Intl.message(
+        'In stock ($count items)',
+        name: 'inStockItems',
+        args: [count],
+      );
+  String get outOfStock => Intl.message('Out of stock', name: 'outOfStock');
+  String get viewDetails => Intl.message('View details', name: 'viewDetails');
+
   // Hero Section
   String get limitedTimeOffer =>
       Intl.message('LIMITED TIME OFFER', name: 'limitedTimeOffer');

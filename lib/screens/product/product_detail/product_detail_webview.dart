@@ -7,6 +7,7 @@ import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
 import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/main.dart' show rootNavigatorKey;
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/services/recommendation_service.dart';
 import 'package:gizmoglobe_client/services/platform_actions.dart'
@@ -181,6 +182,7 @@ class _ProductDetailScreenWebViewState
   }
 
   String? _previousHashPath;
+  String? _currentProductHash;
 
   @override
   void initState() {
@@ -189,30 +191,21 @@ class _ProductDetailScreenWebViewState
     final productId = widget.product.productID;
     if (productId != null && productId.isNotEmpty) {
       _previousHashPath = platform_actions.getHashPath();
-      final current = _previousHashPath ?? '';
-      final normalized = current.endsWith('/$productId')
-          ? current
-          : (current.endsWith('/')
-              ? '$current$productId'
-              : '$current/$productId');
-      // Replace the hash without pushing history to avoid route changes
-      platform_actions.replaceHashUrl(normalized);
+      _currentProductHash = '/products/$productId';
+      if (_previousHashPath != _currentProductHash) {
+        platform_actions.replaceHashUrl(_currentProductHash!);
+      }
     }
   }
 
   @override
   void dispose() {
     // Restore previous hash (remove the productId suffix) when leaving detail page
-    final productId = widget.product.productID;
-    if (productId != null && productId.isNotEmpty) {
-      final current = platform_actions.getHashPath();
-      if (current.endsWith('/$productId')) {
-        final restored =
-            current.substring(0, current.length - productId.length - 1);
-        // Avoid empty hash – default to '/products' if needed
-        platform_actions
-            .replaceHashUrl(restored.isEmpty ? '/products' : restored);
-      }
+    if (_previousHashPath != null) {
+      platform_actions.replaceHashUrl(_previousHashPath!);
+    } else if (_currentProductHash != null) {
+      // Fallback to generic products route when no previous hash recorded
+      platform_actions.replaceHashUrl('/products');
     }
     super.dispose();
   }
@@ -233,6 +226,25 @@ class _ProductDetailScreenWebViewState
         return S.of(context).mainboard;
       default:
         return S.of(context).all;
+    }
+  }
+
+  String _getCategoryUrlPath(CategoryEnum category) {
+    switch (category) {
+      case CategoryEnum.ram:
+        return 'ram';
+      case CategoryEnum.cpu:
+        return 'cpu';
+      case CategoryEnum.psu:
+        return 'psu';
+      case CategoryEnum.gpu:
+        return 'gpu';
+      case CategoryEnum.drive:
+        return 'drive';
+      case CategoryEnum.mainboard:
+        return 'mainboard';
+      default:
+        return '';
     }
   }
 
@@ -261,9 +273,7 @@ class _ProductDetailScreenWebViewState
       listener: (context, state) {
         if (state.processState == ProcessState.success) {
           // Check if it's a cart addition success
-          if (state.message.toLowerCase().contains('added') &&
-              state.message.toLowerCase().contains('cart')) {
-            // Extract product name from message or use widget.product.productName
+          if (state.message == 'CART_ADDED') {
             SnackbarService.showCartSuccess(
               context,
               widget.product.productName,
@@ -287,9 +297,15 @@ class _ProductDetailScreenWebViewState
             );
           }
         } else if (state.processState == ProcessState.failure) {
-          // Check if it's a cart failure
-          if (state.message.toLowerCase().contains('cart')) {
+          // Handle cart-related failures with localized messages
+          if (state.message == 'CART_ERROR') {
             SnackbarService.showCartError(context);
+            cubit.setIdleState();
+          } else if (state.message == 'CART_LOGIN_REQUIRED') {
+            SnackbarService.showGuestRestriction(
+              context,
+              actionType: 'cart',
+            );
             cubit.setIdleState();
           } else {
             // Other failure cases show dialog
@@ -367,7 +383,10 @@ class _ProductDetailScreenWebViewState
                           const SizedBox(width: 8),
                           InkWell(
                             onTap: () {
-                              Navigator.pushNamed(context, '/products');
+                              final navigator = rootNavigatorKey.currentState;
+                              if (navigator != null) {
+                                navigator.pushNamed('/products');
+                              }
                             },
                             child: Text(
                               'Sản phẩm',
@@ -392,7 +411,17 @@ class _ProductDetailScreenWebViewState
                           const SizedBox(width: 8),
                           InkWell(
                             onTap: () {
-                              Navigator.pop(context);
+                              final navigator = rootNavigatorKey.currentState;
+                              if (navigator != null) {
+                                final categoryPath = _getCategoryUrlPath(
+                                    widget.product.category);
+                                if (categoryPath.isNotEmpty) {
+                                  navigator
+                                      .pushNamed('/products/$categoryPath');
+                                } else {
+                                  navigator.pushNamed('/products');
+                                }
+                              }
                             },
                             child: Text(
                               _getCategoryLabel(

@@ -137,10 +137,19 @@ class SnackbarService {
 
   /// Shows a success snackbar for cart operations
   static void showCartSuccess(BuildContext context, String productName) {
+    final locale = Localizations.localeOf(context);
+    final String message;
+    if (locale.languageCode == 'vi') {
+      // Vietnamese: "Thêm vào giỏ hàng Product Name"
+      message = '${S.of(context).addToCart} $productName';
+    } else {
+      // English: "Product Name Add to Cart"
+      message = '$productName ${S.of(context).addToCart}';
+    }
     showSuccess(
       context,
       title: S.of(context).success,
-      message: '$productName ${S.of(context).addToCart}',
+      message: message,
     );
   }
 

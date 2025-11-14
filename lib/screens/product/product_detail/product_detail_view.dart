@@ -5,6 +5,7 @@ import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 
+import '../../../components/general/snackbar_service.dart';
 import '../../../components/general/web_product_card.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
@@ -42,35 +43,58 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return BlocConsumer<ProductDetailCubit, ProductDetailState>(
       listener: (context, state) {
         if (state.processState == ProcessState.success) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => InformationDialog(
-              title: S.of(context).orderPlaced,
-              content: state.message,
-              dialogName: DialogName.success,
-              buttonText: S.of(context).ok,
-              onPressed: () {
-                Navigator.pop(context);
-                cubit.setIdleState();
-              },
-            ),
-          );
+          // Check if it's a cart addition success
+          if (state.message == 'CART_ADDED') {
+            SnackbarService.showCartSuccess(
+              context,
+              widget.product.productName,
+            );
+            cubit.setIdleState();
+          } else {
+            // Other success cases (like order placed) show dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => InformationDialog(
+                title: S.of(context).orderPlaced,
+                content: state.message,
+                dialogName: DialogName.success,
+                buttonText: S.of(context).ok,
+                onPressed: () {
+                  Navigator.pop(context);
+                  cubit.setIdleState();
+                },
+              ),
+            );
+          }
         } else if (state.processState == ProcessState.failure) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => InformationDialog(
-              title: S.of(context).error,
-              content: state.message,
-              dialogName: DialogName.failure,
-              buttonText: S.of(context).ok,
-              onPressed: () {
-                Navigator.pop(context);
-                cubit.setIdleState();
-              },
-            ),
-          );
+          // Handle cart-related failures with localized messages
+          if (state.message == 'CART_ERROR') {
+            SnackbarService.showCartError(context);
+            cubit.setIdleState();
+          } else if (state.message == 'CART_LOGIN_REQUIRED') {
+            SnackbarService.showGuestRestriction(
+              context,
+              actionType: 'cart',
+            );
+            cubit.setIdleState();
+          } else {
+            // Other failure cases show dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => InformationDialog(
+                title: S.of(context).error,
+                content: state.message,
+                dialogName: DialogName.failure,
+                buttonText: S.of(context).ok,
+                onPressed: () {
+                  Navigator.pop(context);
+                  cubit.setIdleState();
+                },
+              ),
+            );
+          }
         }
       },
       builder: (context, state) {
@@ -479,17 +503,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   Theme.of(context).colorScheme.primary,
-                              foregroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimary,
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.onPrimary,
                               elevation: 2,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
-                              'Add to Cart', // 'Thêm vào giỏ'
+                            child: Text(
+                              S.of(context).addToCart,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -694,9 +717,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     );
                   },
-                  child: !kIsWeb ?
-                  ProductCard(product: product) :
-                  WebProductCard(product: product),
+                  child: !kIsWeb
+                      ? ProductCard(product: product)
+                      : WebProductCard(product: product),
                 );
               },
             );

@@ -100,7 +100,8 @@ class _CartScreen extends State<CartScreen> {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const MainScreen(initialIndex: 1),
+                          builder: (context) =>
+                              const MainScreen(initialIndex: 1),
                         ),
                         (route) => false,
                       );
@@ -152,7 +153,9 @@ class _CartScreen extends State<CartScreen> {
                     // Checkbox
                     Checkbox(
                       value: state.selectedItems.any(
-                        (selectedItem) => selectedItem.product.productID == item.product.productID,
+                        (selectedItem) =>
+                            selectedItem.product.productID ==
+                            item.product.productID,
                       ),
                       onChanged: (value) {
                         cubit.toggleItemSelection(item);
@@ -259,22 +262,18 @@ class _CartScreen extends State<CartScreen> {
                                 onPressed: item.quantity > 1
                                     ? () {
                                         cubit.updateQuantity(
-                                          item, item.quantity - 1
-                                        );
+                                            item, item.quantity - 1);
                                       }
                                     : null,
                                 padding: const EdgeInsets.all(2),
                                 constraints: const BoxConstraints(),
                                 style: IconButton.styleFrom(
-                                  foregroundColor:
-                                      item.quantity > 1
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.3),
+                                  foregroundColor: item.quantity > 1
+                                      ? Theme.of(context).colorScheme.onSurface
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.3),
                                 ),
                               ),
                               Container(
@@ -296,9 +295,7 @@ class _CartScreen extends State<CartScreen> {
                                   size: 16,
                                 ),
                                 onPressed: () {
-                                  cubit.updateQuantity(
-                                    item, item.quantity + 1
-                                  );
+                                  cubit.updateQuantity(item, item.quantity + 1);
                                 },
                                 padding: const EdgeInsets.all(4),
                                 constraints: const BoxConstraints(),
@@ -412,9 +409,11 @@ class _CartScreen extends State<CartScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      if (state.selectedItemsHasDiscounts && state.selectedCount > 0) ...[
+                      if (state.selectedItemsHasDiscounts &&
+                          state.selectedCount > 0) ...[
                         Text(
-                          Helper.toCurrencyFormat(state.selectedItemsTotalBeforeDiscount),
+                          Helper.toCurrencyFormat(
+                              state.selectedItemsTotalBeforeDiscount),
                           style: TextStyle(
                             decoration: TextDecoration.lineThrough,
                             color: Theme.of(context)
