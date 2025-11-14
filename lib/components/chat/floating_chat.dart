@@ -96,10 +96,9 @@ class _FloatingChatState extends State<FloatingChat> {
                 child: AnimatedOpacity(
                   opacity: disableFab ? 0.4 : 1.0,
                   duration: const Duration(milliseconds: 150),
-                  child: FloatingActionButton.extended(
+                  child: FloatingActionButton(
                     onPressed: _toggle,
-                    icon: const Icon(Icons.chat_bubble_outline),
-                    label: Text(_isOpen ? 'Close' : 'Chat'),
+                    child: Icon(_isOpen ? Icons.close : Icons.chat_bubble_outline),
                   ),
                 ),
               ),
