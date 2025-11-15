@@ -1,13 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../functions/helper.dart';
-import 'ai_utils.dart';
-import 'ai_nlp_service.dart';
 
 class AIProductService {
   final FirebaseFirestore _firestore;
-  final AIUtils _utils = AIUtils();
-  final AINLPService _nlpService = AINLPService();
 
   // Category mapping constants
   static const Map<String, String> CATEGORY_MAPPING = {
@@ -123,8 +119,10 @@ class AIProductService {
           inactiveManufacturers.map((m) => m['id'] as String).toList();
 
       if (kDebugMode && inactiveManufacturerIDs.isNotEmpty) {
-        print(
-            'Found ${inactiveManufacturerIDs.length} inactive manufacturers to exclude');
+        if (kDebugMode) {
+          print(
+              'Found ${inactiveManufacturerIDs.length} inactive manufacturers to exclude');
+        }
       }
 
       // First query: Filter by active status
@@ -235,7 +233,7 @@ class AIProductService {
 
         if (kDebugMode) {
           print(
-              'Product: "${originalName}" - Score: $score (Normalized: $normalizedScore, Original: $originalScore)');
+              'Product: "$originalName" - Score: $score (Normalized: $normalizedScore, Original: $originalScore)');
         }
 
         if (score > bestScore && score > 0.2) {
@@ -645,8 +643,9 @@ class AIProductService {
       return formatValue(price, 'price');
     }
 
-    final discountAmount = price * (discount as num);
-    final finalPrice = price - discountAmount;
+    // Discount is stored as percentage (0-100), not multiplier (0-1)
+    final discountPercent = (discount as num).toDouble();
+    final finalPrice = price * (1 - discountPercent / 100);
 
     return '${formatValue(finalPrice, 'price')} (Original: ${formatValue(price, 'price')})';
   }

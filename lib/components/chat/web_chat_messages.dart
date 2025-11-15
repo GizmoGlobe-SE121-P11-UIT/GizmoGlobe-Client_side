@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:gizmoglobe_client/objects/chat_related/chat_message.dart';
+import 'package:gizmoglobe_client/widgets/product/product_minicard.dart';
 
 class WebChatMessages extends StatelessWidget {
   final List<ChatMessage> messages;
   final bool isMobile;
   final ScrollController controller;
   final List<InlineSpan> Function(String, Color, ThemeData) buildMessageSpans;
+  final String Function(String) sanitizeContent;
+  final List<Map<String, dynamic>> Function(String) extractProductCards;
 
   const WebChatMessages({
     super.key,
@@ -14,6 +17,8 @@ class WebChatMessages extends StatelessWidget {
     required this.isMobile,
     required this.controller,
     required this.buildMessageSpans,
+    required this.sanitizeContent,
+    required this.extractProductCards,
   });
 
   @override
@@ -34,6 +39,8 @@ class WebChatMessages extends StatelessWidget {
         final isUser = !message.isFromBot;
         final isAdminBot =
             !message.isAIMode && message.isFromBot; // admin reply
+        final sanitizedContent = sanitizeContent(message.content);
+        final productCards = extractProductCards(message.content);
         return Padding(
           padding: const EdgeInsets.only(bottom: 12.0),
           child: Align(
@@ -63,7 +70,7 @@ class WebChatMessages extends StatelessWidget {
                 boxShadow: isUser
                     ? [
                         BoxShadow(
-                          color: colorScheme.primary.withOpacity(0.1),
+                          color: colorScheme.primary.withValues(alpha: 0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -82,9 +89,9 @@ class WebChatMessages extends StatelessWidget {
                           isAdminBot ? Icons.support_agent : Icons.smart_toy,
                           size: 16,
                           color: isAdminBot
-                              ? colorScheme.onSurface.withOpacity(0.7)
+                              ? colorScheme.onSurface.withValues(alpha: 0.7)
                               : colorScheme.onSecondaryContainer
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -93,19 +100,20 @@ class WebChatMessages extends StatelessWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: isAdminBot
-                                ? colorScheme.onSurface.withOpacity(0.8)
+                                ? colorScheme.onSurface.withValues(alpha: 0.8)
                                 : colorScheme.onSecondaryContainer
-                                    .withOpacity(0.8),
+                                    .withValues(alpha: 0.8),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                   ],
+                  if (sanitizedContent.trim().isNotEmpty) ...[
                   RichText(
                     text: TextSpan(
                       children: buildMessageSpans(
-                        message.content,
+                          sanitizedContent,
                         isUser
                             ? colorScheme.onPrimary
                             : isAdminBot
@@ -115,6 +123,20 @@ class WebChatMessages extends StatelessWidget {
                       ),
                     ),
                   ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (!isUser && productCards.isNotEmpty) ...[
+                    Column(
+                      children: productCards
+                          .map(
+                            (card) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: ProductMiniCard(cardData: card),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: isUser
@@ -125,7 +147,7 @@ class WebChatMessages extends StatelessWidget {
                         Icon(
                           Icons.person,
                           size: 12,
-                          color: colorScheme.onPrimary.withOpacity(0.7),
+                          color: colorScheme.onPrimary.withValues(alpha: 0.7),
                         ),
                         const SizedBox(width: 4),
                       ],
@@ -133,12 +155,12 @@ class WebChatMessages extends StatelessWidget {
                         DateFormat('HH:mm').format(message.timestamp),
                         style: TextStyle(
                           color: isUser
-                              ? colorScheme.onPrimary.withOpacity(0.7)
+                              ? colorScheme.onPrimary.withValues(alpha: 0.7)
                               : isAdminBot
                                   ? colorScheme.onSurfaceVariant
-                                      .withOpacity(0.7)
+                                      .withValues(alpha: 0.7)
                                   : colorScheme.onSecondaryContainer
-                                      .withOpacity(0.7),
+                                      .withValues(alpha: 0.7),
                           fontSize: 12,
                         ),
                       ),

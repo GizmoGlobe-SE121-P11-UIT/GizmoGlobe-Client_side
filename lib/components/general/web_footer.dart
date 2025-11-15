@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class WebFooter extends StatelessWidget {
-  const WebFooter({Key? key}) : super(key: key);
+  const WebFooter({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 60),
+      padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 32),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
@@ -16,15 +16,18 @@ class WebFooter extends StatelessWidget {
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          // Horizontal layout: Logo/tagline on left, features on right
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Logo and Description
+              // Left: Logo and tagline
               Expanded(
                 flex: 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
                       children: [
@@ -50,134 +53,150 @@ class WebFooter extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Text(
-                      'Your trusted source for premium\nPC components and peripherals.',
+                      'Your trusted source for premium PC components and peripherals.',
                       style: TextStyle(
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.6),
+                            .withValues(alpha: 0.6),
                         fontSize: 14,
-                        height: 1.6,
                       ),
                     ),
                   ],
                 ),
               ),
-              // Links Columns
+              const SizedBox(width: 48),
+              // Right: Features in horizontal row
               Expanded(
-                child: _buildFooterColumn(context, 'Shop', [
-                  'All Products',
-                  'Best Sellers',
-                  'New Arrivals',
-                  'Deals',
-                ]),
-              ),
-              Expanded(
-                child: _buildFooterColumn(context, 'Support', [
-                  'Help Center',
-                  'Contact Us',
-                  'Shipping Info',
-                  'Returns',
-                ]),
-              ),
-              Expanded(
-                child: _buildFooterColumn(context, 'Company', [
-                  'About Us',
-                  'Careers',
-                  'Press',
-                  'Blog',
-                ]),
-              ),
-              Expanded(
-                child: _buildFooterColumn(context, 'Legal', [
-                  'Privacy Policy',
-                  'Terms of Service',
-                  'Cookie Policy',
-                  'Disclaimer',
-                ]),
+                flex: 3,
+                child: Row(
+                  children: [
+                    _buildFeatureBadge(
+                      context,
+                      Icons.local_shipping_outlined,
+                      'Free Shipping',
+                      'On all orders',
+                    ),
+                    const SizedBox(width: 12),
+                    _buildFeatureBadge(
+                      context,
+                      Icons.verified_user_outlined,
+                      '1-Year Warranty',
+                      'On all products',
+                    ),
+                    const SizedBox(width: 12),
+                    _buildFeatureBadge(
+                      context,
+                      Icons.support_agent_outlined,
+                      '24/7 Support',
+                      'Expert assistance',
+                    ),
+                    const SizedBox(width: 12),
+                    _buildFeatureBadge(
+                      context,
+                      Icons.lock_outline,
+                      'Secure Payment',
+                      'SSL encrypted',
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 48),
-          Divider(color: Theme.of(context).dividerColor),
           const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '© 2025 GizmoGlobe. All rights reserved.',
-                style: TextStyle(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                  fontSize: 14,
-                ),
-              ),
-              Row(
-                children: [
-                  _buildSocialIcon(context, Icons.facebook),
-                  const SizedBox(width: 12),
-                  _buildSocialIcon(context, Icons.camera_alt),
-                  const SizedBox(width: 12),
-                  _buildSocialIcon(context, Icons.close), // X/Twitter
-                  const SizedBox(width: 12),
-                  _buildSocialIcon(context, Icons.play_arrow),
-                ],
-              ),
-            ],
+          Divider(color: Theme.of(context).dividerColor),
+          const SizedBox(height: 16),
+          Text(
+            '© 2025 GizmoGlobe. All rights reserved.',
+            style: TextStyle(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.5),
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFooterColumn(
-      BuildContext context, String title, List<String> links) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+  Widget _buildFeatureBadge(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String description,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
           ),
         ),
-        const SizedBox(height: 16),
-        ...links.map((link) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text(
-                link,
-                style: TextStyle(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                  fontSize: 14,
-                ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildSocialIcon(BuildContext context, IconData icon) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withOpacity(0.3),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
+              child: Icon(
+                icon,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
+                      fontSize: 11,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
-      child: Icon(icon,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-          size: 18),
     );
   }
 }

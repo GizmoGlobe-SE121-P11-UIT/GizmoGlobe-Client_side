@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 import 'package:gizmoglobe_client/enums/product_related/psu_enums/psu_efficiency.dart';
 import 'package:gizmoglobe_client/enums/product_related/psu_enums/psu_modular.dart';
 import 'package:gizmoglobe_client/enums/product_related/ram_enums/ram_type.dart';

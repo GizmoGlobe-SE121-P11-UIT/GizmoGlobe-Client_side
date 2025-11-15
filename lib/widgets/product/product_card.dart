@@ -86,25 +86,26 @@ class ProductCard extends StatelessWidget {
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                     color:
-                                    Theme.of(context).colorScheme.onPrimary,
+                                        Theme.of(context).colorScheme.onPrimary,
                                   ),
                                 ),
                               ),
                               Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const SizedBox(height: 2),
                                       if (product.discount > 0) ...[
                                         Text(
-                                          Helper.toCurrencyFormat(product.price),
+                                          Helper.toCurrencyFormat(
+                                              product.price),
                                           style: TextStyle(
                                             decoration:
-                                            TextDecoration.lineThrough,
+                                                TextDecoration.lineThrough,
                                             decorationColor: Theme.of(context)
                                                 .colorScheme
                                                 .onPrimary
@@ -120,17 +121,18 @@ class ProductCard extends StatelessWidget {
                                         const SizedBox(height: 2),
                                       ],
                                       Text(
-                                        Helper.toCurrencyFormat(product.discountedPrice),
+                                        Helper.toCurrencyFormat(
+                                            product.discountedPrice),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Theme.of(context).brightness ==
-                                              Brightness.light
+                                                  Brightness.light
                                               ? Theme.of(context)
-                                              .colorScheme
-                                              .onPrimary
+                                                  .colorScheme
+                                                  .onPrimary
                                               : Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
+                                                  .colorScheme
+                                                  .onSurface,
                                           fontSize: 14,
                                         ),
                                       ),
@@ -138,28 +140,28 @@ class ProductCard extends StatelessWidget {
                                   ),
                                   product.discount > 0
                                       ? Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .error,
-                                      borderRadius:
-                                      BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      '-${product.discount.toStringAsFixed(0)}%',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onError,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  )
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .error,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            '-${product.discount.toStringAsFixed(0)}%',
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onError,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        )
                                       : const SizedBox(),
                                 ],
                               ),
@@ -182,8 +184,8 @@ class ProductCard extends StatelessWidget {
                   onPressed: () {
                     if (product.productID != null) {
                       context.read<FavoritesCubit>().toggleFavorite(
-                        product.productID!,
-                      );
+                            product.productID!,
+                          );
                     }
                   },
                 ),

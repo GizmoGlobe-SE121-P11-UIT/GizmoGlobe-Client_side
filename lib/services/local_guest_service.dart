@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:html' as html show window;
+import 'package:gizmoglobe_client/services/web_storage.dart' as web_storage;
 
 class LocalGuestService {
   static const String _guestUserKey = 'gizmoglobe_guest_user';
@@ -16,7 +16,7 @@ class LocalGuestService {
   Future<bool> hasGuestUser() async {
     try {
       if (kIsWeb) {
-        final guestUserId = html.window.localStorage[_guestUserIdKey];
+        final guestUserId = web_storage.getItem(_guestUserIdKey);
         return guestUserId != null && guestUserId.isNotEmpty;
       } else {
         final prefs = await SharedPreferences.getInstance();
@@ -35,7 +35,7 @@ class LocalGuestService {
   Future<String?> getStoredGuestUserId() async {
     try {
       if (kIsWeb) {
-        return html.window.localStorage[_guestUserIdKey];
+        return web_storage.getItem(_guestUserIdKey);
       } else {
         final prefs = await SharedPreferences.getInstance();
         return prefs.getString(_guestUserIdKey);
@@ -53,7 +53,7 @@ class LocalGuestService {
     try {
       String? userDataJson;
       if (kIsWeb) {
-        userDataJson = html.window.localStorage[_guestUserDataKey];
+        userDataJson = web_storage.getItem(_guestUserDataKey);
       } else {
         final prefs = await SharedPreferences.getInstance();
         userDataJson = prefs.getString(_guestUserDataKey);
@@ -76,7 +76,7 @@ class LocalGuestService {
     try {
       String? customerDataJson;
       if (kIsWeb) {
-        customerDataJson = html.window.localStorage[_guestCustomerDataKey];
+        customerDataJson = web_storage.getItem(_guestCustomerDataKey);
       } else {
         final prefs = await SharedPreferences.getInstance();
         customerDataJson = prefs.getString(_guestCustomerDataKey);
@@ -186,10 +186,10 @@ class LocalGuestService {
       final customerDataJson = json.encode(customerData);
 
       if (kIsWeb) {
-        html.window.localStorage[_guestUserIdKey] = userId;
-        html.window.localStorage[_guestUserKey] = 'true';
-        html.window.localStorage[_guestUserDataKey] = userDataJson;
-        html.window.localStorage[_guestCustomerDataKey] = customerDataJson;
+        web_storage.setItem(_guestUserIdKey, userId);
+        web_storage.setItem(_guestUserKey, 'true');
+        web_storage.setItem(_guestUserDataKey, userDataJson);
+        web_storage.setItem(_guestCustomerDataKey, customerDataJson);
       } else {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_guestUserIdKey, userId);
@@ -211,7 +211,7 @@ class LocalGuestService {
       final cartJson = json.encode(cartItems);
 
       if (kIsWeb) {
-        html.window.localStorage[_guestCartKey] = cartJson;
+        web_storage.setItem(_guestCartKey, cartJson);
       } else {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_guestCartKey, cartJson);
@@ -229,7 +229,7 @@ class LocalGuestService {
       String? cartJson;
 
       if (kIsWeb) {
-        cartJson = html.window.localStorage[_guestCartKey];
+        cartJson = web_storage.getItem(_guestCartKey);
       } else {
         final prefs = await SharedPreferences.getInstance();
         cartJson = prefs.getString(_guestCartKey);
@@ -254,7 +254,7 @@ class LocalGuestService {
       final favoritesJson = json.encode(favoriteIds);
 
       if (kIsWeb) {
-        html.window.localStorage[_guestFavoritesKey] = favoritesJson;
+        web_storage.setItem(_guestFavoritesKey, favoritesJson);
       } else {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_guestFavoritesKey, favoritesJson);
@@ -272,7 +272,7 @@ class LocalGuestService {
       String? favoritesJson;
 
       if (kIsWeb) {
-        favoritesJson = html.window.localStorage[_guestFavoritesKey];
+        favoritesJson = web_storage.getItem(_guestFavoritesKey);
       } else {
         final prefs = await SharedPreferences.getInstance();
         favoritesJson = prefs.getString(_guestFavoritesKey);
@@ -308,12 +308,12 @@ class LocalGuestService {
   Future<void> clearGuestUser() async {
     try {
       if (kIsWeb) {
-        html.window.localStorage.remove(_guestUserIdKey);
-        html.window.localStorage.remove(_guestUserKey);
-        html.window.localStorage.remove(_guestUserDataKey);
-        html.window.localStorage.remove(_guestCustomerDataKey);
-        html.window.localStorage.remove(_guestCartKey);
-        html.window.localStorage.remove(_guestFavoritesKey);
+        web_storage.removeItem(_guestUserIdKey);
+        web_storage.removeItem(_guestUserKey);
+        web_storage.removeItem(_guestUserDataKey);
+        web_storage.removeItem(_guestCustomerDataKey);
+        web_storage.removeItem(_guestCartKey);
+        web_storage.removeItem(_guestFavoritesKey);
       } else {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove(_guestUserIdKey);
@@ -346,7 +346,7 @@ class LocalGuestService {
         final userDataJson = json.encode(mergedData);
 
         if (kIsWeb) {
-          html.window.localStorage[_guestUserDataKey] = userDataJson;
+          web_storage.setItem(_guestUserDataKey, userDataJson);
         } else {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(_guestUserDataKey, userDataJson);
@@ -371,7 +371,7 @@ class LocalGuestService {
         final customerDataJson = json.encode(mergedData);
 
         if (kIsWeb) {
-          html.window.localStorage[_guestCustomerDataKey] = customerDataJson;
+          web_storage.setItem(_guestCustomerDataKey, customerDataJson);
         } else {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(_guestCustomerDataKey, customerDataJson);

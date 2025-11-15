@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "413433346211-5o57mb1tmels38368qfnmohj66dd908s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gizmoglobe_client",
+            "certificate_hash": "2f54616d618b531e09b198113eb0ff908c2b5168"
+          }
+        },
+        {
           "client_id": "413433346211-e37ub7irjajc7p3lnl8f7e3km9qbpus7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

@@ -161,6 +161,69 @@ class S {
       Intl.message('Choose Address', name: 'chooseAddress');
   String get paymentMethod =>
       Intl.message('Payment Method', name: 'paymentMethod');
+  String get cashOnDelivery =>
+      Intl.message('Cash on Delivery', name: 'cashOnDelivery');
+  String get payWhenYouReceive =>
+      Intl.message('Pay when you receive your order',
+          name: 'payWhenYouReceive');
+  String get sepay => Intl.message('SePay', name: 'sepay');
+  String get sepayDescription => Intl.message(
+        'Local payment method (Coming soon)',
+        name: 'sepayDescription',
+      );
+  String get sepayScanInstructionsTitle => Intl.message(
+        'Scan QR code to pay',
+        name: 'sepayScanInstructionsTitle',
+      );
+  String get sepayScanInstructionsSubtitle => Intl.message(
+        'Open your banking app and scan the QR code below to complete the payment.',
+        name: 'sepayScanInstructionsSubtitle',
+      );
+  String get sepayPaymentDetailsTitle => Intl.message(
+        'Payment Details',
+        name: 'sepayPaymentDetailsTitle',
+      );
+  String get sepayAmountLabel =>
+      Intl.message('Amount', name: 'sepayAmountLabel');
+  String get sepayBankAccountLabel =>
+      Intl.message('Bank Account', name: 'sepayBankAccountLabel');
+  String get sepayBankLabel => Intl.message('Bank', name: 'sepayBankLabel');
+  String get sepayOrderIdLabel =>
+      Intl.message('Order ID', name: 'sepayOrderIdLabel');
+  String get sepayWaitingForPayment => Intl.message(
+        'Waiting for payment...',
+        name: 'sepayWaitingForPayment',
+      );
+  String get sepayManualInstructionsTitle => Intl.message(
+        'Manual Transfer Instructions',
+        name: 'sepayManualInstructionsTitle',
+      );
+  String get sepayManualInstructions => Intl.message(
+        '1. Open your banking app\n2. Select transfer/scan QR\n3. Scan the code or enter account details\n4. Enter the exact amount\n5. Complete the transfer',
+        name: 'sepayManualInstructions',
+      );
+  String get sepayClose => Intl.message('Close', name: 'sepayClose');
+  String get sepayRestoringCart =>
+      Intl.message('Restoring cart...', name: 'sepayRestoringCart');
+  String get sepayPaymentSuccessMessage => Intl.message(
+        'Your payment has been confirmed successfully.',
+        name: 'sepayPaymentSuccessMessage',
+      );
+  String get sepayPaymentInitFailed => Intl.message(
+        'Failed to initialize payment',
+        name: 'sepayPaymentInitFailed',
+      );
+  String get sepayGoBack => Intl.message('Go Back', name: 'sepayGoBack');
+  String get stripe => Intl.message('Stripe', name: 'stripe');
+  String get stripeDescription =>
+      Intl.message('Credit/Debit card payment', name: 'stripeDescription');
+  String get transactionContentLabel =>
+      Intl.message('Transfer content', name: 'transactionContentLabel');
+  String get transactionContentCopied => Intl.message(
+        'Transfer content copied to clipboard',
+        name: 'transactionContentCopied',
+      );
+  String get copy => Intl.message('Copy', name: 'copy');
   String get orderSummary =>
       Intl.message('Order Summary', name: 'orderSummary');
   String get subtotal => Intl.message('Subtotal', name: 'subtotal');
@@ -233,6 +296,15 @@ class S {
   String get appLogo => Intl.message('App Logo', name: 'appLogo');
   String get chatButton => Intl.message('Chat Support', name: 'chatButton');
 
+  // Survey
+  String get surveyJoin => Intl.message('Join the survey', name: 'surveyJoin');
+  String get surveyTitle => Intl.message('Survey', name: 'surveyTitle');
+  String get surveyBack => Intl.message('Back', name: 'surveyBack');
+  String get surveyNext => Intl.message('Next', name: 'surveyNext');
+  String get surveySubmit => Intl.message('Submit', name: 'surveySubmit');
+  String get surveySubmitted =>
+      Intl.message('Survey submitted', name: 'surveySubmitted');
+
   // Main Screen
   String get homeTab => Intl.message('Home', name: 'homeTab');
   String get productsTab => Intl.message('Products', name: 'productsTab');
@@ -296,6 +368,7 @@ class S {
       Intl.message('Add to Wishlist', name: 'addToWishlist');
   String get totalPrice => Intl.message('Total Price', name: 'totalPrice');
   String get addToCart => Intl.message('Add to Cart', name: 'addToCart');
+  String get buyNow => Intl.message('Buy Now', name: 'buyNow');
   String get productSpecifications =>
       Intl.message('Product Specifications', name: 'productSpecifications');
   String get memorySpecifications =>
@@ -384,6 +457,28 @@ class S {
         'Total $count items: $total',
         name: 'totalItems',
         args: [count, total],
+      );
+  String itemsCount(int count) => Intl.message(
+        'Items ($count)',
+        name: 'itemsCount',
+        args: [count],
+      );
+  String get originalPrice =>
+      Intl.message('Original Price', name: 'originalPrice');
+  String get free => Intl.message('Free', name: 'free');
+  String get clearCart => Intl.message('Clear Cart', name: 'clearCart');
+  String get clearCartConfirmation => Intl.message(
+        'Are you sure you want to clear all items from your cart?',
+        name: 'clearCartConfirmation',
+      );
+  String get clearAll => Intl.message('Clear All', name: 'clearAll');
+  String get voucherAppliedSuccessfully => Intl.message(
+        'Voucher applied successfully',
+        name: 'voucherAppliedSuccessfully',
+      );
+  String get shippingAddressUpdatedSuccessfully => Intl.message(
+        'Shipping address updated successfully',
+        name: 'shippingAddressUpdatedSuccessfully',
       );
 
   String get orderProcessingStatus => Intl.message(
@@ -612,6 +707,23 @@ class S {
   String get noEndTime => Intl.message('No end time', name: 'noEndTime');
 
   String get retry => Intl.message('Retry', name: 'retry');
+
+  // Product mini card localization
+  String get unableToNavigate => Intl.message(
+        'Unable to navigate. Please try again.',
+        name: 'unableToNavigate',
+      );
+  String get productInfoLoading => Intl.message(
+        'Product information is loading. Please try again in a moment.',
+        name: 'productInfoLoading',
+      );
+  String inStockItems(int count) => Intl.message(
+        'In stock ($count items)',
+        name: 'inStockItems',
+        args: [count],
+      );
+  String get outOfStock => Intl.message('Out of stock', name: 'outOfStock');
+  String get viewDetails => Intl.message('View details', name: 'viewDetails');
 
   // Hero Section
   String get limitedTimeOffer =>

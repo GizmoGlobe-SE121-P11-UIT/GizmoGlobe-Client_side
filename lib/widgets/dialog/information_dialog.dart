@@ -21,60 +21,66 @@ class InformationDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    // Constrain dialog width on web/large screens to avoid overly wide layout
+    final double dialogMaxWidth = size.width > 640 ? 560 : size.width - 32;
     return Dialog(
       backgroundColor: Colors.transparent,
       child: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: theme.colorScheme.surface.withValues(alpha: 0.9),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (dialogName != DialogName.empty) ...[
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: dialogMaxWidth),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: theme.colorScheme.surface.withValues(alpha: 0.9),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (dialogName != DialogName.empty) ...[
+                  Text(
+                    dialogName == DialogName.success
+                        ? S.of(context).success
+                        : S.of(context).failure,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: dialogName == DialogName.success
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.error,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (title.isNotEmpty) ...[
+                  Text(
+                    title,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 Text(
-                  dialogName == DialogName.success
-                      ? S.of(context).success
-                      : S.of(context).failure,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: dialogName == DialogName.success
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.error,
-                    fontWeight: FontWeight.w800,
+                  content,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
-              ],
-              if (title.isNotEmpty) ...[
-                Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
+                const SizedBox(height: 24),
+                GradientButton(
+                  onPress: onPressed ?? () => Navigator.pop(context),
+                  text: buttonText ?? S.of(context).ok,
+                  fontSize: 16,
+                  fontColor: Colors.white,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 16),
               ],
-              Text(
-                content,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              GradientButton(
-                onPress: onPressed ?? () => Navigator.pop(context),
-                text: buttonText ?? S.of(context).ok,
-                fontSize: 16,
-                fontColor: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ],
+            ),
           ),
         ),
       ),

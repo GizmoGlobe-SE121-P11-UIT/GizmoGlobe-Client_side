@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:gizmoglobe_client/generated/l10n.dart';
 
 enum ProductStatusEnum {
   unknown('Unknown'),

@@ -6,3 +6,18 @@ import 'platform_actions_stub.dart'
 void reloadPage() => impl.reloadPage();
 
 void setHashUrl(String path) => impl.setHashUrl(path);
+
+String getHashPath() => impl.getHashPath();
+
+void replaceHashUrl(String path) => impl.replaceHashUrl(path);
+
+void pushHashUrl(String path) => impl.pushHashUrl(path);
+
+void clearHash() => impl.clearHash();
+
+void normalizeInitialUrlForHashStrategy() =>
+    impl.normalizeInitialUrlForHashStrategy();
+
+void setUrlStrategyWeb() => impl.setUrlStrategyWeb();
+
+void setHashFragment(String path) => impl.setHashFragment(path);

@@ -54,6 +54,7 @@ class RangeFilter extends StatelessWidget {
                   ),
                   const SizedBox(height: 4.0),
                   FieldWithIcon(
+                    prefixIcon: const Icon(Icons.attach_money),
                     controller: fromController,
                     fillColor: Theme.of(context).colorScheme.surface,
                     hintText: fromHint ?? S.of(context).min,
@@ -76,6 +77,7 @@ class RangeFilter extends StatelessWidget {
                   ),
                   const SizedBox(height: 4.0),
                   FieldWithIcon(
+                    prefixIcon: const Icon(Icons.attach_money),
                     controller: toController,
                     fillColor: Theme.of(context).colorScheme.surface,
                     hintText: toHint ?? S.of(context).max,

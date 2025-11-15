@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
+import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
 import 'package:gizmoglobe_client/widgets/general/app_logo.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
@@ -75,6 +76,8 @@ class _SignInWebModalState extends State<SignInWebModal> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   SignInCubit get cubit => context.read<SignInCubit>();
+  bool _isEmailLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -85,6 +88,14 @@ class _SignInWebModalState extends State<SignInWebModal> {
 
   @override
   Widget build(BuildContext context) {
+    String _localizedMessage(SignInState state, BuildContext ctx) {
+      final locale = Localizations.localeOf(ctx);
+      if (locale.languageCode.toLowerCase().startsWith('vi')) {
+        return state.message.toVietnameseString();
+      }
+      return state.message.description;
+    }
+
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -207,32 +218,40 @@ class _SignInWebModalState extends State<SignInWebModal> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      // Single BlocConsumer to handle all sign-in methods and avoid duplicate notifications
                       BlocConsumer<SignInCubit, SignInState>(
                         listenWhen: (previous, current) =>
                             previous.processState != current.processState,
                         listener: (context, state) {
-                          // Handle loading state
-                          if (state.processState == ProcessState.loading) {
-                            // Loading is handled by the button state
-                            return;
-                          }
+                          final overlayState =
+                              Overlay.of(context, rootOverlay: true);
 
                           // Handle failure state
                           if (state.processState == ProcessState.failure) {
-                            SnackbarService.showError(
-                              context,
-                              title: state.dialogName.toString(),
-                              message: state.message.toString(),
+                            setState(() {
+                              _isEmailLoading = false;
+                              _isGoogleLoading = false;
+                            });
+                            SnackbarService.showErrorAboveOverlay(
+                              overlayState,
+                              title: state.dialogName == DialogName.failure
+                                  ? S.of(context).failure
+                                  : S.of(context).error,
+                              message: _localizedMessage(state, context),
                             );
                             return;
                           }
 
                           // Handle success state
                           if (state.processState == ProcessState.success) {
-                            SnackbarService.showSuccess(
-                              context,
-                              title: state.dialogName.toString(),
-                              message: state.message.toString(),
+                            setState(() {
+                              _isEmailLoading = false;
+                              _isGoogleLoading = false;
+                            });
+                            SnackbarService.showSuccessAboveOverlay(
+                              overlayState,
+                              title: S.of(context).success,
+                              message: _localizedMessage(state, context),
                             );
                             // Close modal and navigate on next frame using root navigator
                             Navigator.of(context, rootNavigator: true).pop();
@@ -243,96 +262,34 @@ class _SignInWebModalState extends State<SignInWebModal> {
                                         '/main', (r) => false);
                               });
                             }
-                          }
-                        },
-                        buildWhen: (previous, current) =>
-                            previous.processState != current.processState,
-                        builder: (context, state) {
-                          return _buildSignInButton(context, state);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      // Google Sign In Button
-                      BlocConsumer<SignInCubit, SignInState>(
-                        listenWhen: (previous, current) =>
-                            previous.processState != current.processState,
-                        listener: (context, state) {
-                          if (state.processState == ProcessState.success) {
-                            SnackbarService.showSuccess(
-                              context,
-                              title: state.dialogName.toString(),
-                              message: state.message.toString(),
-                            );
-                            Navigator.of(context, rootNavigator: true).pop();
-                            if (context.mounted) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                Navigator.of(context, rootNavigator: true)
-                                    .pushNamedAndRemoveUntil(
-                                        '/main', (r) => false);
-                              });
-                            }
-                          } else if (state.processState ==
-                              ProcessState.failure) {
-                            SnackbarService.showError(
-                              context,
-                              title: state.dialogName.toString(),
-                              message: state.message.toString(),
-                            );
                           } else if (state.processState == ProcessState.idle) {
-                            // Handle Google popup dismissal - show info snackbar above modal
-                            final overlayState =
-                                Overlay.of(context, rootOverlay: true);
-                            SnackbarService.showGuestRestrictionAboveOverlay(
-                              overlayState,
-                              context: context,
-                              actionType: 'google_cancelled',
-                            );
+                            // Handle Google popup dismissal - only show if Google was loading
+                            if (_isGoogleLoading) {
+                              setState(() => _isGoogleLoading = false);
+                              SnackbarService.showGuestRestrictionAboveOverlay(
+                                overlayState,
+                                context: context,
+                                actionType: 'google_cancelled',
+                              );
+                            }
                           }
                         },
                         buildWhen: (previous, current) =>
                             previous.processState != current.processState,
                         builder: (context, state) {
-                          return _buildGoogleSignInButton(context, state);
+                          return Column(
+                            children: [
+                              _buildSignInButton(context, state),
+                              const SizedBox(height: 12),
+                              _buildGoogleSignInButton(context, state),
+                              if (widget.showGuestOption) ...[
+                                const SizedBox(height: 12),
+                                _buildGuestSignInButton(context, state),
+                              ],
+                            ],
+                          );
                         },
                       ),
-                      // Guest Login - only show if showGuestOption is true
-                      if (widget.showGuestOption) ...[
-                        const SizedBox(height: 12),
-                        BlocConsumer<SignInCubit, SignInState>(
-                          listenWhen: (previous, current) =>
-                              previous.processState != current.processState,
-                          listener: (context, state) {
-                            if (state.processState == ProcessState.success) {
-                              SnackbarService.showSuccess(
-                                context,
-                                title: state.dialogName.toString(),
-                                message: state.message.toString(),
-                              );
-                              Navigator.of(context, rootNavigator: true).pop();
-                              if (context.mounted) {
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
-                                  Navigator.of(context, rootNavigator: true)
-                                      .pushNamedAndRemoveUntil(
-                                          '/main', (r) => false);
-                                });
-                              }
-                            } else if (state.processState ==
-                                ProcessState.failure) {
-                              SnackbarService.showError(
-                                context,
-                                title: state.dialogName.toString(),
-                                message: state.message.toString(),
-                              );
-                            }
-                          },
-                          buildWhen: (previous, current) =>
-                              previous.processState != current.processState,
-                          builder: (context, state) {
-                            return _buildGuestSignInButton(context, state);
-                          },
-                        ),
-                      ],
                       const SizedBox(height: 20),
                       // Register Link - moved to bottom
                       Row(
@@ -414,9 +371,10 @@ class _SignInWebModalState extends State<SignInWebModal> {
     final theme = Theme.of(context);
 
     return ElevatedButton(
-      onPressed: state.processState == ProcessState.loading
+      onPressed: _isEmailLoading
           ? null
           : () async {
+              setState(() => _isEmailLoading = true);
               await cubit.signInWithEmailPassword();
             },
       style: ElevatedButton.styleFrom(
@@ -441,7 +399,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
         child: Container(
           height: 50,
           alignment: Alignment.center,
-          child: state.processState == ProcessState.loading
+          child: _isEmailLoading
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -483,7 +441,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
     return SizedBox(
       width: double.infinity,
       height: 48,
-      child: state.processState == ProcessState.loading
+      child: _isGoogleLoading
           ? Container(
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
@@ -518,6 +476,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
             )
           : ElevatedButton(
               onPressed: () async {
+                setState(() => _isGoogleLoading = true);
                 await cubit.signInWithGoogle();
               },
               style: ElevatedButton.styleFrom(

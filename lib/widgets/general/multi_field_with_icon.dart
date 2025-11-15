@@ -69,9 +69,6 @@ class MultiFieldWithIcon extends StatelessWidget {
     final effectiveTextColor = textColor ?? colorScheme.onSurface;
     final effectiveHintTextColor =
         hintTextColor ?? colorScheme.onSurfaceVariant;
-    final borderSide =
-    BorderSide(color: colorScheme.outlineVariant, width: 1.2);
-    final focusBorderSide = BorderSide(color: colorScheme.primary, width: 1.8);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,18 +111,19 @@ class MultiFieldWithIcon extends StatelessWidget {
                 fontSize: fontSize,
                 fontWeight: fontWeight,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               prefixIcon: prefixIcon != null
                   ? InkWell(
-                onTap: onPrefixIconPressed,
-                child: Icon(prefixIcon),
-              )
+                      onTap: onPrefixIconPressed,
+                      child: Icon(prefixIcon),
+                    )
                   : null,
               suffixIcon: suffixIcon != null
                   ? InkWell(
-                onTap: onSuffixIconPressed,
-                child: Icon(suffixIcon),
-              )
+                      onTap: onSuffixIconPressed,
+                      child: Icon(suffixIcon),
+                    )
                   : null,
               border: OutlineInputBorder(
                 borderRadius: borderRadius,
@@ -150,7 +148,9 @@ class MultiFieldWithIcon extends StatelessWidget {
               ),
               disabledBorder: OutlineInputBorder(
                 borderRadius: borderRadius,
-                borderSide: BorderSide(color: colorScheme.outline.withValues(alpha: 0.5), width: 1.2),
+                borderSide: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.5),
+                    width: 1.2),
               ),
             ),
             obscureText: obscureText,

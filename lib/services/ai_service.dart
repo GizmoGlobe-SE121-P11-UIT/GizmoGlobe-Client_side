@@ -3,8 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:intl/intl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 // Import the new service classes
 import 'ai_services/ai_conversation_service.dart';
@@ -16,11 +14,7 @@ import 'ai_services/ai_utils.dart';
 import 'ai_services/ai_nlp_service.dart';
 
 class AIService {
-  final String _baseUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models';
-  final String _model = 'gemini-2.5-pro';
   final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Service instances
   late final AIConversationService _conversationService;
@@ -58,7 +52,7 @@ class AIService {
       final isFavoriteQuestion = _utils.isFavoriteQuestion(userMessage);
       final isCartQuestion = _utils.isCartQuestion(userMessage);
       final isCartQuantityQuestion = _utils.isCartQuantityQuestion(userMessage);
-      final isInvoiceQuestion = _utils.isInvoiceQuestion(userMessage);
+      // final isInvoiceQuestion = _utils.isInvoiceQuestion(userMessage);
       final isVoucherQuestion = _utils.isVoucherQuestion(userMessage);
       final isAddToCartRequest = _utils.isAddToCartRequest(userMessage);
 
@@ -117,11 +111,56 @@ class AIService {
     }
 
     try {
-      String? productName = _utils.extractProductNameFromRequest(userMessage);
+      String? productName;
       String contextInfo = '';
 
-      // If no product name found, try to extract from context
+      // First, try NLP-based extraction (more intelligent and flexible)
+      if (kDebugMode) {
+        print('Trying NLP-based extraction first...');
+      }
+      try {
+        productName = await _nlpService.extractProductNameWithNLP(
+            userMessage, isVietnamese);
+        if (productName != null && productName.isNotEmpty) {
+          if (kDebugMode) {
+            print('NLP extracted product name: "$productName"');
+          }
+          contextInfo = isVietnamese
+              ? ' (Đã xác định bằng NLP: $productName)'
+              : ' (Identified via NLP: $productName)';
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('NLP extraction failed: $e');
+        }
+      }
+
+      // If NLP failed, try regex extraction as fallback
       if (productName == null || productName.isEmpty) {
+        if (kDebugMode) {
+          print('NLP extraction failed, trying regex extraction...');
+        }
+        productName = _utils.extractProductNameFromRequest(userMessage);
+        if (productName != null && productName.isNotEmpty) {
+          if (kDebugMode) {
+            print('Regex extracted product name: "$productName"');
+          }
+          contextInfo = isVietnamese
+              ? ' (Đã xác định bằng regex: $productName)'
+              : ' (Identified via regex: $productName)';
+        }
+      }
+
+      // Check if extracted name is a pronoun/reference word (like "nó", "it", "this", "that")
+      final isPronounOrReference =
+          productName != null && _utils.isPronounOrReference(productName);
+
+      // If no product name found OR if it's just a pronoun/reference, try context extraction
+      if (productName == null || productName.isEmpty || isPronounOrReference) {
+        if (kDebugMode && isPronounOrReference) {
+          print(
+              'Extracted name "$productName" is a pronoun/reference, using context extraction');
+        }
         productName = await _conversationService.extractProductNameFromContext(
             userId, userMessage);
 
@@ -165,9 +204,7 @@ class AIService {
         }
 
         // If still not found, try with original name
-        if (foundProduct == null) {
-          foundProduct = await _productService.findProductByName(productName);
-        }
+        foundProduct ??= await _productService.findProductByName(productName);
 
         if (foundProduct != null) {
           productName =
@@ -179,9 +216,7 @@ class AIService {
 
       if (productName == null || productName.isEmpty) {
         final response = _utils.getProductNotFoundResponse(isVietnamese);
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       }
 
@@ -191,9 +226,7 @@ class AIService {
       if (product == null) {
         final response = await _productService.getProductNotFoundResponse(
             productName, isVietnamese);
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       }
 
@@ -203,9 +236,7 @@ class AIService {
         final response = isVietnamese
             ? 'Xin lỗi, chỉ còn $stock sản phẩm trong kho. Vui lòng giảm số lượng hoặc chọn sản phẩm khác.'
             : 'Sorry, only $stock items available in stock. Please reduce the quantity or choose a different product.';
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       }
 
@@ -216,17 +247,13 @@ class AIService {
         final response = _cartService.getAddToCartSuccessResponse(
                 product, quantity, isVietnamese) +
             contextInfo;
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       } else {
         final response = isVietnamese
             ? 'Xin lỗi, có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng. Vui lòng thử lại sau.'
             : 'Sorry, an error occurred while adding the product to cart. Please try again later.';
-        if (userId != null) {
-          _conversationService.updateHistory(userId, userMessage, response);
-        }
+        _conversationService.updateHistory(userId, userMessage, response);
         return response;
       }
     } catch (e) {
@@ -236,9 +263,7 @@ class AIService {
       final response = isVietnamese
           ? 'Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu thêm vào giỏ hàng. Vui lòng thử lại sau.'
           : 'Sorry, an error occurred while processing your add to cart request. Please try again later.';
-      if (userId != null) {
-        _conversationService.updateHistory(userId, userMessage, response);
-      }
+      _conversationService.updateHistory(userId, userMessage, response);
       return response;
     }
   }
@@ -260,7 +285,9 @@ class AIService {
       }
       return response;
     } catch (e) {
-      print('Error handling voucher question: $e');
+      if (kDebugMode) {
+        print('Error handling voucher question: $e');
+      }
       return isVietnamese
           ? 'Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.'
           : 'Sorry, an error occurred while processing your request. Please try again later.';
@@ -313,9 +340,7 @@ class AIService {
         basePrompt, sectionTitle, content, userMessage, isVietnamese);
     final response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
 
-    if (userId != null) {
-      _conversationService.updateHistory(userId, userMessage, response);
-    }
+    _conversationService.updateHistory(userId, userMessage, response);
     return response;
   }
 
@@ -343,6 +368,7 @@ class AIService {
     // Extract information from NLP analysis
     final productName = nlpAnalysis['product_name'] as String? ?? '';
     final category = nlpAnalysis['category'] as String? ?? '';
+    final brand = nlpAnalysis['brand'] as String? ?? '';
     final synonyms = (nlpAnalysis['synonyms'] as List?)?.cast<String>() ?? [];
     final confidence = nlpAnalysis['confidence'] as double? ?? 0.0;
 
@@ -397,12 +423,32 @@ class AIService {
     final prompt = _promptService.createPromptWithProducts(
         processedMessage, productsSnapshot, isVietnamese);
     final response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
+    final productCardFilters = _buildProductCardFilters(
+      brand: brand,
+      productName: productName,
+      synonyms: synonyms,
+    );
+    final disableCardFallback = brand.trim().isNotEmpty;
+
+    if (kDebugMode) {
+      print('Product card filters: $productCardFilters');
+      print('Brand extracted: "$brand"');
+    }
+
+    final productCardsAttachment = _buildProductCardsAttachment(
+      productsSnapshot,
+      isVietnamese: isVietnamese,
+      keywordFilters: productCardFilters,
+      disableFallbackOnEmptyMatch: disableCardFallback,
+    );
 
     if (userId != null) {
       _conversationService.updateHistory(userId, processedMessage, response);
     }
 
-    return response;
+    return productCardsAttachment.isEmpty
+        ? response
+        : '$response\n\n$productCardsAttachment';
   }
 
   Future<String> _handleGeneralQuestion(
@@ -418,74 +464,145 @@ class AIService {
     return response;
   }
 
-  Future<String> _callGeminiAPI(String prompt, {int maxRetries = 3}) async {
+  Future<String> _callGeminiAPI(String prompt) async {
     final apiKey = dotenv.env['GEMINI_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
       throw Exception('GEMINI_API_KEY not found in .env file');
     }
 
-    int retryCount = 0;
-    while (retryCount < maxRetries) {
-      try {
-        print('Calling Gemini API... (Attempt ${retryCount + 1}/$maxRetries)');
-        final response = await http.post(
-          Uri.parse(
-              'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'contents': [
-              {
-                'parts': [
-                  {'text': prompt}
-                ]
-              }
-            ],
-            'generationConfig': {
-              'temperature': 1,
-              'topK': 40,
-              'topP': 0.95,
-              'maxOutputTokens': 1024,
-            }
-          }),
-        );
+    // Try 2.5-flash max 3 times, then fallback to 2.5-flash-lite
+    const maxRetries25Flash = 3;
+    final models = [
+      {'name': 'gemini-2.5-flash', 'maxRetries': maxRetries25Flash},
+      {'name': 'gemini-2.5-flash-lite', 'maxRetries': maxRetries25Flash},
+    ];
+    bool useFallback = false;
 
-        print('Gemini API response status: ${response.statusCode}');
-        print('Gemini API response body: ${response.body}');
-
-        if (response.statusCode == 200) {
-          final responseData = jsonDecode(response.body);
-          final candidates = responseData['candidates'] as List;
-          if (candidates.isNotEmpty) {
-            final content = candidates[0]['content'];
-            final parts = content['parts'] as List;
-            if (parts.isNotEmpty) {
-              return parts[0]['text'] as String;
+    for (final modelConfig in models) {
+      final model = modelConfig['name'] as String;
+      final modelMaxRetries = modelConfig['maxRetries'] as int;
+      int retryCount = 0;
+      while (retryCount < modelMaxRetries) {
+        try {
+          if (kDebugMode) {
+            if (useFallback) {
+              print(
+                  'Using fallback model: $model (Attempt ${retryCount + 1}/$modelMaxRetries)');
+            } else {
+              print(
+                  'Calling Gemini API with $model... (Attempt ${retryCount + 1}/$modelMaxRetries)');
             }
           }
-          throw Exception('No valid response from Gemini API');
-        } else if (response.statusCode == 503) {
+
+          final response = await http.post(
+            Uri.parse(
+                'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'contents': [
+                {
+                  'parts': [
+                    {'text': prompt}
+                  ]
+                }
+              ],
+              'generationConfig': {
+                'temperature': 1,
+                'topK': 40,
+                'topP': 0.95,
+              }
+            }),
+          );
+
+          if (kDebugMode) {
+            print('Gemini API response status: ${response.statusCode}');
+          }
+          if (kDebugMode) {
+            print('Gemini API response body: ${response.body}');
+          }
+
+          if (response.statusCode == 200) {
+            final responseData = jsonDecode(response.body);
+            final candidates = responseData['candidates'] as List;
+            if (candidates.isNotEmpty) {
+              final content = candidates[0]['content'];
+              final parts = content['parts'] as List;
+              if (parts.isNotEmpty) {
+                if (useFallback && kDebugMode) {
+                  print('Successfully used fallback model: $model');
+                }
+                return parts[0]['text'] as String;
+              }
+            }
+            throw Exception('No valid response from Gemini API');
+          } else if (response.statusCode == 503) {
+            // If 2.5-flash is overloaded, switch to fallback immediately
+            if (model == 'gemini-2.5-flash' && !useFallback) {
+              if (kDebugMode) {
+                print(
+                    'Model 2.5-flash is overloaded after ${retryCount + 1} attempt(s), switching to 2.5-flash-lite fallback...');
+              }
+              useFallback = true;
+              break; // Break retry loop and try next model
+            }
+
+            // If fallback also fails, retry
+            retryCount++;
+            if (retryCount < modelMaxRetries) {
+              if (kDebugMode) {
+                print(
+                    'Model overloaded, retrying in ${retryCount * 2} seconds...');
+              }
+              await Future.delayed(Duration(seconds: retryCount * 2));
+              continue;
+            }
+          } else {
+            // For other errors, try next model if available
+            if (model == 'gemini-2.5-flash' && !useFallback) {
+              if (kDebugMode) {
+                print(
+                    'Model 2.5-flash failed with status ${response.statusCode} after ${retryCount + 1} attempt(s), switching to 2.5-flash-lite fallback...');
+              }
+              useFallback = true;
+              break; // Break retry loop and try next model
+            }
+            throw Exception(
+                'API call failed with status code: ${response.statusCode}, body: ${response.body}');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error calling Gemini API with $model: $e');
+          }
+
+          // If 2.5-flash fails, try fallback
+          if (model == 'gemini-2.5-flash' && !useFallback) {
+            if (kDebugMode) {
+              print(
+                  'Switching to 2.5-flash-lite fallback due to error after ${retryCount + 1} attempt(s)...');
+            }
+            useFallback = true;
+            break; // Break retry loop and try next model
+          }
+
           retryCount++;
-          if (retryCount < maxRetries) {
-            print('Model overloaded, retrying in ${retryCount * 2} seconds...');
+          if (retryCount < modelMaxRetries) {
+            if (kDebugMode) {
+              print('Retrying in ${retryCount * 2} seconds...');
+            }
             await Future.delayed(Duration(seconds: retryCount * 2));
             continue;
           }
+
+          // If this is the last model, rethrow
+          if (model == models.last['name']) {
+            rethrow;
+          }
         }
-        throw Exception(
-            'API call failed with status code: ${response.statusCode}, body: ${response.body}');
-      } catch (e) {
-        print('Error calling Gemini API: $e');
-        retryCount++;
-        if (retryCount < maxRetries) {
-          print('Retrying in ${retryCount * 2} seconds...');
-          await Future.delayed(Duration(seconds: retryCount * 2));
-          continue;
-        }
-        rethrow;
       }
     }
+
     throw Exception(
-        'Failed to get response from Gemini API after $maxRetries attempts');
+        'Failed to get response from Gemini API after trying all models');
   }
 
   // Public methods for conversation management
@@ -515,8 +632,6 @@ class AIService {
   /// Debug method to check conversation context processing
   Future<String> debugContextProcessing(
       String userMessage, String userId) async {
-    if (userId == null) return 'No user ID provided';
-
     final processedMessage =
         await _conversationService.processContext(userMessage, userId);
     final isAddToCart = _utils.isAddToCartRequest(userMessage);
@@ -529,4 +644,158 @@ Processed message length: ${processedMessage.length}
 Processed message starts with context: ${processedMessage.startsWith('CONVERSATION CONTEXT')}
 ''';
   }
+}
+
+String _formatSpec(dynamic value) {
+  if (value == null) return '';
+  return value.toString();
+}
+
+List<String> _buildProductCardFilters({
+  String? brand,
+  String? productName,
+  List<String>? synonyms,
+}) {
+  final Set<String> filters = <String>{};
+
+  void addToken(String? raw) {
+    if (raw == null) return;
+    final token = raw.trim().toLowerCase();
+    if (token.isEmpty) return;
+    // Split by whitespace and add individual words
+    final parts = token.split(RegExp(r'\s+'));
+    for (final part in parts) {
+      final trimmedPart = part.trim();
+      if (trimmedPart.isNotEmpty) {
+        filters.add(trimmedPart);
+      }
+    }
+  }
+
+  // Only use brand and product name for filtering
+  // Synonyms are too broad and may not appear in product data
+  addToken(brand);
+  addToken(productName);
+
+  return filters.toList();
+}
+
+String _buildProductCardsAttachment(
+  QuerySnapshot snapshot, {
+  bool isVietnamese = true,
+  int limit = 4,
+  List<String>? keywordFilters,
+  bool disableFallbackOnEmptyMatch = false,
+}) {
+  if (snapshot.docs.isEmpty) return '';
+
+  final normalizedFilters = (keywordFilters ?? [])
+      .map((token) => token.trim().toLowerCase())
+      .where((token) => token.isNotEmpty)
+      .toList();
+
+  List<QueryDocumentSnapshot> docs = snapshot.docs;
+
+  if (normalizedFilters.isNotEmpty) {
+    if (kDebugMode) {
+      print(
+          'Filtering ${docs.length} products with tokens: $normalizedFilters');
+    }
+
+    final filteredDocs = docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final name = (data['productName'] ?? '').toString().toLowerCase();
+      final manufacturer = _extractManufacturerName(data).toLowerCase();
+      final tags = (data['tags']?.toString() ?? '').toLowerCase();
+      final searchText = '$name $manufacturer $tags';
+
+      // Each filter token must appear in the combined search text
+      final matches =
+          normalizedFilters.every((token) => searchText.contains(token));
+
+      if (kDebugMode && matches) {
+        print('✓ Match: $name | Manufacturer: $manufacturer');
+      }
+
+      return matches;
+    }).toList();
+
+    if (kDebugMode) {
+      print('Filtered to ${filteredDocs.length} products');
+    }
+
+    if (filteredDocs.isNotEmpty) {
+      docs = filteredDocs;
+    } else if (disableFallbackOnEmptyMatch) {
+      docs = <QueryDocumentSnapshot>[];
+      if (kDebugMode) {
+        print('No matches and fallback disabled - returning empty cards');
+      }
+    }
+  }
+
+  final cards = docs.take(limit).map((doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final sellingPrice = (data['sellingPrice'] as num?)?.toDouble() ?? 0;
+    final discount = (data['discount'] as num?)?.toDouble() ?? 0;
+    final discountedPrice = (data['discountedPrice'] as num?)?.toDouble() ??
+        sellingPrice * (1 - discount / 100);
+    final category = data['category']?.toString() ?? '';
+
+    final List<String> quickSpecs = [];
+    switch (category.toLowerCase()) {
+      case 'cpu':
+        quickSpecs.add('${_formatSpec(data['core'])} cores');
+        quickSpecs.add('${_formatSpec(data['thread'])} threads');
+        quickSpecs.add('Turbo ${_formatSpec(data['turboClock'])}GHz');
+        break;
+      case 'gpu':
+        quickSpecs.add('${_formatSpec(data['memory'])} VRAM');
+        quickSpecs.add('Clock ${_formatSpec(data['clockSpeed'])}MHz');
+        break;
+      case 'ram':
+        quickSpecs.add('${_formatSpec(data['capacity'])} Capacity');
+        quickSpecs.add('${_formatSpec(data['bus'])} MHz');
+        break;
+      case 'psu':
+        quickSpecs.add('${_formatSpec(data['wattage'])}W');
+        quickSpecs.add('Efficiency ${_formatSpec(data['efficiency'])}');
+        break;
+      case 'drive':
+        quickSpecs.add('${_formatSpec(data['capacity'])}');
+        quickSpecs.add('${_formatSpec(data['type'])}');
+        break;
+      case 'mainboard':
+        quickSpecs.add('${_formatSpec(data['formFactor'])}');
+        quickSpecs.add('Socket ${_formatSpec(data['socket'])}');
+        break;
+    }
+
+    return {
+      'id': doc.id,
+      'name': data['productName'] ?? '',
+      'price': discountedPrice,
+      'originalPrice': sellingPrice,
+      'discount': discount,
+      'stock': data['stock'] ?? 0,
+      'imageUrl': data['imageUrl'],
+      'category': category,
+      'quickSpecs': quickSpecs.where((s) => s.trim().isNotEmpty).toList(),
+      'description': isVietnamese
+          ? data['viDescription'] ?? ''
+          : data['enDescription'] ?? '',
+    };
+  }).toList();
+
+  if (cards.isEmpty) return '';
+
+  return '[PRODUCT_CARDS]${jsonEncode(cards)}[/PRODUCT_CARDS]';
+}
+
+String _extractManufacturerName(Map<String, dynamic> data) {
+  final manufacturer = data['manufacturer'];
+  if (manufacturer is Map<String, dynamic>) {
+    return manufacturer['name']?.toString() ?? '';
+  }
+  return manufacturer?.toString() ?? '';
 }

@@ -21,13 +21,15 @@ import 'product_tab_state.dart';
 abstract class TabCubit extends Cubit<TabState> {
   TabCubit() : super(const TabState());
 
-  void initialize(FilterArgument filter, {String? searchText, required List<Product> initialProducts}) {
+  void initialize(FilterArgument filter,
+      {String? searchText, required List<Product> initialProducts}) {
     emit(state.copyWith(
-      manufacturerList: Database().manufacturerList,
-      productList: initialProducts.isEmpty ? Database().productList : initialProducts,
-      filteredProductList: initialProducts.isEmpty ? Database().productList : initialProducts,
-      searchText: searchText ?? ''
-    ));
+        manufacturerList: Database().manufacturerList,
+        productList:
+            initialProducts.isEmpty ? Database().productList : initialProducts,
+        filteredProductList:
+            initialProducts.isEmpty ? Database().productList : initialProducts,
+        searchText: searchText ?? ''));
 
     // Set the active category based on this tab's index so filters apply correctly on init
     final initialCategory = _categoryForIndex(getIndex());
@@ -58,7 +60,9 @@ abstract class TabCubit extends Cubit<TabState> {
   Future<void> _fetchProducts() async {
     try {
       Database().getProducts();
-      emit(state.copyWith(productList: Database().productList, filteredProductList: Database().productList));
+      emit(state.copyWith(
+          productList: Database().productList,
+          filteredProductList: Database().productList));
     } catch (e) {
       if (kDebugMode) {
         print(e);
@@ -100,10 +104,6 @@ abstract class TabCubit extends Cubit<TabState> {
   }
 
   void applyFilters() {
-    if (kDebugMode) {
-      print('Apply filter');
-    }
-
     final allProducts = state.productList;
     final fa = state.filterArgument;
     final activeCategory = state.activeCategory;
@@ -113,7 +113,8 @@ abstract class TabCubit extends Cubit<TabState> {
     final queryLower = query.toLowerCase();
 
     final selectedMans = fa.manufacturerList;
-    final applyManufacturer = selectedMans.isNotEmpty && !_isAllManufacturersSelected(selectedMans, state.manufacturerList);
+    final applyManufacturer = selectedMans.isNotEmpty &&
+        !_isAllManufacturersSelected(selectedMans, state.manufacturerList);
 
     final List<Product> filteredProducts = <Product>[];
 
@@ -122,7 +123,8 @@ abstract class TabCubit extends Cubit<TabState> {
       if (applyCategory && product.category != activeCategory) continue;
 
       // Search
-      if (applySearch && !product.productName.toLowerCase().contains(queryLower)) continue;
+      if (applySearch &&
+          !product.productName.toLowerCase().contains(queryLower)) continue;
 
       // Manufacturer
       if (applyManufacturer) {
@@ -131,7 +133,8 @@ abstract class TabCubit extends Cubit<TabState> {
       }
 
       // Price range
-      if (!matchesMinMax(product.discountedPrice, fa.minPrice, fa.maxPrice)) continue;
+      if (!matchesMinMax(product.discountedPrice, fa.minPrice, fa.maxPrice))
+        continue;
 
       // Category-specific filters
       if (!matchFilter(product, fa)) continue;
@@ -161,7 +164,30 @@ abstract class TabCubit extends Cubit<TabState> {
         filteredProducts.sort((a, b) => b.sales.compareTo(a.sales));
     }
 
-    emit(state.copyWith(filteredProductList: filteredProducts));
+    // Reset pagination when filters change (web only)
+    emit(state.copyWith(
+      filteredProductList: filteredProducts,
+      currentPage: kIsWeb ? 1 : state.currentPage,
+      isLoadingMore: false,
+    ));
+  }
+
+  // Pagination methods (web only)
+  void loadMoreItems() {
+    if (!kIsWeb) return;
+    if (state.isLoadingMore || !state.hasMoreItems) return;
+
+    emit(state.copyWith(isLoadingMore: true));
+
+    // Simulate async loading (small delay for smooth UX)
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!isClosed) {
+        emit(state.copyWith(
+          currentPage: state.currentPage + 1,
+          isLoadingMore: false,
+        ));
+      }
+    });
   }
 
   Future<void> changeStatus(Product product) async {
@@ -210,7 +236,8 @@ abstract class TabCubit extends Cubit<TabState> {
     return value >= min && value <= max;
   }
 
-  bool matchedCpuClockSpeed(double baseClock, double turboClock, String? minStr, String? maxStr) {;
+  bool matchedCpuClockSpeed(
+      double baseClock, double turboClock, String? minStr, String? maxStr) {
     final double min = double.tryParse(minStr ?? '') ?? 0;
     final double max = double.tryParse(maxStr ?? '') ?? double.infinity;
     return turboClock >= min && baseClock <= max;
@@ -230,32 +257,39 @@ abstract class TabCubit extends Cubit<TabState> {
     switch (product.category) {
       case CategoryEnum.ram:
         product as RAM;
-        final memGb = (product.capacityPerStickGb * product.kitStickCount).toDouble();
-        if (!applyRangeCheck(memGb, filterArgument.minMemoryGb, filterArgument.maxMemoryGb)) {
+        final memGb =
+            (product.capacityPerStickGb * product.kitStickCount).toDouble();
+        if (!applyRangeCheck(
+            memGb, filterArgument.minMemoryGb, filterArgument.maxMemoryGb)) {
           return false;
         }
-        if (filterArgument.ramType.isNotEmpty && !filterArgument.ramType.contains(product.type)) {
+        if (filterArgument.ramType.isNotEmpty &&
+            !filterArgument.ramType.contains(product.type)) {
           return false;
         }
         return true;
 
       case CategoryEnum.cpu:
         product as CPU;
-        if (shouldApplyRange(filterArgument.minClockSpeed, filterArgument.maxClockSpeed)) {
-          if (!matchedCpuClockSpeed(
-              product.baseClock, product.turboClock, filterArgument.minClockSpeed, filterArgument.maxClockSpeed)) {
+        if (shouldApplyRange(
+            filterArgument.minClockSpeed, filterArgument.maxClockSpeed)) {
+          if (!matchedCpuClockSpeed(product.baseClock, product.turboClock,
+              filterArgument.minClockSpeed, filterArgument.maxClockSpeed)) {
             return false;
           }
         }
 
-        if (!applyRangeCheck(product.tdp.toDouble(), filterArgument.minTdp, filterArgument.maxTdp)) {
+        if (!applyRangeCheck(product.tdp.toDouble(), filterArgument.minTdp,
+            filterArgument.maxTdp)) {
           return false;
         }
 
-        if (filterArgument.cpuSeries.isNotEmpty && !filterArgument.cpuSeries.contains(product.series)) {
+        if (filterArgument.cpuSeries.isNotEmpty &&
+            !filterArgument.cpuSeries.contains(product.series)) {
           return false;
         }
-        if (filterArgument.sockets.isNotEmpty && !filterArgument.sockets.contains(product.socket)) {
+        if (filterArgument.sockets.isNotEmpty &&
+            !filterArgument.sockets.contains(product.socket)) {
           return false;
         }
 
@@ -263,25 +297,31 @@ abstract class TabCubit extends Cubit<TabState> {
 
       case CategoryEnum.gpu:
         product as GPU;
-        if (shouldApplyRange(filterArgument.minClockSpeed, filterArgument.maxClockSpeed)) {
-          if (!applyRangeCheck(product.boostClock.toDouble(), filterArgument.minClockSpeed, filterArgument.maxClockSpeed)) {
+        if (shouldApplyRange(
+            filterArgument.minClockSpeed, filterArgument.maxClockSpeed)) {
+          if (!applyRangeCheck(product.boostClock.toDouble(),
+              filterArgument.minClockSpeed, filterArgument.maxClockSpeed)) {
             return false;
           }
         }
 
-        if (!applyRangeCheck(product.memory.toDouble(), filterArgument.minMemoryGb, filterArgument.maxMemoryGb)) {
+        if (!applyRangeCheck(product.memory.toDouble(),
+            filterArgument.minMemoryGb, filterArgument.maxMemoryGb)) {
           return false;
         }
 
-        if (!applyRangeCheck(product.tdp.toDouble(), filterArgument.minTdp, filterArgument.maxTdp)) {
+        if (!applyRangeCheck(product.tdp.toDouble(), filterArgument.minTdp,
+            filterArgument.maxTdp)) {
           return false;
         }
 
-        if (filterArgument.gpuVersion.isNotEmpty && !filterArgument.gpuVersion.contains(product.version)) {
+        if (filterArgument.gpuVersion.isNotEmpty &&
+            !filterArgument.gpuVersion.contains(product.version)) {
           return false;
         }
 
-        if (filterArgument.gpuSeries.isNotEmpty && !filterArgument.gpuSeries.contains(product.series)) {
+        if (filterArgument.gpuSeries.isNotEmpty &&
+            !filterArgument.gpuSeries.contains(product.series)) {
           return false;
         }
 
@@ -289,28 +329,36 @@ abstract class TabCubit extends Cubit<TabState> {
 
       case CategoryEnum.mainboard:
         product as Mainboard;
-        final maxRamGb = (product.ramSpec.maxSingleDimmGb * product.ramSpec.slots).toDouble();
-        if (!applyRangeCheck(maxRamGb, filterArgument.minMemoryGb, filterArgument.maxMemoryGb)) {
+        final maxRamGb =
+            (product.ramSpec.maxSingleDimmGb * product.ramSpec.slots)
+                .toDouble();
+        if (!applyRangeCheck(
+            maxRamGb, filterArgument.minMemoryGb, filterArgument.maxMemoryGb)) {
           return false;
         }
 
-        if (!applyRangeCheck(product.storageSlot.m2Slots.toDouble(), filterArgument.minM2Slots, filterArgument.maxM2Slots)) {
+        if (!applyRangeCheck(product.storageSlot.m2Slots.toDouble(),
+            filterArgument.minM2Slots, filterArgument.maxM2Slots)) {
           return false;
         }
 
-        if (!applyRangeCheck(product.storageSlot.sataPorts.toDouble(), filterArgument.minSataPorts, filterArgument.maxSataPorts)) {
+        if (!applyRangeCheck(product.storageSlot.sataPorts.toDouble(),
+            filterArgument.minSataPorts, filterArgument.maxSataPorts)) {
           return false;
         }
 
-        if (filterArgument.mainboardFormFactor.isNotEmpty && !filterArgument.mainboardFormFactor.contains(product.formFactor)) {
+        if (filterArgument.mainboardFormFactor.isNotEmpty &&
+            !filterArgument.mainboardFormFactor.contains(product.formFactor)) {
           return false;
         }
 
-        if (filterArgument.sockets.isNotEmpty && !filterArgument.sockets.contains(product.socket)) {
+        if (filterArgument.sockets.isNotEmpty &&
+            !filterArgument.sockets.contains(product.socket)) {
           return false;
         }
 
-        if (filterArgument.ramType.isNotEmpty && !filterArgument.ramType.contains(product.ramSpec.type)) {
+        if (filterArgument.ramType.isNotEmpty &&
+            !filterArgument.ramType.contains(product.ramSpec.type)) {
           return false;
         }
 
@@ -318,19 +366,24 @@ abstract class TabCubit extends Cubit<TabState> {
 
       case CategoryEnum.drive:
         product as Drive;
-        if (!applyRangeCheck(product.memoryGb.toDouble(), filterArgument.minMemoryGb, filterArgument.maxMemoryGb)) {
+        if (!applyRangeCheck(product.memoryGb.toDouble(),
+            filterArgument.minMemoryGb, filterArgument.maxMemoryGb)) {
           return false;
         }
-        if (filterArgument.driveType.isNotEmpty && !filterArgument.driveType.contains(product.driveType)) {
+        if (filterArgument.driveType.isNotEmpty &&
+            !filterArgument.driveType.contains(product.driveType)) {
           return false;
         }
-        if (filterArgument.driveFormFactor.isNotEmpty && !filterArgument.driveFormFactor.contains(product.formFactor)) {
+        if (filterArgument.driveFormFactor.isNotEmpty &&
+            !filterArgument.driveFormFactor.contains(product.formFactor)) {
           return false;
         }
-        if (filterArgument.interfaceType.isNotEmpty && !filterArgument.interfaceType.contains(product.interfaceType)) {
+        if (filterArgument.interfaceType.isNotEmpty &&
+            !filterArgument.interfaceType.contains(product.interfaceType)) {
           return false;
         }
-        if (filterArgument.gen.isNotEmpty && !filterArgument.gen.contains(product.gen)) {
+        if (filterArgument.gen.isNotEmpty &&
+            !filterArgument.gen.contains(product.gen)) {
           return false;
         }
 
@@ -338,20 +391,24 @@ abstract class TabCubit extends Cubit<TabState> {
 
       case CategoryEnum.psu:
         product as PSU;
-        if (!applyRangeCheck(product.maxWattage.toDouble(), filterArgument.minTdp, filterArgument.maxTdp)) {
+        if (!applyRangeCheck(product.maxWattage.toDouble(),
+            filterArgument.minTdp, filterArgument.maxTdp)) {
           return false;
         }
 
         // If both lists empty -> don't filter by PSU attributes
-        if (filterArgument.psuModularity.isEmpty && filterArgument.psuEfficiency.isEmpty) {
+        if (filterArgument.psuModularity.isEmpty &&
+            filterArgument.psuEfficiency.isEmpty) {
           return true;
         }
 
-        if (filterArgument.psuModularity.isNotEmpty && !filterArgument.psuModularity.contains(product.modularity)) {
+        if (filterArgument.psuModularity.isNotEmpty &&
+            !filterArgument.psuModularity.contains(product.modularity)) {
           return false;
         }
 
-        if (filterArgument.psuEfficiency.isNotEmpty && !filterArgument.psuEfficiency.contains(product.efficiency)) {
+        if (filterArgument.psuEfficiency.isNotEmpty &&
+            !filterArgument.psuEfficiency.contains(product.efficiency)) {
           return false;
         }
 
@@ -471,7 +528,8 @@ class MainboardTabCubit extends TabCubit {
   }
 }
 
-bool _isAllManufacturersSelected(List<Manufacturer> selected, List<Manufacturer> all) {
+bool _isAllManufacturersSelected(
+    List<Manufacturer> selected, List<Manufacturer> all) {
   if (all.isEmpty) return false;
   final selIds = selected.map((m) => m.manufacturerID).toSet();
   final allIds = all.map((m) => m.manufacturerID).toSet();

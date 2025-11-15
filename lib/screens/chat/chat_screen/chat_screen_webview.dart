@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:intl/intl.dart';
@@ -30,6 +32,8 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
   final ScrollController _scrollController = ScrollController();
   final RegExp _productLinkRegex =
       RegExp(r'\[PRODUCT_LINK:([^\]]+)\]([^\[]+)\[/PRODUCT_LINK\]');
+  final RegExp _productCardsRegex =
+      RegExp(r'\[PRODUCT_CARDS\](.*?)\[/PRODUCT_CARDS\]', dotAll: true);
   ChatScreenCubit get cubit => context.read<ChatScreenCubit>();
 
   @override
@@ -59,14 +63,15 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
 
   List<InlineSpan> _buildMessageSpans(
       String content, Color textColor, ThemeData theme) {
+    final sanitizedContent = _stripProductCardMarkup(content);
     final List<InlineSpan> spans = [];
     int lastIndex = 0;
 
-    for (final match in _productLinkRegex.allMatches(content)) {
+    for (final match in _productLinkRegex.allMatches(sanitizedContent)) {
       // Thêm text trước link nếu có
       if (match.start > lastIndex) {
         spans.add(TextSpan(
-          text: content.substring(lastIndex, match.start),
+          text: sanitizedContent.substring(lastIndex, match.start),
           style: TextStyle(
             fontSize: 16,
             color: textColor,
@@ -90,9 +95,9 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
     }
 
     // Thêm phần text còn lại sau link cuối cùng
-    if (lastIndex < content.length) {
+    if (lastIndex < sanitizedContent.length) {
       spans.add(TextSpan(
-        text: content.substring(lastIndex),
+        text: sanitizedContent.substring(lastIndex),
         style: TextStyle(
           fontSize: 16,
           color: textColor,
@@ -101,6 +106,34 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
     }
 
     return spans;
+  }
+
+  String _stripProductCardMarkup(String content) {
+    return content.replaceAll(_productCardsRegex, '');
+  }
+
+  List<Map<String, dynamic>> _extractProductCards(String content) {
+    final matches = _productCardsRegex.allMatches(content);
+    final List<Map<String, dynamic>> result = [];
+    for (final match in matches) {
+      final jsonString = match.group(1);
+      if (jsonString == null || jsonString.isEmpty) continue;
+      try {
+        final decoded = jsonDecode(jsonString);
+        if (decoded is List) {
+          for (final item in decoded) {
+            if (item is Map<String, dynamic>) {
+              result.add(item);
+            }
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to parse product cards: $e');
+        }
+      }
+    }
+    return result;
   }
 
   @override
@@ -146,6 +179,8 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
                           isMobile: isMobile,
                           controller: _scrollController,
                           buildMessageSpans: _buildMessageSpans,
+                          sanitizeContent: _stripProductCardMarkup,
+                          extractProductCards: _extractProductCards,
                         ),
                       ),
                       // Message Input

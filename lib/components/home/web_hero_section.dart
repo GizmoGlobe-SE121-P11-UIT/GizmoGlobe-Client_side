@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class WebHeroSection extends StatefulWidget {
-  const WebHeroSection({Key? key}) : super(key: key);
+  const WebHeroSection({super.key});
 
   @override
   State<WebHeroSection> createState() => _WebHeroSectionState();
@@ -103,7 +103,7 @@ class _WebHeroSectionState extends State<WebHeroSection>
                                 color: Theme.of(context)
                                     .colorScheme
                                     .primary
-                                    .withOpacity(0.3),
+                                    .withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -156,7 +156,7 @@ class _WebHeroSectionState extends State<WebHeroSection>
                             color: Theme.of(context)
                                 .colorScheme
                                 .onSurface
-                                .withOpacity(0.7),
+                                .withValues(alpha: 0.7),
                             fontSize: 18,
                             height: 1.6,
                           ),
@@ -180,7 +180,7 @@ class _WebHeroSectionState extends State<WebHeroSection>
                                     color: Theme.of(context)
                                         .colorScheme
                                         .primary
-                                        .withOpacity(0.4),
+                                        .withValues(alpha: 0.4),
                                     blurRadius: 16,
                                     offset: const Offset(0, 8),
                                   ),
@@ -227,13 +227,13 @@ class _WebHeroSectionState extends State<WebHeroSection>
                                 color: Theme.of(context)
                                     .colorScheme
                                     .primaryContainer
-                                    .withOpacity(0.1),
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: Theme.of(context)
                                       .colorScheme
                                       .primary
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                                 ),
                               ),
                               child: Row(
@@ -342,19 +342,26 @@ class _WebHeroSectionState extends State<WebHeroSection>
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.1),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        Theme.of(context).colorScheme.shadow.withOpacity(0.05),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .shadow
+                        .withValues(alpha: 0.05),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
                   BoxShadow(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.05),
                     blurRadius: 40,
                     offset: const Offset(0, 16),
                   ),
@@ -380,7 +387,7 @@ class _WebHeroSectionState extends State<WebHeroSection>
                           color: Theme.of(context)
                               .colorScheme
                               .primary
-                              .withOpacity(0.3),
+                              .withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -420,7 +427,7 @@ class _WebHeroSectionState extends State<WebHeroSection>
                             color: Theme.of(context)
                                 .colorScheme
                                 .onSurface
-                                .withOpacity(0.6),
+                                .withValues(alpha: 0.6),
                             fontSize: 14,
                             height: 1.3,
                           ),

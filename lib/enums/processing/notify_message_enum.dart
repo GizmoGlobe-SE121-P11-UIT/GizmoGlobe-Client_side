@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 enum NotifyMessage {
   empty('', ''),
   msg1('Welcome back! You have successfully signed in.',
@@ -25,9 +27,7 @@ enum NotifyMessage {
   msg12(
       'As a guest, you will have limited access to app features. Would you like to continue?',
       'Với tư cách khách, bạn sẽ chỉ có thể sử dụng các tính năng giới hạn của ứng dụng. Bạn có muốn tiếp tục?'),
-  msg13('Cannot add product to cart',
-        'Không thể thêm sản phẩm vào giỏ hàng'),
-
+  msg13('Cannot add product to cart', 'Không thể thêm sản phẩm vào giỏ hàng'),
   ;
 
   final String description;
@@ -37,6 +37,26 @@ enum NotifyMessage {
 
   @override
   String toString() {
+    try {
+      final String lang =
+          WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+      if (lang.toLowerCase().startsWith('vi')) {
+        return vietnameseDescription;
+      }
+    } catch (_) {
+      // Fallback if WidgetsBinding is not initialized
+    }
+    return description;
+  }
+
+  String toLocalizedString() {
+    try {
+      final String lang =
+          WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+      if (lang.toLowerCase().startsWith('vi')) {
+        return vietnameseDescription;
+      }
+    } catch (_) {}
     return description;
   }
 

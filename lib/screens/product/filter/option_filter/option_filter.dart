@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/widgets/general/checkbox_button.dart';
 
@@ -60,41 +61,46 @@ class OptionFilter<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int itemCount = enumValues.length;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          name,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontSize: 20.0,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-        ),
-        const SizedBox(height: 8.0),
-        Wrap(
-          spacing: 16.0,
-          runSpacing: 16.0,
-          children: List.generate(itemCount + (itemCount % 2), (index) {
-            if (index < itemCount) {
-              return SizedBox(
-                width: (MediaQuery.of(context).size.width - 48) / 2,
-                child: CheckboxButton(
-                  text:
-                      _getLocalizedText(context, enumValues[index].toString()),
-                  isSelected: selectedValues.contains(enumValues[index]),
-                  onSelected: () {
-                    onToggleSelection(enumValues[index]);
-                  },
+    return LayoutBuilder(builder: (ctx, constraints) {
+      final double containerWidth =
+          kIsWeb ? constraints.maxWidth : MediaQuery.of(context).size.width;
+      final double itemWidth =
+          kIsWeb ? (containerWidth - 16) / 2 : (containerWidth - 48) / 2;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            name,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 20.0,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-              );
-            } else {
-              return SizedBox(
-                width: (MediaQuery.of(context).size.width - 48) / 2,
-              );
-            }
-          }),
-        ),
-      ],
-    );
+          ),
+          const SizedBox(height: 8.0),
+          Wrap(
+            spacing: 16.0,
+            runSpacing: 16.0,
+            children: List.generate(itemCount + (itemCount % 2), (index) {
+              if (index < itemCount) {
+                return SizedBox(
+                  width: itemWidth,
+                  child: CheckboxButton(
+                    text: _getLocalizedText(
+                        context, enumValues[index].toString()),
+                    isSelected: selectedValues.contains(enumValues[index]),
+                    onSelected: () {
+                      onToggleSelection(enumValues[index]);
+                    },
+                  ),
+                );
+              } else {
+                return SizedBox(width: itemWidth);
+              }
+            }),
+          ),
+        ],
+      );
+    });
   }
 }

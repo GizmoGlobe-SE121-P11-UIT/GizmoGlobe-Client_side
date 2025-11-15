@@ -330,7 +330,8 @@ class _AvatarPickerState extends State<AvatarPicker> {
                 ),
               ],
             ),
-            child: widget.currentAvatarUrl != null
+            child: widget.currentAvatarUrl != null &&
+                    widget.currentAvatarUrl!.isNotEmpty
                 ? ClipOval(
                     child: Image.network(
                       widget.currentAvatarUrl!,

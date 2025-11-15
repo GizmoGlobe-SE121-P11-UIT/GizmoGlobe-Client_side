@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
@@ -10,7 +9,6 @@ import 'sign_in_cubit.dart';
 import 'sign_in_state.dart';
 import '../../../widgets/general/app_logo.dart';
 import '../../../widgets/general/field_with_icon.dart';
-import 'sign_in_webview.dart';
 import '../forget_password_screen/forget_password_webview.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -178,7 +176,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                               builder: (BuildContext dialogContext) =>
                                   InformationDialog(
                                 dialogName: state.dialogName,
-                                content: state.message.toString(),
+                                content: state.message.toLocalizedString(),
                                 onPressed: () {
                                   Navigator.of(dialogContext).pop();
                                 },
@@ -210,7 +208,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 builder: (BuildContext dialogContext) =>
                                     InformationDialog(
                                   dialogName: state.dialogName,
-                                  content: state.message.toString(),
+                                  content: state.message.toLocalizedString(),
                                   onPressed: () {
                                     Navigator.of(dialogContext).pop();
                                     if (context.mounted) {
@@ -346,7 +344,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 builder: (BuildContext dialogContext) =>
                                     InformationDialog(
                                   dialogName: state.dialogName,
-                                  content: state.message.toString(),
+                                  content: state.message.toLocalizedString(),
                                   onPressed: () {
                                     Navigator.of(dialogContext).pop();
                                   },
@@ -365,7 +363,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 builder: (BuildContext dialogContext) =>
                                     InformationDialog(
                                   dialogName: state.dialogName,
-                                  content: state.message.toString(),
+                                  content: state.message.toLocalizedString(),
                                   onPressed: () {
                                     Navigator.of(dialogContext).pop();
                                     if (context.mounted) {
@@ -455,29 +453,6 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                           );
                         },
                       ),
-                      // Web Modal Option - only show on non-web platforms
-                      if (!kIsWeb) ...[
-                        const SizedBox(height: 16),
-                        TextButton(
-                          onPressed: () {
-                            showSignInModalWithCubit(context, cubit);
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: theme.colorScheme.primary
-                                .withValues(alpha: 0.6),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                          ),
-                          child: Text(
-                            'Open Web View',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.primary
-                                  .withValues(alpha: 0.6),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),

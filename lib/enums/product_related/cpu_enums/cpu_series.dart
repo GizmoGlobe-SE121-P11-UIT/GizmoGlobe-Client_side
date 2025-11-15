@@ -18,7 +18,7 @@ enum CPUSeries {
   }
 
   static List<CPUSeries> getValues() {
-    return CPUSeries.values.where((e) => e != CPUSeries.unknown).toList();;
+    return CPUSeries.values.where((e) => e != CPUSeries.unknown).toList();
   }
 
   @override

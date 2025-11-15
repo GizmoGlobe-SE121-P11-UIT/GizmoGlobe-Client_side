@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
 import 'sign_in_state.dart';
@@ -77,38 +78,116 @@ class SignInCubit extends Cubit<SignInState> {
 
   Future<void> signInWithGoogle() async {
     try {
+      if (isClosed) return;
       emit(state.copyWith(processState: ProcessState.loading));
-
-      // Clear any existing guest data when signing in with account
-      await _localGuestService.clearGuestUser();
 
       UserCredential userCredential;
 
       if (kIsWeb) {
-        // For web, use Firebase Auth with Google provider directly
+        // For web: try popup first for localhost; fallback to redirect if blocked
         final GoogleAuthProvider googleProvider = GoogleAuthProvider();
         googleProvider.addScope('email');
         googleProvider.addScope('profile');
+        googleProvider.setCustomParameters({'prompt': 'select_account'});
 
         try {
           userCredential = await _auth.signInWithPopup(googleProvider);
-        } catch (error) {
-          // Handle popup dismissal or cancellation
-          if (error.toString().contains('popup_closed_by_user') ||
-              error.toString().contains('popup_closed') ||
-              error.toString().contains('cancelled')) {
-            emit(state.copyWith(processState: ProcessState.idle));
+        } on FirebaseAuthException catch (e) {
+          // If popup is blocked or closed, fallback to redirect
+          final popupBlocked = e.code == 'popup-blocked' ||
+              e.code == 'auth/popup-blocked' ||
+              e.code == 'popup-closed-by-user' ||
+              e.code == 'auth/popup-closed-by-user' ||
+              e.code == 'cancelled-popup-request';
+
+          if (popupBlocked) {
+            // Clear guest data before redirect (user will be redirected away)
+            await _localGuestService.clearGuestUser();
+
+            if (kDebugMode) {
+              print(
+                  'Popup unavailable (${e.code}). Falling back to redirect...');
+              print('Current URL before redirect: ${Uri.base}');
+            }
+
+            await _auth.signInWithRedirect(googleProvider);
+            return; // Will navigate away
+          }
+          // Handle specific Firebase Auth errors
+          if (kDebugMode) {
+            print(
+                'Google Sign-In FirebaseAuthException: ${e.code} - ${e.message}');
+            print('Full error details: ${e.toString()}');
+          }
+
+          // Check for various popup-related error codes
+          if (e.code == 'popup-closed-by-user' ||
+              e.code == 'auth/popup-closed-by-user' ||
+              e.code == 'cancelled-popup-request') {
+            // Popup was closed - treat as user cancellation
+            if (!isClosed) {
+              emit(state.copyWith(processState: ProcessState.idle));
+            }
+            return;
+          } else if (e.code == 'popup-blocked' ||
+              e.code == 'auth/popup-blocked') {
+            // Popup was blocked by browser - show error
+            if (kDebugMode) {
+              print(
+                  'Popup blocked by browser. Please allow popups for this site.');
+            }
+            if (!isClosed) {
+              emit(state.copyWith(
+                processState: ProcessState.failure,
+                dialogName: DialogName.failure,
+                message: NotifyMessage.msg2,
+              ));
+            }
             return;
           }
-          rethrow; // Re-throw other errors
+
+          // Other Firebase Auth errors
+          if (!isClosed) {
+            emit(state.copyWith(
+              processState: ProcessState.failure,
+              dialogName: DialogName.failure,
+              message: NotifyMessage.msg2,
+            ));
+          }
+          return;
+        } catch (error) {
+          // Handle other types of errors
+          if (kDebugMode) {
+            print('Google Sign-In error: $error');
+            print('Error type: ${error.runtimeType}');
+          }
+
+          if (!isClosed) {
+            emit(state.copyWith(
+              processState: ProcessState.failure,
+              dialogName: DialogName.failure,
+              message: NotifyMessage.msg2,
+            ));
+          }
+          return;
         }
       } else {
         // For mobile, use Google Sign-In plugin
-        final GoogleSignIn googleSignIn = GoogleSignIn();
+        // Read Web client ID from environment to avoid exposing it in code
+        final String? serverClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
+
+        final GoogleSignIn googleSignIn = GoogleSignIn(
+          serverClientId: (serverClientId != null && serverClientId.isNotEmpty)
+              ? serverClientId
+              : null,
+          scopes: const ['email', 'profile'],
+        );
 
         final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
         if (googleUser == null) {
-          emit(state.copyWith(processState: ProcessState.idle));
+          if (!isClosed) {
+            emit(state.copyWith(processState: ProcessState.idle));
+          }
           return;
         }
 
@@ -123,22 +202,41 @@ class SignInCubit extends Cubit<SignInState> {
       }
 
       if (userCredential.user != null) {
+        // Clear guest data after successful authentication
+        await _localGuestService.clearGuestUser();
+
         await _setupUserData(userCredential.user!);
+        if (!isClosed) {
+          emit(state.copyWith(
+            processState: ProcessState.success,
+            dialogName: DialogName.success,
+            message: NotifyMessage.msg1,
+          ));
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        print(
+            'FirebaseAuthException during Google Sign-In: code=${e.code}, message=${e.message}');
+      }
+      if (!isClosed) {
         emit(state.copyWith(
-          processState: ProcessState.success,
-          dialogName: DialogName.success,
-          message: NotifyMessage.msg1,
+          processState: ProcessState.failure,
+          dialogName: DialogName.failure,
+          message: NotifyMessage.msg2,
         ));
       }
     } catch (error) {
       if (kDebugMode) {
         print('Google Sign-In error: $error');
       }
-      emit(state.copyWith(
-        processState: ProcessState.failure,
-        dialogName: DialogName.failure,
-        message: NotifyMessage.msg2,
-      ));
+      if (!isClosed) {
+        emit(state.copyWith(
+          processState: ProcessState.failure,
+          dialogName: DialogName.failure,
+          message: NotifyMessage.msg2,
+        ));
+      }
     }
   }
 
@@ -183,6 +281,13 @@ class SignInCubit extends Cubit<SignInState> {
 
   Future<void> _setupUserData(User user, {bool isGuest = false}) async {
     try {
+      // Check if user document already exists
+      final userDocRef = _firestore.collection('users').doc(user.uid);
+      final customerDocRef = _firestore.collection('customers').doc(user.uid);
+
+      final userDoc = await userDocRef.get();
+      final userExists = userDoc.exists;
+
       // Generate decoy data for guest account
       final String guestId = user.uid.substring(0, 6);
       final String guestName = 'Guest_$guestId';
@@ -196,7 +301,6 @@ class SignInCubit extends Cubit<SignInState> {
         'userid': user.uid,
         'role': 'customer',
         'isGuest': isGuest,
-        'createdAt': FieldValue.serverTimestamp(),
       };
 
       // Prepare customer data
@@ -206,13 +310,19 @@ class SignInCubit extends Cubit<SignInState> {
         'email': isGuest ? guestEmail : (user.email ?? ''),
         'phoneNumber': isGuest ? guestPhone : (user.phoneNumber ?? ''),
         'isGuest': isGuest,
-        'createdAt': FieldValue.serverTimestamp(),
       };
 
+      // Only set createdAt for new users
+      if (!userExists) {
+        userData['createdAt'] = FieldValue.serverTimestamp();
+        customerData['createdAt'] = FieldValue.serverTimestamp();
+      }
+
       // Use batch write to ensure both operations succeed or fail together
+      // Use merge to preserve existing data if user already exists
       final batch = _firestore.batch();
-      batch.set(_firestore.collection('users').doc(user.uid), userData);
-      batch.set(_firestore.collection('customers').doc(user.uid), customerData);
+      batch.set(userDocRef, userData, SetOptions(merge: true));
+      batch.set(customerDocRef, customerData, SetOptions(merge: true));
       await batch.commit();
     } catch (e) {
       if (kDebugMode) {

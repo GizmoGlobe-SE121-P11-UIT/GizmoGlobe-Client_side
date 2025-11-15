@@ -92,9 +92,24 @@ class SalesInvoice {
   }
 
   static SalesInvoice fromMap(String id, Map<String, dynamic> map) {
-    Address address = Database().addressList.firstWhere(
-          (address) => address.addressID == map['address'],
-    );
+    // Handle address lookup - if addressID is empty or not found, use null
+    final addressID = map['address'] as String? ?? '';
+    Address? address;
+    if (addressID.isNotEmpty && Database().addressList.isNotEmpty) {
+      try {
+        address = Database().addressList.firstWhere(
+          (addr) => addr.addressID == addressID,
+          orElse: () => Address.nullAddress,
+        );
+        // Convert nullAddress to null
+        if (address == Address.nullAddress) {
+          address = null;
+        }
+      } catch (e) {
+        // If address list is empty or address not found, use null
+        address = null;
+      }
+    }
 
     return SalesInvoice(
       salesInvoiceID: id,

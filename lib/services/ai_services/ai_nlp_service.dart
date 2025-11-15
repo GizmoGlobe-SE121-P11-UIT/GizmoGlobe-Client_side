@@ -13,7 +13,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class AINLPService {
   static const String _baseUrl =
       'https://generativelanguage.googleapis.com/v1beta/models';
-  static const String _model = 'gemini-2.0-flash';
 
   /// Analyze user query to extract product information and intent
   Future<Map<String, dynamic>> analyzeProductQuery(
@@ -81,6 +80,27 @@ class AINLPService {
         print('Error extracting features: $e');
       }
       return {};
+    }
+  }
+
+  /// Extract product name using NLP when regex patterns fail
+  /// This uses Gemini to intelligently extract product names from text
+  Future<String?> extractProductNameWithNLP(
+      String text, bool isVietnamese) async {
+    try {
+      final prompt = _createProductNameExtractionPrompt(text, isVietnamese);
+      final response = await _callGeminiAPI(prompt);
+
+      if (kDebugMode) {
+        print('NLP Product Name Extraction Response: $response');
+      }
+
+      return _parseProductNameResponse(response);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in NLP product name extraction: $e');
+      }
+      return null;
     }
   }
 
@@ -245,44 +265,138 @@ Respond in JSON format:
       throw Exception('GEMINI_API_KEY not found in .env file');
     }
 
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/$_model:generateContent?key=$apiKey'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'contents': [
-            {
-              'parts': [
-                {'text': prompt}
-              ]
-            }
-          ],
-          'generationConfig': {
-            'temperature': 0.3,
-            'topK': 40,
-            'topP': 0.95,
-            'maxOutputTokens': 1024,
-          }
-        }),
-      );
+    // Try 2.5-flash max 3 times, then fallback to 2.5-flash-lite
+    const maxRetries25Flash = 3;
+    final models = [
+      {'name': 'gemini-2.5-flash', 'maxRetries': maxRetries25Flash},
+      {'name': 'gemini-2.5-flash-lite', 'maxRetries': maxRetries25Flash},
+    ];
+    bool useFallback = false;
 
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final candidates = responseData['candidates'] as List;
-        if (candidates.isNotEmpty) {
-          final content = candidates[0]['content'];
-          final parts = content['parts'] as List;
-          if (parts.isNotEmpty) {
-            return parts[0]['text'] as String;
+    for (final modelConfig in models) {
+      final model = modelConfig['name'] as String;
+      final modelMaxRetries = modelConfig['maxRetries'] as int;
+      int retryCount = 0;
+
+      while (retryCount < modelMaxRetries) {
+        try {
+          if (kDebugMode) {
+            if (useFallback) {
+              print(
+                  'NLP Service: Using fallback model: $model (Attempt ${retryCount + 1}/$modelMaxRetries)');
+            } else {
+              print(
+                  'NLP Service: Calling Gemini API with $model... (Attempt ${retryCount + 1}/$modelMaxRetries)');
+            }
+          }
+
+          final response = await http.post(
+            Uri.parse('$_baseUrl/$model:generateContent?key=$apiKey'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'contents': [
+                {
+                  'parts': [
+                    {'text': prompt}
+                  ]
+                }
+              ],
+              'generationConfig': {
+                'temperature': 0.3,
+                'topK': 40,
+                'topP': 0.95,
+              }
+            }),
+          );
+
+          if (kDebugMode) {
+            print(
+                'NLP Service: Gemini API response status: ${response.statusCode}');
+          }
+
+          if (response.statusCode == 200) {
+            final responseData = jsonDecode(response.body);
+            final candidates = responseData['candidates'] as List;
+            if (candidates.isNotEmpty) {
+              final content = candidates[0]['content'];
+              final parts = content['parts'] as List;
+              if (parts.isNotEmpty) {
+                if (useFallback && kDebugMode) {
+                  print(
+                      'NLP Service: Successfully used fallback model: $model');
+                }
+                return parts[0]['text'] as String;
+              }
+            }
+            throw Exception('No valid response from Gemini API');
+          } else if (response.statusCode == 503) {
+            // If 2.5-flash is overloaded, switch to fallback immediately
+            if (model == 'gemini-2.5-flash' && !useFallback) {
+              if (kDebugMode) {
+                print(
+                    'NLP Service: Model 2.5-flash is overloaded after ${retryCount + 1} attempt(s), switching to 2.5-flash-lite fallback...');
+              }
+              useFallback = true;
+              break; // Break retry loop and try next model
+            }
+
+            // If fallback also fails, retry
+            retryCount++;
+            if (retryCount < modelMaxRetries) {
+              if (kDebugMode) {
+                print(
+                    'NLP Service: Model overloaded, retrying in ${retryCount * 2} seconds...');
+              }
+              await Future.delayed(Duration(seconds: retryCount * 2));
+              continue;
+            }
+          } else {
+            // For other errors, try next model if available
+            if (model == 'gemini-2.5-flash' && !useFallback) {
+              if (kDebugMode) {
+                print(
+                    'NLP Service: Model 2.5-flash failed with status ${response.statusCode} after ${retryCount + 1} attempt(s), switching to 2.5-flash-lite fallback...');
+              }
+              useFallback = true;
+              break; // Break retry loop and try next model
+            }
+            throw Exception(
+                'API call failed with status code: ${response.statusCode}, body: ${response.body}');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('NLP Service: Error calling Gemini API with $model: $e');
+          }
+
+          // If 2.5-flash fails, try fallback
+          if (model == 'gemini-2.5-flash' && !useFallback) {
+            if (kDebugMode) {
+              print(
+                  'NLP Service: Switching to 2.5-flash-lite fallback due to error after ${retryCount + 1} attempt(s)...');
+            }
+            useFallback = true;
+            break; // Break retry loop and try next model
+          }
+
+          retryCount++;
+          if (retryCount < modelMaxRetries) {
+            if (kDebugMode) {
+              print('NLP Service: Retrying in ${retryCount * 2} seconds...');
+            }
+            await Future.delayed(Duration(seconds: retryCount * 2));
+            continue;
+          }
+
+          // If this is the last model, rethrow
+          if (model == models.last['name']) {
+            rethrow;
           }
         }
       }
-
-      throw Exception(
-          'Failed to get response from Gemini API: ${response.statusCode}');
-    } catch (e) {
-      throw Exception('Error calling Gemini API: $e');
     }
+
+    throw Exception(
+        'Failed to get response from Gemini API after trying all models');
   }
 
   Map<String, dynamic> _parseAnalysisResponse(String response) {
@@ -350,6 +464,80 @@ Respond in JSON format:
       }
     }
     return {};
+  }
+
+  String _createProductNameExtractionPrompt(String text, bool isVietnamese) {
+    return isVietnamese
+        ? '''
+Bạn là chuyên gia về phần cứng máy tính. Hãy trích xuất tên sản phẩm chính xác từ đoạn văn bản sau.
+
+Văn bản: "$text"
+
+Hãy trả lời CHỈ với tên sản phẩm, không có giải thích thêm. Nếu không tìm thấy sản phẩm, trả lời "null".
+
+Ví dụ:
+- "thêm cpu i7 hoặc core ultra 7 mới nhất vào giỏ hàng" -> "CPU Intel Core Ultra 7"
+- "add RTX 4090 to cart" -> "RTX 4090"
+- "mua RAM DDR5" -> "DDR5 RAM"
+- "thêm nó vào giỏ hàng" -> "null" (không có tên sản phẩm cụ thể)
+
+Tên sản phẩm:
+'''
+        : '''
+You are a computer hardware expert. Extract the exact product name from the following text.
+
+Text: "$text"
+
+Respond with ONLY the product name, no additional explanation. If no product is found, respond with "null".
+
+Examples:
+- "add cpu i7 or core ultra 7 latest to cart" -> "CPU Intel Core Ultra 7"
+- "add RTX 4090 to cart" -> "RTX 4090"
+- "buy DDR5 RAM" -> "DDR5 RAM"
+- "add it to cart" -> "null" (no specific product name)
+
+Product name:
+''';
+  }
+
+  String? _parseProductNameResponse(String response) {
+    try {
+      final trimmed = response.trim();
+
+      // Check if response is "null" or empty
+      if (trimmed.isEmpty ||
+          trimmed.toLowerCase() == 'null' ||
+          trimmed.toLowerCase() == 'none' ||
+          trimmed.toLowerCase() == 'không tìm thấy') {
+        return null;
+      }
+
+      // Remove any quotes at start or end
+      var productName = trimmed;
+      productName = productName.replaceAll(RegExp(r'^"'), '');
+      productName = productName.replaceAll(RegExp(r'"$'), '');
+      productName = productName.replaceAll(RegExp(r"^'"), '');
+      productName = productName.replaceAll(RegExp(r"'$"), '');
+
+      // Remove common prefixes/suffixes that might be added
+      productName = productName
+          .replaceAll(
+              RegExp(r'^(Product name|Tên sản phẩm|Product|Sản phẩm):\s*',
+                  caseSensitive: false),
+              '')
+          .trim();
+
+      if (productName.isEmpty || productName.length < 2) {
+        return null;
+      }
+
+      return productName;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error parsing product name response: $e');
+      }
+      return null;
+    }
   }
 
   Map<String, dynamic> _getFallbackAnalysis(String userQuery) {

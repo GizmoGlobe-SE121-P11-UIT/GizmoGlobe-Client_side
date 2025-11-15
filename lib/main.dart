@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:gizmoglobe_client/screens/authentication/forget_password_screen/forget_password_view.dart';
@@ -15,6 +16,10 @@ import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_view.dart
 import 'package:gizmoglobe_client/screens/user/user_screen/user_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_view.dart';
+import 'package:gizmoglobe_client/screens/build/builder/pc_builder_view.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_success_webview.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_webview.dart';
+import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/firebase_options.dart';
@@ -29,6 +34,27 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/chat/floating_chat.dart';
+import 'package:gizmoglobe_client/services/platform_actions_stub.dart'
+    if (dart.library.html) 'package:gizmoglobe_client/services/platform_actions_web.dart'
+    as platform_actions;
+
+// Function to get hash path from platform actions
+String getHashPath() {
+  if (kIsWeb) {
+    return platform_actions.getHashPath();
+  }
+  return '';
+}
+
+// Function to normalize initial URL for hash strategy
+void normalizeInitialUrlForHashStrategy() {
+  if (kIsWeb) {
+    platform_actions.normalizeInitialUrlForHashStrategy();
+  }
+}
+
+// Use a single navigator key instance to avoid rebuild-induced pops on web
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 class NoTransitionsBuilder extends PageTransitionsBuilder {
   const NoTransitionsBuilder();
@@ -47,12 +73,37 @@ class NoTransitionsBuilder extends PageTransitionsBuilder {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load .env uniformly; it's declared as an asset in pubspec
   await dotenv.load(fileName: ".env");
+
+  // Use hash-based URLs on web so refreshes work without server config
+  // However, we need to check for Firebase Auth redirects BEFORE normalizing
+  // because Firebase Auth redirects use query parameters that hash routing might interfere with
+  if (kIsWeb) {
+    // Check if we're returning from a Firebase Auth redirect BEFORE setting hash strategy
+    // This allows getRedirectResult() to work properly
+    final initialUrl = Uri.base.toString();
+    final hasAuthRedirect = initialUrl.contains('__/auth/handler') ||
+        initialUrl.contains('apiKey=') ||
+        initialUrl.contains('code=') ||
+        initialUrl.contains('state=');
+
+    if (!hasAuthRedirect) {
+      // Only set hash strategy if we're not handling an auth redirect
+      platform_actions.setUrlStrategyWeb();
+      normalizeInitialUrlForHashStrategy();
+    }
+  }
   await _setup();
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+
+    // Ensure persistent auth session on web
+    if (kIsWeb) {
+      await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    }
 
     // final database = Database();
     // Initialize Firebase App Check only on mobile platforms (not web)
@@ -113,13 +164,11 @@ class MyApp extends StatelessWidget {
             print('Current locale: ${languageProvider.currentLocale}');
             print('Supported locales: ${[Locale('en'), Locale('vi')]}');
           }
-          final GlobalKey<NavigatorState> _rootNavigatorKey =
-              GlobalKey<NavigatorState>();
           return BlocProvider(
             create: (context) => MainScreenCubit(),
             child: CartProvider(
               child: MaterialApp(
-                navigatorKey: _rootNavigatorKey,
+                navigatorKey: rootNavigatorKey,
                 title: 'GizmoGlobe',
                 themeMode: themeProvider.themeMode,
                 locale: languageProvider.currentLocale,
@@ -163,29 +212,29 @@ class MyApp extends StatelessWidget {
                   // Inject floating chat only on web
                   if (kIsWeb) {
                     return FloatingChat(
-                        navigatorKey: _rootNavigatorKey,
-                        child: wrapped
-                    );
+                        navigatorKey: rootNavigatorKey, child: wrapped);
                   }
                   return wrapped;
                 },
                 theme: ThemeData(
-                  scaffoldBackgroundColor: Colors.transparent,
-                  canvasColor: Colors.transparent,
-                  colorScheme: ColorScheme(
+                  useMaterial3: true,
+                  colorScheme: const ColorScheme(
                     brightness: Brightness.light,
-                    primary: const Color(0xFF0F4C81),
+                    primary: Color(0xFF0F4C81),
                     onPrimary: Colors.white,
-                    secondary: const Color(0xFF638CC7),
+                    secondary: Color(0xFF638CC7),
                     onSecondary: Colors.white,
-                    primaryContainer: const Color(0xFF638CC7),
-                    secondaryContainer: const Color(0xFF0F4C81),
+                    primaryContainer: Color(0xFF638CC7),
+                    secondaryContainer: Color(0xFF0F4C81),
                     surface: Colors.white,
                     onSurface: Colors.black,
-                    onSurfaceVariant: Colors.black87,
-                    error: Colors.red[400]!,
+                    onSurfaceVariant: Color(0xFF757575),
+                    error: Color(0xFFD32F2F),
                     onError: Colors.white,
+                    shadow: Color(0x1A000000),
                   ),
+                  scaffoldBackgroundColor: Colors.white,
+                  canvasColor: Colors.white,
                   pageTransitionsTheme: kIsWeb
                       ? const PageTransitionsTheme(
                           builders: {
@@ -208,10 +257,11 @@ class MyApp extends StatelessWidget {
                       ),
                     ),
                   ),
-                  appBarTheme: const AppBarTheme(
+                  appBarTheme: AppBarTheme(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
                     elevation: 0,
+                    surfaceTintColor: Colors.transparent,
                   ),
                   textTheme: const TextTheme(
                     bodyLarge: TextStyle(color: Colors.black),
@@ -221,10 +271,9 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 darkTheme: ThemeData(
+                  useMaterial3: true,
                   colorScheme: const ColorScheme(
                     brightness: Brightness.dark,
-                    // primary: Color(0xFF638CC7),
-                    // onPrimary: Colors.black,
                     primary: Color(0xFF0F4C81),
                     onPrimary: Colors.white,
                     secondary: Color(0xFF638CC7),
@@ -233,10 +282,13 @@ class MyApp extends StatelessWidget {
                     secondaryContainer: Color(0xFF638CC7),
                     surface: Color(0xFF121212),
                     onSurface: Colors.white,
-                    onSurfaceVariant: Colors.white70,
-                    error: Colors.red,
+                    onSurfaceVariant: Color(0xFFE0E0E0),
+                    error: Color(0xFFEF5350),
                     onError: Colors.white,
+                    shadow: Color(0x33000000),
                   ),
+                  scaffoldBackgroundColor: const Color(0xFF121212),
+                  canvasColor: const Color(0xFF121212),
                   pageTransitionsTheme: kIsWeb
                       ? const PageTransitionsTheme(
                           builders: {
@@ -259,15 +311,16 @@ class MyApp extends StatelessWidget {
                       ),
                     ),
                   ),
-                  scaffoldBackgroundColor: Color(0xFF121212),
                   appBarTheme: const AppBarTheme(
                     backgroundColor: Color(0xFF121212),
                     foregroundColor: Colors.white,
                     elevation: 0,
+                    surfaceTintColor: Colors.transparent,
                   ),
                   navigationBarTheme: NavigationBarThemeData(
                     backgroundColor: const Color(0xFF0F4C81),
-                    indicatorColor: const Color(0xFF638CC7).withOpacity(0.3),
+                    indicatorColor:
+                        const Color(0xFF638CC7).withValues(alpha: 0.3),
                     labelTextStyle: WidgetStateProperty.all(
                       const TextStyle(color: Colors.white, fontSize: 12),
                     ),
@@ -281,6 +334,7 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 routes: {
+                  '/': (context) => const AuthWrapper(),
                   '/home': (context) => const MainScreen(),
                   '/sign-in': (context) => SignInScreen.newInstance(),
                   '/sign-up': (context) => SignUpScreen.newInstance(),
@@ -293,17 +347,52 @@ class MyApp extends StatelessWidget {
                   '/user': (context) => UserScreen.newInstance(),
                   '/user-settings': (context) => UserScreen.newInstance(),
                   '/vouchers': (context) => VoucherScreen.newInstance(),
+                  '/builder': (context) => PCBuilderScreen.newInstance(),
+                  // Note: /checkout-success is handled in onGenerateRoute to support query parameters
                 },
                 onGenerateRoute: (settings) {
-                  // Clean the route name to remove any hash fragments
                   String cleanRouteName = settings.name ?? '';
-                  if (cleanRouteName.contains('#')) {
-                    cleanRouteName = cleanRouteName.split('#')[0];
+
+                  // Handle Firebase Auth handler path - this is needed for redirect flow
+                  if (kIsWeb && cleanRouteName.contains('__/auth/handler')) {
+                    // Let AuthWrapper handle the redirect result
+                    return MaterialPageRoute(
+                      builder: (context) => const AuthWrapper(),
+                      settings: settings,
+                    );
+                  }
+
+                  // On web, if framework tries to build '/', prefer current hash route
+                  if (kIsWeb &&
+                      (cleanRouteName.isEmpty || cleanRouteName == '/')) {
+                    final hashPath = getHashPath();
+                    if (hashPath.isNotEmpty && hashPath.startsWith('/')) {
+                      cleanRouteName = hashPath;
+                    }
+                  }
+
+                  // Extract base route name (remove query parameters for route matching)
+                  // Query parameters may be in the route name or in the hash fragment
+                  String baseRouteName = cleanRouteName;
+                  if (baseRouteName.contains('?')) {
+                    baseRouteName = baseRouteName.split('?').first;
+                  }
+                  if (baseRouteName == '/products') {
+                    return PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          ProductScreen.newInstance(),
+                      settings: RouteSettings(name: cleanRouteName),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 150),
+                    );
                   }
 
                   // User sub routes for web navigation
-                  if (cleanRouteName == '/user/personal-information' ||
-                      cleanRouteName == '/user/addresses') {
+                  if (baseRouteName == '/user/personal-information' ||
+                      baseRouteName == '/user/addresses') {
                     return PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           UserScreen.newInstance(),
@@ -316,25 +405,109 @@ class MyApp extends StatelessWidget {
                     );
                   }
 
-                  if (cleanRouteName == '/orders' ||
-                      cleanRouteName.startsWith('/orders?')) {
-                    // Parse query parameters to determine initial tab
-                    final uri = Uri.parse(cleanRouteName);
-                    final tabParam = uri.queryParameters['tab'];
+                  // Handle checkout route
+                  if (baseRouteName == '/checkout') {
+                    // New checkout flow - invoice created locally
+                    if (kIsWeb) {
+                      return PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            CheckoutScreenWebView.newInstance(
+                          cartItems: [], // Will be initialized from cart
+                        ),
+                        settings: RouteSettings(name: cleanRouteName),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                              opacity: animation, child: child);
+                        },
+                        transitionDuration: const Duration(milliseconds: 300),
+                      );
+                    } else {
+                      return PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            CheckoutScreen.newInstance(
+                          cartItems: [], // Will be initialized from cart
+                        ),
+                        settings: RouteSettings(name: cleanRouteName),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                              opacity: animation, child: child);
+                        },
+                        transitionDuration: const Duration(milliseconds: 300),
+                      );
+                    }
+                  }
+
+                  // Handle checkout route with sales invoice ID (legacy)
+                  // Format: /checkout/{sales_invoice_id}
+                  if (baseRouteName.startsWith('/checkout/')) {
+                    final parts = baseRouteName.split('/');
+                    if (parts.length >= 3) {
+                      final salesInvoiceID = parts[2];
+                      if (kIsWeb) {
+                        return PageRouteBuilder(
+                          pageBuilder: (context, animation,
+                                  secondaryAnimation) =>
+                              CheckoutScreenWebView.newInstanceFromInvoiceId(
+                            salesInvoiceID: salesInvoiceID,
+                          ),
+                          settings: RouteSettings(name: cleanRouteName),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                                opacity: animation, child: child);
+                          },
+                          transitionDuration: const Duration(milliseconds: 300),
+                        );
+                      } else {
+                        return PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  CheckoutScreen.newInstanceFromInvoiceId(
+                            salesInvoiceID: salesInvoiceID,
+                          ),
+                          settings: RouteSettings(name: cleanRouteName),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                                opacity: animation, child: child);
+                          },
+                          transitionDuration: const Duration(milliseconds: 300),
+                        );
+                      }
+                    }
+                  }
+
+                  // Handle checkout success route (Stripe Checkout redirect)
+                  // This route may include query parameters like ?session_id=...
+                  if (baseRouteName == '/checkout-success') {
+                    return PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const CheckoutSuccessWebView(),
+                      settings: RouteSettings(name: cleanRouteName),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 300),
+                    );
+                  }
+
+                  // Handle order routes with hash-based navigation
+                  if (baseRouteName == '/orders' ||
+                      baseRouteName.startsWith('/orders/')) {
                     OrderOption initialTab = OrderOption.toShip;
 
-                    switch (tabParam) {
-                      case 'to-ship':
-                        initialTab = OrderOption.toShip;
-                        break;
-                      case 'to-receive':
-                        initialTab = OrderOption.toReceive;
-                        break;
-                      case 'completed':
-                        initialTab = OrderOption.completed;
-                        break;
-                      default:
-                        initialTab = OrderOption.toShip;
+                    // Parse hash-based URL path to determine initial tab
+                    if (baseRouteName.endsWith('/to-ship')) {
+                      initialTab = OrderOption.toShip;
+                    } else if (baseRouteName.endsWith('/to-receive')) {
+                      initialTab = OrderOption.toReceive;
+                    } else if (baseRouteName.endsWith('/completed')) {
+                      initialTab = OrderOption.completed;
+                    } else if (baseRouteName == '/orders') {
+                      initialTab = OrderOption.toShip; // Default
                     }
 
                     return PageRouteBuilder(
@@ -348,9 +521,48 @@ class MyApp extends StatelessWidget {
                       transitionDuration: const Duration(milliseconds: 300),
                     );
                   }
+
+                  // Handle product category routes
+                  if (baseRouteName.startsWith('/products/')) {
+                    // The ProductScreenWebView will parse the category from initState
+                    return PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          ProductScreen.newInstance(),
+                      settings: RouteSettings(name: cleanRouteName),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 150),
+                    );
+                  }
+
+                  if (baseRouteName.startsWith('/builder/')) {
+                    final uri = Uri.parse(cleanRouteName);
+                    final segments = uri.pathSegments;
+                    final sessionId = segments.length > 1 ? segments[1] : null;
+                    final tabParam = uri.queryParameters['tab'];
+                    final parsedTab = int.tryParse(tabParam ?? '') ?? 1;
+                    final normalizedTab =
+                        parsedTab < 1 ? 1 : (parsedTab > 5 ? 5 : parsedTab);
+                    final tabIndex = normalizedTab - 1;
+                    return PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          PCBuilderScreen.newInstance(
+                        sessionId: sessionId,
+                        initialTabIndex: tabIndex,
+                      ),
+                      settings: RouteSettings(name: cleanRouteName),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 150),
+                    );
+                  }
                   return null;
                 },
-                home: const AuthWrapper(),
+                // Let the browser URL (hash) decide the initial route
               ),
             ),
           );
@@ -374,25 +586,149 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   void initState() {
     super.initState();
-    _initializeWebGuest();
+
+    _initializeWeb();
   }
 
-  Future<void> _initializeWebGuest() async {
+  Future<void> _initializeWeb() async {
     if (kIsWeb) {
       try {
-        // For web, only create a guest user if nobody is currently logged in
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser == null) {
-          await _webGuestService.createOrGetGuestUser();
+        // Check for redirect result from Google sign-in
+        // This handles the redirect flow when user returns from Google authentication
+        // getRedirectResult() must be called before any other Firebase Auth operations
+        // and it can only be called once per redirect
+
+        // First check if there's already an authenticated user (might be set by redirect)
+        // Check if we're on the Firebase Auth handler path or have auth-related query params
+        final isAuthHandler = Uri.base.path.contains('__/auth/handler');
+        final hasAuthParams = Uri.base.query.contains('apiKey') ||
+            Uri.base.query.contains('mode') ||
+            Uri.base.query.contains('code') ||
+            Uri.base.query.contains('state');
+
+        // Also check hash for auth params (Firebase might put them in hash)
+        final hashHasAuthParams = Uri.base.fragment.contains('apiKey') ||
+            Uri.base.fragment.contains('mode') ||
+            Uri.base.fragment.contains('code') ||
+            Uri.base.fragment.contains('state');
+
+        if (isAuthHandler || hasAuthParams || hashHasAuthParams) {
+          print(
+              'Detected Firebase Auth handler path or auth params - processing redirect...');
+          print(
+              'isAuthHandler: $isAuthHandler, hasAuthParams: $hasAuthParams, hashHasAuthParams: $hashHasAuthParams');
+        }
+
+        // Call getRedirectResult() - this must be called before any other auth operations
+        // and it processes the redirect URL parameters automatically
+        final redirectResult = await FirebaseAuth.instance.getRedirectResult();
+        print('getRedirectResult() completed');
+
+        print(
+            'Redirect result - user: ${redirectResult.user != null ? redirectResult.user!.uid : "null"}, '
+            'credential: ${redirectResult.credential != null}, '
+            'additionalUserInfo: ${redirectResult.additionalUserInfo}');
+
+        // Wait a moment for Firebase to process the redirect result
+        // Sometimes Firebase needs a moment to set the user after redirect
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Check currentUser again after getRedirectResult and delay
+        final afterRedirectUser = FirebaseAuth.instance.currentUser;
+        print(
+            'CurrentUser after getRedirectResult (after delay): ${afterRedirectUser != null ? afterRedirectUser.uid : "null"}');
+
+        // Check for errors in the redirect result
+        if (redirectResult.user == null && redirectResult.credential == null) {
+          // Check if there's an error in the URL that might indicate why redirect failed
+          final currentUrl = Uri.base.toString();
+          final hash = Uri.base.fragment;
+          // Check if there are any error parameters in the URL
+          if (currentUrl.contains('error=') || hash.contains('error=')) {}
+        }
+
+        // Use the user from redirectResult if available, otherwise check currentUser
+        // Firebase sometimes sets currentUser directly even if redirectResult.user is null
+        User? authenticatedUser = redirectResult.user ?? afterRedirectUser;
+
+        if (authenticatedUser != null) {
+          // User successfully signed in via redirect
+          print('Google sign-in redirect successful: ${authenticatedUser.uid}');
+          print('User email: ${authenticatedUser.email}');
+          print('User display name: ${authenticatedUser.displayName}');
+
+          // Clear guest data after successful authentication
+          await _webGuestService.clearGuestUser();
+
+          // Setup user data in Firestore (similar to popup flow)
+          await _setupUserDataFromRedirect(authenticatedUser);
         } else {
-          if (kDebugMode) {
+          // Check if there was an error in the redirect
+          if (redirectResult.credential != null) {
+            print('Redirect completed with credential but no user');
+          }
+
+          // Listen to authStateChanges for a short time to catch async auth state changes
+          // This is important because Firebase might set the user asynchronously after redirect
+          print('Waiting for authStateChanges to detect user...');
+          bool userDetected = false;
+          final subscription =
+              FirebaseAuth.instance.authStateChanges().listen((User? user) {
+            if (user != null && !userDetected) {
+              userDetected = true;
+              print('User detected via authStateChanges: ${user.uid}');
+              // Handle user setup asynchronously
+              _webGuestService.clearGuestUser().then((_) {
+                _setupUserDataFromRedirect(user);
+              });
+            }
+          });
+
+          // Wait up to 3 seconds for auth state to change
+          await Future.delayed(const Duration(milliseconds: 3000));
+          await subscription.cancel();
+
+          final finalUserCheck = FirebaseAuth.instance.currentUser;
+          print(
+              'Final currentUser check: ${finalUserCheck != null ? finalUserCheck.uid : "null"}');
+
+          if (finalUserCheck != null && !userDetected) {
+            print('User authenticated after waiting: ${finalUserCheck.uid}');
+            // User is authenticated, clear guest data and setup user data
+            await _webGuestService.clearGuestUser();
+            await _setupUserDataFromRedirect(finalUserCheck);
+          } else if (finalUserCheck == null && !userDetected) {
+            // No redirect result and no current user - check if we need to create a guest user
             print(
-                'Skipping guest creation: user already logged in (${currentUser.uid})');
+                'No redirect result and no authenticated user - creating guest user');
+            // For web, only create a guest user in local storage if nobody is currently logged in
+            // Note: Guest users are NOT created in Firebase Auth, only stored locally
+            await _webGuestService.createOrGetGuestUser();
           }
         }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error initializing web guest: $e');
+      } catch (e, stackTrace) {
+        print('Error initializing web: $e'); // Always print
+        print('Stack trace: $stackTrace'); // Always print
+        // Even if redirect check fails, try to create guest if no user exists
+        try {
+          final currentUser = FirebaseAuth.instance.currentUser;
+          if (currentUser != null) {
+            if (kDebugMode) {
+              print('Found authenticated user after error: ${currentUser.uid}');
+            }
+            // User is authenticated, clear guest data and setup user data
+            await _webGuestService.clearGuestUser();
+            await _setupUserDataFromRedirect(currentUser);
+          } else if (currentUser == null) {
+            if (kDebugMode) {
+              print('No authenticated user after error - creating guest user');
+            }
+            await _webGuestService.createOrGetGuestUser();
+          }
+        } catch (guestError) {
+          if (kDebugMode) {
+            print('Error creating guest user: $guestError');
+          }
         }
       }
     }
@@ -401,6 +737,59 @@ class _AuthWrapperState extends State<AuthWrapper> {
       setState(() {
         _isInitializing = false;
       });
+    }
+  }
+
+  Future<void> _setupUserDataFromRedirect(User user) async {
+    try {
+      // Import Firestore here to avoid circular dependencies
+      final firestore = FirebaseFirestore.instance;
+
+      // Check if user document already exists
+      final userDocRef = firestore.collection('users').doc(user.uid);
+      final customerDocRef = firestore.collection('customers').doc(user.uid);
+
+      final userDoc = await userDocRef.get();
+      final userExists = userDoc.exists;
+
+      // Prepare user data
+      final Map<String, dynamic> userData = {
+        'username': user.displayName ?? '',
+        'email': user.email ?? '',
+        'userid': user.uid,
+        'role': 'customer',
+        'isGuest': false,
+      };
+
+      // Prepare customer data
+      final Map<String, dynamic> customerData = {
+        'customerID': user.uid,
+        'customerName': user.displayName ?? '',
+        'email': user.email ?? '',
+        'phoneNumber': user.phoneNumber ?? '',
+        'isGuest': false,
+      };
+
+      // Only set createdAt for new users
+      if (!userExists) {
+        userData['createdAt'] = FieldValue.serverTimestamp();
+        customerData['createdAt'] = FieldValue.serverTimestamp();
+      }
+
+      // Use batch write to ensure both operations succeed or fail together
+      // Use merge to preserve existing data if user already exists
+      final batch = firestore.batch();
+      batch.set(userDocRef, userData, SetOptions(merge: true));
+      batch.set(customerDocRef, customerData, SetOptions(merge: true));
+      await batch.commit();
+
+      if (kDebugMode) {
+        print('User data setup completed for redirect sign-in');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error setting up user data from redirect: $e');
+      }
     }
   }
 
@@ -429,12 +818,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
           return SignUpScreen.newInstance();
         }
 
-        // For web, if user is authenticated (including guest), go to main screen
+        // For web, if user is authenticated via Firebase Auth, go to main screen
+        // Note: Guest users are stored locally, not in Firebase Auth
         if (kIsWeb && snapshot.hasData) {
           return const MainScreen();
         }
 
-        // For mobile or if user is authenticated, go to main screen
+        // For mobile or if user is authenticated via Firebase Auth, go to main screen
         if (snapshot.hasData) {
           return const MainScreen();
         }

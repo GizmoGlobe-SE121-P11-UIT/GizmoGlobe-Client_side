@@ -11,9 +11,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizmoglobe_client/services/platform_actions.dart'
     as platform_actions;
+import 'package:gizmoglobe_client/screens/user/survey_screen/survey_screen_webview.dart';
+import 'package:gizmoglobe_client/components/general/web_sidebar.dart';
 
 class WebHeader extends StatefulWidget {
-  const WebHeader({Key? key}) : super(key: key);
+  const WebHeader({super.key});
 
   @override
   State<WebHeader> createState() => _WebHeaderState();
@@ -23,6 +25,7 @@ class _WebHeaderState extends State<WebHeader> {
   final WebGuestService _webGuestService = WebGuestService();
   bool _isUserMenuOpen = false;
   OverlayEntry? _overlayEntry;
+  OverlayEntry? _sidebarOverlay;
   final GlobalKey _userIconKey = GlobalKey();
   final GlobalKey _headerKey = GlobalKey();
 
@@ -31,6 +34,88 @@ class _WebHeaderState extends State<WebHeader> {
       setState(() => _isUserMenuOpen = false);
       _removeOverlay();
     }
+  }
+
+  bool get _isSidebarOpen => _sidebarOverlay != null;
+
+  void _toggleSidebar() {
+    if (_isSidebarOpen) {
+      _hideSidebarOverlay();
+    } else {
+      _showSidebarOverlay();
+    }
+    setState(() {});
+  }
+
+  Widget _buildSidebarToggleButton(BuildContext context, bool isTablet) {
+    final size = isTablet ? 36.0 : 40.0;
+    final iconSize = isTablet ? 18.0 : 20.0;
+
+    return GestureDetector(
+      onTap: _toggleSidebar,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).dividerColor,
+          ),
+        ),
+        child: Icon(
+          _isSidebarOpen ? Icons.menu_open : Icons.menu,
+          color: _isSidebarOpen
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+          size: iconSize,
+        ),
+      ),
+    );
+  }
+
+  void _showSidebarOverlay() {
+    final overlayState = Overlay.of(context, rootOverlay: true);
+    if (_sidebarOverlay != null) return;
+
+    _sidebarOverlay = OverlayEntry(
+      builder: (context) {
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _toggleSidebar,
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.25),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SafeArea(
+                child: Material(
+                  color: Colors.transparent,
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height,
+                    child: WebSidebar(
+                      isOpen: true,
+                      onToggle: _toggleSidebar,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    overlayState.insert(_sidebarOverlay!);
+  }
+
+  void _hideSidebarOverlay() {
+    _sidebarOverlay?.remove();
+    _sidebarOverlay = null;
   }
 
   Future<void> _handleCartNavigation(BuildContext context) async {
@@ -55,33 +140,54 @@ class _WebHeaderState extends State<WebHeader> {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
-    try {
-      // Clear local guest data
-      await _webGuestService.clearGuestUser();
+    if (kIsWeb) {
+      try {
+        // Clear local guest data first (this clears favorites, cart, etc.)
+        await _webGuestService.clearGuestUser();
 
-      // Sign out from Firebase
-      await FirebaseAuth.instance.signOut();
+        // Sign out from Firebase
+        await FirebaseAuth.instance.signOut();
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error during logout cleanup: $e');
+        }
+        // Continue with reload even if cleanup fails
+      }
 
-      if (context.mounted) {
-        if (kIsWeb) {
-          // Refresh the page to create a new guest instance
-          platform_actions.reloadPage();
-        } else {
-          // For mobile, navigate to home
+      // Wait a brief moment to ensure signOut completes and localStorage is cleared
+      // Then reload immediately to prevent StreamBuilder from creating a guest user
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      if (kDebugMode) {
+        print('Logout: Reloading page to reset app state...');
+      }
+
+      // Force immediate page reload - this will stop all further execution
+      platform_actions.reloadPage();
+
+      // This should never be reached as reload navigates away
+      return;
+    } else {
+      // For mobile, clear data and navigate to home
+      try {
+        await _webGuestService.clearGuestUser();
+        await FirebaseAuth.instance.signOut();
+
+        if (context.mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/',
             (Route<dynamic> route) => false,
           );
         }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        SnackbarService.showError(
-          context,
-          title: S.of(context).error,
-          message: '${S.of(context).signOut}: $e',
-        );
+      } catch (e) {
+        if (context.mounted) {
+          SnackbarService.showError(
+            context,
+            title: S.of(context).error,
+            message: '${S.of(context).signOut}: $e',
+          );
+        }
       }
     }
   }
@@ -89,6 +195,7 @@ class _WebHeaderState extends State<WebHeader> {
   @override
   void dispose() {
     _removeOverlay();
+    _hideSidebarOverlay();
     super.dispose();
   }
 
@@ -138,33 +245,36 @@ class _WebHeaderState extends State<WebHeader> {
   Widget _buildMobileHeader(BuildContext context) {
     return Column(
       children: [
-        // Top row with logo and menu button
+        // Top row with sidebar toggle, logo and menu button
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Logo
-            GestureDetector(
-              onTap: () {
-                _closeUserMenuIfOpen();
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/home',
-                  (route) => false,
-                );
-              },
-              child: Image.asset(
-                'lib/GizmoGlobeLogo.png',
-                height: 32,
-                fit: BoxFit.contain,
-              ),
+            // Sidebar toggle and Logo
+            Row(
+              children: [
+                _buildSidebarToggleButton(context, false),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    _closeUserMenuIfOpen();
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/home',
+                      (route) => false,
+                    );
+                  },
+                  child: Image.asset(
+                    'lib/GizmoGlobeLogo.png',
+                    height: 32,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ],
             ),
             // Action buttons (chat icon removed)
             Row(
               children: [
-                _buildIconButton(context, Icons.shopping_cart_outlined,
-                    isMobile: true, onPressed: () {
-                  _handleCartNavigation(context);
-                }),
+                _buildCartIconButton(context, isMobile: true),
                 const SizedBox(width: 8),
                 _buildUserIconButton(context, isMobile: true),
               ],
@@ -178,6 +288,9 @@ class _WebHeaderState extends State<WebHeader> {
   Widget _buildDesktopHeader(bool isTablet, BuildContext context) {
     return Row(
       children: [
+        // Sidebar toggle button
+        _buildSidebarToggleButton(context, isTablet),
+        const SizedBox(width: 12),
         // Logo
         GestureDetector(
           onTap: () {
@@ -195,9 +308,7 @@ class _WebHeaderState extends State<WebHeader> {
         ),
         const Spacer(),
         // Action Buttons (chat icon removed)
-        _buildIconButton(context, Icons.shopping_cart_outlined, onPressed: () {
-          _handleCartNavigation(context);
-        }),
+        _buildCartIconButton(context),
         const SizedBox(width: 16),
         _buildUserIconButton(context),
       ],
@@ -213,14 +324,7 @@ class _WebHeaderState extends State<WebHeader> {
       children: [
         GestureDetector(
           onTap: () {
-            setState(() {
-              _isUserMenuOpen = !_isUserMenuOpen;
-            });
-            if (_isUserMenuOpen) {
-              _showOverlay(context, isMobile);
-            } else {
-              _removeOverlay();
-            }
+            _onUserIconTap(context, isMobile);
           },
           behavior: HitTestBehavior.opaque,
           child: Container(
@@ -237,12 +341,47 @@ class _WebHeaderState extends State<WebHeader> {
             child: Icon(Icons.person_outline,
                 color: _isUserMenuOpen
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
                 size: iconSize),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _onUserIconTap(BuildContext context, bool isMobile) async {
+    // If closing
+    if (_isUserMenuOpen) {
+      setState(() => _isUserMenuOpen = false);
+      _removeOverlay();
+      return;
+    }
+
+    // For web, ensure we have a guest user in local storage if no Firebase Auth user exists
+    // Note: Guest users are NOT created in Firebase Auth, only stored locally
+    if (kIsWeb) {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        final hasGuest = await _webGuestService.hasGuestUser();
+        if (!hasGuest) {
+          final guest = await _webGuestService.createOrGetGuestUser();
+          if (guest == null) {
+            // No guest available: show sign-in immediately
+            final cubit = SignInCubit();
+            await showSignInModalWithCubit(context, cubit);
+            return;
+          }
+          // Guest created in local storage, proceed to open menu (no reload needed)
+        }
+      }
+    }
+
+    // Open menu overlay
+    setState(() => _isUserMenuOpen = true);
+    _showOverlay(context, isMobile);
   }
 
   Widget _buildUserSubmenu(BuildContext context, bool isMobile) {
@@ -268,13 +407,22 @@ class _WebHeaderState extends State<WebHeader> {
           );
         }
 
-        return Container(
+        return SizedBox(
           width: 280,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: isGuest
-                ? _buildGuestMenuItems(context)
-                : _buildAuthenticatedMenuItems(context),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              // Keep in sync with overlay container maxHeight
+              maxHeight: 300,
+            ),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.zero,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: isGuest
+                    ? _buildGuestMenuItems(context)
+                    : _buildAuthenticatedMenuItems(context),
+              ),
+            ),
           ),
         );
       },
@@ -323,12 +471,35 @@ class _WebHeaderState extends State<WebHeader> {
       _buildUserInfoSection(context),
       _buildMenuItem(
         context,
-        icon: Icons.person,
-        title: S.of(context).accountInfo,
-        onTap: () {
+        icon: Icons.tune,
+        title: S.of(context).surveyJoin,
+        onTap: () async {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          Navigator.pushNamed(context, '/user');
+          if (kIsWeb) {
+            // Capture overlay before awaiting to avoid deactivated context
+            final OverlayState? rootOverlay =
+                Overlay.of(context, rootOverlay: true);
+            final result = await showSurveyModal(context);
+            if (result == 'survey_success') {
+              if (rootOverlay != null) {
+                SnackbarService.showSuccessAboveOverlay(
+                  rootOverlay,
+                  title: S.of(context).success,
+                  message: S.of(context).surveySubmitted,
+                );
+              } else {
+                // Fallback to ScaffoldMessenger
+                SnackbarService.showSuccess(
+                  context,
+                  title: S.of(context).success,
+                  message: S.of(context).surveySubmitted,
+                );
+              }
+            }
+          } else {
+            Navigator.pushNamed(context, '/user'); // fallback mobile route
+          }
         },
       ),
       _buildMenuItem(
@@ -338,7 +509,7 @@ class _WebHeaderState extends State<WebHeader> {
         onTap: () {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          Navigator.pushNamed(context, '/orders?tab=completed');
+          Navigator.pushNamed(context, '/orders/completed');
         },
       ),
       _buildMenuItem(
@@ -375,120 +546,128 @@ class _WebHeaderState extends State<WebHeader> {
   }
 
   Widget _buildUserInfoSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
-      ),
-      child: Row(
-        children: [
-          FutureBuilder<Map<String, dynamic>?>(
-            future: _getCurrentUserInfo(),
-            builder: (context, snapshot) {
-              final avatarUrl = snapshot.data?['avatarUrl'] as String?;
-              return Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.1),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: (avatarUrl != null && avatarUrl.isNotEmpty)
-                    ? Image.network(avatarUrl, fit: BoxFit.cover)
-                    : Icon(
-                        Icons.person,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 22,
-                      ),
-              );
-            },
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FutureBuilder<Map<String, dynamic>?>(
-                  future: _getCurrentUserInfo(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+    return InkWell(
+      onTap: () {
+        setState(() => _isUserMenuOpen = false);
+        _removeOverlay();
+        Navigator.pushNamed(context, '/user');
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+        ),
+        child: Row(
+          children: [
+            FutureBuilder<Map<String, dynamic>?>(
+              future: _getCurrentUserInfo(),
+              builder: (context, snapshot) {
+                final avatarUrl = snapshot.data?['avatarUrl'] as String?;
+                return Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: (avatarUrl != null && avatarUrl.isNotEmpty)
+                      ? Image.network(avatarUrl, fit: BoxFit.cover)
+                      : Icon(
+                          Icons.person,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 22,
+                        ),
+                );
+              },
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FutureBuilder<Map<String, dynamic>?>(
+                    future: _getCurrentUserInfo(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 16,
+                              width: 120,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              height: 12,
+                              width: 180,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      final userInfo = snapshot.data;
+                      final displayName = userInfo?['displayName'] ??
+                          userInfo?['username'] ??
+                          userInfo?['email']?.split('@')[0] ??
+                          'User';
+                      final email = userInfo?['email'] ?? '';
+
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            height: 16,
-                            width: 120,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            height: 12,
-                            width: 180,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-
-                    final userInfo = snapshot.data;
-                    final displayName = userInfo?['displayName'] ??
-                        userInfo?['username'] ??
-                        userInfo?['email']?.split('@')[0] ??
-                        'User';
-                    final email = userInfo?['email'] ?? '';
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayName,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (email.isNotEmpty) ...[
-                          const SizedBox(height: 2),
                           Text(
-                            email,
+                            displayName,
                             style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          if (email.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              email,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ],
-                      ],
-                    );
-                  },
-                ),
-              ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -558,7 +737,10 @@ class _WebHeaderState extends State<WebHeader> {
             Icon(
               icon,
               size: 20,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
             ),
             const SizedBox(width: 12),
             Text(
@@ -575,28 +757,152 @@ class _WebHeaderState extends State<WebHeader> {
     );
   }
 
-  Widget _buildIconButton(BuildContext context, IconData icon,
-      {bool isMobile = false, VoidCallback? onPressed}) {
+  Widget _buildCartIconButton(BuildContext context, {bool isMobile = false}) {
     final size = isMobile ? 32.0 : 40.0;
     final iconSize = isMobile ? 16.0 : 20.0;
 
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Theme.of(context).dividerColor,
+    final cartStream = _getCartStream();
+
+    if (cartStream != null) {
+      // Authenticated user - use stream for real-time updates
+      return StreamBuilder<QuerySnapshot>(
+        stream: cartStream,
+        builder: (context, snapshot) {
+          int cartCount = 0;
+
+          if (snapshot.hasData && snapshot.data != null) {
+            // Calculate total quantity of items in cart
+            for (var doc in snapshot.data!.docs) {
+              final data = doc.data() as Map<String, dynamic>;
+              cartCount += (data['quantity'] as num?)?.toInt() ?? 0;
+            }
+          }
+
+          return _buildCartIconWithBadge(
+            context,
+            cartCount: cartCount,
+            size: size,
+            iconSize: iconSize,
+          );
+        },
+      );
+    } else {
+      // Guest user - use FutureBuilder to get initial count
+      return FutureBuilder<int>(
+        future: _getGuestCartCount(),
+        builder: (context, snapshot) {
+          final cartCount = snapshot.data ?? 0;
+          return _buildCartIconWithBadge(
+            context,
+            cartCount: cartCount,
+            size: size,
+            iconSize: iconSize,
+          );
+        },
+      );
+    }
+  }
+
+  Widget _buildCartIconWithBadge(
+    BuildContext context, {
+    required int cartCount,
+    required double size,
+    required double iconSize,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GestureDetector(
+          onTap: () {
+            _handleCartNavigation(context);
+          },
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).dividerColor,
+              ),
+            ),
+            child: Icon(Icons.shopping_cart_outlined,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7),
+                size: iconSize),
           ),
         ),
-        child: Icon(icon,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-            size: iconSize),
-      ),
+        if (cartCount > 0)
+          Positioned(
+            right: -4,
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Center(
+                child: Text(
+                  cartCount > 99 ? '99+' : '$cartCount',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onError,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
+  }
+
+  Stream<QuerySnapshot>? _getCartStream() {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        // Return stream for authenticated users
+        return FirebaseFirestore.instance
+            .collection('customers')
+            .doc(currentUser.uid)
+            .collection('carts')
+            .snapshots();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting cart stream: $e');
+      }
+    }
+    // Return null stream for guests or errors
+    return null;
+  }
+
+  Future<int> _getGuestCartCount() async {
+    try {
+      final isGuest = await _webGuestService.isCurrentUserGuest();
+      if (isGuest) {
+        final cartItems = await _webGuestService.getGuestCart();
+        // Calculate total quantity
+        int totalCount = 0;
+        for (var item in cartItems) {
+          totalCount += (item['quantity'] as num?)?.toInt() ?? 0;
+        }
+        return totalCount;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting guest cart count: $e');
+      }
+    }
+    return 0;
   }
 
   void _showOverlay(BuildContext context, bool isMobile) {

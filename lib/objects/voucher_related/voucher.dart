@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../enums/voucher_related/voucher_status.dart';
 
@@ -60,12 +61,18 @@ abstract class Voucher {
 
   String? getDescription(BuildContext context) {
     final locale = Localizations.localeOf(context);
-    print('Current locale: ${locale.languageCode}');
+    if (kDebugMode) {
+      print('Current locale: ${locale.languageCode}');
+    }
     if (locale.languageCode == 'vi') {
-      print('Returning Vietnamese description: $viDescription');
+      if (kDebugMode) {
+        print('Returning Vietnamese description: $viDescription');
+      }
       return viDescription;
     } else {
-      print('Returning English description: $enDescription');
+      if (kDebugMode) {
+        print('Returning English description: $enDescription');
+      }
       return enDescription;
     }
   }

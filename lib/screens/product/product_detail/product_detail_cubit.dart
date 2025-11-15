@@ -74,9 +74,11 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
           'Socket': mainboard.socket.toString(),
           'Form Factor': mainboard.formFactor.toString(),
           'RAM Spec': mainboard.ramSpec.toString(),
-          'Storage:' : mainboard.storageSlot.toString(),
-          'PCIe Slots:': mainboard.pcieSlots.map((slot) => slot.toString()).join('\n'),
-          'I/O Ports:': mainboard.ioPorts.map((port) => port.toString()).join('\n'),
+          'Storage:': mainboard.storageSlot.toString(),
+          'PCIe Slots:':
+              mainboard.pcieSlots.map((slot) => slot.toString()).join('\n'),
+          'I/O Ports:':
+              mainboard.ioPorts.map((port) => port.toString()).join('\n'),
         });
         break;
 
@@ -99,7 +101,8 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
           'Wattage': '${psu.maxWattage} W',
           'Efficiency Rating': psu.efficiency.toString(),
           'Modularity': psu.modularity.toString(),
-          'Connectors': psu.connectors.map((type) => type.toString()).join('\n'),
+          'Connectors':
+              psu.connectors.map((type) => type.toString()).join('\n'),
         });
         break;
 
@@ -135,7 +138,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
         }
         emit(state.copyWith(
           processState: ProcessState.failure,
-          message: 'User not logged in.',
+          message: 'CART_LOGIN_REQUIRED',
         ));
         return;
       }
@@ -143,12 +146,11 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       await _firebase.addToCart(user.uid, productID, quantity);
       emit(state.copyWith(
         processState: ProcessState.success,
-        message: 'Added ${state.product.productName} to cart',
+        message: 'CART_ADDED',
       ));
     } catch (e) {
       emit(state.copyWith(
-          processState: ProcessState.failure,
-          message: 'Failed to add to cart: $e'));
+          processState: ProcessState.failure, message: 'CART_ERROR'));
     }
   }
 

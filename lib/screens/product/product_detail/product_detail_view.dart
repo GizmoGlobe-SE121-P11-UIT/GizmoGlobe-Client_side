@@ -5,22 +5,16 @@ import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 
+import '../../../components/general/snackbar_service.dart';
 import '../../../components/general/web_product_card.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../functions/helper.dart';
 import '../../../generated/l10n.dart';
-import '../../../objects/product_related/cpu_related/cpu.dart';
-import '../../../objects/product_related/drive_related/drive.dart';
-import '../../../objects/product_related/gpu_related/gpu.dart';
-import '../../../objects/product_related/mainboard_related/mainboard.dart';
 import '../../../objects/product_related/product.dart';
-import '../../../objects/product_related/psu_related/psu.dart';
-import '../../../objects/product_related/ram_related/ram.dart';
 import '../../../services/recommendation_service.dart';
 import '../../../widgets/dialog/information_dialog.dart';
-import '../../../widgets/general/field_with_icon.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
 import '../../../widgets/product/product_card.dart';
 import '../../cart/cart_screen/cart_screen_cubit.dart';
@@ -49,35 +43,58 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return BlocConsumer<ProductDetailCubit, ProductDetailState>(
       listener: (context, state) {
         if (state.processState == ProcessState.success) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => InformationDialog(
-              title: S.of(context).orderPlaced,
-              content: state.message,
-              dialogName: DialogName.success,
-              buttonText: S.of(context).ok,
-              onPressed: () {
-                Navigator.pop(context);
-                cubit.setIdleState();
-              },
-            ),
-          );
+          // Check if it's a cart addition success
+          if (state.message == 'CART_ADDED') {
+            SnackbarService.showCartSuccess(
+              context,
+              widget.product.productName,
+            );
+            cubit.setIdleState();
+          } else {
+            // Other success cases (like order placed) show dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => InformationDialog(
+                title: S.of(context).orderPlaced,
+                content: state.message,
+                dialogName: DialogName.success,
+                buttonText: S.of(context).ok,
+                onPressed: () {
+                  Navigator.pop(context);
+                  cubit.setIdleState();
+                },
+              ),
+            );
+          }
         } else if (state.processState == ProcessState.failure) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => InformationDialog(
-              title: S.of(context).error,
-              content: state.message,
-              dialogName: DialogName.failure,
-              buttonText: S.of(context).ok,
-              onPressed: () {
-                Navigator.pop(context);
-                cubit.setIdleState();
-              },
-            ),
-          );
+          // Handle cart-related failures with localized messages
+          if (state.message == 'CART_ERROR') {
+            SnackbarService.showCartError(context);
+            cubit.setIdleState();
+          } else if (state.message == 'CART_LOGIN_REQUIRED') {
+            SnackbarService.showGuestRestriction(
+              context,
+              actionType: 'cart',
+            );
+            cubit.setIdleState();
+          } else {
+            // Other failure cases show dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => InformationDialog(
+                title: S.of(context).error,
+                content: state.message,
+                dialogName: DialogName.failure,
+                buttonText: S.of(context).ok,
+                onPressed: () {
+                  Navigator.pop(context);
+                  cubit.setIdleState();
+                },
+              ),
+            );
+          }
         }
       },
       builder: (context, state) {
@@ -124,7 +141,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
-                            color: Colors.red,
+                            color: Theme.of(context).colorScheme.error,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           constraints: const BoxConstraints(
@@ -164,40 +181,47 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Container(
-                                  height: 250,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Theme.of(context)
-                                            .colorScheme
-                                            .surface
-                                            .withValues(alpha: 0.1)
-                                        : Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(12),
-                                    image: state.product.imageUrl != null
-                                        ? DecorationImage(
-                                      image: NetworkImage(
-                                          state.product.imageUrl!),
-                                      fit: BoxFit.contain,
-                                    )
-                                        : null,
-                                  ),
-                                  child: state.product.imageUrl == null ?
-                                    Center(
-                                      child: Icon(
-                                        _getCategoryIcon(),
-                                        size: 100,
-                                        color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                            ? Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withValues(alpha: 0.7)
-                                            : Colors.grey[600],
-                                          ),
-                                    ) : null
-                                ),
+                                    height: 250,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .surface
+                                              .withValues(alpha: 0.1)
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(12),
+                                      image: state.product.imageUrl != null &&
+                                              state.product.imageUrl!.isNotEmpty
+                                          ? DecorationImage(
+                                              image: NetworkImage(
+                                                  state.product.imageUrl!),
+                                              fit: BoxFit.contain,
+                                            )
+                                          : null,
+                                    ),
+                                    child: state.product.imageUrl == null ||
+                                            state.product.imageUrl!.isEmpty
+                                        ? Center(
+                                            child: Icon(
+                                              _getCategoryIcon(),
+                                              size: 100,
+                                              color: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.dark
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .primary
+                                                      .withValues(alpha: 0.7)
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                            ),
+                                          )
+                                        : null),
                               ),
                               Positioned(
                                 right: 24,
@@ -219,7 +243,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                         ? Icons.favorite
                                         : Icons.favorite_border,
                                     color: state.isFavorite
-                                        ? Colors.red[400]
+                                        ? Theme.of(context).colorScheme.error
                                         : Theme.of(context)
                                             .colorScheme
                                             .onSurfaceVariant,
@@ -253,14 +277,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       Row(
                                         children: [
                                           Text(
-                                            Helper.toCurrencyFormat(widget.product.price),
+                                            Helper.toCurrencyFormat(
+                                                widget.product.price),
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .titleMedium
                                                 ?.copyWith(
                                                   decoration: TextDecoration
                                                       .lineThrough,
-                                                  color: Colors.grey[500],
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                           ),
@@ -269,7 +296,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: Colors.red[700],
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .error,
                                               borderRadius:
                                                   BorderRadius.circular(4),
                                             ),
@@ -279,7 +308,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                   .textTheme
                                                   .labelSmall
                                                   ?.copyWith(
-                                                    color: Colors.white,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onError,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                             ),
@@ -289,7 +320,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       const SizedBox(height: 4),
                                     ],
                                     Text(
-                                      Helper.toCurrencyFormat(widget.product.discountedPrice),
+                                      Helper.toCurrencyFormat(
+                                          widget.product.discountedPrice),
                                       style: Theme.of(context)
                                           .textTheme
                                           .headlineMedium
@@ -303,7 +335,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                ..._buildProductSpecificDetails(context, state.product, state.technicalSpecs),
+                                ..._buildProductSpecificDetails(context,
+                                    state.product, state.technicalSpecs),
                                 const SizedBox(height: 24),
 
                                 // if (widget.product.getDescription(context) != null) ...[
@@ -312,7 +345,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 //       widget.product.getDescription(context)!),
                                 // ],
 
-                                _buildRecommendationsSection(context, state.product),
+                                _buildRecommendationsSection(
+                                    context, state.product),
                               ],
                             ),
                           ),
@@ -326,7 +360,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       color: Theme.of(context).colorScheme.surface,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .shadow
+                              .withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, -4),
                         ),
@@ -414,7 +451,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      Helper.toCurrencyFormat(widget.product.price * state.quantity),
+                                      Helper.toCurrencyFormat(
+                                          widget.product.price *
+                                              state.quantity),
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
@@ -431,7 +470,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      (Helper.toCurrencyFormat(widget.product.discountedPrice * state.quantity)),
+                                      (Helper.toCurrencyFormat(
+                                          widget.product.discountedPrice *
+                                              state.quantity)),
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
@@ -462,15 +503,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   Theme.of(context).colorScheme.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.onPrimary,
                               elevation: 2,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
-                              'Add to Cart', // 'Thêm vào giỏ'
+                            child: Text(
+                              S.of(context).addToCart,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -514,7 +556,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       BuildContext context, Product product, Map<String, String> specs) {
     return specs.entries
         .map((entry) => _buildSpecificationRow(
-        _getLocalizedSpecKey(context, entry.key), entry.value))
+            _getLocalizedSpecKey(context, entry.key), entry.value))
         .toList();
   }
 
@@ -548,7 +590,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         // return S.of(context).psuEfficiency;
         return "PSU Efficiency";
       case 'psu modular':
-        // return S.of(context).psuModular;
+      // return S.of(context).psuModular;
 
       case 'gpu series':
         // return S.of(context).gpuSeries;
@@ -583,7 +625,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: Text(
               label,
               style: TextStyle(
-                color: Colors.grey[400],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 14,
               ),
             ),
@@ -620,7 +662,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildRecommendationsSection(BuildContext context, Product currentProduct) {
+  Widget _buildRecommendationsSection(
+      BuildContext context, Product currentProduct) {
     final recs = RecommendationService()
         .getCompatibleForProduct(currentProduct)
         .where((p) => p.productID != currentProduct.productID)
@@ -636,10 +679,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Text(
             'Good with this product',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              fontSize: 18,
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
+                  fontSize: 18,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 8),
           LayoutBuilder(builder: (context, constraints) {
@@ -648,7 +691,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             const double itemHeight = 260.0;
 
             final totalSpacing = spacing * (crossAxisCount - 1);
-            final itemWidth = (constraints.maxWidth - totalSpacing) / crossAxisCount;
+            final itemWidth =
+                (constraints.maxWidth - totalSpacing) / crossAxisCount;
             final childAspectRatio = itemWidth / itemHeight;
 
             return GridView.builder(
@@ -668,13 +712,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   onTap: () async {
                     await Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (ctx) => ProductDetailScreen.newInstance(product),
+                        builder: (ctx) =>
+                            ProductDetailScreen.newInstance(product),
                       ),
                     );
                   },
-                  child: !kIsWeb ?
-                  ProductCard(product: product) :
-                  WebProductCard(product: product),
+                  child: !kIsWeb
+                      ? ProductCard(product: product)
+                      : WebProductCard(product: product),
                 );
               },
             );
@@ -685,4 +730,3 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 }
-

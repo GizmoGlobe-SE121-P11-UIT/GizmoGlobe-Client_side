@@ -48,10 +48,27 @@ class SalesInvoiceDetail {
   }
 
   static SalesInvoiceDetail fromMap(String id, Map<String, dynamic> map) {
+    final productID = map['productID'] as String?;
+    if (productID == null || productID.isEmpty) {
+      throw Exception('Product ID is missing in sales invoice detail');
+    }
+
+    // Try to find product in fullProductList first, then productList
+    final product = Database().fullProductList.firstWhere(
+      (product) => product.productID == productID,
+      orElse: () {
+        // Fallback to productList if not found in fullProductList
+        return Database().productList.firstWhere(
+          (product) => product.productID == productID,
+          orElse: () => throw Exception('Product not found in any product list: $productID'),
+        );
+      },
+    );
+
     return SalesInvoiceDetail(
       salesInvoiceDetailID: id,
       salesInvoiceID: map['salesInvoiceID'] ?? '',
-      product: Database().productList.firstWhere((product) => product.productID == map['productID']),
+      product: product,
       sellingPrice: (map['sellingPrice'] ?? 0).toDouble(),
       quantity: (map['quantity'] ?? 0).toInt(),
       subtotal: (map['subtotal'] ?? 0).toDouble(),

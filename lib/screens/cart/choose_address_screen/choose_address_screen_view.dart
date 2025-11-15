@@ -28,11 +28,13 @@ class ChooseAddressScreen extends StatefulWidget {
 class _ChooseAddressScreen extends State<ChooseAddressScreen> {
   ChooseAddressScreenCubit get cubit =>
       context.read<ChooseAddressScreenCubit>();
+  Address? _selectedAddress;
 
   @override
   void initState() {
     super.initState();
     cubit.reloadList();
+    _selectedAddress = widget.address;
   }
 
   @override
@@ -47,6 +49,18 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
           fillColor: Colors.transparent,
         ),
         title: GradientText(text: S.of(context).address),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pop(context, _selectedAddress ?? Address.nullAddress);
+            },
+            icon: Icon(
+              Icons.check,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+            ),
+            tooltip: S.of(context).confirm,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -66,9 +80,13 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
                         ))
                       : Column(
                           children: state.addressList.map((address) {
+                            final isSelected =
+                                _selectedAddress?.addressID == address.addressID;
                             return GestureDetector(
                               onTap: () {
-                                Navigator.pop(context, address);
+                                setState(() {
+                                  _selectedAddress = address;
+                                });
                               },
                               child: ListTile(
                                 title: Container(
@@ -76,9 +94,21 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 16),
                                   decoration: BoxDecoration(
-                                    color:
-                                        Theme.of(context).colorScheme.surface,
+                                    color: isSelected
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.08)
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .surface,
                                     borderRadius: BorderRadius.circular(8),
+                                    border: isSelected
+                                        ? Border.all(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary)
+                                        : null,
                                     boxShadow: [
                                       BoxShadow(
                                         color:
@@ -122,6 +152,9 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
 
                   if (result != null && result is Address) {
                     cubit.addAddress(result);
+                    setState(() {
+                      _selectedAddress = result;
+                    });
                   }
                 },
               )

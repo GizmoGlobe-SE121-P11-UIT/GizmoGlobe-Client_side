@@ -2,8 +2,6 @@ import 'package:gizmoglobe_client/enums/product_related/cpu_enums/cpu_series.dar
 import 'package:gizmoglobe_client/enums/product_related/cpu_enums/socket.dart';
 
 import '../../../enums/product_related/category_enum.dart';
-import '../../../enums/product_related/product_status_enum.dart';
-import '../../manufacturer.dart';
 import '../product.dart';
 
 class CPU extends Product {
@@ -20,12 +18,10 @@ class CPU extends Product {
     required super.discount,
     required super.release,
     required super.manufacturer,
-
     super.imageUrl,
     super.enDescription,
     super.viDescription,
     super.category = CategoryEnum.cpu,
-
     required this.series,
     required this.socket,
     required this.core,

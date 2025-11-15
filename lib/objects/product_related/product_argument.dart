@@ -153,61 +153,61 @@ class ProductArgument {
   }
 
   ProductArgument copyWith({
-        String? productID,
-        String? productName,
-        Manufacturer? manufacturer,
-        CategoryEnum? category,
-        int? price,
-        double? discount,
-        DateTime? release,
-        int? sales,
-        int? stock,
-        ProductStatusEnum? status,
-        String? imageUrl,
-        String? enDescription,
-        String? viDescription,
+    String? productID,
+    String? productName,
+    Manufacturer? manufacturer,
+    CategoryEnum? category,
+    int? price,
+    double? discount,
+    DateTime? release,
+    int? sales,
+    int? stock,
+    ProductStatusEnum? status,
+    String? imageUrl,
+    String? enDescription,
+    String? viDescription,
 
-        // RAM specific properties
-        RAMType? type,
-        int? bus,
-        int? clLatency,
-        int? stickCount,
-        int? capacity,
+    // RAM specific properties
+    RAMType? type,
+    int? bus,
+    int? clLatency,
+    int? stickCount,
+    int? capacity,
 
-        // CPU specific properties
-        CPUSeries? cpuSeries,
-        Socket? socket,
-        int? core,
-        int? thread,
-        double? baseClock,
-        double? turboClock,
+    // CPU specific properties
+    CPUSeries? cpuSeries,
+    Socket? socket,
+    int? core,
+    int? thread,
+    double? baseClock,
+    double? turboClock,
 
-        // PSU specific properties
-        int? maxWattage,
-        PSUEfficiency? efficiency,
-        PSUModular? modularity,
-        List<Connector>? connectors,
+    // PSU specific properties
+    int? maxWattage,
+    PSUEfficiency? efficiency,
+    PSUModular? modularity,
+    List<Connector>? connectors,
 
-        // GPU specific properties
-        GPUSeries? gpuSeries,
-        GPUVersion? gpuVersion,
-        int? tdp,
-        List<IOPort>? ioPorts,
+    // GPU specific properties
+    GPUSeries? gpuSeries,
+    GPUVersion? gpuVersion,
+    int? tdp,
+    List<IOPort>? ioPorts,
 
-        // Mainboard specific properties
-        String? chipsetCode,
-        MainboardFormFactor? mainboardFormFactor,
-        List<PCIeSlot>? pcieSlots,
-        StorageSlot? storageSlot,
+    // Mainboard specific properties
+    String? chipsetCode,
+    MainboardFormFactor? mainboardFormFactor,
+    List<PCIeSlot>? pcieSlots,
+    StorageSlot? storageSlot,
 
-        // Drive specific properties
-        DriveGen? gen,
-        InterfaceType? interfaceType,
-        int? readMbps,
-        int? writeMbps,
-        DriveFormFactor? driveFormFactor,
-        DriveType? driveType,
-      }) {
+    // Drive specific properties
+    DriveGen? gen,
+    InterfaceType? interfaceType,
+    int? readMbps,
+    int? writeMbps,
+    DriveFormFactor? driveFormFactor,
+    DriveType? driveType,
+  }) {
     return ProductArgument(
       productID: productID ?? this.productID,
       productName: productName ?? this.productName,
@@ -217,7 +217,7 @@ class ProductArgument {
       discount: discount ?? this.discount,
       discountedPrice: price != null && discount != null
           ? price * (1 - discount / 100)
-          : this.discountedPrice,
+          : discountedPrice,
       release: release ?? this.release,
       sales: sales ?? this.sales,
       stock: stock ?? this.stock,
@@ -370,7 +370,8 @@ class ProductArgument {
           formFactor: mainboardFormFactor!,
           pcieSlots: pcieSlots!,
           storageSlot: storageSlot!,
-          ramSpec: RamSpec(type: type!, slots: stickCount!, maxSingleDimmGb: capacity!),
+          ramSpec: RamSpec(
+              type: type!, slots: stickCount!, maxSingleDimmGb: capacity!),
           ioPorts: ioPorts!,
         )..productID = productID;
       case CategoryEnum.drive:
@@ -392,10 +393,7 @@ class ProductArgument {
           memoryGb: capacity!,
           gen: gen!,
           interfaceType: interfaceType!,
-          speed: Speed(
-              readMbps: readMbps!,
-              writeMbps: writeMbps!
-          ),
+          speed: Speed(readMbps: readMbps!, writeMbps: writeMbps!),
           formFactor: driveFormFactor!,
         )..productID = productID;
       default:

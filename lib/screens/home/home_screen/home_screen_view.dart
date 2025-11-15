@@ -11,7 +11,6 @@ import 'package:gizmoglobe_client/components/general/web_header.dart';
 import 'package:gizmoglobe_client/components/home/web_hero_section.dart';
 import 'package:gizmoglobe_client/components/home/web_best_sellers_section.dart';
 import 'package:gizmoglobe_client/components/home/web_favorites_section.dart';
-import 'package:gizmoglobe_client/components/home/web_features_section.dart';
 import 'package:gizmoglobe_client/components/general/web_footer.dart';
 import 'package:flutter/foundation.dart';
 
@@ -63,8 +62,6 @@ class _HomeScreen extends State<HomeScreen> {
                   WebBestSellersSection(products: state.bestSellerProducts),
                   const SizedBox(height: 80),
                   WebFavoritesSection(products: state.favoriteProducts),
-                  const SizedBox(height: 80),
-                  const WebFeaturesSection(),
                   const SizedBox(height: 80),
                   const WebFooter(),
                 ],

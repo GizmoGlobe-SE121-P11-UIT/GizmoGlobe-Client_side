@@ -28,31 +28,54 @@ class SnackbarService {
   }
 
   /// Show a snackbar-like overlay ABOVE dialogs using a provided root Overlay
+  /// This ensures the snackbar appears on top of all UI elements including modals
   static void _insertOverlaySnackbar(
     OverlayState overlay, {
     required String title,
     required String message,
     required ContentType contentType,
   }) {
-    final overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        left: 16,
-        right: 16,
-        bottom: 24,
-        child: Material(
-          elevation: 1000,
-          color: Colors.transparent,
-          child: AwesomeSnackbarContent(
-            title: title,
-            message: message,
-            contentType: contentType,
+    OverlayEntry? overlayEntry;
+
+    // Use multiple post-frame callbacks to ensure we insert AFTER dialogs are fully rendered
+    // This guarantees the snackbar overlay entry is added last and appears on top
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Wait one more frame to ensure dialog is completely rendered
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        overlayEntry = OverlayEntry(
+          maintainState: false,
+          opaque: false, // Allow clicks to pass through the snackbar area
+          builder: (context) => Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: IgnorePointer(
+              ignoring: false, // Allow interaction with the snackbar itself
+              child: Material(
+                elevation:
+                    9999, // Maximum elevation to appear above all dialogs
+                color: Colors.transparent,
+                shadowColor:
+                    Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
+                child: AwesomeSnackbarContent(
+                  title: title,
+                  message: message,
+                  contentType: contentType,
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
-    );
-    overlay.insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 3), () {
-      overlayEntry.remove();
+        );
+
+        // Insert at the end of overlay entries to ensure it's on top
+        // This ensures the snackbar appears above all other overlays including dialogs
+        overlay.insert(overlayEntry!);
+
+        // Auto-remove after 3 seconds
+        Future.delayed(const Duration(seconds: 3), () {
+          overlayEntry?.remove();
+        });
+      });
     });
   }
 
@@ -114,10 +137,19 @@ class SnackbarService {
 
   /// Shows a success snackbar for cart operations
   static void showCartSuccess(BuildContext context, String productName) {
+    final locale = Localizations.localeOf(context);
+    final String message;
+    if (locale.languageCode == 'vi') {
+      // Vietnamese: "Thêm vào giỏ hàng Product Name"
+      message = '${S.of(context).addToCart} $productName';
+    } else {
+      // English: "Product Name Add to Cart"
+      message = '$productName ${S.of(context).addToCart}';
+    }
     showSuccess(
       context,
       title: S.of(context).success,
-      message: '$productName ${S.of(context).addToCart}',
+      message: message,
     );
   }
 
@@ -190,6 +222,34 @@ class SnackbarService {
       title: actionType == 'google_cancelled' ? 'Google Sign-In' : title,
       message: message,
       contentType: ContentType.help,
+    );
+  }
+
+  /// Shows an error snackbar above dialogs using overlay
+  static void showErrorAboveOverlay(
+    OverlayState overlay, {
+    required String title,
+    required String message,
+  }) {
+    _insertOverlaySnackbar(
+      overlay,
+      title: title,
+      message: message,
+      contentType: ContentType.failure,
+    );
+  }
+
+  /// Shows a success snackbar above dialogs using overlay
+  static void showSuccessAboveOverlay(
+    OverlayState overlay, {
+    required String title,
+    required String message,
+  }) {
+    _insertOverlaySnackbar(
+      overlay,
+      title: title,
+      message: message,
+      contentType: ContentType.success,
     );
   }
 

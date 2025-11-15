@@ -25,6 +25,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final RegExp _productLinkRegex =
       RegExp(r'\[PRODUCT_LINK:([^\]]+)\]([^\[]+)\[/PRODUCT_LINK\]');
+  final RegExp _productCardsRegex =
+      RegExp(r'\[PRODUCT_CARDS\](.*?)\[/PRODUCT_CARDS\]', dotAll: true);
   ChatScreenCubit get cubit => context.read<ChatScreenCubit>();
 
   @override
@@ -41,14 +43,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   List<InlineSpan> _buildMessageSpans(
       String content, bool isUser, ThemeData theme) {
+    final sanitizedContent = content.replaceAll(_productCardsRegex, '');
     final List<InlineSpan> spans = [];
     int lastIndex = 0;
 
-    for (final match in _productLinkRegex.allMatches(content)) {
+    for (final match in _productLinkRegex.allMatches(sanitizedContent)) {
       // Thêm text trước link nếu có
       if (match.start > lastIndex) {
         spans.add(TextSpan(
-          text: content.substring(lastIndex, match.start),
+          text: sanitizedContent.substring(lastIndex, match.start),
           style: TextStyle(
             fontSize: 16,
             color: isUser
@@ -76,9 +79,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     // Thêm phần text còn lại sau link cuối cùng
-    if (lastIndex < content.length) {
+    if (lastIndex < sanitizedContent.length) {
       spans.add(TextSpan(
-        text: content.substring(lastIndex),
+        text: sanitizedContent.substring(lastIndex),
         style: TextStyle(
           fontSize: 16,
           color: isUser
@@ -87,7 +90,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ));
     }
-
     return spans;
   }
 

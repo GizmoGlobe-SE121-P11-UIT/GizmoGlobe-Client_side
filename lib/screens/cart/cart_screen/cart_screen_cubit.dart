@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/objects/cart_item.dart';
@@ -52,26 +51,38 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     }
   }
 
-
   Future<void> updateQuantity(CartItem cartItem, int newQuantity) async {
     try {
       if (isClosed) return;
 
+      final productID = cartItem.product.productID;
       final updatedItems = state.items.map((item) {
-        if (item == cartItem) {
+        if (item.product.productID == productID) {
+          return item.copyWith(quantity: newQuantity);
+        }
+        return item;
+      }).toList();
+
+      // Also update selectedItems if this item is selected
+      final updatedSelectedItems = state.selectedItems.map((item) {
+        if (item.product.productID == productID) {
           return item.copyWith(quantity: newQuantity);
         }
         return item;
       }).toList();
 
       if (isClosed) return;
-      emit(state.copyWith(items: updatedItems));
+      emit(state.copyWith(
+        items: updatedItems,
+        selectedItems: updatedSelectedItems,
+      ));
 
       // Make the actual update call
       final user = _auth.currentUser;
       if (user == null) return;
 
-      await _firebase.updateCartItemQuantity(user.uid, cartItem.product.productID!, newQuantity);
+      await _firebase.updateCartItemQuantity(
+          user.uid, cartItem.product.productID!, newQuantity);
     } catch (e) {
       if (isClosed) return;
       // Revert the state if the update call fails
@@ -100,10 +111,22 @@ class CartScreenCubit extends Cubit<CartScreenState> {
   void toggleItemSelection(CartItem item) {
     if (isClosed) return;
     final currentSelected = List<CartItem>.from(state.selectedItems);
-    if (currentSelected.contains(item)) {
-      currentSelected.remove(item);
+    
+    // Find item by productID (more reliable than object equality)
+    final productID = item.product.productID;
+    final existingIndex = currentSelected.indexWhere(
+      (selectedItem) => selectedItem.product.productID == productID,
+    );
+    
+    if (existingIndex >= 0) {
+      currentSelected.removeAt(existingIndex);
     } else {
-      currentSelected.add(item);
+      // Find the actual item from state.items to maintain reference consistency
+      final actualItem = state.items.firstWhere(
+        (cartItem) => cartItem.product.productID == productID,
+        orElse: () => item,
+      );
+      currentSelected.add(actualItem);
     }
     emit(state.copyWith(selectedItems: currentSelected));
   }
@@ -113,8 +136,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     if (state.isAllSelected) {
       emit(state.copyWith(selectedItems: []));
     } else {
-      final allProductIds =
-          state.items.map((item) => item.product.productID as String).toList();
+      state.items.map((item) => item.product.productID as String).toList();
       emit(state.copyWith(selectedItems: state.items));
     }
   }
@@ -160,14 +182,18 @@ class CartScreenCubit extends Cubit<CartScreenState> {
   List<Map<Product, int>> convertItemsToProductQuantityList() {
     final result = <Map<Product, int>>[];
 
+    // Convert selectedItems to a set of productIDs for faster lookup
+    final selectedProductIDs = state.selectedItems
+        .map((item) => item.product.productID)
+        .where((id) => id != null)
+        .toSet();
+
     for (var item in state.items) {
       final productID = item.product.productID;
 
-      if (state.selectedItems.contains(productID)) {
-        final product = Database()
-            .productList
-            .firstWhere((product) => product.productID == productID);
-        result.add({product: item.quantity});
+      // Check if this item's productID is in the selected items
+      if (productID != null && selectedProductIDs.contains(productID)) {
+        result.add({item.product: item.quantity});
       }
     }
     return result;

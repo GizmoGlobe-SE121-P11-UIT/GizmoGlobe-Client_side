@@ -33,15 +33,65 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
   @override
   void initState() {
     super.initState();
+
+    // Determine initial tab from URL if available
+    final initialTabIndex = _getInitialTabFromUrl();
     _tabController = TabController(
       length: OrderOption.values.length,
       vsync: this,
-      initialIndex: widget.initialTab?.index ?? OrderOption.toShip.index,
+      initialIndex: initialTabIndex,
     );
 
+    // Add listener to update URL when tab changes
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging && mounted) {
+        _updateUrlForTab(_tabController.index);
+      }
+    });
+
     // Initialize with the selected tab
-    final initialOption = widget.initialTab ?? OrderOption.toShip;
+    final initialOption =
+        widget.initialTab ?? OrderOption.values[initialTabIndex];
     cubit.initialize(initialOption);
+  }
+
+  int _getInitialTabFromUrl() {
+    if (!kIsWeb) return OrderOption.toShip.index;
+
+    final hashPath = platform_actions.getHashPath();
+    if (hashPath.isEmpty) return OrderOption.toShip.index;
+
+    // Check for hash-based URL patterns like /orders/to-ship
+    if (hashPath.contains('/orders/to-ship')) {
+      return OrderOption.toShip.index;
+    } else if (hashPath.contains('/orders/to-receive')) {
+      return OrderOption.toReceive.index;
+    } else if (hashPath.contains('/orders/completed')) {
+      return OrderOption.completed.index;
+    }
+
+    return OrderOption.toShip.index;
+  }
+
+  void _updateUrlForTab(int tabIndex) {
+    if (!kIsWeb) return;
+
+    final option = OrderOption.values[tabIndex];
+    String tabName;
+    switch (option) {
+      case OrderOption.toShip:
+        tabName = 'to-ship';
+        break;
+      case OrderOption.toReceive:
+        tabName = 'to-receive';
+        break;
+      case OrderOption.completed:
+        tabName = 'completed';
+        break;
+    }
+
+    final newUrl = '/orders/$tabName';
+    platform_actions.setHashUrl(newUrl);
   }
 
   @override
@@ -118,7 +168,7 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
                             tabName = 'completed';
                             break;
                         }
-                        final newUrl = '/orders?tab=$tabName';
+                        final newUrl = '/orders/$tabName';
                         // Update the browser URL with hash for proper routing
                         if (kIsWeb) {
                           platform_actions.setHashUrl(newUrl);

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
+import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
@@ -95,9 +96,13 @@ class _CartScreen extends State<CartScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(
+                      // Navigate to MainScreen with products tab (index 1) to preserve bottom navigation bar
+                      Navigator.pushAndRemoveUntil(
                         context,
-                        '/products',
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const MainScreen(initialIndex: 1),
+                        ),
                         (route) => false,
                       );
                     },
@@ -147,7 +152,11 @@ class _CartScreen extends State<CartScreen> {
                   children: [
                     // Checkbox
                     Checkbox(
-                      value: state.selectedItems.contains(item),
+                      value: state.selectedItems.any(
+                        (selectedItem) =>
+                            selectedItem.product.productID ==
+                            item.product.productID,
+                      ),
                       onChanged: (value) {
                         cubit.toggleItemSelection(item);
                       },
@@ -253,22 +262,18 @@ class _CartScreen extends State<CartScreen> {
                                 onPressed: item.quantity > 1
                                     ? () {
                                         cubit.updateQuantity(
-                                          item, item.quantity - 1
-                                        );
+                                            item, item.quantity - 1);
                                       }
                                     : null,
                                 padding: const EdgeInsets.all(2),
                                 constraints: const BoxConstraints(),
                                 style: IconButton.styleFrom(
-                                  foregroundColor:
-                                      item.quantity > 1
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.3),
+                                  foregroundColor: item.quantity > 1
+                                      ? Theme.of(context).colorScheme.onSurface
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.3),
                                 ),
                               ),
                               Container(
@@ -290,9 +295,7 @@ class _CartScreen extends State<CartScreen> {
                                   size: 16,
                                 ),
                                 onPressed: () {
-                                  cubit.updateQuantity(
-                                    item, item.quantity + 1
-                                  );
+                                  cubit.updateQuantity(item, item.quantity + 1);
                                 },
                                 padding: const EdgeInsets.all(4),
                                 constraints: const BoxConstraints(),
@@ -406,9 +409,11 @@ class _CartScreen extends State<CartScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      if (state.hasDiscounts && state.selectedCount > 0) ...[
+                      if (state.selectedItemsHasDiscounts &&
+                          state.selectedCount > 0) ...[
                         Text(
-                          Helper.toCurrencyFormat(state.totalBeforeDiscount),
+                          Helper.toCurrencyFormat(
+                              state.selectedItemsTotalBeforeDiscount),
                           style: TextStyle(
                             decoration: TextDecoration.lineThrough,
                             color: Theme.of(context)
@@ -421,7 +426,7 @@ class _CartScreen extends State<CartScreen> {
                         // const SizedBox(height: 2),
                       ],
                       Text(
-                        Helper.toCurrencyFormat(state.totalAmount),
+                        Helper.toCurrencyFormat(state.selectedItemsTotalAmount),
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
