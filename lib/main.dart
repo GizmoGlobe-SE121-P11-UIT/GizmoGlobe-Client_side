@@ -16,7 +16,7 @@ import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_view.dart
 import 'package:gizmoglobe_client/screens/user/user_screen/user_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_view.dart';
-import 'package:gizmoglobe_client/screens/build/builder/pc_builder_view.dart';
+import 'package:gizmoglobe_client/screens/builder/builder/pc_builder_view.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_success_webview.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_webview.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
