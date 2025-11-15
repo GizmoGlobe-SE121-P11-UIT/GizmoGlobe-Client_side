@@ -15,6 +15,8 @@ import 'package:gizmoglobe_client/components/home/web_features_section.dart';
 import 'package:gizmoglobe_client/components/general/web_footer.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../product/product_screen/product_screen_view.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -137,7 +139,11 @@ class _HomeScreen extends State<HomeScreen> {
                                   .bestSellers,
                               products: state.bestSellerProducts,
                               onSeeAll: () {
-                                Navigator.pushNamed(context, '/products');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductScreen.newInstance(initialProducts: state.favoriteProducts)
+                                ));
                               },
                               length: 4,
                             ),
@@ -148,7 +154,11 @@ class _HomeScreen extends State<HomeScreen> {
                                   .favorites,
                               products: state.favoriteProducts,
                               onSeeAll: () {
-                                Navigator.pushNamed(context, '/products');
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ProductScreen.newInstance(initialProducts: state.recommendedProducts)
+                                    ));
                               },
                               length: 4,
                             ),
