@@ -1205,4 +1205,69 @@ class SVI extends S {
   // Order screen
   @override
   String get yourOrdersWillAppearHere => 'Đơn hàng của bạn sẽ xuất hiện ở đây';
+
+  // PC Builder
+  @override
+  String get enableCompatibilityChecker => 'Bật kiểm tra tương thích';
+
+  @override
+  String get builderAddTooltip => 'Phiên mới';
+
+  @override
+  String get builderDeleteTooltip => 'Xóa phiên';
+
+  @override
+  String get builderResetTooltip => 'Đặt lại phiên';
+
+  @override
+  String get builderUploadTooltip => 'Lưu phiên';
+
+  @override
+  String get builderDownloadTooltip => 'Chọn phiên đã lưu';
+
+  @override
+  String get builderResetTitle => 'Đặt lại cấu hình?';
+
+  @override
+  String get builderResetMessage =>
+      'Tất cả linh kiện và số lượng trong phiên hiện tại sẽ bị xóa.';
+
+  @override
+  String get builderDeleteTitle => 'Xóa phiên builder?';
+
+  @override
+  String get builderDeleteMessage =>
+      'Hành động này không thể hoàn tác. Bạn có chắc chắn muốn tiếp tục?';
+
+  @override
+  String get builderSessionsTitle => 'Các phiên builder đã lưu';
+
+  @override
+  String get builderSessionsEmpty =>
+      'Bạn chưa có phiên builder nào được lưu.';
+
+  @override
+  String get builderSessionUpdatedLabel => 'Cập nhật';
+
+  @override
+  String builderSessionComponents(int count) => '$count linh kiện';
+
+  // Footer
+  @override
+  String get footerTagline =>
+      'Nguồn tin cậy của bạn cho linh kiện PC và thiết bị ngoại vi cao cấp.';
+  @override
+  String get onAllOrders => 'Trên tất cả đơn hàng';
+  @override
+  String get oneYearWarranty => 'Bảo hành 1 năm';
+  @override
+  String get onAllProducts => 'Trên tất cả sản phẩm';
+  @override
+  String get support247 => 'Hỗ trợ 24/7';
+  @override
+  String get securePayment => 'Thanh toán an toàn';
+  @override
+  String get sslEncrypted => 'Mã hóa SSL';
+  @override
+  String get copyrightText => '© 2025 GizmoGlobe. Bảo lưu mọi quyền.';
 }

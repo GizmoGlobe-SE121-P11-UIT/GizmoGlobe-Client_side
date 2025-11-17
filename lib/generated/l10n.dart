@@ -815,6 +815,63 @@ class S {
   String get yourOrdersWillAppearHere =>
       Intl.message('Your orders will appear here',
           name: 'yourOrdersWillAppearHere');
+
+  // PC Builder
+  String get enableCompatibilityChecker =>
+      Intl.message('Enable compatibility checker',
+          name: 'enableCompatibilityChecker');
+  String get builderAddTooltip =>
+      Intl.message('New session', name: 'builderAddTooltip');
+  String get builderDeleteTooltip =>
+      Intl.message('Delete session', name: 'builderDeleteTooltip');
+  String get builderResetTooltip =>
+      Intl.message('Reset session', name: 'builderResetTooltip');
+  String get builderUploadTooltip =>
+      Intl.message('Upload session', name: 'builderUploadTooltip');
+  String get builderDownloadTooltip =>
+      Intl.message('Load session', name: 'builderDownloadTooltip');
+  String get builderResetTitle =>
+      Intl.message('Reset builder?', name: 'builderResetTitle');
+  String get builderResetMessage => Intl.message(
+      'This will remove all components and quantities from the current session.',
+      name: 'builderResetMessage');
+  String get builderDeleteTitle =>
+      Intl.message('Delete builder session?', name: 'builderDeleteTitle');
+  String get builderDeleteMessage => Intl.message(
+      'This action cannot be undone. Do you want to continue?',
+      name: 'builderDeleteMessage');
+  String get builderSessionsTitle => Intl.message('Saved builder sessions',
+      name: 'builderSessionsTitle');
+  String get builderSessionsEmpty => Intl.message(
+      'You do not have any saved builder sessions yet.',
+      name: 'builderSessionsEmpty');
+  String get builderSessionUpdatedLabel =>
+      Intl.message('Updated', name: 'builderSessionUpdatedLabel');
+  String builderSessionComponents(int count) => Intl.message(
+        '$count components',
+        name: 'builderSessionComponents',
+        args: [count],
+      );
+
+  // Footer
+  String get footerTagline =>
+      Intl.message('Your trusted source for premium PC components and peripherals.',
+          name: 'footerTagline');
+  String get onAllOrders =>
+      Intl.message('On all orders', name: 'onAllOrders');
+  String get oneYearWarranty =>
+      Intl.message('1-Year Warranty', name: 'oneYearWarranty');
+  String get onAllProducts =>
+      Intl.message('On all products', name: 'onAllProducts');
+  String get support247 =>
+      Intl.message('24/7 Support', name: 'support247');
+  String get securePayment =>
+      Intl.message('Secure Payment', name: 'securePayment');
+  String get sslEncrypted =>
+      Intl.message('SSL encrypted', name: 'sslEncrypted');
+  String get copyrightText =>
+      Intl.message('© 2025 GizmoGlobe. All rights reserved.',
+          name: 'copyrightText');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

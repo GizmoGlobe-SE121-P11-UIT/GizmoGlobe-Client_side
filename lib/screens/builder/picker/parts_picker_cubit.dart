@@ -75,4 +75,18 @@ class PartsPickerCubit extends Cubit<PartsPickerState> {
       ));
     }
   }
+
+  void toggleProductSelection(Product product) {
+    final currentSelected = List<Product>.from(state.selectedProducts);
+    if (currentSelected.contains(product)) {
+      currentSelected.remove(product);
+    } else {
+      currentSelected.add(product);
+    }
+    emit(state.copyWith(selectedProducts: currentSelected));
+  }
+
+  void clearSelection() {
+    emit(state.copyWith(selectedProducts: []));
+  }
 }

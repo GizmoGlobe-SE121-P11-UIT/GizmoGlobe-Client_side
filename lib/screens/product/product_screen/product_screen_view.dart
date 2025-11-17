@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
+import 'package:gizmoglobe_client/screens/builder/builder/pc_builder_view.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_state.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_tab/product_tab_view.dart';
@@ -200,6 +201,11 @@ class _ProductScreenState extends State<ProductScreen>
               ],
             ),
           ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _openPcBuilder(context),
+            icon: const Icon(Icons.computer),
+            label: Text(S.of(context).buildYourDreamPc.split('\n').first),
+          ),
           body: SafeArea(
             child: BlocBuilder<ProductScreenCubit, ProductScreenState>(
               builder: (context, state) {
@@ -238,6 +244,14 @@ class _ProductScreenState extends State<ProductScreen>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _openPcBuilder(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PCBuilderScreen.newInstance(),
       ),
     );
   }

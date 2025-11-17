@@ -36,6 +36,12 @@ class Helper {
     return formatter.format(value * 1000);
   }
 
+  static String toCurrencyFormatForPDF(num valueInVnd) {
+    final formatter =
+        NumberFormat.currency(locale: 'vi_VN', symbol: 'VND', decimalDigits: 0);
+    return formatter.format(valueInVnd * 1000);
+  }
+
   /// Format a value that is already in VND (no scaling)
   static String toCurrencyVND(num valueInVnd) {
     final formatter =

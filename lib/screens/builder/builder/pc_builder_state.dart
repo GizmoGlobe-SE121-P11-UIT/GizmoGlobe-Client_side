@@ -5,10 +5,12 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 class PCBuilderState extends Equatable {
   final String configurationId;
   final int activeConfigurationIndex;
-  final List<Map<String, Product?>>
+  final List<Map<String, dynamic>>
       configurations; // List of 5 configurations, each with component mappings
   final String? configurationUrl;
   final int estimatedCost;
+  final bool enableCompatibilityChecker;
+  final Map<String, int> quantities; // productID -> quantity
   final ProcessState processState;
   final String message;
 
@@ -18,6 +20,8 @@ class PCBuilderState extends Equatable {
     this.configurations = const [],
     this.configurationUrl,
     this.estimatedCost = 0,
+    this.enableCompatibilityChecker = false,
+    this.quantities = const {},
     this.processState = ProcessState.idle,
     this.message = '',
   });
@@ -29,6 +33,8 @@ class PCBuilderState extends Equatable {
         configurations,
         configurationUrl,
         estimatedCost,
+        enableCompatibilityChecker,
+        quantities,
         processState,
         message,
       ];
@@ -36,9 +42,11 @@ class PCBuilderState extends Equatable {
   PCBuilderState copyWith({
     String? configurationId,
     int? activeConfigurationIndex,
-    List<Map<String, Product?>>? configurations,
+    List<Map<String, dynamic>>? configurations,
     String? configurationUrl,
     int? estimatedCost,
+    bool? enableCompatibilityChecker,
+    Map<String, int>? quantities,
     ProcessState? processState,
     String? message,
   }) {
@@ -49,12 +57,15 @@ class PCBuilderState extends Equatable {
       configurations: configurations ?? this.configurations,
       configurationUrl: configurationUrl ?? this.configurationUrl,
       estimatedCost: estimatedCost ?? this.estimatedCost,
+      enableCompatibilityChecker:
+          enableCompatibilityChecker ?? this.enableCompatibilityChecker,
+      quantities: quantities ?? this.quantities,
       processState: processState ?? this.processState,
       message: message ?? this.message,
     );
   }
 
-  Map<String, Product?> get activeConfiguration {
+  Map<String, dynamic> get activeConfiguration {
     if (configurations.isEmpty ||
         activeConfigurationIndex >= configurations.length) {
       return _getEmptyConfiguration();
@@ -62,11 +73,11 @@ class PCBuilderState extends Equatable {
     return configurations[activeConfigurationIndex];
   }
 
-  Map<String, Product?> _getEmptyConfiguration() => {
+  Map<String, dynamic> _getEmptyConfiguration() => {
         'cpu': null,
         'mainboard': null,
-        'ram': null,
-        'drive': null,
+        'ram': <Product>[],
+        'drive': <Product>[],
         'gpu': null,
         'psu': null,
       };

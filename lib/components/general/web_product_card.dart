@@ -16,8 +16,15 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class WebProductCard extends StatefulWidget {
   final Product product;
+  final bool showFavoriteIcon;
+  final bool showCartButton;
 
-  const WebProductCard({super.key, required this.product});
+  const WebProductCard({
+    super.key,
+    required this.product,
+    this.showFavoriteIcon = true,
+    this.showCartButton = true,
+  });
 
   @override
   State<WebProductCard> createState() => _WebProductCardState();
@@ -160,73 +167,78 @@ class _WebProductCardState extends State<WebProductCard> {
                                     ),
                                   ),
                                 ),
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () async {
-                                    if (widget.product.productID != null) {
-                                      // Check if user is guest
-                                      final isGuest = await _webGuestService
-                                          .isCurrentUserGuest();
-                                      if (isGuest) {
-                                        SnackbarService.showGuestRestriction(
-                                          context,
-                                          actionType: 'favorites',
-                                        );
-                                        return;
-                                      }
-
-                                      try {
-                                        final favoritesCubit =
-                                            context.read<FavoritesCubit>();
-                                        final wasFavorite = favoritesCubit.state
-                                            .contains(
-                                                widget.product.productID!);
-                                        await favoritesCubit.toggleFavorite(
-                                          widget.product.productID!,
-                                        );
-                                        // Show success notification
-                                        final isNowFavorite =
-                                            favoritesCubit.state.contains(
-                                                widget.product.productID!);
-                                        if (wasFavorite != isNowFavorite) {
-                                          SnackbarService.showFavoriteSuccess(
+                              if (widget.showFavoriteIcon)
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () async {
+                                      if (widget.product.productID != null) {
+                                        // Check if user is guest
+                                        final isGuest = await _webGuestService
+                                            .isCurrentUserGuest();
+                                        if (isGuest) {
+                                          SnackbarService.showGuestRestriction(
                                             context,
-                                            isNowFavorite ? 'added' : 'removed',
+                                            actionType: 'favorites',
                                           );
+                                          return;
                                         }
-                                      } catch (e) {
-                                        SnackbarService.showFavoriteError(
-                                            context);
+
+                                        try {
+                                          final favoritesCubit =
+                                              context.read<FavoritesCubit>();
+                                          final wasFavorite =
+                                              favoritesCubit.state.contains(
+                                                  widget.product.productID!);
+                                          await favoritesCubit.toggleFavorite(
+                                            widget.product.productID!,
+                                          );
+                                          // Show success notification
+                                          final isNowFavorite =
+                                              favoritesCubit.state.contains(
+                                                  widget.product.productID!);
+                                          if (wasFavorite != isNowFavorite) {
+                                            SnackbarService.showFavoriteSuccess(
+                                              context,
+                                              isNowFavorite
+                                                  ? 'added'
+                                                  : 'removed',
+                                            );
+                                          }
+                                        } catch (e) {
+                                          SnackbarService.showFavoriteError(
+                                              context);
+                                        }
                                       }
-                                    }
-                                  },
-                                  child: Container(
-                                    width: 28,
-                                    height: 28,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .surface
-                                          .withValues(alpha: 0.9),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Icon(
-                                      isFavorite
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      color: isFavorite
-                                          ? Theme.of(context).colorScheme.error
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                      size: 14,
+                                    },
+                                    child: Container(
+                                      width: 28,
+                                      height: 28,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surface
+                                            .withValues(alpha: 0.9),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Icon(
+                                        isFavorite
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: isFavorite
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .error
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                        size: 14,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -316,67 +328,69 @@ class _WebProductCardState extends State<WebProductCard> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                onEnter: (_) =>
-                                    setState(() => _isAddHovered = true),
-                                onExit: (_) =>
-                                    setState(() => _isAddHovered = false),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () async {
-                                    if (widget.product.productID != null) {
-                                      // Check if user is guest
-                                      final isGuest = await _webGuestService
-                                          .isCurrentUserGuest();
-                                      if (isGuest) {
-                                        SnackbarService.showGuestRestriction(
-                                          context,
-                                          actionType: 'cart',
-                                        );
-                                        return;
-                                      }
+                              if (widget.showCartButton)
+                                MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  onEnter: (_) =>
+                                      setState(() => _isAddHovered = true),
+                                  onExit: (_) =>
+                                      setState(() => _isAddHovered = false),
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () async {
+                                      if (widget.product.productID != null) {
+                                        // Check if user is guest
+                                        final isGuest = await _webGuestService
+                                            .isCurrentUserGuest();
+                                        if (isGuest) {
+                                          SnackbarService.showGuestRestriction(
+                                            context,
+                                            actionType: 'cart',
+                                          );
+                                          return;
+                                        }
 
-                                      _addToCart(context);
-                                    }
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 100),
-                                    width: 28,
-                                    height: 28,
-                                    decoration: BoxDecoration(
-                                      color: _isAddHovered
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withValues(alpha: 0.85)
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                      borderRadius: BorderRadius.circular(6),
-                                      boxShadow: _isAddHovered
-                                          ? [
-                                              BoxShadow(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withValues(alpha: 0.35),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                    child: Icon(
-                                      Icons.shopping_cart_outlined,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimary,
-                                      size: 14,
+                                        _addToCart(context);
+                                      }
+                                    },
+                                    child: AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 100),
+                                      width: 28,
+                                      height: 28,
+                                      decoration: BoxDecoration(
+                                        color: _isAddHovered
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                                .withValues(alpha: 0.85)
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                        borderRadius: BorderRadius.circular(6),
+                                        boxShadow: _isAddHovered
+                                            ? [
+                                                BoxShadow(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary
+                                                      .withValues(alpha: 0.35),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
+                                      child: Icon(
+                                        Icons.shopping_cart_outlined,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary,
+                                        size: 14,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                         ],

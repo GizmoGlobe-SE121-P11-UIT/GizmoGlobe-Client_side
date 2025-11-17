@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../generated/l10n.dart';
 
 class WebFooter extends StatelessWidget {
   const WebFooter({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 32),
       decoration: BoxDecoration(
@@ -44,7 +46,7 @@ class WebFooter extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'GizmoGlobe',
+                          s.appTitle,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
@@ -55,7 +57,7 @@ class WebFooter extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Your trusted source for premium PC components and peripherals.',
+                      s.footerTagline,
                       style: TextStyle(
                         color: Theme.of(context)
                             .colorScheme
@@ -76,29 +78,29 @@ class WebFooter extends StatelessWidget {
                     _buildFeatureBadge(
                       context,
                       Icons.local_shipping_outlined,
-                      'Free Shipping',
-                      'On all orders',
+                      s.freeShipping,
+                      s.onAllOrders,
                     ),
                     const SizedBox(width: 12),
                     _buildFeatureBadge(
                       context,
                       Icons.verified_user_outlined,
-                      '1-Year Warranty',
-                      'On all products',
+                      s.oneYearWarranty,
+                      s.onAllProducts,
                     ),
                     const SizedBox(width: 12),
                     _buildFeatureBadge(
                       context,
                       Icons.support_agent_outlined,
-                      '24/7 Support',
-                      'Expert assistance',
+                      s.support247,
+                      s.expertAssistance,
                     ),
                     const SizedBox(width: 12),
                     _buildFeatureBadge(
                       context,
                       Icons.lock_outline,
-                      'Secure Payment',
-                      'SSL encrypted',
+                      s.securePayment,
+                      s.sslEncrypted,
                     ),
                   ],
                 ),
@@ -109,7 +111,7 @@ class WebFooter extends StatelessWidget {
           Divider(color: Theme.of(context).dividerColor),
           const SizedBox(height: 16),
           Text(
-            '© 2025 GizmoGlobe. All rights reserved.',
+            s.copyrightText,
             style: TextStyle(
               color: Theme.of(context)
                   .colorScheme
