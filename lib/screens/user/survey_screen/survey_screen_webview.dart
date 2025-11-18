@@ -42,11 +42,7 @@ Future<String?> showSurveyModal(BuildContext context) async {
             borderRadius: BorderRadius.circular(20),
             child: BlocProvider(
               create: (context) => SurveyScreenCubit(),
-              child: Builder(
-                builder: (context) {
-                  return SurveyScreen.newInstance();
-                },
-              ),
+              child: const SurveyScreen(),
             ),
           ),
         ),

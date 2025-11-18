@@ -28,7 +28,6 @@ class WebChatMessages extends StatelessWidget {
       shrinkWrap: false,
       physics: const BouncingScrollPhysics(),
       controller: controller,
-      reverse: true,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 16 : 32,
         vertical: 20,
@@ -110,19 +109,19 @@ class WebChatMessages extends StatelessWidget {
                     const SizedBox(height: 6),
                   ],
                   if (sanitizedContent.trim().isNotEmpty) ...[
-                  RichText(
-                    text: TextSpan(
-                      children: buildMessageSpans(
+                    RichText(
+                      text: TextSpan(
+                        children: buildMessageSpans(
                           sanitizedContent,
-                        isUser
-                            ? colorScheme.onPrimary
-                            : isAdminBot
-                                ? colorScheme.onSurface
-                                : colorScheme.onSecondaryContainer,
-                        Theme.of(context),
+                          isUser
+                              ? colorScheme.onPrimary
+                              : isAdminBot
+                                  ? colorScheme.onSurface
+                                  : colorScheme.onSecondaryContainer,
+                          Theme.of(context),
+                        ),
                       ),
                     ),
-                  ),
                     const SizedBox(height: 8),
                   ],
                   if (!isUser && productCards.isNotEmpty) ...[

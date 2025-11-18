@@ -32,7 +32,10 @@ class SalesInvoiceDetail {
       product: product ?? this.product,
       sellingPrice: sellingPrice ?? this.sellingPrice,
       quantity: quantity ?? this.quantity,
-      subtotal: subtotal ?? (quantity != null ? (sellingPrice ?? this.sellingPrice) * quantity : this.subtotal),
+      subtotal: subtotal ??
+          (quantity != null
+              ? (sellingPrice ?? this.sellingPrice) * quantity
+              : this.subtotal),
     );
   }
 
@@ -59,9 +62,10 @@ class SalesInvoiceDetail {
       orElse: () {
         // Fallback to productList if not found in fullProductList
         return Database().productList.firstWhere(
-          (product) => product.productID == productID,
-          orElse: () => throw Exception('Product not found in any product list: $productID'),
-        );
+              (product) => product.productID == productID,
+              orElse: () => throw Exception(
+                  'Product not found in any product list: $productID'),
+            );
       },
     );
 
@@ -74,4 +78,4 @@ class SalesInvoiceDetail {
       subtotal: (map['subtotal'] ?? 0).toDouble(),
     );
   }
-} 
+}

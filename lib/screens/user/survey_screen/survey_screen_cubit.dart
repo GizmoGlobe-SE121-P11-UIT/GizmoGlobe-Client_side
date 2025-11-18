@@ -23,30 +23,47 @@ class SurveyScreenCubit extends Cubit<SurveyScreenState> {
     try {
       final raw = await _service.getCurrentUserRaw();
       if (raw == null) return;
-      final next = <String, String>{};
+      final nextSingle = <String, String>{};
+      final nextMulti = <String, List<String>>{};
       for (final q in questionsData) {
         final String qId = q['id'] as String;
         final String qText = q['text'] as String;
-        final dynamic rawValue = raw[qText];
-        if (rawValue is! String) continue;
-        // Find matching option id by label
+        final String type = (q['type'] as String?) ?? 'singleChoice';
         final List<dynamic> options = (q['options'] as List).toList();
-        String? optId;
-        for (final dynamic o in options) {
-          if (o is Map) {
-            final m = Map<String, dynamic>.from(o);
-            if (m['label'] == rawValue) {
-              optId = m['id'] as String?;
-              break;
+        final dynamic rawValue = raw[qText];
+
+        if (type == 'multiChoice') {
+          final List<dynamic> rawList = rawValue is List
+              ? rawValue
+              : rawValue is String
+                  ? [rawValue]
+                  : const [];
+          final matched = <String>[];
+          for (final dynamic value in rawList) {
+            final match = _matchOptionId(options, value);
+            if (match != null) {
+              matched.add(match);
             }
           }
-        }
-        if (optId != null) {
-          next[qId] = optId;
+          if (matched.isNotEmpty) {
+            nextMulti[qId] = matched;
+          }
+        } else {
+          if (rawValue is! String) continue;
+          final optId = _matchOptionId(options, rawValue);
+          if (optId != null) {
+            nextSingle[qId] = optId;
+          }
         }
       }
-      if (next.isNotEmpty) {
-        emit(state.copyWith(singleAnswers: next));
+      if (nextSingle.isNotEmpty || nextMulti.isNotEmpty) {
+        emit(state.copyWith(
+          singleAnswers: nextSingle.isNotEmpty
+              ? nextSingle
+              : state.singleAnswers,
+          multiAnswers:
+              nextMulti.isNotEmpty ? nextMulti : state.multiAnswers,
+        ));
       }
     } catch (_) {
       // ignore errors, leave state as-is
@@ -57,6 +74,22 @@ class SurveyScreenCubit extends Cubit<SurveyScreenState> {
     final next = Map<String, String>.from(state.singleAnswers);
     next[questionId] = optionId;
     emit(state.copyWith(singleAnswers: next, error: null));
+  }
+
+  void toggleMulti(String questionId, String optionId) {
+    final next = Map<String, List<String>>.from(state.multiAnswers);
+    final list = List<String>.from(next[questionId] ?? const []);
+    if (list.contains(optionId)) {
+      list.remove(optionId);
+    } else {
+      list.add(optionId);
+    }
+    if (list.isEmpty) {
+      next.remove(questionId);
+    } else {
+      next[questionId] = list;
+    }
+    emit(state.copyWith(multiAnswers: next, error: null));
   }
 
   void next() {
@@ -80,21 +113,25 @@ class SurveyScreenCubit extends Cubit<SurveyScreenState> {
       for (final q in questionsData) {
         final String qId = q['id'] as String;
         final String qText = q['text'] as String;
-        final String? selectedId = state.singleAnswers[qId];
-        if (selectedId == null) continue;
+        final String type = (q['type'] as String?) ?? 'singleChoice';
         final List<dynamic> options = (q['options'] as List).toList();
-        String? labelValue;
-        for (final dynamic o in options) {
-          if (o is Map) {
-            final m = Map<String, dynamic>.from(o);
-            if (m['id'] == selectedId) {
-              labelValue = m['label'] as String?;
-              break;
-            }
+
+        if (type == 'multiChoice') {
+          final selectedIds = state.multiAnswers[qId] ?? const [];
+          if (selectedIds.isEmpty) continue;
+          final labels = <String>[];
+          for (final id in selectedIds) {
+            final label = _matchOptionLabel(options, id) ?? id;
+            labels.add(label);
           }
+          raw[qText] = labels;
+        } else {
+          final String? selectedId = state.singleAnswers[qId];
+          if (selectedId == null) continue;
+          final String label =
+              _matchOptionLabel(options, selectedId) ?? selectedId;
+          raw[qText] = label;
         }
-        final String label = labelValue ?? selectedId;
-        raw[qText] = label;
       }
       // Excel serial number for current time (days since 1899-12-30)
       final DateTime now = DateTime.now();
@@ -119,4 +156,28 @@ class SurveyScreenCubit extends Cubit<SurveyScreenState> {
       emit(state.copyWith(submitting: false, error: e.toString()));
     }
   }
+}
+
+String? _matchOptionId(List<dynamic> options, dynamic value) {
+  for (final dynamic o in options) {
+    if (o is Map) {
+      final m = Map<String, dynamic>.from(o);
+      if (m['label'] == value) {
+        return m['id'] as String?;
+      }
+    }
+  }
+  return null;
+}
+
+String? _matchOptionLabel(List<dynamic> options, String id) {
+  for (final dynamic o in options) {
+    if (o is Map) {
+      final m = Map<String, dynamic>.from(o);
+      if (m['id'] == id) {
+        return m['label'] as String?;
+      }
+    }
+  }
+  return null;
 }

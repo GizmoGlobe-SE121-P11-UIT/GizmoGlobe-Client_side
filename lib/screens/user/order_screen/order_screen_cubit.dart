@@ -11,10 +11,17 @@ import '../../../objects/invoice_related/sales_invoice.dart';
 class OrderScreenCubit extends Cubit<OrderScreenState> {
   OrderScreenCubit() : super(const OrderScreenState());
 
-  void initialize(OrderOption orderOption) {
+  Future<void> initialize(OrderOption orderOption) async {
     List<SalesInvoice> toShipList = [];
     List<SalesInvoice> toReceiveList = [];
     List<SalesInvoice> completedList = [];
+
+    if (Database().salesInvoiceList.isEmpty) {
+      await Database().fetchSalesInvoice();
+    }
+    if (Database().addressList.isEmpty) {
+      await Database().fetchAddress();
+    }
 
     for (var salesInvoice in Database().salesInvoiceList) {
       switch (salesInvoice.salesStatus) {
@@ -34,22 +41,31 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
       }
     }
 
+    int compareInvoiceDateDesc(SalesInvoice a, SalesInvoice b) =>
+        b.date.compareTo(a.date);
+
     emit(state.copyWith(
       orderOption: orderOption,
-      toShipList: toShipList,
-      toReceiveList: toReceiveList,
-      completedList: completedList,
+      toShipList: [...toShipList]..sort(compareInvoiceDateDesc),
+      toReceiveList: [...toReceiveList]..sort(compareInvoiceDateDesc),
+      completedList: [...completedList]..sort(compareInvoiceDateDesc),
     ));
+  }
+
+  void resetProcessState() {
+    if (state.processState != ProcessState.idle) {
+      emit(state.copyWith(processState: ProcessState.idle));
+    }
   }
 
   Future<void> confirmDelivery(SalesInvoice salesInvoice) async {
     emit(state.copyWith(processState: ProcessState.loading));
     try {
-    SalesInvoice updatedInvoice = salesInvoice.copyWith(
-      salesStatus: SalesStatus.completed,
-    );
-    await Firebase().confirmDelivery(updatedInvoice);
-    emit(state.copyWith(processState: ProcessState.success));
+      SalesInvoice updatedInvoice = salesInvoice.copyWith(
+        salesStatus: SalesStatus.completed,
+      );
+      await Firebase().confirmDelivery(updatedInvoice);
+      emit(state.copyWith(processState: ProcessState.success));
     } catch (e) {
       emit(state.copyWith(processState: ProcessState.failure));
       return;

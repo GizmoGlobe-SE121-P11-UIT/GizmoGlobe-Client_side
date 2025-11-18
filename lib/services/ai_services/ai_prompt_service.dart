@@ -69,10 +69,9 @@ RESPONSE GUIDELINES:
   }
 
   /// Create prompt with products
-  String createPromptWithProducts(
-      String userMessage, QuerySnapshot productsSnapshot, bool isVietnamese) {
-    final formattedProducts =
-        formatProductsInfo(productsSnapshot.docs, isVietnamese);
+  String createPromptWithProducts(String userMessage,
+      List<QueryDocumentSnapshot> products, bool isVietnamese) {
+    final formattedProducts = formatProductsInfo(products, isVietnamese);
     final basePrompt = createBasePrompt(isVietnamese);
 
     // Check if userMessage contains conversation context

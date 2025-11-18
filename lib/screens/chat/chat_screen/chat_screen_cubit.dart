@@ -207,8 +207,8 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
             .toList();
 
         if (newMessages.isNotEmpty) {
-          final updatedMessages = [...newMessages, ...currentAdminMessages];
-          updatedMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          final updatedMessages = [...currentAdminMessages, ...newMessages];
+          updatedMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
           emit(state.copyWith(
             adminMessages: updatedMessages,
@@ -245,7 +245,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
 
     // Convert map values to list and sort by timestamp
     final mergedMessages = messageMap.values.toList();
-    mergedMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    mergedMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     return mergedMessages;
   }
@@ -261,11 +261,13 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
     final data = messagesSnapshot.data() as Map<String, dynamic>;
     final messages = data['messages'] as List<dynamic>? ?? [];
 
-    return messages
+    final result = messages
         .map((msg) => ChatMessage.fromMap(msg as Map<String, dynamic>))
         .where((msg) => msg.isAIMode == isAIMode)
         .toList()
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    return result;
   }
 
   Future<bool> _saveMessageToFirebase(ChatMessage message) async {
@@ -340,7 +342,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       // Update UI with user message
       if (state.isAIMode) {
         emit(state.copyWith(
-          aiMessages: [userMessage, ...state.aiMessages],
+          aiMessages: [...state.aiMessages, userMessage],
           processState: ProcessState.loading,
         ));
 
@@ -357,12 +359,12 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
         await _saveMessageToFirebase(botMessage);
 
         emit(state.copyWith(
-          aiMessages: [botMessage, ...state.aiMessages],
+          aiMessages: [...state.aiMessages, botMessage],
           processState: ProcessState.success,
         ));
       } else {
         emit(state.copyWith(
-          adminMessages: [userMessage, ...state.adminMessages],
+          adminMessages: [...state.adminMessages, userMessage],
           processState: ProcessState.loading,
         ));
 
@@ -375,7 +377,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
             receiverId: user.uid,
           );
           emit(state.copyWith(
-            adminMessages: [botMessage, ...state.adminMessages],
+            adminMessages: [...state.adminMessages, botMessage],
             processState: ProcessState.success,
           ));
         } else {

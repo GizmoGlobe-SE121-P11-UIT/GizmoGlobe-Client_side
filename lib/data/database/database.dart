@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,6 +19,7 @@ import 'package:gizmoglobe_client/objects/product_related/mainboard_related/main
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/objects/product_related/psu_related/psu.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/owned_voucher.dart';
+import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
 
 import '../../enums/manufacturer/manufacturer_status.dart';
 import '../../enums/voucher_related/voucher_status.dart';
@@ -28,6 +31,8 @@ import '../firebase/firebase.dart';
 
 class Database {
   static final Database _database = Database._internal();
+  static const String _salesInvoiceCacheKey = 'cached_sales_invoices';
+  static bool _authStateInitialized = false;
 
   String userID = '';
   String username = '';
@@ -186,6 +191,7 @@ class Database {
   Future<void> fetchDataFromFirestore() async {
     try {
       // await addStatusToAllProducts();
+      await _ensureAuthStateInitialized();
       await getUserData();
       if (kDebugMode) {
         print('Getting data from Firebase');
@@ -237,6 +243,7 @@ class Database {
   }
 
   Future<void> getCartItems() async {
+    await _ensureAuthStateInitialized();
     try {
       String userID = await getCurrentUserID() ?? '';
 
@@ -416,6 +423,7 @@ class Database {
   }
 
   Future<void> getUserData() async {
+    await _ensureAuthStateInitialized();
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final DocumentSnapshot userDoc = await FirebaseFirestore.instance
@@ -429,6 +437,7 @@ class Database {
   }
 
   Future<void> getUser() async {
+    await _ensureAuthStateInitialized();
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final DocumentSnapshot userDoc = await FirebaseFirestore.instance
@@ -445,6 +454,7 @@ class Database {
   }
 
   Future<void> fetchAddress() async {
+    await _ensureAuthStateInitialized();
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final addressSnapshot = await FirebaseFirestore.instance
@@ -661,13 +671,93 @@ class Database {
   List<Voucher> getUpcomingVouchers() => upcomingVouchers;
 
   Future<void> fetchSalesInvoice() async {
+    await _ensureAuthStateInitialized();
     try {
       salesInvoiceList = await Firebase().getSalesInvoices();
     } catch (e) {
       if (kDebugMode) {
         print('Error fetching sales invoices: $e');
       }
-      // For guest users or when userID is empty, just set empty list
+      // For guest users or when userID is empty, try loading local cache
+      await _loadSalesInvoicesFromCache();
+    }
+
+    await _saveSalesInvoicesToCache();
+  }
+
+  Future<void> refreshUserScopedData() async {
+    await _ensureAuthStateInitialized();
+    await getUserData();
+    await fetchAddress();
+    await fetchSalesInvoice();
+  }
+
+  Future<void> _ensureAuthStateInitialized() async {
+    if (_authStateInitialized) {
+      return;
+    }
+    try {
+      await FirebaseAuth.instance
+          .authStateChanges()
+          .first
+          .timeout(const Duration(seconds: 2));
+      _authStateInitialized = true;
+    } on TimeoutException {
+      if (kDebugMode) {
+        print('Auth state initialization timed out');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error waiting for auth state: $e');
+      }
+    }
+  }
+
+  Future<void> _saveSalesInvoicesToCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = jsonEncode(
+        salesInvoiceList.map((invoice) {
+          return {
+            ...invoice.toMap(),
+            'date': invoice.date.toIso8601String(),
+            'details': invoice.details
+                .map((detail) => detail.toMap(invoice.salesInvoiceID ?? ''))
+                .toList(),
+          };
+        }).toList(),
+      );
+      await prefs.setString(_salesInvoiceCacheKey, encoded);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to cache sales invoices: $e');
+      }
+    }
+  }
+
+  Future<void> _loadSalesInvoicesFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = prefs.getString(_salesInvoiceCacheKey);
+      if (encoded == null || encoded.isEmpty) {
+        salesInvoiceList = [];
+        return;
+      }
+
+      final List<dynamic> decoded = jsonDecode(encoded);
+      salesInvoiceList = decoded.map((item) {
+        final invoice =
+            SalesInvoice.fromMap(item['salesInvoiceID'] ?? '', item);
+        final detailList = (item['details'] as List<dynamic>? ?? [])
+            .map((detailMap) => SalesInvoiceDetail.fromMap(
+                detailMap['salesInvoiceDetailID'] ?? '', detailMap))
+            .toList();
+        return invoice.copyWith(details: detailList);
+      }).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to load cached sales invoices: $e');
+      }
       salesInvoiceList = [];
     }
   }

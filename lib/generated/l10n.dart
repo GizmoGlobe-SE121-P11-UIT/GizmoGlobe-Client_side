@@ -148,6 +148,7 @@ class S {
   String get viewOrder => Intl.message('View Order', name: 'viewOrder');
   String get paymentStatus =>
       Intl.message('Payment Status', name: 'paymentStatus');
+  String get orderStatus => Intl.message('Order Status', name: 'orderStatus');
   String get errorCheckout =>
       Intl.message('An error occurred during checkout', name: 'errorCheckout');
   String get paymentCancelled => Intl.message(
@@ -837,14 +838,14 @@ class S {
       name: 'builderResetMessage');
   String get builderDeleteTitle =>
       Intl.message('Delete builder session?', name: 'builderDeleteTitle');
-  String get builderDeleteMessage => Intl.message(
-      'This action cannot be undone. Do you want to continue?',
-      name: 'builderDeleteMessage');
-  String get builderSessionsTitle => Intl.message('Saved builder sessions',
-      name: 'builderSessionsTitle');
-  String get builderSessionsEmpty => Intl.message(
-      'You do not have any saved builder sessions yet.',
-      name: 'builderSessionsEmpty');
+  String get builderDeleteMessage =>
+      Intl.message('This action cannot be undone. Do you want to continue?',
+          name: 'builderDeleteMessage');
+  String get builderSessionsTitle =>
+      Intl.message('Saved builder sessions', name: 'builderSessionsTitle');
+  String get builderSessionsEmpty =>
+      Intl.message('You do not have any saved builder sessions yet.',
+          name: 'builderSessionsEmpty');
   String get builderSessionUpdatedLabel =>
       Intl.message('Updated', name: 'builderSessionUpdatedLabel');
   String builderSessionComponents(int count) => Intl.message(
@@ -854,17 +855,15 @@ class S {
       );
 
   // Footer
-  String get footerTagline =>
-      Intl.message('Your trusted source for premium PC components and peripherals.',
-          name: 'footerTagline');
-  String get onAllOrders =>
-      Intl.message('On all orders', name: 'onAllOrders');
+  String get footerTagline => Intl.message(
+      'Your trusted source for premium PC components and peripherals.',
+      name: 'footerTagline');
+  String get onAllOrders => Intl.message('On all orders', name: 'onAllOrders');
   String get oneYearWarranty =>
       Intl.message('1-Year Warranty', name: 'oneYearWarranty');
   String get onAllProducts =>
       Intl.message('On all products', name: 'onAllProducts');
-  String get support247 =>
-      Intl.message('24/7 Support', name: 'support247');
+  String get support247 => Intl.message('24/7 Support', name: 'support247');
   String get securePayment =>
       Intl.message('Secure Payment', name: 'securePayment');
   String get sslEncrypted =>

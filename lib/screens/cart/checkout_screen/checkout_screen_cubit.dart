@@ -95,6 +95,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         salesStatus: SalesStatus.pending,
         address: Address.nullAddress,
         paymentStatus: PaymentStatus.unpaid,
+        paymentMethod: state.selectedPaymentMethod,
         totalPrice: totalPrice,
         details: details,
       );
@@ -157,6 +158,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       salesStatus: SalesStatus.pending,
       address: Address.nullAddress,
       paymentStatus: PaymentStatus.unpaid,
+      paymentMethod: state.selectedPaymentMethod,
       totalPrice: totalPrice,
       details: details,
     );
@@ -246,6 +248,11 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
           customerName: customerName,
         );
       }
+
+      // Ensure payment method is set on the invoice
+      invoiceToProcess = invoiceToProcess.copyWith(
+        paymentMethod: paymentMethod,
+      );
 
       // Calculate final total: sum all items, apply voucher discount, then round once
       final totalBeforeVoucher = invoiceToProcess.getTotalBasedPrice();

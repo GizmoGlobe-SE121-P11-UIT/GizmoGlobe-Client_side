@@ -262,6 +262,12 @@ class SVI extends S {
   String get paymentMethod => 'Phương thức thanh toán';
 
   @override
+  String get paymentStatus => 'Trạng thái thanh toán';
+
+  @override
+  String get orderStatus => 'Trạng thái đơn hàng';
+
+  @override
   String get cashOnDelivery => 'Thanh toán khi nhận hàng';
 
   @override
@@ -1243,8 +1249,7 @@ class SVI extends S {
   String get builderSessionsTitle => 'Các phiên builder đã lưu';
 
   @override
-  String get builderSessionsEmpty =>
-      'Bạn chưa có phiên builder nào được lưu.';
+  String get builderSessionsEmpty => 'Bạn chưa có phiên builder nào được lưu.';
 
   @override
   String get builderSessionUpdatedLabel => 'Cập nhật';

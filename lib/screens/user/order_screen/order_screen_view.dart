@@ -6,11 +6,13 @@ import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_webview.dart';
+import 'package:gizmoglobe_client/screens/user/order_detail_screen/order_detail_view.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../generated/l10n.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/general/app_text_style.dart';
+import '../../../objects/invoice_related/sales_invoice.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/order/sales_invoice_widget.dart';
 import '../../main/main_screen/main_screen_view.dart';
@@ -34,6 +36,13 @@ class _OrderScreenState extends State<OrderScreen>
   OrderScreenCubit get cubit => context.read<OrderScreenCubit>();
   late TabController tabController;
 
+  void _handleTabChange() {
+    if (!tabController.indexIsChanging) {
+      final selectedOption = OrderOption.values[tabController.index];
+      cubit.initialize(selectedOption);
+    }
+  }
+
   String _getTabTitle(BuildContext context, OrderOption option) {
     switch (option) {
       case OrderOption.toShip:
@@ -53,7 +62,17 @@ class _OrderScreenState extends State<OrderScreen>
       vsync: this,
       initialIndex: widget.orderOption.index,
     );
-    cubit.initialize(widget.orderOption);
+    tabController.addListener(_handleTabChange);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      cubit.initialize(widget.orderOption);
+    });
+  }
+
+  @override
+  void dispose() {
+    tabController.removeListener(_handleTabChange);
+    tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -85,23 +104,6 @@ class _OrderScreenState extends State<OrderScreen>
             fillColor: Colors.transparent,
           ),
           title: GradientText(text: S.of(context).orders),
-          bottom: TabBar(
-            controller: tabController,
-            labelColor: Theme.of(context).colorScheme.primary,
-            unselectedLabelColor: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.3),
-            labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-            indicatorColor: Theme.of(context).colorScheme.primary,
-            tabAlignment: TabAlignment.fill,
-            indicator: const BoxDecoration(),
-            tabs: [
-              ...OrderOption.values.map((option) => Tab(
-                    text: _getTabTitle(context, option),
-                  )),
-            ],
-          ),
         ),
         body: SafeArea(
           child: BlocConsumer<OrderScreenCubit, OrderScreenState>(
@@ -113,90 +115,156 @@ class _OrderScreenState extends State<OrderScreen>
                     title: S.of(context).orderConfirmed,
                     content: S.of(context).deliveryConfirmed,
                     onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OrderScreen.newInstance(
-                              orderOption: OrderOption.completed),
-                        ),
-                      );
+                      Navigator.of(context).pop();
+                      tabController.animateTo(OrderOption.completed.index);
+                      cubit.initialize(OrderOption.completed);
+                      cubit.resetProcessState();
                     },
                   ),
                 );
               }
             },
             builder: (context, state) {
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TabBarView(
-                  controller: tabController,
-                  children: [
-                    // Tab 1: To Ship List
-                    state.toShipList.isEmpty
-                        ? Center(
-                            child: Text(
-                              S.of(context).noOrdersToShip,
-                              style: AppTextStyle.regularText,
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: state.toShipList.length,
-                            itemBuilder: (context, index) {
-                              final salesInvoice = state.toShipList[index];
-                              return SalesInvoiceWidget(
-                                salesInvoice: salesInvoice,
-                                onPressed: () {},
-                              );
-                            },
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final horizontalPadding =
+                      constraints.maxWidth > 500 ? 32.0 : 16.0;
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: 16,
+                    ),
+                    child: Column(
+                      children: [
+                        _buildTabNavigation(context),
+                        const SizedBox(height: 24),
+                        Expanded(
+                          child: TabBarView(
+                            controller: tabController,
+                            children: [
+                              _buildInvoiceList(
+                                context: context,
+                                invoices: state.toShipList,
+                                emptyLabel: S.of(context).noOrdersToShip,
+                                cubit: cubit,
+                                enableConfirmDelivery: false,
+                              ),
+                              _buildInvoiceList(
+                                context: context,
+                                invoices: state.toReceiveList,
+                                emptyLabel: S.of(context).noOrdersToReceive,
+                                cubit: cubit,
+                                enableConfirmDelivery: true,
+                              ),
+                              _buildInvoiceList(
+                                context: context,
+                                invoices: state.completedList,
+                                emptyLabel: S.of(context).noCompletedOrders,
+                                cubit: cubit,
+                                enableConfirmDelivery: false,
+                              ),
+                            ],
                           ),
-                    // Tab 2: To Receive List
-                    state.toReceiveList.isEmpty
-                        ? Center(
-                            child: Text(
-                              S.of(context).noOrdersToReceive,
-                              style: AppTextStyle.regularText,
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: state.toReceiveList.length,
-                            itemBuilder: (context, index) {
-                              final salesInvoice = state.toReceiveList[index];
-                              return SalesInvoiceWidget(
-                                salesInvoice: salesInvoice,
-                                onPressed: () async {
-                                  if (salesInvoice.salesStatus ==
-                                      SalesStatus.shipped) {
-                                    await cubit.confirmDelivery(salesInvoice);
-                                  }
-                                },
-                              );
-                            },
-                          ),
-                    // Tab 3: Completed List
-                    state.completedList.isEmpty
-                        ? Center(
-                            child: Text(
-                              S.of(context).noCompletedOrders,
-                              style: AppTextStyle.regularText,
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: state.completedList.length,
-                            itemBuilder: (context, index) {
-                              final salesInvoice = state.completedList[index];
-                              return SalesInvoiceWidget(
-                                salesInvoice: salesInvoice,
-                                onPressed: () {},
-                              );
-                            },
-                          ),
-                  ],
-                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               );
             },
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTabNavigation(BuildContext context) {
+    final tabBackground =
+        Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.8,
+            );
+    final indicatorColor = Theme.of(context).colorScheme.primary;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: tabBackground,
+        borderRadius: BorderRadius.circular(32),
+      ),
+      child: TabBar(
+        controller: tabController,
+        labelColor: Theme.of(context).colorScheme.onPrimary,
+        unselectedLabelColor:
+            Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+        labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+        unselectedLabelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+        indicator: BoxDecoration(
+          color: indicatorColor,
+          borderRadius: BorderRadius.circular(32),
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        overlayColor:
+            WidgetStateProperty.resolveWith((_) => Colors.transparent),
+        splashFactory: NoSplash.splashFactory,
+        dividerColor: Colors.transparent,
+        isScrollable: false,
+        tabs: OrderOption.values
+            .map(
+              (option) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Text(
+                  _getTabTitle(context, option),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildInvoiceList({
+    required BuildContext context,
+    required List<SalesInvoice> invoices,
+    required String emptyLabel,
+    required OrderScreenCubit cubit,
+    required bool enableConfirmDelivery,
+  }) {
+    if (invoices.isEmpty) {
+      return Center(
+        child: Text(
+          emptyLabel,
+          style: AppTextStyle.regularText,
+        ),
+      );
+    }
+
+    return ListView.separated(
+      itemCount: invoices.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final salesInvoice = invoices[index];
+        return SalesInvoiceWidget(
+          salesInvoice: salesInvoice,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => OrderDetailView.newInstance(
+                  salesInvoice: salesInvoice,
+                ),
+              ),
+            );
+          },
+          onPressed: () async {
+            if (enableConfirmDelivery &&
+                salesInvoice.salesStatus == SalesStatus.shipped) {
+              await cubit.confirmDelivery(salesInvoice);
+            }
+          },
+        );
+      },
     );
   }
 }

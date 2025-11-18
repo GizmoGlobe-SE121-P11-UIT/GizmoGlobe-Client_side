@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gizmoglobe_client/enums/invoice_related/payment_method.dart';
 import 'package:gizmoglobe_client/enums/invoice_related/payment_status.dart';
 import 'package:gizmoglobe_client/enums/invoice_related/sales_status.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
@@ -15,6 +16,7 @@ class SalesInvoice {
   SalesStatus salesStatus;
   double totalPrice;
   PaymentStatus paymentStatus;
+  PaymentMethod paymentMethod;
   List<SalesInvoiceDetail> details;
 
   final Voucher? voucher;
@@ -30,6 +32,7 @@ class SalesInvoice {
     required this.totalPrice,
     required this.details,
     this.paymentStatus = PaymentStatus.unpaid,
+    this.paymentMethod = PaymentMethod.cod,
     this.voucher,
     this.voucherDiscount = 0.0,
   });
@@ -44,6 +47,7 @@ class SalesInvoice {
         totalPrice,
         details,
         paymentStatus,
+        paymentMethod,
         voucher,
         voucherDiscount,
       ];
@@ -58,6 +62,7 @@ class SalesInvoice {
     double? totalPrice,
     List<SalesInvoiceDetail>? details,
     PaymentStatus? paymentStatus,
+    PaymentMethod? paymentMethod,
     Voucher? voucher,
     double? voucherDiscount,
   }) {
@@ -71,6 +76,7 @@ class SalesInvoice {
       totalPrice: totalPrice ?? this.totalPrice,
       details: details ?? this.details,
       paymentStatus: paymentStatus ?? this.paymentStatus,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       voucher: voucher ?? this.voucher,
       voucherDiscount: voucherDiscount ?? this.voucherDiscount,
     );
@@ -81,9 +87,10 @@ class SalesInvoice {
       'salesInvoiceID': salesInvoiceID,
       'customerID': customerID,
       'customerName': customerName,
-      'address': address!.addressID != '' ? address!.addressID : '',
+      'address': address?.addressID ?? '',
       'date': date,
       'paymentStatus': paymentStatus.getName(),
+      'paymentMethod': paymentMethod.getName(),
       'salesStatus': salesStatus.getName(),
       'totalPrice': totalPrice,
       'voucherID': voucher?.voucherID,
@@ -92,23 +99,49 @@ class SalesInvoice {
   }
 
   static SalesInvoice fromMap(String id, Map<String, dynamic> map) {
-    // Handle address lookup - if addressID is empty or not found, use null
-    final addressID = map['address'] as String? ?? '';
     Address? address;
-    if (addressID.isNotEmpty && Database().addressList.isNotEmpty) {
+    final addressField = map['address'];
+    if (addressField is String && addressField.isNotEmpty) {
       try {
-        address = Database().addressList.firstWhere(
-          (addr) => addr.addressID == addressID,
-          orElse: () => Address.nullAddress,
-        );
-        // Convert nullAddress to null
-        if (address == Address.nullAddress) {
-          address = null;
+        if (Database().addressList.isNotEmpty) {
+          address = Database().addressList.firstWhere(
+                (addr) => addr.addressID == addressField,
+                orElse: () => Address.nullAddress,
+              );
+          if (address == Address.nullAddress) {
+            address = null;
+          }
         }
       } catch (e) {
-        // If address list is empty or address not found, use null
         address = null;
       }
+    } else if (addressField is Map<String, dynamic>) {
+      address = Address.fromMap({
+        'addressID': addressField['addressID'] ?? '',
+        'customerID': addressField['customerID'] ?? '',
+        'receiverName': addressField['receiverName'] ?? '',
+        'receiverPhone': addressField['receiverPhone'] ?? '',
+        'provinceCode': addressField['provinceCode'],
+        'districtCode': addressField['districtCode'],
+        'wardCode': addressField['wardCode'],
+        'street': addressField['street'],
+        'hidden': addressField['hidden'] ?? false,
+      });
+      if (address == Address.nullAddress) {
+        address = null;
+      }
+    }
+
+    final dateValue = map['date'];
+    DateTime parsedDate;
+    if (dateValue is Timestamp) {
+      parsedDate = dateValue.toDate();
+    } else if (dateValue is String) {
+      parsedDate = DateTime.tryParse(dateValue) ?? DateTime.now();
+    } else if (dateValue is DateTime) {
+      parsedDate = dateValue;
+    } else {
+      parsedDate = DateTime.now();
     }
 
     return SalesInvoice(
@@ -116,10 +149,14 @@ class SalesInvoice {
       customerID: map['customerID'] ?? '',
       customerName: map['customerName'],
       address: address,
-      date: (map['date'] as Timestamp).toDate(),
+      date: parsedDate,
       paymentStatus: PaymentStatus.values.firstWhere(
         (e) => e.getName() == map['paymentStatus'],
         orElse: () => PaymentStatus.unpaid,
+      ),
+      paymentMethod: PaymentMethod.values.firstWhere(
+        (e) => e.getName() == map['paymentMethod'],
+        orElse: () => PaymentMethod.cod,
       ),
       salesStatus: SalesStatus.values.firstWhere(
         (e) => e.getName() == map['salesStatus'],
@@ -135,10 +172,12 @@ class SalesInvoice {
   }
 
   double getTotalBasedPrice() {
-    return details.fold(0, (previousValue, element) => previousValue + element.subtotal);
+    return details.fold(
+        0, (previousValue, element) => previousValue + element.subtotal);
   }
 
   int getTotalItems() {
-    return details.fold(0, (previousValue, detail) => previousValue + detail.quantity);
+    return details.fold(
+        0, (previousValue, detail) => previousValue + detail.quantity);
   }
-} 
+}

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../../data/database/database.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
 import 'sign_in_state.dart';
@@ -61,6 +62,13 @@ class SignInCubit extends Cubit<SignInState> {
       }
 
       if (userCredential.user != null && userCredential.user!.emailVerified) {
+        try {
+          await Database().refreshUserScopedData();
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error refreshing user data after email sign-in: $e');
+          }
+        }
         emit(state.copyWith(
           processState: ProcessState.success,
           dialogName: DialogName.success,
@@ -206,6 +214,13 @@ class SignInCubit extends Cubit<SignInState> {
         await _localGuestService.clearGuestUser();
 
         await _setupUserData(userCredential.user!);
+        try {
+          await Database().refreshUserScopedData();
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error refreshing user data after Google sign-in: $e');
+          }
+        }
         if (!isClosed) {
           emit(state.copyWith(
             processState: ProcessState.success,

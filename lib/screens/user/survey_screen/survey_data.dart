@@ -18,14 +18,17 @@ const List<Map<String, dynamic>> kSurveyQuestionsData = [
   {
     'id': 'q_purpose',
     'text': 'Bạn chủ yếu sử dụng máy tính cho mục đích gì?',
-    'type': 'singleChoice',
+    'type': 'multiChoice',
     'displayOrder': 2,
     'options': [
       {'id': 'office', 'label': 'Học tập / Làm việc văn phòng'},
       {'id': 'design', 'label': 'Thiết kế đồ họa / Kiến trúc / Multimedia'},
       {'id': 'programming', 'label': 'Lập trình / Kỹ thuật'},
       {'id': 'gaming', 'label': 'Chơi game'},
-      {'id': 'entertainment', 'label': 'Giải trí đơn thuần (xem phim, nghe nhạc, lướt web)'},
+      {
+        'id': 'entertainment',
+        'label': 'Giải trí đơn thuần (xem phim, nghe nhạc, lướt web)'
+      },
     ],
   },
   {
@@ -58,7 +61,10 @@ const List<Map<String, dynamic>> kSurveyQuestionsData = [
     'displayOrder': 5,
     'options': [
       {'id': 'novice', 'label': 'Không rành, chỉ nghe tư vấn'},
-      {'id': 'basic', 'label': 'Biết cơ bản (hiểu tên linh kiện, nhưng không chuyên sâu)'},
+      {
+        'id': 'basic',
+        'label': 'Biết cơ bản (hiểu tên linh kiện, nhưng không chuyên sâu)'
+      },
       {'id': 'advanced', 'label': 'Am hiểu khá (có thể tự chọn cấu hình)'},
       {'id': 'expert', 'label': 'Chuyên sâu (có thể tự build và tối ưu)'},
     ],
@@ -79,7 +85,7 @@ const List<Map<String, dynamic>> kSurveyQuestionsData = [
   {
     'id': 'q_decision_factor',
     'text': 'Yếu tố quan trọng nhất khi quyết định mua máy?',
-    'type': 'singleChoice',
+    'type': 'multiChoice',
     'displayOrder': 7,
     'options': [
       {'id': 'performance', 'label': 'Hiệu năng (cấu hình)'},
@@ -97,11 +103,12 @@ const List<Map<String, dynamic>> kSurveyQuestionsData = [
     'displayOrder': 8,
     'options': [
       {'id': 'online_self', 'label': 'Mua online sau khi tự nghiên cứu'},
-      {'id': 'online_influencer', 'label': 'Mua online theo gợi ý từ reviewer/influencer'},
+      {
+        'id': 'online_influencer',
+        'label': 'Mua online theo gợi ý từ reviewer/influencer'
+      },
       {'id': 'offline_store', 'label': 'Mua offline tại cửa hàng'},
       {'id': 'friends_advice', 'label': 'Nghe tư vấn từ bạn bè/người thân'},
     ],
   },
 ];
-
-

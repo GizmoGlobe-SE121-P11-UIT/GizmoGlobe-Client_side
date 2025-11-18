@@ -506,12 +506,14 @@ class Firebase {
         'salesInvoiceID': salesInvoiceID,
         'customerID': salesInvoice.customerID,
         'customerName': salesInvoice.customerName ?? '',
-        'address': salesInvoice.address?.addressID ?? '',
+        'address': _serializeAddress(salesInvoice.address),
         'date': salesInvoice.date,
         'paymentStatus': salesInvoice.paymentStatus.getName(),
+        'paymentMethod': salesInvoice.paymentMethod.getName(),
         'salesStatus': salesInvoice.salesStatus.getName(),
         'totalPrice': salesInvoice.totalPrice,
         'voucherID': salesInvoice.voucher?.voucherID,
+        'voucherDiscount': salesInvoice.voucherDiscount,
       });
 
       for (SalesInvoiceDetail detail in salesInvoice.details) {
@@ -552,12 +554,14 @@ class Firebase {
         'salesInvoiceID': salesInvoice.salesInvoiceID,
         'customerID': salesInvoice.customerID,
         'customerName': salesInvoice.customerName ?? '',
-        'address': salesInvoice.address?.addressID ?? '',
+        'address': _serializeAddress(salesInvoice.address),
         'date': salesInvoice.date,
         'paymentStatus': salesInvoice.paymentStatus.getName(),
+        'paymentMethod': salesInvoice.paymentMethod.getName(),
         'salesStatus': salesInvoice.salesStatus.getName(),
         'totalPrice': salesInvoice.totalPrice,
         'voucherID': salesInvoice.voucher?.voucherID,
+        'voucherDiscount': salesInvoice.voucherDiscount,
       });
 
       // Delete existing invoice details
@@ -594,8 +598,9 @@ class Firebase {
 
   Future<List<SalesInvoice>> getSalesInvoices() async {
     try {
-      final userID = Database().userID;
-      // Check if userID is empty or null (e.g., for guest users)
+      final userID = Database().userID.isEmpty
+          ? (await Database().getCurrentUserID() ?? '')
+          : Database().userID;
       if (userID.isEmpty) {
         if (kDebugMode) {
           print('User not logged in or is guest. Cannot fetch sales invoices.');
@@ -1112,5 +1117,20 @@ class Firebase {
       }
       // Continue with invoice creation even if voucher update fails
     }
+  }
+
+  Map<String, dynamic>? _serializeAddress(Address? address) {
+    if (address == null) return null;
+    return {
+      'addressID': address.addressID ?? '',
+      'customerID': address.customerID,
+      'receiverName': address.receiverName,
+      'receiverPhone': address.receiverPhone,
+      'provinceCode': address.province?.code,
+      'districtCode': address.district?.code,
+      'wardCode': address.ward?.code,
+      'street': address.street,
+      'hidden': address.hidden,
+    };
   }
 }

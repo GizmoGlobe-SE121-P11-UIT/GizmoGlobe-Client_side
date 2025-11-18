@@ -420,9 +420,6 @@ class AIService {
       return response;
     }
 
-    final prompt = _promptService.createPromptWithProducts(
-        processedMessage, productsSnapshot, isVietnamese);
-    final response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
     final productCardFilters = _buildProductCardFilters(
       brand: brand,
       productName: productName,
@@ -430,25 +427,39 @@ class AIService {
     );
     final disableCardFallback = brand.trim().isNotEmpty;
 
-    if (kDebugMode) {
-      print('Product card filters: $productCardFilters');
-      print('Brand extracted: "$brand"');
-    }
-
-    final productCardsAttachment = _buildProductCardsAttachment(
-      productsSnapshot,
+    final cardSelection = _prepareProductCardSelection(
+      productsSnapshot.docs,
       isVietnamese: isVietnamese,
       keywordFilters: productCardFilters,
       disableFallbackOnEmptyMatch: disableCardFallback,
+      limit: 3,
     );
 
+    final prompt = cardSelection.docs.isNotEmpty
+        ? _promptService.createPromptWithProducts(
+            processedMessage, cardSelection.docs, isVietnamese)
+        : _promptService.createPromptWithoutProducts(
+            processedMessage, isVietnamese);
+    final response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
+
+    final formattedResponse = _formatProductSuggestionResponse(
+      response,
+      cardSelection.cards,
+      isVietnamese,
+    );
+
+    final productCardsAttachment = cardSelection.cards.isEmpty
+        ? ''
+        : '[PRODUCT_CARDS]${jsonEncode(cardSelection.cards)}[/PRODUCT_CARDS]';
+
     if (userId != null) {
-      _conversationService.updateHistory(userId, processedMessage, response);
+      _conversationService.updateHistory(
+          userId, processedMessage, formattedResponse);
     }
 
     return productCardsAttachment.isEmpty
-        ? response
-        : '$response\n\n$productCardsAttachment';
+        ? formattedResponse
+        : '$formattedResponse\n\n$productCardsAttachment';
   }
 
   Future<String> _handleGeneralQuestion(
@@ -680,61 +691,52 @@ List<String> _buildProductCardFilters({
   return filters.toList();
 }
 
-String _buildProductCardsAttachment(
-  QuerySnapshot snapshot, {
-  bool isVietnamese = true,
-  int limit = 4,
+class _ProductCardSelection {
+  final List<QueryDocumentSnapshot> docs;
+  final List<Map<String, dynamic>> cards;
+
+  const _ProductCardSelection({required this.docs, required this.cards});
+}
+
+_ProductCardSelection _prepareProductCardSelection(
+  List<QueryDocumentSnapshot> originalDocs, {
+  required bool isVietnamese,
+  int limit = 3,
   List<String>? keywordFilters,
   bool disableFallbackOnEmptyMatch = false,
 }) {
-  if (snapshot.docs.isEmpty) return '';
+  if (originalDocs.isEmpty) {
+    return const _ProductCardSelection(docs: [], cards: []);
+  }
 
   final normalizedFilters = (keywordFilters ?? [])
       .map((token) => token.trim().toLowerCase())
       .where((token) => token.isNotEmpty)
       .toList();
 
-  List<QueryDocumentSnapshot> docs = snapshot.docs;
+  List<QueryDocumentSnapshot> docs =
+      List<QueryDocumentSnapshot>.from(originalDocs);
 
   if (normalizedFilters.isNotEmpty) {
-    if (kDebugMode) {
-      print(
-          'Filtering ${docs.length} products with tokens: $normalizedFilters');
-    }
-
     final filteredDocs = docs.where((doc) {
       final data = doc.data() as Map<String, dynamic>;
       final name = (data['productName'] ?? '').toString().toLowerCase();
       final manufacturer = _extractManufacturerName(data).toLowerCase();
       final tags = (data['tags']?.toString() ?? '').toLowerCase();
       final searchText = '$name $manufacturer $tags';
-
-      // Each filter token must appear in the combined search text
-      final matches =
-          normalizedFilters.every((token) => searchText.contains(token));
-
-      if (kDebugMode && matches) {
-        print('✓ Match: $name | Manufacturer: $manufacturer');
-      }
-
-      return matches;
+      return normalizedFilters.every((token) => searchText.contains(token));
     }).toList();
-
-    if (kDebugMode) {
-      print('Filtered to ${filteredDocs.length} products');
-    }
 
     if (filteredDocs.isNotEmpty) {
       docs = filteredDocs;
     } else if (disableFallbackOnEmptyMatch) {
       docs = <QueryDocumentSnapshot>[];
-      if (kDebugMode) {
-        print('No matches and fallback disabled - returning empty cards');
-      }
     }
   }
 
-  final cards = docs.take(limit).map((doc) {
+  final limitedDocs = docs.take(limit).toList();
+
+  final cards = limitedDocs.map((doc) {
     final data = doc.data() as Map<String, dynamic>;
     final sellingPrice = (data['sellingPrice'] as num?)?.toDouble() ?? 0;
     final discount = (data['discount'] as num?)?.toDouble() ?? 0;
@@ -787,9 +789,18 @@ String _buildProductCardsAttachment(
     };
   }).toList();
 
-  if (cards.isEmpty) return '';
+  return _ProductCardSelection(docs: limitedDocs, cards: cards);
+}
 
-  return '[PRODUCT_CARDS]${jsonEncode(cards)}[/PRODUCT_CARDS]';
+String _formatProductSuggestionResponse(
+    String aiResponse, List<Map<String, dynamic>> cards, bool isVietnamese) {
+  final trimmed = aiResponse.trim();
+  if (trimmed.isNotEmpty) {
+    return trimmed;
+  }
+  return isVietnamese
+      ? 'Mình đã tìm được một vài sản phẩm phù hợp. Nếu bạn cần thêm thông tin chi tiết, cứ nói mình nhé!'
+      : 'I found a few matching products. Let me know if you want more details!';
 }
 
 String _extractManufacturerName(Map<String, dynamic> data) {

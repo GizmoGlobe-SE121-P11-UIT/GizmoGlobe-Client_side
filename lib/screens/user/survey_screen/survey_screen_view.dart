@@ -71,14 +71,26 @@ class _SurveyScaffoldState extends State<_SurveyScaffold> {
                   itemCount: questions.length,
                   itemBuilder: (context, index) {
                     final q = questions[index];
+                    final type = (q['type'] as String?) ?? 'singleChoice';
+                    final qId = q['id'] as String;
                     return _QuestionCard(
                       question: q,
-                      selectedOptionId: state.singleAnswers[q['id'] as String],
-                      onSelect: (optId) {
-                        context
-                            .read<SurveyScreenCubit>()
-                            .selectSingle(q['id'] as String, optId);
-                      },
+                      selectedOptionId: type == 'singleChoice'
+                          ? state.singleAnswers[qId]
+                          : null,
+                      selectedOptionIds: type == 'multiChoice'
+                          ? state.multiAnswers[qId] ?? const []
+                          : const [],
+                      onSelectSingle: type == 'singleChoice'
+                          ? (optId) => context
+                              .read<SurveyScreenCubit>()
+                              .selectSingle(qId, optId)
+                          : null,
+                      onToggleMulti: type == 'multiChoice'
+                          ? (optId) => context
+                              .read<SurveyScreenCubit>()
+                              .toggleMulti(qId, optId)
+                          : null,
                     );
                   },
                 ),
@@ -169,16 +181,21 @@ class _QuestionCard extends StatelessWidget {
   const _QuestionCard({
     required this.question,
     required this.selectedOptionId,
-    required this.onSelect,
+    required this.selectedOptionIds,
+    this.onSelectSingle,
+    this.onToggleMulti,
   });
 
   final Map<String, dynamic> question;
   final String? selectedOptionId;
-  final ValueChanged<String> onSelect;
+  final List<String> selectedOptionIds;
+  final ValueChanged<String>? onSelectSingle;
+  final ValueChanged<String>? onToggleMulti;
 
   @override
   Widget build(BuildContext context) {
     final List<dynamic> options = (question['options'] as List).toList();
+    final type = (question['type'] as String?) ?? 'singleChoice';
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Card(
@@ -201,11 +218,24 @@ class _QuestionCard extends StatelessWidget {
                 }
                 final String? id = m['id'] as String?;
                 final String label = (m['label'] as String?) ?? '';
+                if (type == 'multiChoice') {
+                  return CheckboxListTile(
+                    value: selectedOptionIds.contains(id),
+                    onChanged: (checked) {
+                      if (id != null && id.isNotEmpty) {
+                        onToggleMulti?.call(id);
+                      }
+                    },
+                    title: Text(label),
+                  );
+                }
                 return RadioListTile<String>(
                   value: id ?? '',
                   groupValue: selectedOptionId,
                   onChanged: (v) {
-                    if (v != null && (id ?? '').isNotEmpty) onSelect(v);
+                    if (v != null && (id ?? '').isNotEmpty) {
+                      onSelectSingle?.call(v);
+                    }
                   },
                   title: Text(label),
                 );
