@@ -395,6 +395,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.31"
+  flutter_profanity_words_checker:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "1.0.0"
+      resolved-ref: "4b8e16657407fca3a5505720bede3779b364991a"
+      url: "https://github.com/quocbao238/flutter_profanity_words_checker"
+    source: git
+    version: "0.0.1"
   flutter_stripe:
     dependency: "direct main"
     description:
