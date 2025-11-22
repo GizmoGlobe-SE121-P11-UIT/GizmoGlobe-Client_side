@@ -293,6 +293,8 @@ class S {
   // Home Screen
   String get bestSellers => Intl.message('Best Sellers', name: 'bestSellers');
   String get favorites => Intl.message('Favorites', name: 'favorites');
+  String get recommendedForYou =>
+      Intl.message('Recommended for You', name: 'recommendedForYou');
   String get seeAll => Intl.message('See All', name: 'seeAll');
   String get appLogo => Intl.message('App Logo', name: 'appLogo');
   String get chatButton => Intl.message('Chat Support', name: 'chatButton');
@@ -426,6 +428,16 @@ class S {
       Intl.message('Discount: Highest', name: 'discountHighest');
   String get discountLowest =>
       Intl.message('Discount: Lowest', name: 'discountLowest');
+  String get releaseLatest =>
+      Intl.message('Release Latest', name: 'releaseLatest');
+  String get releaseOldest =>
+      Intl.message('Release Oldest', name: 'releaseOldest');
+  String get salesHighest =>
+      Intl.message('Sales Highest', name: 'salesHighest');
+  String get salesLowest => Intl.message('Sales Lowest', name: 'salesLowest');
+  String get priceHighest =>
+      Intl.message('Price Highest', name: 'priceHighest');
+  String get priceLowest => Intl.message('Price Lowest', name: 'priceLowest');
 
   // Address picker fields
   String get chooseProvince =>
@@ -730,7 +742,7 @@ class S {
   String get limitedTimeOffer =>
       Intl.message('LIMITED TIME OFFER', name: 'limitedTimeOffer');
   String get buildYourDreamPc =>
-      Intl.message('Build Your\nDream PC', name: 'buildYourDreamPc');
+      Intl.message('Build your PC', name: 'buildYourDreamPc');
   String get premiumComponentsForPc =>
       Intl.message('Premium components for your PC.',
           name: 'premiumComponentsForPc');

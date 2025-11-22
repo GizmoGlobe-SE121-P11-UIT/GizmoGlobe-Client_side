@@ -44,9 +44,7 @@ class _HomeScreen extends State<HomeScreen> {
     // Check if running on web platform
     if (kIsWeb) {
       return Scaffold(
-        backgroundColor: Theme
-            .of(context)
-            .scaffoldBackgroundColor,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: BlocBuilder<HomeScreenCubit, HomeScreenState>(
           builder: (context, state) {
             return SingleChildScrollView(
@@ -87,9 +85,7 @@ class _HomeScreen extends State<HomeScreen> {
                 title: Stack(children: [
                   Center(
                     child: Semantics(
-                      label: S
-                          .of(context)
-                          .appLogo,
+                      label: S.of(context).appLogo,
                       child: const AppLogo(height: 50),
                     ),
                   ),
@@ -97,16 +93,11 @@ class _HomeScreen extends State<HomeScreen> {
                     children: [
                       Expanded(child: SizedBox()),
                       Semantics(
-                        label: S
-                            .of(context)
-                            .chatButton,
+                        label: S.of(context).chatButton,
                         child: IconButton(
                           icon: Icon(
                             Icons.chat,
-                            color: Theme
-                                .of(context)
-                                .colorScheme
-                                .primary,
+                            color: Theme.of(context).colorScheme.primary,
                             size: 28,
                           ),
                           onPressed: () {
@@ -129,9 +120,7 @@ class _HomeScreen extends State<HomeScreen> {
                           children: [
                             _buildCarousel(
                               context,
-                              title: S
-                                  .of(context)
-                                  .bestSellers,
+                              title: S.of(context).bestSellers,
                               products: state.bestSellerProducts,
                               onSeeAll: () {
                                 Navigator.pushNamed(context, '/products');
@@ -140,9 +129,7 @@ class _HomeScreen extends State<HomeScreen> {
                             ),
                             _buildCarousel(
                               context,
-                              title: S
-                                  .of(context)
-                                  .favorites,
+                              title: S.of(context).favorites,
                               products: state.favoriteProducts,
                               onSeeAll: () {
                                 Navigator.pushNamed(context, '/products');
@@ -151,7 +138,7 @@ class _HomeScreen extends State<HomeScreen> {
                             ),
                             _buildCarousel(
                               context,
-                              title: "Recommended for You",
+                              title: S.of(context).recommendedForYou,
                               products: state.recommendedProducts,
                               onSeeAll: () {
                                 Navigator.pushNamed(context, '/products');
@@ -175,9 +162,9 @@ class _HomeScreen extends State<HomeScreen> {
   // dart
   Widget _buildCarousel(BuildContext context,
       {required String title,
-        required List<Product> products,
-        required VoidCallback onSeeAll,
-        required int length}) {
+      required List<Product> products,
+      required VoidCallback onSeeAll,
+      required int length}) {
     if (products.isEmpty) return Container();
 
     final itemCount = products.length > length ? length : products.length;
@@ -188,10 +175,10 @@ class _HomeScreen extends State<HomeScreen> {
         Text(
           title,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            fontSize: 24,
-            color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.bold,
-          ),
+                fontSize: 24,
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 4),
         GridView.builder(
@@ -208,27 +195,25 @@ class _HomeScreen extends State<HomeScreen> {
             return ProductCard(product: products[index]);
           },
         ),
-        Row(
-          children: [
-            Expanded(child: SizedBox()),
-            TextButton(
-              onPressed: onSeeAll,
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.secondary,
-                textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              child: Text(S.of(context).seeAll),
+        Row(children: [
+          Expanded(child: SizedBox()),
+          TextButton(
+            onPressed: onSeeAll,
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.secondary,
+              textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
-            Icon(
-              Icons.arrow_right_alt_outlined,
-              color: Theme.of(context).colorScheme.secondary,
-              size: 20,
-            ),
-          ]
-        ),
+            child: Text(S.of(context).seeAll),
+          ),
+          Icon(
+            Icons.arrow_right_alt_outlined,
+            color: Theme.of(context).colorScheme.secondary,
+            size: 20,
+          ),
+        ]),
       ],
     );
   }

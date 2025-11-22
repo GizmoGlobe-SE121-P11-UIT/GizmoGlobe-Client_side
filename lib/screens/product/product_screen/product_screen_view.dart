@@ -201,10 +201,10 @@ class _ProductScreenState extends State<ProductScreen>
               ],
             ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
+          floatingActionButton: FloatingActionButton(
             onPressed: () => _openPcBuilder(context),
-            icon: const Icon(Icons.computer),
-            label: Text(S.of(context).buildYourDreamPc.split('\n').first),
+            tooltip: S.of(context).buildYourDreamPc.split('\n').first,
+            child: const Icon(Icons.build),
           ),
           body: SafeArea(
             child: BlocBuilder<ProductScreenCubit, ProductScreenState>(

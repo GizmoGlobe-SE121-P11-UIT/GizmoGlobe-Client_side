@@ -167,7 +167,6 @@ class SignInCubit extends Cubit<SignInState> {
           // Handle other types of errors
           if (kDebugMode) {
             print('Google Sign-In error: $error');
-            print('Error type: ${error.runtimeType}');
           }
 
           if (!isClosed) {
@@ -193,14 +192,23 @@ class SignInCubit extends Cubit<SignInState> {
 
         final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
         if (googleUser == null) {
+          if (kDebugMode) {
+            print('Google Sign-In cancelled by user');
+          }
           if (!isClosed) {
             emit(state.copyWith(processState: ProcessState.idle));
           }
           return;
         }
 
+        if (kDebugMode) {
+          print('Google Sign-In successful, getting authentication...');
+          print('User email: ${googleUser.email}');
+        }
+
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;
+
         final AuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
@@ -241,9 +249,10 @@ class SignInCubit extends Cubit<SignInState> {
           message: NotifyMessage.msg2,
         ));
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (kDebugMode) {
         print('Google Sign-In error: $error');
+        print('Stack trace: $stackTrace');
       }
       if (!isClosed) {
         emit(state.copyWith(

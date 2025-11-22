@@ -415,6 +415,9 @@ class SVI extends S {
   String get favorites => 'Yêu thích';
 
   @override
+  String get recommendedForYou => 'Đề xuất cho bạn';
+
+  @override
   String get seeAll => 'Xem tất cả';
 
   @override
@@ -645,6 +648,24 @@ class SVI extends S {
 
   @override
   String get discountLowest => 'Giảm giá: Thấp nhất';
+
+  @override
+  String get releaseLatest => 'Mới nhất';
+
+  @override
+  String get releaseOldest => 'Cũ nhất';
+
+  @override
+  String get salesHighest => 'Bán chạy nhất';
+
+  @override
+  String get salesLowest => 'Ít bán nhất';
+
+  @override
+  String get priceHighest => 'Giá: Cao nhất';
+
+  @override
+  String get priceLowest => 'Giá: Thấp nhất';
 
   @override
   String get chooseProvince => 'Chọn Tỉnh/Thành phố';
@@ -1099,7 +1120,7 @@ class SVI extends S {
   String get limitedTimeOffer => 'ƯU ĐÃI CÓ THỜI HẠN';
 
   @override
-  String get buildYourDreamPc => 'Xây Dựng PC\nMơ Ước Của Bạn';
+  String get buildYourDreamPc => 'Xây dựng PC của bạn';
 
   @override
   String get premiumComponentsForPc => 'Linh kiện cao cấp cho PC của bạn.';

@@ -160,10 +160,6 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer2<ThemeProvider, LanguageProvider>(
         builder: (context, themeProvider, languageProvider, child) {
-          if (kDebugMode) {
-            print('Current locale: ${languageProvider.currentLocale}');
-            print('Supported locales: ${[Locale('en'), Locale('vi')]}');
-          }
           return BlocProvider(
             create: (context) => MainScreenCubit(),
             child: CartProvider(
@@ -183,27 +179,13 @@ class MyApp extends StatelessWidget {
                   GlobalCupertinoLocalizations.delegate,
                 ],
                 localeResolutionCallback: (locale, supportedLocales) {
-                  if (kDebugMode) {
-                    print('Locale resolution callback called');
-                    print('Requested locale: $locale');
-                    print('Supported locales: $supportedLocales');
-                  }
                   // Nếu locale không được hỗ trợ, trả về tiếng Việt
                   if (!supportedLocales.contains(locale)) {
-                    if (kDebugMode) {
-                      print('Locale not supported, returning Vietnamese');
-                    }
-                    return const Locale('vi');
+                    return const Locale('en');
                   }
                   return locale;
                 },
                 builder: (context, child) {
-                  if (kDebugMode) {
-                    print('MaterialApp builder called');
-                    print(
-                        'Current locale in builder: ${Localizations.localeOf(context)}');
-                  }
-
                   Widget wrapped = Localizations.override(
                     context: context,
                     locale: languageProvider.currentLocale,
@@ -707,22 +689,18 @@ class _AuthWrapperState extends State<AuthWrapper> {
           }
         }
       } catch (e, stackTrace) {
-        print('Error initializing web: $e'); // Always print
-        print('Stack trace: $stackTrace'); // Always print
+        if (kDebugMode) {
+          print('Error initializing web: $e'); // Always print
+          print('Stack trace: $stackTrace'); // Always print
+        }
         // Even if redirect check fails, try to create guest if no user exists
         try {
           final currentUser = FirebaseAuth.instance.currentUser;
           if (currentUser != null) {
-            if (kDebugMode) {
-              print('Found authenticated user after error: ${currentUser.uid}');
-            }
             // User is authenticated, clear guest data and setup user data
             await _webGuestService.clearGuestUser();
             await _setupUserDataFromRedirect(currentUser);
           } else if (currentUser == null) {
-            if (kDebugMode) {
-              print('No authenticated user after error - creating guest user');
-            }
             await _webGuestService.createOrGetGuestUser();
           }
         } catch (guestError) {
@@ -783,9 +761,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       batch.set(customerDocRef, customerData, SetOptions(merge: true));
       await batch.commit();
 
-      if (kDebugMode) {
-        print('User data setup completed for redirect sign-in');
-      }
+      print('User data setup completed for redirect sign-in');
     } catch (e) {
       if (kDebugMode) {
         print('Error setting up user data from redirect: $e');

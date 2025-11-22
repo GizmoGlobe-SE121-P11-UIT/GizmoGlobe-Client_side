@@ -47,9 +47,6 @@ class AICartService {
 
       if (!cartDoc.exists) {
         final subtotal = (discountedPrice * quantity).toStringAsFixed(2);
-        if (kDebugMode) {
-          print('Creating new cart item with subtotal: $subtotal');
-        }
 
         await cartRef.set({
           'quantity': quantity,
@@ -62,13 +59,6 @@ class AICartService {
             (cartDoc.data()?['quantity'] as num?)?.toInt() ?? 0;
         final newQuantity = currentQuantity + quantity;
         final subtotal = (discountedPrice * newQuantity).toStringAsFixed(2);
-
-        if (kDebugMode) {
-          print('Updating existing cart item:');
-          print('Current quantity: $currentQuantity');
-          print('New quantity: $newQuantity');
-          print('New subtotal: $subtotal');
-        }
 
         await cartRef.update({
           'quantity': newQuantity,

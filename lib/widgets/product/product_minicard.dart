@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/main.dart' show rootNavigatorKey;
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_webview.dart';
 
 class ProductMiniCard extends StatelessWidget {
@@ -56,7 +58,9 @@ class ProductMiniCard extends StatelessWidget {
 
     await navigator.push(
       MaterialPageRoute(
-        builder: (_) => ProductDetailScreenWebView.newInstance(product),
+        builder: (_) => kIsWeb
+            ? ProductDetailScreenWebView.newInstance(product)
+            : ProductDetailScreen.newInstance(product),
       ),
     );
   }
@@ -155,21 +159,28 @@ class ProductMiniCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Text(
-                        Helper.toCurrencyFormat(_discountedPrice),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Text(
+                          Helper.toCurrencyFormat(_discountedPrice),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (_sellingPrice != null &&
                           _sellingPrice! > _discountedPrice) ...[
                         const SizedBox(width: 8),
-                        Text(
-                          Helper.toCurrencyFormat(_sellingPrice!),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            decoration: TextDecoration.lineThrough,
-                            color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        Flexible(
+                          child: Text(
+                            Helper.toCurrencyFormat(_sellingPrice!),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              decoration: TextDecoration.lineThrough,
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

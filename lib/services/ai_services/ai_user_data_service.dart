@@ -151,17 +151,12 @@ class AIUserDataService {
         print('Invoice snapshot size: ${invoiceSnapshot.docs.length}');
       }
       if (invoiceSnapshot.docs.isEmpty) {
-        if (kDebugMode) {
-          print('No invoices found');
-        }
         return [];
       }
 
       final invoices = invoiceSnapshot.docs.map((doc) {
         final data = doc.data();
-        if (kDebugMode) {
-          print('Invoice data: $data');
-        }
+
         return {
           ...data,
           'docId': doc.id,

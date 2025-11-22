@@ -157,9 +157,11 @@ class AIService {
 
       // If no product name found OR if it's just a pronoun/reference, try context extraction
       if (productName == null || productName.isEmpty || isPronounOrReference) {
-        if (kDebugMode && isPronounOrReference) {
-          print(
-              'Extracted name "$productName" is a pronoun/reference, using context extraction');
+        if (isPronounOrReference) {
+          if (kDebugMode) {
+            print(
+                'Extracted name "$productName" is a pronoun/reference, using context extraction');
+          }
         }
         productName = await _conversationService.extractProductNameFromContext(
             userId, userMessage);
@@ -528,9 +530,6 @@ class AIService {
           if (kDebugMode) {
             print('Gemini API response status: ${response.statusCode}');
           }
-          if (kDebugMode) {
-            print('Gemini API response body: ${response.body}');
-          }
 
           if (response.statusCode == 200) {
             final responseData = jsonDecode(response.body);
@@ -539,8 +538,10 @@ class AIService {
               final content = candidates[0]['content'];
               final parts = content['parts'] as List;
               if (parts.isNotEmpty) {
-                if (useFallback && kDebugMode) {
-                  print('Successfully used fallback model: $model');
+                if (useFallback) {
+                  if (kDebugMode) {
+                    print('Successfully used fallback model: $model');
+                  }
                 }
                 return parts[0]['text'] as String;
               }

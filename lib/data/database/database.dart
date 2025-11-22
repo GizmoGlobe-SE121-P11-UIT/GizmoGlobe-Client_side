@@ -193,9 +193,6 @@ class Database {
       // await addStatusToAllProducts();
       await _ensureAuthStateInitialized();
       await getUserData();
-      if (kDebugMode) {
-        print('Getting data from Firebase');
-      }
 
       // print('Đang lấy dữ liệu từ Firebase');
       provinceList = await fetchProvinces();
@@ -248,9 +245,6 @@ class Database {
       String userID = await getCurrentUserID() ?? '';
 
       if (userID.isEmpty) {
-        if (kDebugMode) {
-          print('User not logged in. Cannot fetch cart items.');
-        }
         return;
       }
 
@@ -294,9 +288,6 @@ class Database {
       if (kDebugMode) {
         print('Error initializing connection to Firebase: $e');
       }
-      // print('Lỗi khi khởi tạo kết nối tới Firebase: $e');
-      // Nếu không lấy được dữ liệu từ Firestore, sử dụng dữ liệu mẫu
-      // _initializeSampleData();
     }
   }
 
@@ -306,11 +297,7 @@ class Database {
     try {
       final String response = await rootBundle.loadString(filePath);
       if (response.isEmpty) {
-        if (kDebugMode) {
-          print('JSON file is empty');
-        }
         throw Exception('JSON file is empty');
-        // throw Exception('Tệp JSON trống');
       }
 
       final List? jsonList = jsonDecode(response) as List<dynamic>?;
@@ -326,9 +313,6 @@ class Database {
           jsonList.map((province) => Province.fromJson(province)).toList();
       return provinceList;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading provinces from file: $e');
-      }
       throw Exception('Error loading provinces from file: $e');
       // throw Exception('Lỗi khi tải danh sách tỉnh thành từ tệp: $e');
     }
@@ -395,12 +379,6 @@ class Database {
       psuList = products.whereType<PSU>().toList();
       mainboardList = products.whereType<Mainboard>().toList();
       driveList = products.whereType<Drive>().toList();
-
-      if (kDebugMode) {
-        print('Populated typed lists: '
-            'ram=${ramList.length}, cpu=${cpuList.length}, gpu=${gpuList.length}, '
-            'psu=${psuList.length}, mainboard=${mainboardList.length}, drive=${driveList.length}');
-      }
 
       return products;
     } catch (e) {
@@ -472,9 +450,6 @@ class Database {
     try {
       // Use the local productList that's already been filtered for inactive manufacturers and non-active products
       if (productList.isEmpty) {
-        if (kDebugMode) {
-          print('Product list is empty, cannot determine best sellers');
-        }
         return [];
       }
 
@@ -486,11 +461,6 @@ class Database {
 
       // Take the top 5 best sellers
       List<Product> bestSellers = sortedProducts.take(5).toList();
-
-      if (kDebugMode) {
-        print(
-            'Found ${bestSellers.length} best selling products from local data');
-      }
 
       return bestSellers;
     } catch (e) {
@@ -505,17 +475,10 @@ class Database {
     try {
       // Check if customerID is empty or null (e.g., for guest users)
       if (customerID.isEmpty) {
-        if (kDebugMode) {
-          print(
-              'User not logged in or is guest. Cannot fetch favorites from Firebase.');
-        }
         return [];
       }
 
       if (productList.isEmpty) {
-        if (kDebugMode) {
-          print('Product list is empty, cannot fetch favorites');
-        }
         return [];
       }
 

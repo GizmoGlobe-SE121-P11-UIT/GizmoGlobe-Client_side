@@ -158,10 +158,6 @@ class _WebHeaderState extends State<WebHeader> {
       // Then reload immediately to prevent StreamBuilder from creating a guest user
       await Future.delayed(const Duration(milliseconds: 50));
 
-      if (kDebugMode) {
-        print('Logout: Reloading page to reset app state...');
-      }
-
       // Force immediate page reload - this will stop all further execution
       platform_actions.reloadPage();
 

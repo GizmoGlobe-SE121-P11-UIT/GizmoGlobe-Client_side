@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/general/gradient_text.dart';
+import '../../../widgets/product/product_minicard.dart';
 import '../../../objects/chat_related/chat_message.dart';
 import '../../../screens/chat/chat_screen/chat_screen_cubit.dart';
 import '../../../screens/chat/chat_screen/chat_screen_state.dart';
@@ -95,6 +97,30 @@ class _ChatScreenState extends State<ChatScreen> {
     return spans;
   }
 
+  List<Map<String, dynamic>> _extractProductCards(String content) {
+    final matches = _productCardsRegex.allMatches(content);
+    final List<Map<String, dynamic>> result = [];
+    for (final match in matches) {
+      final jsonString = match.group(1);
+      if (jsonString == null || jsonString.isEmpty) continue;
+      try {
+        final decoded = jsonDecode(jsonString);
+        if (decoded is List) {
+          for (final item in decoded) {
+            if (item is Map<String, dynamic>) {
+              result.add(item);
+            }
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to parse product cards: $e');
+        }
+      }
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Use kIsWeb to determine platform
@@ -150,11 +176,14 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
+                    reverse: true,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     itemCount: state.messages.length,
                     itemBuilder: (context, index) {
-                      final message = state.messages[index];
+                      // Reverse index to show messages in correct order
+                      final reversedIndex = state.messages.length - 1 - index;
+                      final message = state.messages[reversedIndex];
                       return _buildMessageBubble(message, theme);
                     },
                   ),
@@ -171,28 +200,80 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessageBubble(ChatMessage message, ThemeData theme) {
     final isUser = !message.isFromBot;
     final isAdmin = !message.isAIMode && message.isFromBot;
+    final isAI = message.isAIMode && message.isFromBot;
+    final sanitizedContent = message.content.replaceAll(_productCardsRegex, '');
+    final productCards = _extractProductCards(message.content);
+
+    // Determine colors for AI responses
+    final Color bubbleColor;
+    if (isUser) {
+      bubbleColor = theme.colorScheme.primary;
+    } else if (isAdmin) {
+      bubbleColor = theme.colorScheme.secondary;
+    } else {
+      // AI response - use a distinct light blue/gray color
+      bubbleColor = theme.colorScheme.primaryContainer.withValues(alpha: 0.3);
+    }
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        decoration: BoxDecoration(
-          color: isUser
-              ? theme.colorScheme.primary
-              : isAdmin
-                  ? theme.colorScheme.secondary
-                  : theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
-        child: RichText(
-          text: TextSpan(
-            children: _buildMessageSpans(
-              message.content,
-              isUser,
-              theme,
-            ),
-          ),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: bubbleColor,
+          borderRadius: BorderRadius.circular(16),
+          border: isAI
+              ? Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                  width: 1,
+                )
+              : null,
+          boxShadow: isAI
+              ? [
+                  BoxShadow(
+                    color: theme.colorScheme.shadow.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (sanitizedContent.trim().isNotEmpty) ...[
+              SizedBox(
+                width: double.infinity,
+                child: Text.rich(
+                  TextSpan(
+                    children: _buildMessageSpans(
+                      message.content,
+                      isUser,
+                      theme,
+                    ),
+                  ),
+                  textAlign: isAI ? TextAlign.justify : TextAlign.start,
+                ),
+              ),
+              if (!isUser && productCards.isNotEmpty) const SizedBox(height: 8),
+            ],
+            if (!isUser && productCards.isNotEmpty) ...[
+              Column(
+                children: productCards
+                    .map(
+                      (card) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: ProductMiniCard(cardData: card),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+          ],
         ),
       ),
     );

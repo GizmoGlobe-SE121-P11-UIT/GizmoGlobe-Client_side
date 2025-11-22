@@ -1,14 +1,10 @@
 // Web-only implementations using package:web instead of deprecated dart:html
-import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 void reloadPage() {
   // Force a hard reload to reset the entire app (not just auth instance)
   // This clears all state, cache, and reinitializes the entire Flutter app
-  if (kDebugMode) {
-    print('Reloading page to reset app state...');
-  }
   // Use location.reload() to force an immediate page reload
   // This will stop all further JavaScript/Dart execution
   web.window.location.reload();

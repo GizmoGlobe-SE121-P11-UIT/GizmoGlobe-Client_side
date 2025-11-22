@@ -115,9 +115,6 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
 
       final user = _auth.currentUser;
       if (user == null) {
-        if (kDebugMode) {
-          print('User not logged in');
-        }
         emit(state.copyWith(
           processState: ProcessState.failure,
           error: 'User not logged in',

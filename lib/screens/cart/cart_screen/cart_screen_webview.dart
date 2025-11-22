@@ -5,6 +5,8 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/cart_item.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_webview.dart';
+import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
+import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_webview.dart';
 
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
@@ -247,236 +249,256 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Checkbox
-              Checkbox(
-                value: isSelected,
-                onChanged: (value) {
-                  cubit.toggleItemSelection(item);
-                },
-                activeColor: Theme.of(context).colorScheme.primary,
-                checkColor: Theme.of(context).colorScheme.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                side: BorderSide(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.5),
-                  width: 1.5,
-                ),
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => kIsWeb
+                    ? ProductDetailScreenWebView.newInstance(product)
+                    : ProductDetailScreen.newInstance(product),
               ),
-              const SizedBox(width: 12),
-              // Product Image
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Icon(
-                    _getCategoryIcon(product.category),
-                    size: 40,
-                    color: Colors.grey[600],
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Checkbox
+                Checkbox(
+                  value: isSelected,
+                  onChanged: (value) {
+                    cubit.toggleItemSelection(item);
+                  },
+                  activeColor: Theme.of(context).colorScheme.primary,
+                  checkColor: Theme.of(context).colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  side: BorderSide(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+                    width: 1.5,
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              // Product Details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.productName,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                const SizedBox(width: 12),
+                // Product Image
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      _getCategoryIcon(product.category),
+                      size: 40,
+                      color: Colors.grey[600],
                     ),
-                    const SizedBox(height: 8),
-                    if (discount > 0) ...[
-                      Row(
-                        children: [
-                          Text(
-                            Helper.toCurrencyFormat(originalPrice),
-                            style: TextStyle(
-                              decoration: TextDecoration.lineThrough,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red[100],
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '-${(discount).toStringAsFixed(0)}%',
-                              style: TextStyle(
-                                color: Colors.red[700],
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                    ],
-                    Text(
-                      Helper.toCurrencyFormat(finalPrice),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.tertiary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${S.of(context).subtotal}: ${(Helper.toCurrencyFormat(item.subTotal()))}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              // Quantity Controls
-              Column(
-                children: [
-                  // Quantity Controls
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.2),
+                const SizedBox(width: 16),
+                // Product Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.productName,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove, size: 20),
-                          onPressed: (item.quantity) > 1
-                              ? () {
-                                  cubit.updateQuantity(item, item.quantity - 1);
-                                }
-                              : null,
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(
-                            minWidth: 40,
-                            minHeight: 40,
-                          ),
-                          style: IconButton.styleFrom(
-                            foregroundColor: item.quantity > 1
-                                ? Theme.of(context).colorScheme.onSurface
-                                : Theme.of(context)
+                      const SizedBox(height: 8),
+                      if (discount > 0) ...[
+                        Row(
+                          children: [
+                            Text(
+                              Helper.toCurrencyFormat(originalPrice),
+                              style: TextStyle(
+                                decoration: TextDecoration.lineThrough,
+                                color: Theme.of(context)
                                     .colorScheme
                                     .onSurface
-                                    .withValues(alpha: 0.3),
-                          ),
-                        ),
-                        Container(
-                          constraints: const BoxConstraints(minWidth: 40),
-                          alignment: Alignment.center,
-                          child: Text(
-                            (item.quantity).toString(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                                    .withValues(alpha: 0.6),
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.add, size: 20),
-                          onPressed: () {
-                            cubit.updateQuantity(item, item.quantity + 1);
-                          },
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(
-                            minWidth: 40,
-                            minHeight: 40,
-                          ),
-                          style: IconButton.styleFrom(
-                            foregroundColor:
-                                Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Delete Button
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 24),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surface,
-                          title: Text(
-                            S.of(context).removeItem,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          content: Text(
-                            S.of(context).removeItemConfirmation,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text(S.of(context).cancel),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                cubit.removeFromCart(item);
-                              },
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red[100],
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                               child: Text(
-                                S.of(context).remove,
-                                style: const TextStyle(color: Colors.red),
+                                '-${(discount).toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  color: Colors.red[700],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      );
-                    },
-                    style: IconButton.styleFrom(
-                      foregroundColor: Colors.red,
-                    ),
+                        const SizedBox(height: 4),
+                      ],
+                      Text(
+                        Helper.toCurrencyFormat(finalPrice),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.tertiary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${S.of(context).subtotal}: ${(Helper.toCurrencyFormat(item.subTotal()))}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+                // Quantity Controls
+                GestureDetector(
+                  onTap: () {}, // Stop event propagation
+                  child: Column(
+                    children: [
+                      // Quantity Controls
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.2),
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove, size: 20),
+                              onPressed: (item.quantity) > 1
+                                  ? () {
+                                      cubit.updateQuantity(
+                                          item, item.quantity - 1);
+                                    }
+                                  : null,
+                              padding: const EdgeInsets.all(8),
+                              constraints: const BoxConstraints(
+                                minWidth: 40,
+                                minHeight: 40,
+                              ),
+                              style: IconButton.styleFrom(
+                                foregroundColor: item.quantity > 1
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.3),
+                              ),
+                            ),
+                            Container(
+                              constraints: const BoxConstraints(minWidth: 40),
+                              alignment: Alignment.center,
+                              child: Text(
+                                (item.quantity).toString(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add, size: 20),
+                              onPressed: () {
+                                cubit.updateQuantity(item, item.quantity + 1);
+                              },
+                              padding: const EdgeInsets.all(8),
+                              constraints: const BoxConstraints(
+                                minWidth: 40,
+                                minHeight: 40,
+                              ),
+                              style: IconButton.styleFrom(
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Delete Button
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 24),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.surface,
+                              title: Text(
+                                S.of(context).removeItem,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              content: Text(
+                                S.of(context).removeItemConfirmation,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(S.of(context).cancel),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    cubit.removeFromCart(item);
+                                  },
+                                  child: Text(
+                                    S.of(context).remove,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        style: IconButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

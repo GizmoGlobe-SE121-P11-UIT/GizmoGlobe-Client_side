@@ -133,9 +133,6 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
     try {
       final user = _auth.currentUser;
       if (user == null) {
-        if (kDebugMode) {
-          print('User not logged in');
-        }
         emit(state.copyWith(
           processState: ProcessState.failure,
           message: 'CART_LOGIN_REQUIRED',

@@ -51,18 +51,30 @@ class CommentModerationService {
   })  : _model = model ??
             (() {
               final key = apiKey ?? dotenv.env['GEMINI_API_KEY'];
-              if (key == null || key.isEmpty) {
-                throw StateError(
-                    'GEMINI_API_KEY is missing. Add it to the .env file.');
+              if (key != null && key.isNotEmpty) {
+                try {
+                  return GenerativeModel(
+                      model: 'gemini-2.5-flash', apiKey: key);
+                } catch (e) {
+                  if (kDebugMode) {
+                    debugPrint(
+                        'CommentModerationService: Failed to initialize Gemini model: $e');
+                  }
+                  return null;
+                }
               }
-              return GenerativeModel(model: 'gemini-1.5-flash', apiKey: key);
+              if (kDebugMode) {
+                debugPrint(
+                    'CommentModerationService: GEMINI_API_KEY not found. Gemini analysis will be disabled.');
+              }
+              return null;
             })(),
         _englishChecker = englishChecker ??
             profanity.FlutterProfanityChecker(language: profanity.Language.en),
         _vietnameseChecker = vietnameseChecker ??
             profanity.FlutterProfanityChecker(language: profanity.Language.vi);
 
-  final GenerativeModel _model;
+  final GenerativeModel? _model;
   final profanity.FlutterProfanityChecker _englishChecker;
   final profanity.FlutterProfanityChecker _vietnameseChecker;
 
@@ -121,41 +133,87 @@ class CommentModerationService {
 
   Future<void> _ensureDictionariesLoaded() async {
     if (_dictionariesLoaded) return;
-    await Future.wait([
-      _englishChecker.init(),
-      _vietnameseChecker.init(),
-    ]);
-    _dictionariesLoaded = true;
+    try {
+      await Future.wait([
+        _englishChecker.init(),
+        _vietnameseChecker.init(),
+      ]);
+      _dictionariesLoaded = true;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+            'CommentModerationService: Failed to load profanity dictionaries: $e');
+      }
+      // Mark as loaded anyway to prevent repeated attempts
+      _dictionariesLoaded = true;
+    }
   }
 
   Future<_DictionarySanitizationResult> _sanitizeWithDictionary(
       String comment) async {
-    await _ensureDictionariesLoaded();
-    final flagged = <String>{};
+    try {
+      await _ensureDictionariesLoaded();
+      final flagged = <String>{};
 
-    for (final checker in [_englishChecker, _vietnameseChecker]) {
-      flagged.addAll(checker.all(comment));
+      for (final checker in [_englishChecker, _vietnameseChecker]) {
+        try {
+          flagged.addAll(checker.all(comment));
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint(
+                'CommentModerationService: Error checking profanity: $e');
+          }
+        }
+      }
+
+      var sanitizedText = comment;
+      for (final word in flagged) {
+        if (word.isEmpty) continue;
+        try {
+          final pattern =
+              RegExp(r'\b' + RegExp.escape(word) + r'\b', caseSensitive: false);
+          sanitizedText = sanitizedText.replaceAll(pattern, '***');
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint(
+                'CommentModerationService: Error sanitizing word "$word": $e');
+          }
+        }
+      }
+
+      return _DictionarySanitizationResult(
+        sanitizedText: sanitizedText,
+        flaggedTerms: flagged.toList(),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+            'CommentModerationService: Dictionary sanitization failed: $e');
+      }
+      // Return original text if dictionary filtering fails
+      return _DictionarySanitizationResult(
+        sanitizedText: comment,
+        flaggedTerms: const [],
+      );
     }
-
-    var sanitizedText = comment;
-    for (final word in flagged) {
-      if (word.isEmpty) continue;
-      final pattern =
-          RegExp(r'\b' + RegExp.escape(word) + r'\b', caseSensitive: false);
-      sanitizedText = sanitizedText.replaceAll(pattern, '***');
-    }
-
-    return _DictionarySanitizationResult(
-      sanitizedText: sanitizedText,
-      flaggedTerms: flagged.toList(),
-    );
   }
 
   Future<Map<String, dynamic>?> _analyzeWithGemini(
       String comment, String? userId) async {
-    final prompt = _buildAnalysisPrompt(comment, userId);
-    final response = await _model.generateContent([Content.text(prompt)]);
-    return _parseGeminiPayload(response.text);
+    final model = _model;
+    if (model == null) {
+      return null;
+    }
+    try {
+      final prompt = _buildAnalysisPrompt(comment, userId);
+      final response = await model.generateContent([Content.text(prompt)]);
+      return _parseGeminiPayload(response.text);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('CommentModerationService: Gemini API call failed: $e');
+      }
+      return null;
+    }
   }
 
   String _buildAnalysisPrompt(String comment, String? userId) => '''

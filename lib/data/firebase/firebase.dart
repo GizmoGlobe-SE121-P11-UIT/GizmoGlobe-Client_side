@@ -13,98 +13,6 @@ import '../../objects/voucher_related/owned_voucher.dart';
 import '../../objects/voucher_related/voucher.dart';
 import '../../objects/voucher_related/voucher_factory.dart';
 
-// Future<void> pushProductSamplesToFirebase() async {
-//   try {
-//     final FirebaseFirestore firestore = FirebaseFirestore.instance;
-//
-//     // Database().generateSampleData();
-//     for (var manufacturer in Database().manufacturerList) {
-//       await firestore
-//           .collection('manufacturers')
-//           .doc(manufacturer.manufacturerID)
-//           .set({
-//         'manufacturerID': manufacturer.manufacturerID,
-//         'manufacturerName': manufacturer.manufacturerName,
-//       });
-//     }
-//
-//     // Push products to Firestore
-//     for (var product in Database().productList) {
-//       Map<String, dynamic> productData = {
-//         'productName': product.productName,
-//         'price': product.price,
-//         'manufacturerID': product.manufacturer.manufacturerID,
-//         'category': product.category.getName(),
-//       };
-//
-//       // Thêm các thuộc tính đặc thù cho từng loại sản phẩm
-//       switch (product.runtimeType) {
-//         case const (RAM):
-//           final ram = product as RAM;
-//           productData.addAll({
-//             'bus': ram.bus.getName(),
-//             'capacity': ram.capacity.getName(),
-//             'ramType': ram.ramType.getName(),
-//           });
-//           break;
-//
-//         case const (CPU):
-//           final cpu = product as CPU;
-//           productData.addAll({
-//             'family': cpu.family.getName(),
-//             'core': cpu.core,
-//             'thread': cpu.thread,
-//             'clockSpeed': cpu.clockSpeed,
-//           });
-//           break;
-//
-//         case const (GPU):
-//           final gpu = product as GPU;
-//           productData.addAll({
-//             'series': gpu.series.getName(),
-//             'capacity': gpu.capacity.getName(),
-//             'busWidth': gpu.bus.getName(),
-//             'clockSpeed': gpu.clockSpeed,
-//           });
-//           break;
-//
-//         case const (Mainboard):
-//           final mainboard = product as Mainboard;
-//           productData.addAll({
-//             'formFactor': mainboard.formFactor.getName(),
-//             'series': mainboard.series.getName(),
-//             'compatibility': mainboard.compatibility.getName(),
-//           });
-//           break;
-//
-//         case const (Drive):
-//           final drive = product as Drive;
-//           productData.addAll({
-//             'type': drive.type.getName(),
-//             'capacity': drive.capacity.getName(),
-//           });
-//           break;
-//
-//         case const (PSU):
-//           final psu = product as PSU;
-//           productData.addAll({
-//             'wattage': psu.wattage,
-//             'efficiency': psu.efficiency.getName(),
-//             'modular': psu.modular.getName(),
-//           });
-//           break;
-//       }
-//
-//       // Thêm sản phẩm vào Firestore với tất cả thuộc tính
-//       await firestore.collection('products').add(productData);
-//     }
-//   } catch (e) {
-//     if (kDebugMode) {
-//       print('Error pushing product samples to Firebase: $e');
-//     }
-//   }
-// }
-
 class Firebase {
   static final Firebase _firebase = Firebase._internal();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -187,15 +95,9 @@ class Firebase {
 
         // Check if item exists in cart
         final cartDoc = await cartRef.get();
-        if (kDebugMode) {
-          print('Cart document exists: ${cartDoc.exists}');
-        }
 
         if (!cartDoc.exists) {
           final subtotal = (discountedPrice * quantity).toStringAsFixed(2);
-          if (kDebugMode) {
-            print('Creating new cart item with subtotal: $subtotal');
-          }
 
           await cartRef.set({
             'quantity': quantity,
@@ -209,27 +111,11 @@ class Firebase {
           final newQuantity = currentQuantity + quantity;
           final subtotal = (discountedPrice * newQuantity).toStringAsFixed(2);
 
-          if (kDebugMode) {
-            print('Updating existing cart item:');
-            print('Current quantity: $currentQuantity');
-            print('New quantity: $newQuantity');
-            print('New subtotal: $subtotal');
-          }
-
           await cartRef.update({
             'quantity': newQuantity,
             'subtotal': double.parse(subtotal),
             'updatedAt': FieldValue.serverTimestamp(),
           });
-        }
-
-        // Verify the operation
-        final verifyDoc = await cartRef.get();
-        if (kDebugMode) {
-          print('Verification - Cart item data:');
-        }
-        if (kDebugMode) {
-          print(verifyDoc.data());
         }
       } catch (e) {
         if (kDebugMode) {
@@ -245,10 +131,6 @@ class Firebase {
       String customerID, String productID, int newQuantity) async {
     await _retryOperation(() async {
       try {
-        if (kDebugMode) {
-          print(
-              'Updating quantity - UserID: $customerID, ProductID: $productID, New Quantity: $newQuantity');
-        }
         if (newQuantity <= 0) {
           await removeFromCart(customerID, productID);
           return;
@@ -274,25 +156,11 @@ class Firebase {
             .doc(customerID)
             .collection('carts')
             .doc(productID);
-
-        if (kDebugMode) {
-          print('Updating cart with:');
-          print('New quantity: $newQuantity');
-        }
         // Update the cart item
         await cartRef.update({
           'quantity': newQuantity,
           'updatedAt': FieldValue.serverTimestamp(),
         });
-
-        // Verify the update
-        final verifyDoc = await cartRef.get();
-        if (kDebugMode) {
-          print('Verification - Updated cart item:');
-        }
-        if (kDebugMode) {
-          print(verifyDoc.data());
-        }
       } catch (e) {
         if (kDebugMode) {
           print('Error in updateCartItemQuantity: $e');
@@ -602,9 +470,6 @@ class Firebase {
           ? (await Database().getCurrentUserID() ?? '')
           : Database().userID;
       if (userID.isEmpty) {
-        if (kDebugMode) {
-          print('User not logged in or is guest. Cannot fetch sales invoices.');
-        }
         return [];
       }
 
@@ -668,9 +533,6 @@ class Firebase {
       final userID = Database().userID;
       // Check if userID is empty or null (e.g., for guest users)
       if (userID.isEmpty) {
-        if (kDebugMode) {
-          print('User not logged in or is guest. Cannot fetch sales invoice.');
-        }
         return null;
       }
 
@@ -690,9 +552,6 @@ class Firebase {
 
       // Verify that the invoice belongs to the current user
       if (data['customerID'] != userID) {
-        if (kDebugMode) {
-          print('Sales invoice does not belong to current user');
-        }
         return null;
       }
 
@@ -1017,16 +876,7 @@ class Firebase {
         // Increase usage by 1 to revert the previous reduction
         await ownedVoucherDoc.reference
             .update({'numberOfUses': currentUsage + 1});
-        if (kDebugMode) {
-          print('Reverted owned voucher usage count to ${currentUsage + 1}');
-        }
-      } else {
-        if (kDebugMode) {
-          print(
-              'No owned voucher found for customer $customerId and voucher ${voucher.voucherID}');
-        }
       }
-
       // 2. If it's a limited voucher, increase usageLeft by 1 (revert the reduction)
       if (voucher.isLimited) {
         final voucherDoc = await _firestore
@@ -1038,13 +888,6 @@ class Firebase {
           final currentUsageLeft = voucherDoc.data()?['usageLeft'] as int? ?? 0;
           await voucherDoc.reference
               .update({'usageLeft': currentUsageLeft + 1});
-          if (kDebugMode) {
-            print('Reverted voucher usageLeft to ${currentUsageLeft + 1}');
-          }
-        } else {
-          if (kDebugMode) {
-            print('Voucher document not found for ID: ${voucher.voucherID}');
-          }
         }
       }
 
@@ -1053,7 +896,6 @@ class Firebase {
     } catch (e) {
       if (kDebugMode) {
         print('Error reverting voucher usage: $e');
-        print('Error details: ${e.toString()}');
       }
       rethrow;
     }
@@ -1075,14 +917,6 @@ class Firebase {
         // Reduce usage by 1
         await ownedVoucherDoc.reference
             .update({'numberOfUses': currentUsage - 1});
-        if (kDebugMode) {
-          print('Reduced owned voucher usage count to ${currentUsage - 1}');
-        }
-      } else {
-        if (kDebugMode) {
-          print(
-              'No owned voucher found for customer $customerId and voucher ${voucher.voucherID}');
-        }
       }
 
       // 2. If it's a limited voucher, reduce usageLeft by 1
@@ -1097,13 +931,6 @@ class Firebase {
           if (currentUsageLeft > 0) {
             await voucherDoc.reference
                 .update({'usageLeft': currentUsageLeft - 1});
-            if (kDebugMode) {
-              print('Reduced voucher usageLeft to ${currentUsageLeft - 1}');
-            }
-          }
-        } else {
-          if (kDebugMode) {
-            print('Voucher document not found for ID: ${voucher.voucherID}');
           }
         }
       }

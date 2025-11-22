@@ -61,18 +61,9 @@ abstract class Voucher {
 
   String? getDescription(BuildContext context) {
     final locale = Localizations.localeOf(context);
-    if (kDebugMode) {
-      print('Current locale: ${locale.languageCode}');
-    }
     if (locale.languageCode == 'vi') {
-      if (kDebugMode) {
-        print('Returning Vietnamese description: $viDescription');
-      }
       return viDescription;
     } else {
-      if (kDebugMode) {
-        print('Returning English description: $enDescription');
-      }
       return enDescription;
     }
   }

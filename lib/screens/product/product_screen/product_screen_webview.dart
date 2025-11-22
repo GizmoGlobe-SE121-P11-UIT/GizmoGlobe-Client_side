@@ -768,19 +768,20 @@ class _SortDropdown extends StatelessWidget {
   const _SortDropdown({required this.selected, required this.onChanged});
 
   String _label(BuildContext context, SortEnum value) {
+    final s = S.of(context);
     switch (value) {
       case SortEnum.releaseLatest:
-        return 'Mới nhất';
+        return s.releaseLatest;
       case SortEnum.releaseOldest:
-        return 'Cũ nhất';
+        return s.releaseOldest;
       case SortEnum.priceLowest:
-        return 'Giá: Thấp đến Cao';
+        return s.priceLowest;
       case SortEnum.priceHighest:
-        return 'Giá: Cao đến Thấp';
+        return s.priceHighest;
       case SortEnum.salesHighest:
-        return 'Bán chạy nhất';
+        return s.salesHighest;
       case SortEnum.salesLowest:
-        return 'Ít bán nhất';
+        return s.salesLowest;
     }
   }
 

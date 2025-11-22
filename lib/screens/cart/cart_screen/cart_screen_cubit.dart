@@ -24,9 +24,6 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
       final user = _auth.currentUser;
       if (user == null) {
-        if (kDebugMode) {
-          print('User not logged in');
-        }
         if (isClosed) return;
         emit(state.copyWith(
             processState: ProcessState.failure, error: 'User not logged in'));
@@ -111,13 +108,13 @@ class CartScreenCubit extends Cubit<CartScreenState> {
   void toggleItemSelection(CartItem item) {
     if (isClosed) return;
     final currentSelected = List<CartItem>.from(state.selectedItems);
-    
+
     // Find item by productID (more reliable than object equality)
     final productID = item.product.productID;
     final existingIndex = currentSelected.indexWhere(
       (selectedItem) => selectedItem.product.productID == productID,
     );
-    
+
     if (existingIndex >= 0) {
       currentSelected.removeAt(existingIndex);
     } else {
@@ -161,9 +158,6 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       if (isClosed) return;
       final user = _auth.currentUser;
       if (user == null) {
-        if (kDebugMode) {
-          print('User not logged in');
-        }
         if (isClosed) return;
         emit(state.copyWith(
             processState: ProcessState.failure, error: 'User not logged in.'));

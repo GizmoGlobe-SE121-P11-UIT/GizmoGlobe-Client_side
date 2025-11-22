@@ -288,8 +288,10 @@ class _PCBuilderMobileView extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        Helper.toCurrencyFormat(product.discountedPrice.toInt()),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        Helper.toCurrencyFormat(
+                            product.discountedPrice.toInt()),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.bold,
                             ),
@@ -315,10 +317,11 @@ class _PCBuilderMobileView extends StatelessWidget {
                     context,
                     quantity: quantity,
                     onDecrement: quantity > 1
-                        ? () => cubit.updateQuantity(componentKey, product, quantity - 1)
+                        ? () => cubit.updateQuantity(
+                            componentKey, product, quantity - 1)
                         : null,
-                    onIncrement: () =>
-                        cubit.updateQuantity(componentKey, product, quantity + 1),
+                    onIncrement: () => cubit.updateQuantity(
+                        componentKey, product, quantity + 1),
                   ),
                 const SizedBox(width: 12),
                 if (product != null)
@@ -411,9 +414,8 @@ class _PCBuilderMobileView extends StatelessWidget {
                                     .textTheme
                                     .bodyMedium
                                     ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
@@ -430,11 +432,11 @@ class _PCBuilderMobileView extends StatelessWidget {
                       context,
                       quantity: quantity,
                       onDecrement: quantity > 1
-                          ? () => cubit
-                              .updateQuantityInList(componentKey, index, quantity - 1)
+                          ? () => cubit.updateQuantityInList(
+                              componentKey, index, quantity - 1)
                           : null,
-                      onIncrement: () => cubit
-                          .updateQuantityInList(componentKey, index, quantity + 1),
+                      onIncrement: () => cubit.updateQuantityInList(
+                          componentKey, index, quantity + 1),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -481,8 +483,7 @@ class _PCBuilderMobileView extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color:
-              Theme.of(context).colorScheme.onSurface.withOpacity(0.15),
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.15),
         ),
       ),
       child: Row(
@@ -560,17 +561,36 @@ class _PCBuilderMobileView extends StatelessWidget {
 
   void _showSessionPickerSheet(BuildContext context) {
     final s = S.of(context);
+    final screenHeight = MediaQuery.of(context).size.height;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) {
-        return SafeArea(
+        return ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: screenHeight * 0.9,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
+                // Handle bar for dragging
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).dividerColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
@@ -585,8 +605,9 @@ class _PCBuilderMobileView extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                FutureBuilder<List<BuilderSessionSummary>>(
+                ),
+                Flexible(
+                  child: FutureBuilder<List<BuilderSessionSummary>>(
                   future: cubit.fetchBuilderSessions(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -606,9 +627,9 @@ class _PCBuilderMobileView extends StatelessWidget {
                         ),
                       );
                     }
-                    return Flexible(
-                      child: ListView.separated(
+                      return ListView.separated(
                         shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: sessions.length,
                         separatorBuilder: (_, __) =>
                             Divider(color: Theme.of(context).dividerColor),
@@ -618,6 +639,10 @@ class _PCBuilderMobileView extends StatelessWidget {
                               ? '${s.builderSessionUpdatedLabel}: ${DateFormat('dd/MM/yyyy HH:mm').format(session.updatedAt!)}'
                               : s.builderSessionUpdatedLabel;
                           return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 0,
+                              vertical: 8,
+                            ),
                             onTap: () async {
                               Navigator.of(sheetContext).pop();
                               await cubit.loadBuilderSession(session.id);
@@ -645,9 +670,12 @@ class _PCBuilderMobileView extends StatelessWidget {
                             ),
                           );
                         },
-                      ),
                     );
                   },
+                  ),
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).padding.bottom,
                 ),
               ],
             ),

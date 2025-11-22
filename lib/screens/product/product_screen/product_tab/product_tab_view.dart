@@ -4,6 +4,7 @@ import 'package:gizmoglobe_client/widgets/product/product_card.dart';
 
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../enums/processing/sort_enum.dart';
+import '../../../../generated/l10n.dart';
 import '../../../../objects/product_related/filter_argument.dart';
 import '../../../../objects/product_related/product.dart';
 import '../../filter/filter_screen/filter_screen_view.dart';
@@ -99,9 +100,10 @@ class _ProductTabState extends State<ProductTab>
             children: [
               BlocBuilder<TabCubit, TabState>(
                 builder: (context, state) {
+                  final s = S.of(context);
                   return Row(
                     children: [
-                      Text('Sort By'),
+                      Text(s.sortBy),
                       const SizedBox(width: 8),
                       Expanded(
                         child: DropdownButton<SortEnum>(
@@ -128,28 +130,22 @@ class _ProductTabState extends State<ProductTab>
                             String displayText;
                             switch (value) {
                               case SortEnum.salesHighest:
-                                // displayText = S.of(context).salesHighest;
-                                displayText = 'Sales Highest';
+                                displayText = s.salesHighest;
                                 break;
                               case SortEnum.salesLowest:
-                                // displayText = S.of(context).salesLowest;
-                                displayText = 'Sales Lowest';
+                                displayText = s.salesLowest;
                                 break;
                               case SortEnum.releaseLatest:
-                                // displayText = S.of(context).releaseLatest;
-                                displayText = 'Release Latest';
+                                displayText = s.releaseLatest;
                                 break;
                               case SortEnum.releaseOldest:
-                                // displayText = S.of(context).releaseOldest;
-                                displayText = 'Release Oldest';
+                                displayText = s.releaseOldest;
                                 break;
                               case SortEnum.priceHighest:
-                                // displayText = S.of(context).priceHighest;
-                                displayText = 'Price Highest';
+                                displayText = s.priceHighest;
                                 break;
                               case SortEnum.priceLowest:
-                                // displayText = S.of(context).stockLowest;
-                                displayText = 'Price Lowest';
+                                displayText = s.priceLowest;
                                 break;
                             }
                             return DropdownMenuItem<SortEnum>(
@@ -239,8 +235,7 @@ class _ProductTabState extends State<ProductTab>
                                   await Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      ProductDetailScreen.newInstance(
-                                          product),
+                                      ProductDetailScreen.newInstance(product),
                                 ),
                               );
                               if (result == ProcessState.success) {
