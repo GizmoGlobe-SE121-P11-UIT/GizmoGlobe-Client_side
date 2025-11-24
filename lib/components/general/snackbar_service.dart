@@ -211,7 +211,7 @@ class SnackbarService {
         message = S.of(context).loginRequiredForChat;
         break;
       case 'google_cancelled':
-        message = 'Google sign-in was cancelled. You can try again anytime.';
+        message = S.of(context).googleSignInCancelled;
         break;
       default:
         message = S.of(context).loginRequired;

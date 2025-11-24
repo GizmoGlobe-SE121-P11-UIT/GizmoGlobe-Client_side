@@ -79,6 +79,9 @@ class _OrderDetailContent extends StatelessWidget {
               invoice: invoice,
               showCloseButton: true,
               onClose: () => Navigator.of(context).pop(),
+              onDownloadInvoice: () => context
+                  .read<OrderDetailCubit>()
+                  .downloadInvoicePdf(context, invoice),
             ),
           ),
         );

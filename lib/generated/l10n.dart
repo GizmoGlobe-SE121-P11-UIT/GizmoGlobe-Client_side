@@ -784,6 +784,10 @@ class S {
   String get continueWithGoogle =>
       Intl.message('Continue with Google', name: 'continueWithGoogle');
 
+  String get googleSignInCancelled =>
+      Intl.message('Google sign-in was cancelled. You can try again anytime.',
+          name: 'googleSignInCancelled');
+
   // Chat actions
   String get switchToAdmin =>
       Intl.message('Switch to Admin', name: 'switchToAdmin');
@@ -828,6 +832,9 @@ class S {
   String get yourOrdersWillAppearHere =>
       Intl.message('Your orders will appear here',
           name: 'yourOrdersWillAppearHere');
+
+  String get downloadInvoice =>
+      Intl.message('Download invoice', name: 'downloadInvoice');
 
   // PC Builder
   String get enableCompatibilityChecker =>

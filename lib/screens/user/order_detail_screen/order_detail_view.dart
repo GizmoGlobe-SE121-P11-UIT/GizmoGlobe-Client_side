@@ -23,6 +23,24 @@ class OrderDetailView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).orders),
+        actions: [
+          BlocBuilder<OrderDetailCubit, OrderDetailState>(
+            builder: (context, state) {
+              final invoice = state.salesInvoice;
+              if (state.processState != ProcessState.success ||
+                  invoice == null) {
+                return const SizedBox.shrink();
+              }
+              return IconButton(
+                tooltip: S.of(context).downloadInvoice,
+                icon: const Icon(Icons.download),
+                onPressed: () => context
+                    .read<OrderDetailCubit>()
+                    .downloadInvoicePdf(context, invoice),
+              );
+            },
+          ),
+        ],
       ),
       body: BlocBuilder<OrderDetailCubit, OrderDetailState>(
         builder: (context, state) {
@@ -46,6 +64,9 @@ class OrderDetailView extends StatelessWidget {
             child: OrderDetailBody(
               invoice: invoice,
               showCloseButton: false,
+              onDownloadInvoice: () => context
+                  .read<OrderDetailCubit>()
+                  .downloadInvoicePdf(context, invoice),
             ),
           );
         },

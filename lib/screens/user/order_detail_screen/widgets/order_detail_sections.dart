@@ -10,12 +10,14 @@ class OrderDetailBody extends StatelessWidget {
   final SalesInvoice invoice;
   final bool showCloseButton;
   final VoidCallback? onClose;
+  final Future<void> Function()? onDownloadInvoice;
 
   const OrderDetailBody({
     super.key,
     required this.invoice,
     this.showCloseButton = true,
     this.onClose,
+    this.onDownloadInvoice,
   });
 
   @override
@@ -54,6 +56,15 @@ class OrderDetailBody extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onDownloadInvoice != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: IconButton(
+                    tooltip: S.of(context).downloadInvoice,
+                    onPressed: () => onDownloadInvoice?.call(),
+                    icon: const Icon(Icons.download),
+                  ),
+                ),
               if (showCloseButton)
                 IconButton(
                   onPressed: onClose ??

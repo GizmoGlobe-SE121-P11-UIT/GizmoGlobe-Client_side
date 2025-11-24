@@ -101,12 +101,11 @@ class SignInCubit extends Cubit<SignInState> {
         try {
           userCredential = await _auth.signInWithPopup(googleProvider);
         } on FirebaseAuthException catch (e) {
-          // If popup is blocked or closed, fallback to redirect
-          final popupBlocked = e.code == 'popup-blocked' ||
-              e.code == 'auth/popup-blocked' ||
-              e.code == 'popup-closed-by-user' ||
-              e.code == 'auth/popup-closed-by-user' ||
-              e.code == 'cancelled-popup-request';
+          final popupBlocked =
+              e.code == 'popup-blocked' || e.code == 'auth/popup-blocked';
+          final popupClosed = e.code == 'popup-closed-by-user' ||
+              e.code == 'auth/popup-closed-by-user';
+          final popupCancelled = e.code == 'cancelled-popup-request';
 
           if (popupBlocked) {
             // Clear guest data before redirect (user will be redirected away)
@@ -121,39 +120,16 @@ class SignInCubit extends Cubit<SignInState> {
             await _auth.signInWithRedirect(googleProvider);
             return; // Will navigate away
           }
-          // Handle specific Firebase Auth errors
-          if (kDebugMode) {
-            print(
-                'Google Sign-In FirebaseAuthException: ${e.code} - ${e.message}');
-            print('Full error details: ${e.toString()}');
-          }
 
-          // Check for various popup-related error codes
-          if (e.code == 'popup-closed-by-user' ||
-              e.code == 'auth/popup-closed-by-user' ||
-              e.code == 'cancelled-popup-request') {
-            // Popup was closed - treat as user cancellation
+          if (popupClosed || popupCancelled) {
+            if (kDebugMode) {
+              print('Google Sign-In popup closed/cancelled by user.');
+            }
             if (!isClosed) {
               emit(state.copyWith(processState: ProcessState.idle));
             }
             return;
-          } else if (e.code == 'popup-blocked' ||
-              e.code == 'auth/popup-blocked') {
-            // Popup was blocked by browser - show error
-            if (kDebugMode) {
-              print(
-                  'Popup blocked by browser. Please allow popups for this site.');
-            }
-            if (!isClosed) {
-              emit(state.copyWith(
-                processState: ProcessState.failure,
-                dialogName: DialogName.failure,
-                message: NotifyMessage.msg2,
-              ));
-            }
-            return;
           }
-
           // Other Firebase Auth errors
           if (!isClosed) {
             emit(state.copyWith(

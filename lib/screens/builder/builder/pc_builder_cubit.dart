@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/data/firebase/firebase.dart';
@@ -19,6 +20,10 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
   final Random _random = Random();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Firebase _firebaseService = Firebase();
+  static const _regularFontAsset = 'assets/fonts/NotoSans-Regular.ttf';
+  static const _boldFontAsset = 'assets/fonts/NotoSans-Bold.ttf';
+  static pw.Font? _cachedRegularFont;
+  static pw.Font? _cachedBoldFont;
 
   static const Map<String, String> _categoryLabels = {
     'cpu': 'CPU',
@@ -357,6 +362,8 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
     }
 
     final document = pw.Document();
+    final notoSansRegular = await _loadBuilderRegularFont();
+    final notoSansBold = await _loadBuilderBoldFont();
     final timestamp = DateFormat('dd MMM yyyy, HH:mm').format(DateTime.now());
     final estimatedTotal = components.fold<double>(
       0,
@@ -368,9 +375,9 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
         pageTheme: pw.PageTheme(
           margin: const pw.EdgeInsets.all(32),
           theme: pw.ThemeData.withFont(
-            base: pw.Font.helvetica(),
-            bold: pw.Font.helveticaBold(),
-            italic: pw.Font.helveticaOblique(),
+            base: notoSansRegular,
+            bold: notoSansBold,
+            italic: notoSansRegular,
           ),
         ),
         build: (context) => [
@@ -489,6 +496,38 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
           print('Failed to add ${entry.product.productName} to cart: $e');
         }
       }
+    }
+  }
+
+  static Future<pw.Font> _loadBuilderRegularFont() async {
+    final cached = _cachedRegularFont;
+    if (cached != null) {
+      return cached;
+    }
+    final font = await _loadBuilderFont(_regularFontAsset);
+    _cachedRegularFont = font;
+    return font;
+  }
+
+  static Future<pw.Font> _loadBuilderBoldFont() async {
+    final cached = _cachedBoldFont;
+    if (cached != null) {
+      return cached;
+    }
+    final font = await _loadBuilderFont(_boldFontAsset);
+    _cachedBoldFont = font;
+    return font;
+  }
+
+  static Future<pw.Font> _loadBuilderFont(String assetPath) async {
+    try {
+      final data = await rootBundle.load(assetPath);
+      return pw.Font.ttf(data);
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        Exception('Failed to load builder font asset: $assetPath'),
+        stackTrace,
+      );
     }
   }
 

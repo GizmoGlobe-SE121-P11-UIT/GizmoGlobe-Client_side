@@ -1177,6 +1177,10 @@ class SVI extends S {
   @override
   String get continueWithGoogle => 'Tiếp tục với Google';
 
+  @override
+  String get googleSignInCancelled =>
+      'Đăng nhập với Google đã bị hủy. Bạn có thể thử lại bất kỳ lúc nào.';
+
   // Chat actions
   @override
   String get switchToAdmin => 'Chuyển sang Admin';
@@ -1232,6 +1236,9 @@ class SVI extends S {
   // Order screen
   @override
   String get yourOrdersWillAppearHere => 'Đơn hàng của bạn sẽ xuất hiện ở đây';
+
+  @override
+  String get downloadInvoice => 'Tải xuống hóa đơn';
 
   // PC Builder
   @override
