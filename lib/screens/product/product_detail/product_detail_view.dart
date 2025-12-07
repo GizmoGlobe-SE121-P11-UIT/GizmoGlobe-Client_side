@@ -13,6 +13,7 @@ import '../../../enums/product_related/category_enum.dart';
 import '../../../functions/helper.dart';
 import '../../../generated/l10n.dart';
 import '../../../objects/product_related/product.dart';
+import '../../../objects/product_related/mainboard_related/mainboard.dart';
 import '../../../services/recommendation_service.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
@@ -484,19 +485,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   List<Widget> _buildProductSpecificDetails(
       BuildContext context, Product product, Map<String, String> specs) {
-    return specs.entries
-        .map((entry) => _buildSpecificationRow(
-            _getLocalizedSpecKey(context, entry.key), entry.value))
-        .toList();
+    return specs.entries.map((entry) {
+      String value = entry.value;
+      // Format RAM Spec with localization if it's a Mainboard
+      if (entry.key == 'RAM Spec' &&
+          product.category == CategoryEnum.mainboard) {
+        final mainboard = product as Mainboard;
+        value = mainboard.ramSpec.toLocalizedString(S.of(context));
+      }
+      return _buildSpecificationRow(
+          _getLocalizedSpecKey(context, entry.key), value);
+    }).toList();
   }
 
   String _getLocalizedSpecKey(BuildContext context, String key) {
     switch (key.toLowerCase()) {
       case 'type':
+      case 'drive type':
         return S.of(context).driveType;
       case 'capacity':
-        // return S.of(context).driveCapacity;
-        return "Drive Capacity";
+        return S.of(context).driveCapacity;
+      case 'generation':
+        return S.of(context).driveGeneration;
+      case 'interface':
+        return S.of(context).driveInterface;
+      case 'read speed':
+        return S.of(context).readSpeed;
+      case 'write speed':
+        return S.of(context).writeSpeed;
       case 'ram bus':
         return S.of(context).ramBus;
       case 'capacity per stick':
@@ -530,10 +546,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       case 'psu wattage':
         return S.of(context).psuWattage;
       case 'psu efficiency':
-        // return S.of(context).psuEfficiency;
-        return "PSU Efficiency";
+        return S.of(context).psuEfficiency;
       case 'psu modular':
-      // return S.of(context).psuModular;
+        return S.of(context).psuModular;
+      case 'connectors':
+        return S.of(context).connectors;
 
       case 'gpu series':
         // return S.of(context).gpuSeries;
@@ -546,8 +563,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return "GPU Bus";
       case 'gpu clock speed':
         return S.of(context).gpuClockSpeed;
+      case 'chipset':
+        return S.of(context).chipset;
       case 'form factor':
         return S.of(context).formFactor;
+      case 'ram spec':
+        return S.of(context).ramSpec;
+      case 'storage:':
+        return S.of(context).storageSlots;
+      case 'pcie slots:':
+        return S.of(context).pcieSlots;
+      case 'i/o ports:':
+        return S.of(context).ioPorts;
       case 'series':
         return S.of(context).series;
       case 'compatibility':

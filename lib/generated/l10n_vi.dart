@@ -492,10 +492,55 @@ class SVI extends S {
   String get psuWattage => 'Công suất PSU';
 
   @override
+  String get psuEfficiency => 'Chuẩn hiệu suất PSU';
+
+  @override
+  String get psuModular => 'Loại module PSU';
+
+  @override
+  String get connectors => 'Cổng kết nối';
+
+  @override
   String get series => 'Dòng sản phẩm';
 
   @override
   String get gpuClockSpeed => 'Xung nhịp GPU';
+
+  @override
+  String get gpuMemory => 'Bộ nhớ GPU';
+
+  @override
+  String get gpuVersion => 'Phiên bản GPU';
+
+  @override
+  String get ioPorts => 'Cổng I/O';
+
+  @override
+  String get driveGeneration => 'Thế hệ';
+
+  @override
+  String get driveCapacity => 'Dung lượng';
+
+  @override
+  String get driveInterface => 'Giao tiếp';
+
+  @override
+  String get readSpeed => 'Tốc độ đọc';
+
+  @override
+  String get writeSpeed => 'Tốc độ ghi';
+
+  @override
+  String get chipset => 'Chipset';
+
+  @override
+  String get ramSpec => 'Thông số RAM';
+
+  @override
+  String get storageSlots => 'Khe cắm lưu trữ';
+
+  @override
+  String get pcieSlots => 'Khe cắm PCIe';
 
   @override
   String get formFactor => 'Kích thước';
@@ -584,10 +629,16 @@ class SVI extends S {
   String get kitStickCount => 'Số thanh RAM';
 
   @override
-  String get ramCapacity => 'Dung lượng RAM';
+  String get ramCapacity => 'Dung lượng';
 
   @override
   String get capacityPerStick => 'Dung lượng mỗi thanh';
+
+  @override
+  String get gbEach => 'GB mỗi thanh';
+
+  @override
+  String get gbInTotal => 'GB tổng cộng';
 
   @override
   String get cores => 'Số nhân';

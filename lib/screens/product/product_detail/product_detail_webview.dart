@@ -9,6 +9,7 @@ import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/main.dart' show rootNavigatorKey;
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/objects/product_related/mainboard_related/mainboard.dart';
 import 'package:gizmoglobe_client/services/recommendation_service.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
@@ -1454,18 +1455,23 @@ class _ProductDetailScreenWebViewState
 
   List<Widget> _buildProductSpecificDetails(
       BuildContext context, Product product, Map<String, String> specs) {
-    return specs.entries
-        .map((entry) => _buildSpecificationRow(
-            _getLocalizedSpecKey(context, entry.key), entry.value))
-        .toList();
+    return specs.entries.map((entry) {
+      String value = entry.value;
+      // Format RAM Spec with localization if it's a Mainboard
+      if (entry.key == 'RAM Spec' &&
+          product.category == CategoryEnum.mainboard) {
+        final mainboard = product as Mainboard;
+        value = mainboard.ramSpec.toLocalizedString(S.of(context));
+      }
+      return _buildSpecificationRow(
+          _getLocalizedSpecKey(context, entry.key), value);
+    }).toList();
   }
 
   String _getLocalizedSpecKey(BuildContext context, String key) {
     switch (key.toLowerCase()) {
       case 'type':
         return S.of(context).driveType;
-      case 'capacity':
-        return "Drive Capacity";
       case 'bus':
         return S.of(context).ramBus;
       case 'ram bus':
@@ -1495,41 +1501,43 @@ class _ProductDetailScreenWebViewState
       case 'series':
         return S.of(context).series;
       case 'version':
-        return "GPU Version";
+        return S.of(context).gpuVersion;
       case 'memory':
-        return "GPU Memory";
+        return S.of(context).gpuMemory;
       case 'clock speed':
         return S.of(context).gpuClockSpeed;
       case 'i/o ports':
-        return "I/O Ports";
+        return S.of(context).ioPorts;
       case 'chipset':
-        return S.of(context).series;
+        return S.of(context).chipset;
       case 'form factor':
         return S.of(context).formFactor;
       case 'ram spec':
-        return "RAM Spec";
+        return S.of(context).ramSpec;
       case 'storage:':
-        return "Storage Slots";
+        return S.of(context).storageSlots;
       case 'pcie slots:':
-        return "PCIe Slots";
+        return S.of(context).pcieSlots;
       case 'drive type':
         return S.of(context).driveType;
       case 'generation':
-        return "Generation";
+        return S.of(context).driveGeneration;
       case 'interface':
-        return "Interface";
+        return S.of(context).driveInterface;
       case 'read speed':
-        return "Read Speed";
+        return S.of(context).readSpeed;
       case 'write speed':
-        return "Write Speed";
+        return S.of(context).writeSpeed;
+      case 'capacity':
+        return S.of(context).driveCapacity;
       case 'wattage':
         return S.of(context).psuWattage;
       case 'efficiency rating':
-        return "PSU Efficiency";
+        return S.of(context).psuEfficiency;
       case 'modularity':
-        return "Modularity";
+        return S.of(context).psuModular;
       case 'connectors':
-        return "Connectors";
+        return S.of(context).connectors;
       default:
         return key;
     }

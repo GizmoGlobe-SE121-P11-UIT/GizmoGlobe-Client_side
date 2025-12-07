@@ -534,7 +534,7 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
                                       tabController.index = previous;
                                       _tabSwitchTimer?.cancel();
                                       _tabSwitchTimer =
-                                          Timer(const Duration(seconds: 3), () {
+                                          Timer(const Duration(seconds: 1), () {
                                         if (!mounted) return;
                                         setState(() {
                                           _shownTabIndex = value;

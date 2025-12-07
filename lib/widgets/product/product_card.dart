@@ -44,23 +44,13 @@ class ProductCard extends StatelessWidget {
                     ),
                   );
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    // gradient: LinearGradient(
-                    //   begin: Alignment.topCenter,
-                    //   end: Alignment.bottomCenter,
-                    //   colors: [
-                    //     Colors.grey[100]!,
-                    //     Colors.grey[100]!,
-                    //   ],
-                    // ),
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        color: Theme.of(context).colorScheme.surface,
                         child: product.productID != null
                             ? FutureBuilder<ProductImage?>(
                                 future: Firebase()
@@ -72,7 +62,8 @@ class ProductCard extends StatelessWidget {
                                       snapshot.data == null ||
                                       snapshot.data!.url.isEmpty) {
                                     return Container(
-                                      color: Colors.grey[300],
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
                                       child: Center(
                                         child: Icon(
                                           _getCategoryIcon(),
@@ -88,7 +79,8 @@ class ProductCard extends StatelessWidget {
                                     width: double.infinity,
                                     height: double.infinity,
                                     placeholder: (context, url) => Container(
-                                      color: Colors.grey[300],
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
                                       child: Center(
                                         child: Icon(
                                           _getCategoryIcon(),
@@ -99,7 +91,8 @@ class ProductCard extends StatelessWidget {
                                     ),
                                     errorWidget: (context, url, error) =>
                                         Container(
-                                      color: Colors.grey[300],
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
                                       child: Center(
                                         child: Icon(
                                           _getCategoryIcon(),
@@ -112,7 +105,7 @@ class ProductCard extends StatelessWidget {
                                 },
                               )
                             : Container(
-                                color: Colors.grey[300],
+                                color: Theme.of(context).colorScheme.surface,
                                 child: Center(
                                   child: Icon(
                                     _getCategoryIcon(),
@@ -122,8 +115,11 @@ class ProductCard extends StatelessWidget {
                                 ),
                               ),
                       ),
-                      Expanded(
-                        flex: 2,
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        color: Theme.of(context).colorScheme.primary,
                         child: Padding(
                           padding: const EdgeInsets.all(6.0),
                           child: Column(
@@ -222,8 +218,8 @@ class ProductCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               Positioned(

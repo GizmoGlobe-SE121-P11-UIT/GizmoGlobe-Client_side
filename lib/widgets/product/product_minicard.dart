@@ -60,11 +60,11 @@ class ProductMiniCard extends StatelessWidget {
     if (kIsWeb && productId != null) {
       await navigator.pushNamed('/products/$productId');
     } else {
-      await navigator.push(
-        MaterialPageRoute(
+    await navigator.push(
+      MaterialPageRoute(
           builder: (_) => ProductDetailScreen.newInstance(product),
-        ),
-      );
+      ),
+    );
     }
   }
 

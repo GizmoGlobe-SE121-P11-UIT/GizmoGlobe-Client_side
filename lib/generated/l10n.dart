@@ -329,9 +329,29 @@ class S {
   String get modular => Intl.message('Modular', name: 'modular');
   String get efficiency => Intl.message('Efficiency', name: 'efficiency');
   String get psuWattage => Intl.message('PSU Wattage', name: 'psuWattage');
+  String get psuEfficiency =>
+      Intl.message('PSU Efficiency', name: 'psuEfficiency');
+  String get psuModular => Intl.message('PSU Modular', name: 'psuModular');
+  String get connectors => Intl.message('Connectors', name: 'connectors');
   String get series => Intl.message('Series', name: 'series');
+  String get gpuVersion => Intl.message('GPU Version', name: 'gpuVersion');
+  String get gpuMemory => Intl.message('GPU Memory', name: 'gpuMemory');
   String get gpuClockSpeed =>
       Intl.message('GPU Clock Speed', name: 'gpuClockSpeed');
+  String get ioPorts => Intl.message('I/O Ports', name: 'ioPorts');
+  String get driveGeneration =>
+      Intl.message('Generation', name: 'driveGeneration');
+  String get driveCapacity =>
+      Intl.message('Drive Capacity', name: 'driveCapacity');
+  String get driveInterface =>
+      Intl.message('Interface', name: 'driveInterface');
+  String get readSpeed => Intl.message('Read Speed', name: 'readSpeed');
+  String get writeSpeed => Intl.message('Write Speed', name: 'writeSpeed');
+  String get chipset => Intl.message('Chipset', name: 'chipset');
+  String get ramSpec => Intl.message('RAM Spec', name: 'ramSpec');
+  String get storageSlots =>
+      Intl.message('Storage Slots', name: 'storageSlots');
+  String get pcieSlots => Intl.message('PCIe Slots', name: 'pcieSlots');
   String get formFactor => Intl.message('Form Factor', name: 'formFactor');
   String get compatibility =>
       Intl.message('Compatibility', name: 'compatibility');
@@ -395,9 +415,11 @@ class S {
   String get clLatency => Intl.message('CL Latency', name: 'clLatency');
   String get kitStickCount =>
       Intl.message('Kit Stick Count', name: 'kitStickCount');
-  String get ramCapacity => Intl.message('RAM Capacity', name: 'ramCapacity');
+  String get ramCapacity => Intl.message('Capacity', name: 'ramCapacity');
   String get capacityPerStick =>
       Intl.message('Capacity Per Stick', name: 'capacityPerStick');
+  String get gbEach => Intl.message('GB each', name: 'gbEach');
+  String get gbInTotal => Intl.message('GB in total', name: 'gbInTotal');
   String get cores => Intl.message('Cores', name: 'cores');
   String get threads => Intl.message('Threads', name: 'threads');
   String get clockSpeed => Intl.message('Clock Speed', name: 'clockSpeed');
