@@ -391,6 +391,9 @@ class Firebase {
             .add(detail.toMap(salesInvoiceID));
       }
 
+      // Decrement product stock when invoice is created
+      await _decrementProductStock(salesInvoice.details);
+
       // Update voucher usage if a voucher was applied
       if (salesInvoice.voucher != null) {
         await _updateVoucherUses(
@@ -655,10 +658,11 @@ class Firebase {
 
   /// Cancel a sales invoice (mark as cancelled status)
   /// Optionally reverts voucher usage if a voucher was applied
+  /// Restores product stock when invoice is cancelled
   Future<void> cancelSalesInvoice(String salesInvoiceID,
       {bool revertVoucherUsage = true}) async {
     try {
-      // Get the invoice to check if it has a voucher
+      // Get the invoice to check if it has a voucher and get details
       final invoiceDoc = await _firestore
           .collection('sales_invoices')
           .doc(salesInvoiceID)
@@ -670,6 +674,34 @@ class Firebase {
 
       final invoiceData = invoiceDoc.data() as Map<String, dynamic>;
       final voucherID = invoiceData['voucherID'] as String?;
+
+      // Get invoice details to restore stock
+      final detailsSnapshot = await _firestore
+          .collection('sales_invoice_details')
+          .where('salesInvoiceID', isEqualTo: salesInvoiceID)
+          .get();
+
+      // Restore product stock when invoice is cancelled
+      if (detailsSnapshot.docs.isNotEmpty) {
+        try {
+          final details = detailsSnapshot.docs.map((doc) {
+            final data = doc.data();
+            final productID = data['productID'] as String?;
+            final quantity = (data['quantity'] as num?)?.toInt() ?? 0;
+            return {'productID': productID, 'quantity': quantity};
+          }).where((d) {
+            final productID = d['productID'] as String?;
+            return productID != null && productID.isNotEmpty;
+          }).toList();
+
+          await _restoreProductStock(details);
+        } catch (e) {
+          if (kDebugMode) {
+            print('Warning: Could not restore product stock: $e');
+          }
+          // Continue with cancellation even if stock restore fails
+        }
+      }
 
       // Revert voucher usage if voucher was applied and revertVoucherUsage is true
       if (revertVoucherUsage && voucherID != null && voucherID.isNotEmpty) {
@@ -944,6 +976,110 @@ class Firebase {
         print('Error details: ${e.toString()}');
       }
       // Continue with invoice creation even if voucher update fails
+    }
+  }
+
+  /// Decrement product stock when invoice is created
+  Future<void> _decrementProductStock(
+      List<SalesInvoiceDetail> invoiceDetails) async {
+    try {
+      for (final detail in invoiceDetails) {
+        final productID = detail.product.productID;
+        if (productID == null || productID.isEmpty) {
+          if (kDebugMode) {
+            print('Warning: Product ID is missing in invoice detail');
+          }
+          continue;
+        }
+
+        final quantity = detail.quantity;
+        if (quantity <= 0) {
+          continue;
+        }
+
+        final productRef = _firestore.collection('products').doc(productID);
+        final productDoc = await productRef.get();
+
+        if (!productDoc.exists) {
+          if (kDebugMode) {
+            print('Warning: Product not found: $productID');
+          }
+          continue;
+        }
+
+        final productData = productDoc.data()!;
+        final currentStock = (productData['stock'] as num?)?.toInt() ?? 0;
+        final newStock =
+            (currentStock - quantity).clamp(0, double.infinity).toInt();
+
+        await productRef.update({'stock': newStock});
+
+        if (kDebugMode) {
+          print(
+              'Decremented stock for product $productID: $currentStock -> $newStock (quantity: $quantity)');
+        }
+      }
+
+      // Refresh products in database to reflect stock changes
+      await Database().getProducts();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error decrementing product stock: $e');
+        print('Error details: ${e.toString()}');
+      }
+      // Continue with invoice creation even if stock update fails
+      // In production, you might want to rethrow this error
+    }
+  }
+
+  /// Restore product stock when invoice is cancelled
+  Future<void> _restoreProductStock(
+      List<Map<String, dynamic>> invoiceDetails) async {
+    try {
+      for (final detail in invoiceDetails) {
+        final productID = detail['productID'] as String?;
+        if (productID == null || productID.isEmpty) {
+          if (kDebugMode) {
+            print('Warning: Product ID is missing in invoice detail');
+          }
+          continue;
+        }
+
+        final quantity = (detail['quantity'] as num?)?.toInt() ?? 0;
+        if (quantity <= 0) {
+          continue;
+        }
+
+        final productRef = _firestore.collection('products').doc(productID);
+        final productDoc = await productRef.get();
+
+        if (!productDoc.exists) {
+          if (kDebugMode) {
+            print('Warning: Product not found: $productID');
+          }
+          continue;
+        }
+
+        final productData = productDoc.data()!;
+        final currentStock = (productData['stock'] as num?)?.toInt() ?? 0;
+        final newStock = currentStock + quantity;
+
+        await productRef.update({'stock': newStock});
+
+        if (kDebugMode) {
+          print(
+              'Restored stock for product $productID: $currentStock -> $newStock (quantity: $quantity)');
+        }
+      }
+
+      // Refresh products in database to reflect stock changes
+      await Database().getProducts();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error restoring product stock: $e');
+        print('Error details: ${e.toString()}');
+      }
+      // Continue with cancellation even if stock restore fails
     }
   }
 
