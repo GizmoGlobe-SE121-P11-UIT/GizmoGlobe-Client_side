@@ -575,6 +575,21 @@ class SVI extends S {
   String get ramType => 'Loại RAM';
 
   @override
+  String get ramBus => 'Tốc độ bus RAM';
+
+  @override
+  String get clLatency => 'Độ trễ CL';
+
+  @override
+  String get kitStickCount => 'Số thanh RAM';
+
+  @override
+  String get ramCapacity => 'Dung lượng RAM';
+
+  @override
+  String get capacityPerStick => 'Dung lượng mỗi thanh';
+
+  @override
   String get cores => 'Số nhân';
 
   @override

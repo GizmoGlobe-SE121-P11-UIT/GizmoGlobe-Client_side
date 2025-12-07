@@ -391,6 +391,13 @@ class S {
       Intl.message('Storage Specifications', name: 'storageSpecifications');
   String get busSpeed => Intl.message('Bus Speed', name: 'busSpeed');
   String get ramType => Intl.message('RAM Type', name: 'ramType');
+  String get ramBus => Intl.message('RAM Bus', name: 'ramBus');
+  String get clLatency => Intl.message('CL Latency', name: 'clLatency');
+  String get kitStickCount =>
+      Intl.message('Kit Stick Count', name: 'kitStickCount');
+  String get ramCapacity => Intl.message('RAM Capacity', name: 'ramCapacity');
+  String get capacityPerStick =>
+      Intl.message('Capacity Per Stick', name: 'capacityPerStick');
   String get cores => Intl.message('Cores', name: 'cores');
   String get threads => Intl.message('Threads', name: 'threads');
   String get clockSpeed => Intl.message('Clock Speed', name: 'clockSpeed');

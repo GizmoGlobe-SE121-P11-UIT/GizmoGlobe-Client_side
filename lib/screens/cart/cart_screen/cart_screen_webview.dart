@@ -251,14 +251,18 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
         ),
         child: InkWell(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => kIsWeb
-                    ? ProductDetailScreenWebView.newInstance(product)
-                    : ProductDetailScreen.newInstance(product),
-              ),
-            );
+            final productId = product.productID;
+            if (kIsWeb && productId != null) {
+              Navigator.of(context).pushNamed('/products/$productId');
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProductDetailScreen.newInstance(product),
+                ),
+              );
+            }
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(

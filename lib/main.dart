@@ -12,6 +12,7 @@ import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dar
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
 import 'package:gizmoglobe_client/screens/chat/chat_screen/chat_screen_view.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
+import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_loader.dart';
 import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/user_screen/user_screen_view.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_view.dart';
@@ -504,9 +505,35 @@ class MyApp extends StatelessWidget {
                     );
                   }
 
-                  // Handle product category routes
+                  // Handle product detail routes: /products/{productID}
                   if (baseRouteName.startsWith('/products/')) {
-                    // The ProductScreenWebView will parse the category from initState
+                    final segments = baseRouteName.split('/');
+                    // Check if this is a product detail route (has productID as third segment)
+                    if (segments.length >= 3 && segments[2].isNotEmpty) {
+                      final productId = segments[2];
+                      // Check if this looks like a product ID or a category name
+                      final categories = [
+                        'ram',
+                        'cpu',
+                        'gpu',
+                        'psu',
+                        'drive',
+                        'mainboard'
+                      ];
+                      final isCategory =
+                          categories.contains(productId.toLowerCase());
+
+                      if (!isCategory) {
+                        // This is a product detail route
+                        return MaterialPageRoute(
+                          settings: RouteSettings(name: cleanRouteName),
+                          builder: (context) =>
+                              ProductDetailLoader(productId: productId),
+                        );
+                      }
+                    }
+
+                    // Otherwise, it's a category route or general products route
                     return PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           ProductScreen.newInstance(),

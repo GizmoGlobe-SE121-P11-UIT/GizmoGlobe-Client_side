@@ -10,8 +10,6 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/main.dart' show rootNavigatorKey;
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/services/recommendation_service.dart';
-import 'package:gizmoglobe_client/services/platform_actions.dart'
-    as platform_actions;
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
@@ -147,6 +145,21 @@ class _ProductDetailScreenWebViewState
     extends State<ProductDetailScreenWebView> {
   ProductDetailCubit get cubit => context.read<ProductDetailCubit>();
   final WebGuestService _webGuestService = WebGuestService();
+  final PageController _pageController = PageController();
+  int _currentImageIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // No need to manually update the hash - Navigator.pushNamed handles it
+  }
+
+  @override
+  void dispose() {
+    // Don't manipulate the hash on dispose - let the browser's back/forward handle it
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleBuyNow(ProductDetailState state,
       {required bool isWeb}) async {
@@ -179,35 +192,6 @@ class _ProductDetailScreenWebViewState
         ),
       );
     }
-  }
-
-  String? _previousHashPath;
-  String? _currentProductHash;
-
-  @override
-  void initState() {
-    super.initState();
-    // Append the product ID to the current URL hash so deep links reflect the product
-    final productId = widget.product.productID;
-    if (productId != null && productId.isNotEmpty) {
-      _previousHashPath = platform_actions.getHashPath();
-      _currentProductHash = '/products/$productId';
-      if (_previousHashPath != _currentProductHash) {
-        platform_actions.replaceHashUrl(_currentProductHash!);
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    // Restore previous hash (remove the productId suffix) when leaving detail page
-    if (_previousHashPath != null) {
-      platform_actions.replaceHashUrl(_previousHashPath!);
-    } else if (_currentProductHash != null) {
-      // Fallback to generic products route when no previous hash recorded
-      platform_actions.replaceHashUrl('/products');
-    }
-    super.dispose();
   }
 
   String _getCategoryLabel(BuildContext context, CategoryEnum category) {
@@ -488,82 +472,8 @@ class _ProductDetailScreenWebViewState
                                               flex: 4,
                                               child: Column(
                                                 children: [
-                                                  Card(
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                    ),
-                                                    child: Container(
-                                                      height: 600,
-                                                      width: double.infinity,
-                                                      decoration: BoxDecoration(
-                                                        color: Theme.of(context)
-                                                                    .brightness ==
-                                                                Brightness.dark
-                                                            ? Theme.of(context)
-                                                                .colorScheme
-                                                                .surface
-                                                                .withValues(
-                                                                    alpha: 0.1)
-                                                            : Theme.of(context)
-                                                                .colorScheme
-                                                                .surfaceContainerHighest,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(12),
-                                                        image: state.product
-                                                                        .imageUrl !=
-                                                                    null &&
-                                                                state
-                                                                    .product
-                                                                    .imageUrl!
-                                                                    .isNotEmpty
-                                                            ? DecorationImage(
-                                                                image: NetworkImage(
-                                                                    state
-                                                                        .product
-                                                                        .imageUrl!),
-                                                                fit: BoxFit
-                                                                    .contain,
-                                                              )
-                                                            : null,
-                                                      ),
-                                                      child: state.product
-                                                                      .imageUrl ==
-                                                                  null ||
-                                                              state
-                                                                  .product
-                                                                  .imageUrl!
-                                                                  .isEmpty
-                                                          ? Center(
-                                                              child: Icon(
-                                                                _getCategoryIcon(
-                                                                    widget
-                                                                        .product
-                                                                        .category),
-                                                                size: 150,
-                                                                color: Theme.of(context)
-                                                                            .brightness ==
-                                                                        Brightness
-                                                                            .dark
-                                                                    ? Theme.of(
-                                                                            context)
-                                                                        .colorScheme
-                                                                        .primary
-                                                                        .withValues(
-                                                                            alpha:
-                                                                                0.7)
-                                                                    : Theme.of(
-                                                                            context)
-                                                                        .colorScheme
-                                                                        .onSurfaceVariant,
-                                                              ),
-                                                            )
-                                                          : null,
-                                                    ),
-                                                  ),
+                                                  _buildImageCarouselDesktop(
+                                                      context, state),
                                                 ],
                                               ),
                                             ),
@@ -1100,153 +1010,8 @@ class _ProductDetailScreenWebViewState
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Stack(
-                                              children: [
-                                                Card(
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                  ),
-                                                  child: Container(
-                                                    height: 400,
-                                                    width: double.infinity,
-                                                    decoration: BoxDecoration(
-                                                      color: Theme.of(context)
-                                                                  .brightness ==
-                                                              Brightness.dark
-                                                          ? Theme.of(context)
-                                                              .colorScheme
-                                                              .surface
-                                                              .withValues(
-                                                                  alpha: 0.1)
-                                                          : Theme.of(context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                      image: state.product
-                                                                      .imageUrl !=
-                                                                  null &&
-                                                              state
-                                                                  .product
-                                                                  .imageUrl!
-                                                                  .isNotEmpty
-                                                          ? DecorationImage(
-                                                              image: NetworkImage(
-                                                                  state.product
-                                                                      .imageUrl!),
-                                                              fit: BoxFit
-                                                                  .contain,
-                                                            )
-                                                          : null,
-                                                    ),
-                                                    child: state.product
-                                                                    .imageUrl ==
-                                                                null ||
-                                                            state
-                                                                .product
-                                                                .imageUrl!
-                                                                .isEmpty
-                                                        ? Center(
-                                                            child: Icon(
-                                                              _getCategoryIcon(
-                                                                  widget.product
-                                                                      .category),
-                                                              size: 120,
-                                                              color: Theme.of(context)
-                                                                          .brightness ==
-                                                                      Brightness
-                                                                          .dark
-                                                                  ? Theme.of(
-                                                                          context)
-                                                                      .colorScheme
-                                                                      .primary
-                                                                      .withValues(
-                                                                          alpha:
-                                                                              0.7)
-                                                                  : Theme.of(
-                                                                          context)
-                                                                      .colorScheme
-                                                                      .onSurfaceVariant,
-                                                            ),
-                                                          )
-                                                        : null,
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  right: 16,
-                                                  top: 16,
-                                                  child: FloatingActionButton(
-                                                    mini: true,
-                                                    backgroundColor:
-                                                        Theme.of(context)
-                                                            .colorScheme
-                                                            .surface,
-                                                    onPressed: () async {
-                                                      if (state.product
-                                                              .productID !=
-                                                          null) {
-                                                        final isGuest =
-                                                            await _webGuestService
-                                                                .isCurrentUserGuest();
-                                                        if (isGuest) {
-                                                          SnackbarService
-                                                              .showGuestRestriction(
-                                                            context,
-                                                            actionType:
-                                                                'favorites',
-                                                          );
-                                                          return;
-                                                        }
-                                                        try {
-                                                          final wasFavorite =
-                                                              state.isFavorite;
-                                                          await cubit
-                                                              .toggleFavorite();
-                                                          context
-                                                              .read<
-                                                                  FavoritesCubit>()
-                                                              .loadFavorites();
-                                                          // Show snackbar notification
-                                                          final newState =
-                                                              cubit.state;
-                                                          if (newState
-                                                                  .isFavorite !=
-                                                              wasFavorite) {
-                                                            SnackbarService
-                                                                .showFavoriteSuccess(
-                                                              context,
-                                                              newState.isFavorite
-                                                                  ? 'added'
-                                                                  : 'removed',
-                                                            );
-                                                          }
-                                                        } catch (e) {
-                                                          SnackbarService
-                                                              .showFavoriteError(
-                                                                  context);
-                                                        }
-                                                      }
-                                                    },
-                                                    child: Icon(
-                                                      state.isFavorite
-                                                          ? Icons.favorite
-                                                          : Icons
-                                                              .favorite_border,
-                                                      color: state.isFavorite
-                                                          ? Theme.of(context)
-                                                              .colorScheme
-                                                              .error
-                                                          : Theme.of(context)
-                                                              .colorScheme
-                                                              .onSurfaceVariant,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                            _buildImageCarouselMobile(
+                                                context, state),
                                             const SizedBox(height: 24),
                                             Text(
                                               widget.product.productName,
@@ -1702,13 +1467,19 @@ class _ProductDetailScreenWebViewState
       case 'capacity':
         return "Drive Capacity";
       case 'bus':
-        return "RAM Bus";
+        return S.of(context).ramBus;
+      case 'ram bus':
+        return S.of(context).ramBus;
       case 'cl latency':
-        return "CL Latency";
+        return S.of(context).clLatency;
       case 'kit stick count':
-        return "Kit Stick Count";
+        return S.of(context).kitStickCount;
       case 'capacity per stick':
-        return "RAM Capacity";
+        return S.of(context).capacityPerStick;
+      case 'ram capacity':
+        return S.of(context).ramCapacity;
+      case 'ram type':
+        return S.of(context).ramType;
       case 'cores':
         return S.of(context).cpuCore;
       case 'threads':
@@ -1721,6 +1492,8 @@ class _ProductDetailScreenWebViewState
         return "TDP";
       case 'socket':
         return S.of(context).compatibility;
+      case 'series':
+        return S.of(context).series;
       case 'version':
         return "GPU Version";
       case 'memory':
@@ -1769,7 +1542,7 @@ class _ProductDetailScreenWebViewState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 140,
+            width: 200,
             child: Text(
               label,
               style: TextStyle(
@@ -2233,18 +2006,269 @@ class _ProductDetailScreenWebViewState
               final product = recs[index];
               return GestureDetector(
                 onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (ctx) =>
-                          ProductDetailScreenWebView.newInstance(product),
-                    ),
-                  );
+                  final productId = product.productID;
+                  if (productId != null) {
+                    await Navigator.of(context)
+                        .pushNamed('/products/$productId');
+                  }
                 },
                 child: WebProductCard(product: product),
               );
             },
           );
         }),
+      ],
+    );
+  }
+
+  Widget _buildImageCarouselDesktop(
+      BuildContext context, ProductDetailState state) {
+    final hasImages = state.productImages.isNotEmpty;
+
+    return Stack(
+      children: [
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Container(
+            height: 600,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.1)
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: state.isLoadingImages
+                ? const Center(child: CircularProgressIndicator())
+                : hasImages
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: state.productImages.length,
+                          onPageChanged: (index) {
+                            if (mounted) {
+                              setState(() {
+                                _currentImageIndex = index;
+                              });
+                            }
+                          },
+                          itemBuilder: (context, index) {
+                            final image = state.productImages[index];
+                            return Image.network(
+                              image.url,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Icon(
+                                    _getCategoryIcon(widget.product.category),
+                                    size: 150,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.7)
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Icon(
+                          _getCategoryIcon(widget.product.category),
+                          size: 150,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.7)
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+          ),
+        ),
+        // Page indicator dots
+        if (hasImages && state.productImages.length > 1)
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                state.productImages.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentImageIndex == index
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildImageCarouselMobile(
+      BuildContext context, ProductDetailState state) {
+    final hasImages = state.productImages.isNotEmpty;
+
+    return Stack(
+      children: [
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Container(
+            height: 400,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.1)
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: state.isLoadingImages
+                ? const Center(child: CircularProgressIndicator())
+                : hasImages
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: state.productImages.length,
+                          onPageChanged: (index) {
+                            if (mounted) {
+                              setState(() {
+                                _currentImageIndex = index;
+                              });
+                            }
+                          },
+                          itemBuilder: (context, index) {
+                            final image = state.productImages[index];
+                            return Image.network(
+                              image.url,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Icon(
+                                    _getCategoryIcon(widget.product.category),
+                                    size: 120,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.7)
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Icon(
+                          _getCategoryIcon(widget.product.category),
+                          size: 120,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.7)
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+          ),
+        ),
+        // Page indicator dots
+        if (hasImages && state.productImages.length > 1)
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                state.productImages.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentImageIndex == index
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        // Favorite button
+        Positioned(
+          right: 16,
+          top: 16,
+          child: FloatingActionButton(
+            mini: true,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            onPressed: () async {
+              if (state.product.productID != null) {
+                final isGuest = await _webGuestService.isCurrentUserGuest();
+                if (isGuest) {
+                  SnackbarService.showGuestRestriction(
+                    context,
+                    actionType: 'favorites',
+                  );
+                  return;
+                }
+                try {
+                  final wasFavorite = state.isFavorite;
+                  await cubit.toggleFavorite();
+                  context.read<FavoritesCubit>().loadFavorites();
+                  // Show snackbar notification
+                  final newState = cubit.state;
+                  if (newState.isFavorite != wasFavorite) {
+                    SnackbarService.showFavoriteSuccess(
+                      context,
+                      newState.isFavorite ? 'added' : 'removed',
+                    );
+                  }
+                } catch (e) {
+                  SnackbarService.showFavoriteError(context);
+                }
+              }
+            },
+            child: Icon(
+              state.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: state.isFavorite
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
       ],
     );
   }

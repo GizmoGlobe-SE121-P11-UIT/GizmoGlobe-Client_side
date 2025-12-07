@@ -61,6 +61,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   speech_to_text: ^7.0.0
+  cached_network_image: ^3.3.1
   awesome_snackbar_content: ^0.1.8
   web: ^1.1.1
   printing: ^5.12.0

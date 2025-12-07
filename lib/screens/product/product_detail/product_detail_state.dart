@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/objects/product_related/product_image.dart';
 
 import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
@@ -13,6 +14,8 @@ class ProductDetailState extends Equatable {
   final String message;
   final Set<String> favorites;
   final bool isFavorite;
+  final List<ProductImage> productImages;
+  final bool isLoadingImages;
 
   const ProductDetailState({
     required this.product,
@@ -23,6 +26,8 @@ class ProductDetailState extends Equatable {
     this.message = '',
     this.favorites = const {},
     this.isFavorite = false,
+    this.productImages = const [],
+    this.isLoadingImages = true,
   });
 
   @override
@@ -34,7 +39,9 @@ class ProductDetailState extends Equatable {
         message,
         processState,
         favorites,
-        isFavorite
+        isFavorite,
+        productImages,
+        isLoadingImages,
       ];
 
   ProductDetailState copyWith({
@@ -46,6 +53,8 @@ class ProductDetailState extends Equatable {
     String? message,
     Set<String>? favorites,
     bool? isFavorite,
+    List<ProductImage>? productImages,
+    bool? isLoadingImages,
   }) {
     return ProductDetailState(
       product: product ?? this.product,
@@ -56,6 +65,8 @@ class ProductDetailState extends Equatable {
       message: message ?? this.message,
       favorites: favorites ?? this.favorites,
       isFavorite: isFavorite ?? this.isFavorite,
+      productImages: productImages ?? this.productImages,
+      isLoadingImages: isLoadingImages ?? this.isLoadingImages,
     );
   }
 }

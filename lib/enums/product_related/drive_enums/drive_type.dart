@@ -31,8 +31,7 @@ enum DriveType {
 extension DriveTypeExtension on DriveType {
   static DriveType fromName(String name) {
     return DriveType.values.firstWhere(
-      (e) => e.getName() == name,
-      orElse: () => DriveType.unknown
-    );
+        (e) => e.getName().toLowerCase() == name.toLowerCase(),
+        orElse: () => DriveType.unknown);
   }
 }

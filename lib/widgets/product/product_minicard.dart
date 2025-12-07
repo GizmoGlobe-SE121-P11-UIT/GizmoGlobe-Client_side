@@ -56,13 +56,16 @@ class ProductMiniCard extends StatelessWidget {
       return;
     }
 
-    await navigator.push(
-      MaterialPageRoute(
-        builder: (_) => kIsWeb
-            ? ProductDetailScreenWebView.newInstance(product)
-            : ProductDetailScreen.newInstance(product),
-      ),
-    );
+    final productId = product.productID;
+    if (kIsWeb && productId != null) {
+      await navigator.pushNamed('/products/$productId');
+    } else {
+      await navigator.push(
+        MaterialPageRoute(
+          builder: (_) => ProductDetailScreen.newInstance(product),
+        ),
+      );
+    }
   }
 
   IconData _getCategoryIcon() {

@@ -318,6 +318,56 @@ class Database {
     }
   }
 
+  Future<Product?> getProductByID(String productID) async {
+    try {
+      final productDoc = await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productID)
+          .get();
+
+      if (!productDoc.exists) {
+        if (kDebugMode) {
+          print('Product $productID not found');
+        }
+        return null;
+      }
+
+      final dynamic raw = productDoc.data();
+      if (raw is! Map<String, dynamic>) {
+        if (kDebugMode) {
+          print(
+              'Product $productID has unexpected data type: ${raw.runtimeType}');
+        }
+        return null;
+      }
+
+      final Map<String, dynamic> data = raw.map<String, dynamic>((key, value) {
+        dynamic normalized = value;
+        if (value is String) {
+          final s = value.trim();
+          if ((s.startsWith('{') && s.endsWith('}')) ||
+              (s.startsWith('[') && s.endsWith(']'))) {
+            try {
+              normalized = jsonDecode(s);
+            } catch (_) {
+              normalized = value;
+            }
+          }
+        }
+        return MapEntry(key, normalized);
+      });
+
+      data.putIfAbsent('productID', () => productDoc.id);
+
+      return ProductFactory.createProduct(data);
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('Error getting product $productID: $e\n$st');
+      }
+      return null;
+    }
+  }
+
   Future<List<Product>> getProducts() async {
     try {
       final productSnapshot =

@@ -151,14 +151,18 @@ class _CartScreen extends State<CartScreen> {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: InkWell(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => kIsWeb
-                            ? ProductDetailScreenWebView.newInstance(product)
-                            : ProductDetailScreen.newInstance(product),
-                      ),
-                    );
+                    final productId = product.productID;
+                    if (kIsWeb && productId != null) {
+                      Navigator.of(context).pushNamed('/products/$productId');
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ProductDetailScreen.newInstance(product),
+                        ),
+                      );
+                    }
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: Row(

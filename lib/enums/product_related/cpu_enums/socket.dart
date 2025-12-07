@@ -33,9 +33,7 @@ enum Socket {
 extension SocketExtension on Socket {
   static Socket fromName(String name) {
     return Socket.values.firstWhere(
-        (e) => e.getName() == name,
-        orElse: () => Socket.unknown
-    );
+        (e) => e.getName().toLowerCase() == name.toLowerCase(),
+        orElse: () => Socket.unknown);
   }
 }
-

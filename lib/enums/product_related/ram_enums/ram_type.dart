@@ -25,7 +25,7 @@ enum RAMType {
 extension RAMTypeExtension on RAMType {
   static RAMType fromName(String name) {
     return RAMType.values.firstWhere(
-      (e) => e.getName() == name,
+      (e) => e.getName().toLowerCase() == name.toLowerCase(),
       orElse: () => RAMType.unknown,
     );
   }

@@ -9,6 +9,7 @@ import '../../objects/address_related/address.dart';
 import '../../objects/invoice_related/sales_invoice.dart';
 import '../../objects/invoice_related/sales_invoice_detail.dart';
 import '../../objects/manufacturer.dart';
+import '../../objects/product_related/product_image.dart';
 import '../../objects/voucher_related/owned_voucher.dart';
 import '../../objects/voucher_related/voucher.dart';
 import '../../objects/voucher_related/voucher_factory.dart';
@@ -959,5 +960,53 @@ class Firebase {
       'street': address.street,
       'hidden': address.hidden,
     };
+  }
+
+  /// Get all images for a product from the images subcollection
+  Future<List<ProductImage>> getProductImages(String productId) async {
+    try {
+      final QuerySnapshot snapshot = await _firestore
+          .collection('products')
+          .doc(productId)
+          .collection('images')
+          .orderBy('position')
+          .get();
+
+      return snapshot.docs.map((doc) {
+        return ProductImage.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+      }).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting product images: $e');
+      }
+      return [];
+    }
+  }
+
+  /// Get the primary image (position 1) for a product
+  Future<ProductImage?> getProductPrimaryImage(String productId) async {
+    try {
+      final QuerySnapshot snapshot = await _firestore
+          .collection('products')
+          .doc(productId)
+          .collection('images')
+          .where('position', isEqualTo: 1)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        return null;
+      }
+
+      return ProductImage.fromMap(
+        snapshot.docs.first.id,
+        snapshot.docs.first.data() as Map<String, dynamic>,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting product primary image: $e');
+      }
+      return null;
+    }
   }
 }

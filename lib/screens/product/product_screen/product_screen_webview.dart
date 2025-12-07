@@ -150,9 +150,19 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
 
     // If a product detail ID is present in the hash, do not override it
     final currentHash = platform_actions.getHashPath();
-    final isDetail = RegExp(r'^/products/[^/]+/[^/]+$').hasMatch(currentHash);
-    if (isDetail) {
-      return;
+    // Check if this is a product detail URL (not a category)
+    if (currentHash.startsWith('/products/')) {
+      final segments = currentHash.split('/');
+      if (segments.length >= 3) {
+        final possibleProductId = segments[2];
+        // Check if it's a category name or a product ID
+        final categories = ['ram', 'cpu', 'gpu', 'psu', 'drive', 'mainboard'];
+        final isCategory = categories.contains(possibleProductId.toLowerCase());
+        // If it's not a category, it's likely a product ID - don't override
+        if (!isCategory) {
+          return;
+        }
+      }
     }
 
     String newUrl;
@@ -167,8 +177,9 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
       }
     }
 
-    // Update the hash so the address bar reflects the current tab (no reload)
-    platform_actions.setHashFragment(newUrl);
+    // Use replaceState to update URL without creating history entry for tab switches
+    // This ensures tab switches don't interfere with back/forward navigation
+    platform_actions.replaceHashUrl(newUrl);
   }
 
   @override

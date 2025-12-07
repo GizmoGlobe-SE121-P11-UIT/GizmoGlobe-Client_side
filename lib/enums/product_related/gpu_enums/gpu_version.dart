@@ -29,7 +29,7 @@ enum GPUVersion {
 extension GPUVersionExtension on GPUVersion {
   static GPUVersion fromName(String name) {
     return GPUVersion.values.firstWhere(
-      (e) => e.getName() == name,
+      (e) => e.getName().toLowerCase() == name.toLowerCase(),
       orElse: () => GPUVersion.unknown,
     );
   }

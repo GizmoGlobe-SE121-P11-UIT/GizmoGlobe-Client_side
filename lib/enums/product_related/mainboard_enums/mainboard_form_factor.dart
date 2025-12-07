@@ -13,7 +13,9 @@ enum MainboardFormFactor {
   }
 
   static List<MainboardFormFactor> getValues() {
-    return MainboardFormFactor.values.where((e) => e != MainboardFormFactor.unknown).toList();
+    return MainboardFormFactor.values
+        .where((e) => e != MainboardFormFactor.unknown)
+        .toList();
   }
 
   @override
@@ -25,7 +27,7 @@ enum MainboardFormFactor {
 extension MainboardFormFactorExtension on MainboardFormFactor {
   static MainboardFormFactor fromName(String name) {
     return MainboardFormFactor.values.firstWhere(
-      (e) => e.getName() == name,
+      (e) => e.getName().toLowerCase() == name.toLowerCase(),
       orElse: () => MainboardFormFactor.unknown,
     );
   }

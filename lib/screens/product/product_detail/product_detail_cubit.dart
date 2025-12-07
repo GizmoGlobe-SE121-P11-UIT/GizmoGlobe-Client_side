@@ -26,6 +26,27 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       : super(ProductDetailState(product: product)) {
     _initializeTechnicalSpecs();
     loadFavorites();
+    _loadProductImages();
+  }
+
+  Future<void> _loadProductImages() async {
+    if (state.product.productID == null) {
+      emit(state.copyWith(isLoadingImages: false, productImages: []));
+      return;
+    }
+
+    try {
+      final images = await _firebase.getProductImages(state.product.productID!);
+      emit(state.copyWith(
+        productImages: images,
+        isLoadingImages: false,
+      ));
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading product images: $e');
+      }
+      emit(state.copyWith(isLoadingImages: false, productImages: []));
+    }
   }
 
   void _initializeTechnicalSpecs() {
@@ -36,23 +57,31 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       case CategoryEnum.ram:
         final ram = product as RAM;
         specs.addAll({
-          'Type': ram.type.toString(),
-          'Bus': '${ram.bus} MHz',
+          'RAM Type': ram.type.toString(),
+          'RAM Bus': '${ram.bus} MHz',
           'CL Latency': 'CL${ram.clLatency}',
-          'Kit Stick Count': ram.kitStickCount.toString(),
-          'Capacity per Stick': '${ram.capacityPerStickGb} GB',
+          if (ram.kitStickCount > 1)
+            'Kit Stick Count': ram.kitStickCount.toString(),
         });
+        if (ram.kitStickCount == 1) {
+          specs['RAM Capacity'] = '${ram.capacityPerStickGb} GB';
+        } else {
+          specs['RAM Capacity'] =
+              '${ram.kitStickCount * ram.capacityPerStickGb} GB';
+          specs['Capacity Per Stick'] = '${ram.capacityPerStickGb} GB';
+        }
         break;
 
       case CategoryEnum.cpu:
         final cpu = product as CPU;
         specs.addAll({
+          'Series': cpu.series.toString(),
+          'Socket': cpu.socket.toString(),
           'Cores': cpu.core.toString(),
           'Threads': cpu.thread.toString(),
           'Base Clock': '${cpu.baseClock} GHz',
           'Turbo Clock': '${cpu.turboClock} GHz',
           'TDP': '${cpu.tdp} W',
-          'Socket': cpu.socket.toString(),
         });
         break;
 

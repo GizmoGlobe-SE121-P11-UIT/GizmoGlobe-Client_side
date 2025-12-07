@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
+import '../../data/firebase/firebase.dart';
 import '../../enums/product_related/category_enum.dart';
 import '../../functions/helper.dart';
+import '../../objects/product_related/product_image.dart';
 import 'favorites/favorites_cubit.dart';
 
 class ProductCard extends StatelessWidget {
@@ -58,16 +61,66 @@ class ProductCard extends StatelessWidget {
                     children: [
                       Expanded(
                         flex: 3,
-                        child: Container(
-                          color: Colors.grey[300],
-                          child: Center(
-                            child: Icon(
-                              _getCategoryIcon(),
-                              size: 36,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
+                        child: product.productID != null
+                            ? FutureBuilder<ProductImage?>(
+                                future: Firebase()
+                                    .getProductPrimaryImage(product.productID!),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.waiting ||
+                                      !snapshot.hasData ||
+                                      snapshot.data == null ||
+                                      snapshot.data!.url.isEmpty) {
+                                    return Container(
+                                      color: Colors.grey[300],
+                                      child: Center(
+                                        child: Icon(
+                                          _getCategoryIcon(),
+                                          size: 36,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return CachedNetworkImage(
+                                    imageUrl: snapshot.data!.url,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    placeholder: (context, url) => Container(
+                                      color: Colors.grey[300],
+                                      child: Center(
+                                        child: Icon(
+                                          _getCategoryIcon(),
+                                          size: 36,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) =>
+                                        Container(
+                                      color: Colors.grey[300],
+                                      child: Center(
+                                        child: Icon(
+                                          _getCategoryIcon(),
+                                          size: 36,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              )
+                            : Container(
+                                color: Colors.grey[300],
+                                child: Center(
+                                  child: Icon(
+                                    _getCategoryIcon(),
+                                    size: 36,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ),
                       ),
                       Expanded(
                         flex: 2,
