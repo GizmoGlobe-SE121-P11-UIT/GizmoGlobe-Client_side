@@ -47,17 +47,26 @@ class NoAnimationTabController extends TabController {
 class ProductScreenWebView extends StatefulWidget {
   final List<Product>? initialProducts;
   final SortEnum? initialSortOption;
+  final bool isFavorites;
 
-  const ProductScreenWebView(
-      {super.key, this.initialProducts, this.initialSortOption});
+  const ProductScreenWebView({
+    super.key,
+    this.initialProducts,
+    this.initialSortOption,
+    this.isFavorites = false,
+  });
 
-  static Widget newInstance(
-          {List<Product>? initialProducts, SortEnum? initialSortOption}) =>
+  static Widget newInstance({
+    List<Product>? initialProducts,
+    SortEnum? initialSortOption,
+    bool isFavorites = false,
+  }) =>
       BlocProvider(
         create: (context) => ProductScreenCubit(),
         child: ProductScreenWebView(
           initialProducts: initialProducts,
           initialSortOption: initialSortOption,
+          isFavorites: isFavorites,
         ),
       );
 
@@ -698,6 +707,10 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
   }
 
   String _currentCategoryLabel(BuildContext context) {
+    // Show favorites label if navigating from favorites section
+    if (widget.isFavorites) {
+      return S.of(context).yourFavorites;
+    }
     switch (tabController.index) {
       case 0:
         return S.of(context).all;

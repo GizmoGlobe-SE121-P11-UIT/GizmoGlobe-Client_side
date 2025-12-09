@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/components/general/web_product_card.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
+import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
 
 class WebBestSellersSection extends StatelessWidget {
   final List<Product> products;
@@ -45,7 +47,13 @@ class WebBestSellersSection extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/products');
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ProductScreen.newInstance(
+                        initialSortOption: SortEnum.salesHighest,
+                      ),
+                    ),
+                  );
                 },
                 child: Row(
                   children: [

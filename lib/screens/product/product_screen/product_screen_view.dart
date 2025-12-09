@@ -19,22 +19,33 @@ import '../../../objects/product_related/product.dart';
 class ProductScreen extends StatefulWidget {
   final List<Product>? initialProducts;
   final SortEnum? initialSortOption;
+  final bool isFavorites;
 
-  const ProductScreen(
-      {super.key, this.initialProducts, this.initialSortOption});
+  const ProductScreen({
+    super.key,
+    this.initialProducts,
+    this.initialSortOption,
+    this.isFavorites = false,
+  });
 
-  static Widget newInstance(
-          {List<Product>? initialProducts, SortEnum? initialSortOption}) =>
+  static Widget newInstance({
+    List<Product>? initialProducts,
+    SortEnum? initialSortOption,
+    bool isFavorites = false,
+  }) =>
       kIsWeb
           ? ProductScreenWebView.newInstance(
               initialProducts: initialProducts,
               initialSortOption: initialSortOption,
+              isFavorites: isFavorites,
             )
           : BlocProvider(
               create: (context) => ProductScreenCubit(),
               child: ProductScreen(
-                  initialProducts: initialProducts,
-                  initialSortOption: initialSortOption),
+                initialProducts: initialProducts,
+                initialSortOption: initialSortOption,
+                isFavorites: isFavorites,
+              ),
             );
 
   @override

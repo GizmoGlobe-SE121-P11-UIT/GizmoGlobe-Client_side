@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/components/general/web_product_card.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
 
 class WebFavoritesSection extends StatelessWidget {
   final List<Product> products;
@@ -45,7 +47,34 @@ class WebFavoritesSection extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/products');
+                  if (kIsWeb) {
+                    // Use PageRouteBuilder on web to avoid browser history conflicts
+                    Navigator.of(context).push(
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            ProductScreen.newInstance(
+                          initialProducts: products,
+                          isFavorites: true,
+                        ),
+                        settings: const RouteSettings(name: '/products'),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                              opacity: animation, child: child);
+                        },
+                        transitionDuration: const Duration(milliseconds: 150),
+                      ),
+                    );
+                  } else {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ProductScreen.newInstance(
+                          initialProducts: products,
+                          isFavorites: true,
+                        ),
+                      ),
+                    );
+                  }
                 },
                 child: Row(
                   children: [
