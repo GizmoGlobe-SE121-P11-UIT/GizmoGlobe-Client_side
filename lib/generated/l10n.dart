@@ -865,6 +865,27 @@ class S {
   String get downloadInvoice =>
       Intl.message('Download invoice', name: 'downloadInvoice');
 
+  String get cannotCancelTitle =>
+      Intl.message('Cannot cancel', name: 'cannotCancelTitle');
+  String get cannotCancelMessage =>
+      Intl.message('This order can no longer be cancelled.',
+          name: 'cannotCancelMessage');
+  String get cancelSuccessTitle =>
+      Intl.message('Order cancelled', name: 'cancelSuccessTitle');
+  String get cancelSuccessMessage =>
+      Intl.message('The order was cancelled successfully.',
+          name: 'cancelSuccessMessage');
+  String get cancelFailedTitle =>
+      Intl.message('Cancel failed', name: 'cancelFailedTitle');
+  String cancelFailedMessage(Object error) =>
+      Intl.message('Unable to cancel this order.',
+          name: 'cancelFailedMessage', args: [error]);
+
+  String get cancelled => Intl.message('Cancelled', name: 'cancelled');
+
+  String get noCancelledOrders =>
+      Intl.message('You have no cancelled orders.', name: 'noCancelledOrders');
+
   // PC Builder
   String get enableCompatibilityChecker =>
       Intl.message('Enable compatibility checker',

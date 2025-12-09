@@ -136,9 +136,9 @@ class SalesInvoiceWidget extends StatelessWidget {
           text: localizedStatus,
           color: colorScheme.secondary,
         );
-      default:
+      case SalesStatus.cancelled:
         return _StatusChip(
-          text: S.of(context).statusUnknown,
+          text: localizedStatus,
           color: colorScheme.error,
         );
     }

@@ -15,6 +15,7 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
     List<SalesInvoice> toShipList = [];
     List<SalesInvoice> toReceiveList = [];
     List<SalesInvoice> completedList = [];
+    List<SalesInvoice> cancelledList = [];
 
     if (Database().salesInvoiceList.isEmpty) {
       await Database().fetchSalesInvoice();
@@ -36,7 +37,8 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
         case SalesStatus.completed:
           completedList.add(salesInvoice);
           break;
-        default:
+        case SalesStatus.cancelled:
+          cancelledList.add(salesInvoice);
           break;
       }
     }
@@ -49,6 +51,7 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
       toShipList: [...toShipList]..sort(compareInvoiceDateDesc),
       toReceiveList: [...toReceiveList]..sort(compareInvoiceDateDesc),
       completedList: [...completedList]..sort(compareInvoiceDateDesc),
+      cancelledList: [...cancelledList]..sort(compareInvoiceDateDesc),
     ));
   }
 

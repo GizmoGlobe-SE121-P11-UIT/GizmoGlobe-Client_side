@@ -505,7 +505,11 @@ class _WebHeaderState extends State<WebHeader> {
         onTap: () {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          Navigator.pushNamed(context, '/orders/completed');
+          if (kIsWeb) {
+            // Ensure hash-based navigation updates the URL and triggers routing
+            platform_actions.replaceHashUrl('/orders');
+          }
+          Navigator.pushNamed(context, '/orders');
         },
       ),
       _buildMenuItem(

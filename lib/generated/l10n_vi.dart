@@ -1306,6 +1306,30 @@ class SVI extends S {
   @override
   String get downloadInvoice => 'Tải xuống hóa đơn';
 
+  @override
+  String get cannotCancelTitle => 'Không thể hủy';
+
+  @override
+  String get cannotCancelMessage => 'Đơn hàng này không thể hủy nữa.';
+
+  @override
+  String get cancelSuccessTitle => 'Đã hủy đơn hàng';
+
+  @override
+  String get cancelSuccessMessage => 'Đơn hàng đã được hủy thành công.';
+
+  @override
+  String get cancelFailedTitle => 'Hủy thất bại';
+
+  @override
+  String cancelFailedMessage(Object error) => 'Không thể hủy đơn hàng này.';
+
+  @override
+  String get cancelled => 'Đã hủy';
+
+  @override
+  String get noCancelledOrders => 'Bạn chưa có đơn hàng đã hủy.';
+
   // PC Builder
   @override
   String get enableCompatibilityChecker => 'Bật kiểm tra tương thích';

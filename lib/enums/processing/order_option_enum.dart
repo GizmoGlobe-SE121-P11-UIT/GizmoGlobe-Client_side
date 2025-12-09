@@ -1,7 +1,8 @@
 enum OrderOption {
   toShip('To Ship'),
   toReceive('To Receive'),
-  completed('Completed');
+  completed('Completed'),
+  cancelled('Cancelled');
 
   final String description;
 
