@@ -985,7 +985,7 @@ class _WebProductTabState extends State<WebProductTab>
                     if (state.filteredProductList.isEmpty) {
                       return Center(
                         child: Text(
-                          'No Products Found',
+                          S.of(context).noProductsFound,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       );
@@ -1000,7 +1000,7 @@ class _WebProductTabState extends State<WebProductTab>
                         state.filteredProductList.isNotEmpty) {
                       return Center(
                         child: Text(
-                          'No Products Found',
+                          S.of(context).noProductsFound,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       );

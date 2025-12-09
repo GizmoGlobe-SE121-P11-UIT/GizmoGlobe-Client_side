@@ -48,7 +48,7 @@ class WebFavoritesSection extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   if (kIsWeb) {
-                    // Use PageRouteBuilder on web to avoid browser history conflicts
+                    // Use PageRouteBuilder without RouteSettings to avoid browser history conflicts
                     Navigator.of(context).push(
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -56,13 +56,13 @@ class WebFavoritesSection extends StatelessWidget {
                           initialProducts: products,
                           isFavorites: true,
                         ),
-                        settings: const RouteSettings(name: '/products'),
                         transitionsBuilder:
                             (context, animation, secondaryAnimation, child) {
                           return FadeTransition(
                               opacity: animation, child: child);
                         },
                         transitionDuration: const Duration(milliseconds: 150),
+                        opaque: false,
                       ),
                     );
                   } else {

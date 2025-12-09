@@ -795,6 +795,9 @@ class S {
       Intl.message('Your Favorites', name: 'yourFavorites');
   String get productsInYourWishlist =>
       Intl.message('Products in your wishlist', name: 'productsInYourWishlist');
+  String get productRecommendationsForYourBuild =>
+      Intl.message('Product recommendations for your build',
+          name: 'productRecommendationsForYourBuild');
 
   // Guest restrictions
   String get loginRequired =>
@@ -922,6 +925,9 @@ class S {
         name: 'builderSessionComponents',
         args: [count],
       );
+  String get loading => Intl.message('Loading...', name: 'loading');
+  String get goodWithThisProduct =>
+      Intl.message('Good with this product', name: 'goodWithThisProduct');
 
   // Footer
   String get footerTagline => Intl.message(

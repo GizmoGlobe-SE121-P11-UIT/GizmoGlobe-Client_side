@@ -60,7 +60,18 @@ class AIUtils {
   /// Detect if message is about products
   bool isProductQuestion(String message) {
     final productKeywords = {
-      'cpu': ['cpu', 'processor', 'core i', 'ryzen', 'intel', 'amd'],
+      'cpu': [
+        'cpu',
+        'processor',
+        'core i',
+        'ryzen',
+        'intel',
+        'amd',
+        'i3',
+        'i5',
+        'i7',
+        'i9'
+      ],
       'gpu': ['gpu', 'graphics', 'card', 'vga', 'rtx', 'gtx', 'radeon'],
       'ram': ['ram', 'memory', 'ddr', 'dimm', 'kingston', 'corsair'],
       'psu': ['psu', 'power supply', 'nguồn'],
@@ -76,8 +87,18 @@ class AIUtils {
     };
 
     final lowercaseMessage = message.toLowerCase();
-    return productKeywords.values.any((keywords) => keywords
+
+    // Check for product keywords
+    final hasKeyword = productKeywords.values.any((keywords) => keywords
         .any((keyword) => lowercaseMessage.contains(keyword.toLowerCase())));
+
+    // Also check for product model patterns like "i7 12700k", "ryzen 5 5600", "rtx 4090"
+    final productModelPattern = RegExp(
+        r'\b(?:i[3579]|ryzen\s*[3579]|rtx|gtx)\s*\d+[a-z]*\b',
+        caseSensitive: false);
+    final hasModelPattern = productModelPattern.hasMatch(lowercaseMessage);
+
+    return hasKeyword || hasModelPattern;
   }
 
   /// Detect if message is about favorites

@@ -6,7 +6,6 @@ import 'package:gizmoglobe_client/objects/cart_item.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_webview.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
-import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_webview.dart';
 
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
@@ -255,13 +254,13 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
             if (kIsWeb && productId != null) {
               Navigator.of(context).pushNamed('/products/$productId');
             } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
+              Navigator.push(
+                context,
+                MaterialPageRoute(
                   builder: (context) =>
                       ProductDetailScreen.newInstance(product),
-              ),
-            );
+                ),
+              );
             }
           },
           borderRadius: BorderRadius.circular(12),

@@ -773,7 +773,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Good with this product',
+            S.of(context).goodWithThisProduct,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontSize: 18,
                   color: Theme.of(context).colorScheme.primary,

@@ -9,7 +9,6 @@ import 'package:gizmoglobe_client/objects/product_related/product_image.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
-import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_webview.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
@@ -338,7 +337,7 @@ class _WebProductCardState extends State<WebProductCard> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSurface
-                                      .withOpacity(0.5),
+                                      .withValues(alpha: 0.5),
                                   fontSize: 12,
                                 ),
                               ),

@@ -1982,7 +1982,7 @@ class _ProductDetailScreenWebViewState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Good with this product',
+          S.of(context).goodWithThisProduct,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 fontSize: 24,
                 color: Theme.of(context).colorScheme.primary,

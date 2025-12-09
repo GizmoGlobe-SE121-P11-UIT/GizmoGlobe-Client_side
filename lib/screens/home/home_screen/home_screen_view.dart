@@ -266,7 +266,7 @@ class _HomeScreen extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    S.of(context).productsInYourWishlist,
+                    S.of(context).productRecommendationsForYourBuild,
                     style: TextStyle(
                       color: Theme.of(context)
                           .colorScheme

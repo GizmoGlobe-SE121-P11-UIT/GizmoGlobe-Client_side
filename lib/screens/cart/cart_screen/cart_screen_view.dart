@@ -5,7 +5,6 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/cart/checkout_screen/checkout_screen_view.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_view.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
-import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_webview.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
@@ -155,13 +154,13 @@ class _CartScreen extends State<CartScreen> {
                     if (kIsWeb && productId != null) {
                       Navigator.of(context).pushNamed('/products/$productId');
                     } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
                           builder: (context) =>
                               ProductDetailScreen.newInstance(product),
-                      ),
-                    );
+                        ),
+                      );
                     }
                   },
                   borderRadius: BorderRadius.circular(8),

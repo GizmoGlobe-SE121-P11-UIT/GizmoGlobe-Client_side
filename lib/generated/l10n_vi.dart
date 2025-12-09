@@ -1218,11 +1218,15 @@ class SVI extends S {
       'Sản phẩm được đánh giá cao nhất được khách hàng yêu thích';
 
   @override
-  String get yourFavorites => 'Yêu Thích Của Bạn';
+  String get yourFavorites => 'Yêu thích của bạn';
 
   @override
   String get productsInYourWishlist =>
       'Sản phẩm trong danh sách yêu thích của bạn';
+
+  @override
+  String get productRecommendationsForYourBuild =>
+      'Gợi ý sản phẩm cho PC của bạn';
 
   // Guest restrictions
   @override
@@ -1371,6 +1375,12 @@ class SVI extends S {
 
   @override
   String get builderSessionUpdatedLabel => 'Cập nhật';
+
+  @override
+  String get loading => 'Đang tải...';
+
+  @override
+  String get goodWithThisProduct => 'Tương thích với sản phẩm này';
 
   @override
   String builderSessionComponents(int count) => '$count linh kiện';
