@@ -371,19 +371,17 @@ class Firebase {
       salesInvoice.salesInvoiceID = salesInvoiceID;
 
       await salesInvoiceRef.update({'salesInvoiceID': salesInvoiceID});
-      await _firestore.collection('sales_invoices').doc(salesInvoiceID).set({
+      final invoiceData = {
+        ...salesInvoice.toMap(),
         'salesInvoiceID': salesInvoiceID,
-        'customerID': salesInvoice.customerID,
-        'customerName': salesInvoice.customerName ?? '',
-        'address': _serializeAddress(salesInvoice.address),
-        'date': salesInvoice.date,
-        'paymentStatus': salesInvoice.paymentStatus.getName(),
-        'paymentMethod': salesInvoice.paymentMethod.getName(),
-        'salesStatus': salesInvoice.salesStatus.getName(),
-        'totalPrice': salesInvoice.totalPrice,
-        'voucherID': salesInvoice.voucher?.voucherID,
-        'voucherDiscount': salesInvoice.voucherDiscount,
-      });
+        // Store only the address ID to keep payload small/normalized
+        'address': salesInvoice.address?.addressID ?? '',
+      };
+
+      await _firestore
+          .collection('sales_invoices')
+          .doc(salesInvoiceID)
+          .set(invoiceData);
 
       for (SalesInvoiceDetail detail in salesInvoice.details) {
         await _firestore
@@ -422,19 +420,15 @@ class Firebase {
           .doc(salesInvoice.salesInvoiceID);
 
       // Update the main invoice document
-      await invoiceRef.update({
+      final updatedInvoiceData = {
+        ...salesInvoice.toMap(),
+        // Ensure ID stays in sync
         'salesInvoiceID': salesInvoice.salesInvoiceID,
-        'customerID': salesInvoice.customerID,
-        'customerName': salesInvoice.customerName ?? '',
-        'address': _serializeAddress(salesInvoice.address),
-        'date': salesInvoice.date,
-        'paymentStatus': salesInvoice.paymentStatus.getName(),
-        'paymentMethod': salesInvoice.paymentMethod.getName(),
-        'salesStatus': salesInvoice.salesStatus.getName(),
-        'totalPrice': salesInvoice.totalPrice,
-        'voucherID': salesInvoice.voucher?.voucherID,
-        'voucherDiscount': salesInvoice.voucherDiscount,
-      });
+        // Store only the address ID to keep payload small/normalized
+        'address': salesInvoice.address?.addressID ?? '',
+      };
+
+      await invoiceRef.update(updatedInvoiceData);
 
       // Delete existing invoice details
       final existingDetailsSnapshot = await _firestore
@@ -1081,21 +1075,6 @@ class Firebase {
       }
       // Continue with cancellation even if stock restore fails
     }
-  }
-
-  Map<String, dynamic>? _serializeAddress(Address? address) {
-    if (address == null) return null;
-    return {
-      'addressID': address.addressID ?? '',
-      'customerID': address.customerID,
-      'receiverName': address.receiverName,
-      'receiverPhone': address.receiverPhone,
-      'provinceCode': address.province?.code,
-      'districtCode': address.district?.code,
-      'wardCode': address.ward?.code,
-      'street': address.street,
-      'hidden': address.hidden,
-    };
   }
 
   /// Get all images for a product from the images subcollection
