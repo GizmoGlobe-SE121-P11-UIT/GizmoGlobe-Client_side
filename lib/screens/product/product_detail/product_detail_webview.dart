@@ -1998,7 +1998,7 @@ class _ProductDetailScreenWebViewState
                         ),
                         const SizedBox(height: 8),
                         Text(
-`                          'No ratings yet',
+                          'No ratings yet',
                           style: TextStyle(
                             fontSize: 14,
                             color: Theme.of(context)
