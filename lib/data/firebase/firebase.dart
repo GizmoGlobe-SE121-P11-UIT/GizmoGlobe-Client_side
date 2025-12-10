@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import '../../data/database/database.dart';
 
@@ -6,6 +9,8 @@ import '../../enums/invoice_related/sales_status.dart';
 import '../../enums/manufacturer/manufacturer_status.dart';
 import '../../enums/product_related/product_status_enum.dart';
 import '../../objects/address_related/address.dart';
+import '../../objects/invoice_related/rating.dart';
+import '../../objects/invoice_related/ratings_page.dart';
 import '../../objects/invoice_related/sales_invoice.dart';
 import '../../objects/invoice_related/sales_invoice_detail.dart';
 import '../../objects/manufacturer.dart';
@@ -513,8 +518,8 @@ class Firebase {
             salesInvoiceID: salesInvoice.salesInvoiceID,
             product: product,
             quantity: detailData['quantity'] as int,
-            sellingPrice: (detailData['sellingPrice'] as num).toDouble(),
-            subtotal: (detailData['subtotal'] as num).toDouble(),
+            sellingPrice: (detailData['sellingPrice'] as num).toInt(),
+            subtotal: (detailData['subtotal'] as num).toInt(),
           );
         }).toList();
 
@@ -588,8 +593,8 @@ class Firebase {
           salesInvoiceID: salesInvoice.salesInvoiceID,
           product: product,
           quantity: detailData['quantity'] as int,
-          sellingPrice: (detailData['sellingPrice'] as num).toDouble(),
-          subtotal: (detailData['subtotal'] as num).toDouble(),
+          sellingPrice: (detailData['sellingPrice'] as num).toInt(),
+          subtotal: (detailData['subtotal'] as num).toInt(),
         );
       }).toList();
 
@@ -634,13 +639,159 @@ class Firebase {
     }
   }
 
+  Future<List<Rating>> getRatingsByUser(String userID) async {
+    try {
+      final uid = (userID.isEmpty)
+          ? (Database().userID.isEmpty ? (await Database().getCurrentUserID() ?? '') : Database().userID)
+          : userID;
+      if (uid.isEmpty) return [];
+
+      final QuerySnapshot snapshot = await _firestore
+          .collection('order_ratings')
+          .where('userID', isEqualTo: uid)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Rating.fromMap(doc.id, data);
+      }).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting ratings by user: $e');
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> submitOrderRating({
+    required String userID,
+    required String productId,
+    required int rating,
+    String? comment,
+    List<File>? images,
+    File? video,
+    String? invoiceId, // new optional param
+  }) async {
+    await _retryOperation(() async {
+      try {
+        if (userID.isEmpty || productId.isEmpty) {
+          throw Exception('userID and productId are required');
+        }
+
+        final docRef = await _firestore.collection('order_ratings').add({
+          'userID': userID,
+          'productID': productId,
+          'timeSent': FieldValue.serverTimestamp(),
+          'rating': rating,
+          'comment': comment,
+          'imagesUrl': null,
+          'videoUrl': null,
+        });
+
+        final docId = docRef.id;
+        List<String>? uploadedImageUrls;
+        String? uploadedVideoUrl;
+
+        if (images != null && images.isNotEmpty) {
+          uploadedImageUrls = [];
+          for (var i = 0; i < images.length; i++) {
+            final file = images[i];
+            final ext = file.path.split('.').last;
+            final storageRef = FirebaseStorage.instance
+                .ref()
+                .child('ratings')
+                .child(docId)
+                .child('images')
+                .child('img_${i}_${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+            final uploadTask = storageRef.putFile(file);
+            await uploadTask.whenComplete(() => null);
+            final url = await storageRef.getDownloadURL();
+            uploadedImageUrls.add(url);
+          }
+        }
+
+        if (video != null) {
+          final ext = video.path.split('.').last;
+          final storageRef = FirebaseStorage.instance
+              .ref()
+              .child('ratings')
+              .child(docId)
+              .child('video')
+              .child('video_${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+          final uploadTask = storageRef.putFile(video);
+          await uploadTask.whenComplete(() => null);
+          uploadedVideoUrl = await storageRef.getDownloadURL();
+        }
+
+        await docRef.update({
+          'imagesUrl': uploadedImageUrls,
+          'videoUrl': uploadedVideoUrl,
+        });
+
+        // If invoiceId is provided, check whether all products in that invoice are rated by this user.
+        if (invoiceId != null && invoiceId.isNotEmpty) {
+          await _markInvoiceCompletedIfAllRated(invoiceId, userID);
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error submitting order rating: $e');
+        }
+        rethrow;
+      }
+    });
+  }
+
+  Future<void> _markInvoiceCompletedIfAllRated(String invoiceId, String userId) async {
+    try {
+      final detailsSnapshot = await _firestore
+          .collection('sales_invoice_details')
+          .where('salesInvoiceID', isEqualTo: invoiceId)
+          .get();
+
+      final productIds = detailsSnapshot.docs.map((d) {
+        final map = d.data();
+        return (map['productID'] as String?) ?? '';
+      }).where((id) => id.isNotEmpty).toList();
+
+      if (productIds.isEmpty) return;
+
+      for (final pid in productIds) {
+        final ratingSnap = await _firestore
+            .collection('order_ratings')
+            .where('userID', isEqualTo: userId)
+            .where('productID', isEqualTo: pid)
+            .limit(1)
+            .get();
+
+        if (ratingSnap.docs.isEmpty) {
+          // found an unrated product -> stop
+          return;
+        }
+      }
+
+      // All products have a rating by this user; mark invoice as completed.
+      await _firestore.collection('sales_invoices').doc(invoiceId).update({
+        'salesStatus': SalesStatus.completed.getName(),
+      });
+
+      await Database().fetchSalesInvoice();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error checking/completing invoice after rating: $e');
+      }
+      // non-critical; do not rethrow
+    }
+  }
+
   Future<void> confirmDelivery(SalesInvoice salesInvoice) async {
     try {
       await _firestore
           .collection('sales_invoices')
           .doc(salesInvoice.salesInvoiceID)
           .update({
-        'salesStatus': SalesStatus.completed.getName(),
+        'salesStatus': SalesStatus.received.getName(),
       });
       await Database().fetchSalesInvoice();
     } catch (e) {

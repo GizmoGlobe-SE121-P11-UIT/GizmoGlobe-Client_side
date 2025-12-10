@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
@@ -5,7 +6,7 @@ import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.d
 import '../../../data/database/database.dart';
 import '../../../enums/invoice_related/sales_status.dart';
 import '../../../enums/processing/process_state_enum.dart';
-// Import các enum cần thiết cho từng loại sản phẩm
+import '../../../objects/invoice_related/rating.dart';
 import '../../../objects/invoice_related/sales_invoice.dart';
 
 class OrderScreenCubit extends Cubit<OrderScreenState> {
@@ -33,6 +34,7 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
         case SalesStatus.shipped:
           toReceiveList.add(salesInvoice);
           break;
+        case SalesStatus.received:
         case SalesStatus.completed:
           completedList.add(salesInvoice);
           break;
@@ -62,13 +64,63 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
     emit(state.copyWith(processState: ProcessState.loading));
     try {
       SalesInvoice updatedInvoice = salesInvoice.copyWith(
-        salesStatus: SalesStatus.completed,
+        salesStatus: SalesStatus.received,
       );
       await Firebase().confirmDelivery(updatedInvoice);
       emit(state.copyWith(processState: ProcessState.success));
     } catch (e) {
       emit(state.copyWith(processState: ProcessState.failure));
       return;
+    }
+  }
+
+  Future<void> completeInvoiceIfAllProductsRated(
+      SalesInvoice invoice,
+      List<Rating> currentUserRatings,
+      ) async {
+    final invoiceId = invoice.salesInvoiceID ?? '';
+    if (invoiceId.isEmpty) return;
+
+    try {
+      final invoiceProductIds = <String>{
+        for (final detail in (invoice.details))
+          detail.product.productID!
+      }..removeWhere((id) => id.isEmpty);
+
+      if (invoiceProductIds.isEmpty) return;
+
+      String uid = Database().userID.isEmpty
+          ? (await Database().getCurrentUserID() ?? '')
+          : Database().userID;
+      if (uid.isEmpty) return;
+
+      final ratingSnapshot = await Firebase().firestore
+          .collection('order_ratings')
+          .where('userID', isEqualTo: uid)
+          .get();
+
+      final ratedProductIds = ratingSnapshot.docs
+          .map((d) {
+        final data = d.data();
+        return (data['productID'] as String?) ?? '';
+      })
+          .where((id) => id.isNotEmpty)
+          .toSet();
+
+      if (invoiceProductIds.isNotEmpty &&
+          invoiceProductIds.difference(ratedProductIds).isEmpty) {
+        await Firebase().firestore
+            .collection('sales_invoices')
+            .doc(invoiceId)
+            .update({'salesStatus': SalesStatus.completed.getName()});
+
+        await Database().fetchSalesInvoice();
+        await initialize(OrderOption.completed);
+      }
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('Error completing invoice after rating: $e\n$st');
+      }
     }
   }
 }

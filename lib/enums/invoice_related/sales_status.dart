@@ -3,6 +3,7 @@ enum SalesStatus {
   preparing('Preparing', 'Đang chuẩn bị'),
   shipping('Shipping', 'Đang giao hàng'),
   shipped('Shipped', 'Đã giao hàng'),
+  received('Received', 'Đã nhận hàng'),
   completed('Completed', 'Hoàn thành'),
   cancelled('Cancelled', 'Đã hủy');
 

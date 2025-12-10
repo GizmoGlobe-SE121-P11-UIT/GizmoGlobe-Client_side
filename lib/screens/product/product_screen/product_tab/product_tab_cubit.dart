@@ -124,7 +124,9 @@ abstract class TabCubit extends Cubit<TabState> {
 
       // Search
       if (applySearch &&
-          !product.productName.toLowerCase().contains(queryLower)) continue;
+          !product.productName.toLowerCase().contains(queryLower)) {
+        continue;
+      }
 
       // Manufacturer
       if (applyManufacturer) {
@@ -133,8 +135,9 @@ abstract class TabCubit extends Cubit<TabState> {
       }
 
       // Price range
-      if (!matchesMinMax(product.discountedPrice, fa.minPrice, fa.maxPrice))
+      if (!matchesMinMax(product.discountedPrice.toDouble(), fa.minPrice, fa.maxPrice)) {
         continue;
+      }
 
       // Category-specific filters
       if (!matchFilter(product, fa)) continue;

@@ -5,9 +5,9 @@ class SalesInvoiceDetail {
   final String? salesInvoiceDetailID;
   final String? salesInvoiceID;
   final Product product;
-  final double sellingPrice;
+  final int sellingPrice;
   final int quantity;
-  final double subtotal;
+  final int subtotal;
 
   SalesInvoiceDetail({
     this.salesInvoiceDetailID,
@@ -22,9 +22,9 @@ class SalesInvoiceDetail {
     String? salesInvoiceDetailID,
     String? salesInvoiceID,
     Product? product,
-    double? sellingPrice,
+    int? sellingPrice,
     int? quantity,
-    double? subtotal,
+    int? subtotal,
   }) {
     return SalesInvoiceDetail(
       salesInvoiceDetailID: salesInvoiceDetailID ?? this.salesInvoiceDetailID,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:gizmoglobe_client/objects/invoice_related/rating.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -49,6 +50,7 @@ class Database {
   List<SalesInvoice> salesInvoiceList = [];
   List<Voucher> allVoucherList = [];
   List<OwnedVoucher> ownedVoucherList = [];
+  List<Rating> ratingList = [];
 
   List<RAM> ramList = [];
   List<CPU> cpuList = [];
@@ -230,6 +232,7 @@ class Database {
       await getCartItems();
 
       await fetchSalesInvoice();
+      await getRating();
     } catch (e) {
       if (kDebugMode) {
         print('Fetching data error: $e');
@@ -237,6 +240,10 @@ class Database {
       // print('Lỗi khi lấy dữ liệu: $e');
       rethrow;
     }
+  }
+
+  Future<void> getRating() async {
+    ratingList = await Firebase().getRatingsByUser(userID);
   }
 
   Future<void> getCartItems() async {

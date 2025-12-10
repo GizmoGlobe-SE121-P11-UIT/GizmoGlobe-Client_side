@@ -43,14 +43,6 @@ class ProductCard extends StatelessWidget {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    // gradient: LinearGradient(
-                    //   begin: Alignment.topCenter,
-                    //   end: Alignment.bottomCenter,
-                    //   colors: [
-                    //     Colors.grey[100]!,
-                    //     Colors.grey[100]!,
-                    //   ],
-                    // ),
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   child: Column(
