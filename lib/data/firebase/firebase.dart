@@ -670,7 +670,7 @@ class Firebase {
     String? comment,
     List<File>? images,
     File? video,
-    String? invoiceId, // new optional param
+    String? invoiceId,
   }) async {
     await _retryOperation(() async {
       try {
@@ -798,17 +798,13 @@ class Firebase {
       if (kDebugMode) {
         print('Error confirming delivery: $e');
       }
-      // print('Lỗi khi xác nhận giao hàng: $e');
       rethrow;
     }
   }
 
-  /// Cancel a sales invoice (mark as cancelled status)
-  /// Optionally reverts voucher usage if a voucher was applied
   Future<void> cancelSalesInvoice(String salesInvoiceID,
       {bool revertVoucherUsage = true}) async {
     try {
-      // Get the invoice to check if it has a voucher
       final invoiceDoc = await _firestore
           .collection('sales_invoices')
           .doc(salesInvoiceID)
@@ -851,7 +847,6 @@ class Firebase {
     }
   }
 
-  /// Delete a sales invoice and its details (use with caution)
   Future<void> deleteSalesInvoice(String salesInvoiceID) async {
     try {
       // Delete all invoice details first
@@ -1110,5 +1105,133 @@ class Firebase {
       'street': address.street,
       'hidden': address.hidden,
     };
+  }
+
+  Future<List<Rating>> getRatingsByProductWithUsername(String productId) async {
+    try {
+      if (productId.isEmpty) return [];
+
+      // Avoid server-side ordering that requires a composite index.
+      // Fetch ratings for the product and sort locally by timeSent descending.
+      final QuerySnapshot snapshot = await _firestore
+          .collection('order_ratings')
+          .where('productID', isEqualTo: productId)
+          .get();
+
+      final List<Rating> ratings = [];
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final rating = Rating.fromMap(doc.id, data);
+
+        // Try to fetch username from customers collection using userID
+        try {
+          if (rating.userID.isNotEmpty) {
+            final userDoc = await _firestore
+                .collection('customers')
+                .doc(rating.userID)
+                .get();
+            if (userDoc.exists) {
+              final userData = userDoc.data();
+              final customerName = (userData?['customerName'] as String?) ?? '';
+              if (customerName.isNotEmpty) {
+                rating.username = customerName;
+              }
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) print('Warning: could not fetch username for rating ${rating.ratingID}: $e');
+        }
+
+        ratings.add(rating);
+      }
+
+      // Sort ratings in-memory by timeSent descending (newest first)
+      ratings.sort((a, b) => b.timeSent.compareTo(a.timeSent));
+
+      return ratings;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting ratings by product: $e');
+      }
+      rethrow;
+    }
+  }
+
+  Future<RatingsPage> getRatingsPageByProduct(String productId, {DocumentSnapshot? startAfter, int limit = 5}) async {
+    try {
+      if (productId.isEmpty) return RatingsPage(ratings: [], lastDocument: null, hasMore: false);
+
+      Query query = _firestore
+          .collection('order_ratings')
+          .where('productID', isEqualTo: productId)
+          .orderBy('timeSent', descending: true)
+          .limit(limit);
+
+      if (startAfter != null) query = query.startAfterDocument(startAfter);
+
+      final QuerySnapshot snapshot = await query.get();
+
+      final List<Rating> ratings = [];
+      for (final doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final rating = Rating.fromMap(doc.id, data);
+
+        // attach username if possible
+        try {
+          if (rating.userID.isNotEmpty) {
+            final userDoc = await _firestore.collection('customers').doc(rating.userID).get();
+            if (userDoc.exists) {
+              final userData = userDoc.data();
+              final customerName = (userData?['customerName'] as String?) ?? '';
+              if (customerName.isNotEmpty) rating.username = customerName;
+            }
+          }
+        } catch (_) {}
+
+        ratings.add(rating);
+      }
+
+      final lastDoc = snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
+      final hasMore = snapshot.docs.length == limit;
+
+      return RatingsPage(ratings: ratings, lastDocument: lastDoc, hasMore: hasMore);
+    } catch (e) {
+      if (kDebugMode) print('Server-side paged query failed: $e');
+      rethrow; // let caller handle fallback
+    }
+  }
+
+  /// Returns average rating and total count for a product.
+  /// Map contains: {'average': double, 'count': int, 'sum': int}
+  Future<Map<String, dynamic>> getAverageRatingForProduct(String productId) async {
+    try {
+      if (productId.isEmpty) return {'average': 0.0, 'count': 0, 'sum': 0};
+
+      final QuerySnapshot snapshot = await _firestore
+          .collection('order_ratings')
+          .where('productID', isEqualTo: productId)
+          .get();
+
+      int sum = 0;
+      int count = 0;
+      for (final doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final ratingVal = data['rating'];
+        int parsed = 0;
+        if (ratingVal is int) parsed = ratingVal;
+        else if (ratingVal is num) parsed = ratingVal.toInt();
+        else if (ratingVal is String) parsed = int.tryParse(ratingVal) ?? 0;
+        else parsed = 0;
+        sum += parsed;
+        count += 1;
+      }
+
+      final average = (count > 0) ? (sum / count) : 0.0;
+      return {'average': average, 'count': count, 'sum': sum};
+    } catch (e) {
+      if (kDebugMode) print('Error computing average rating: $e');
+      return {'average': 0.0, 'count': 0, 'sum': 0};
+    }
   }
 }

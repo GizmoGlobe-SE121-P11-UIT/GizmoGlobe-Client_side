@@ -17,6 +17,7 @@ abstract class Product {
   Manufacturer manufacturer;
   ProductStatusEnum status;
   String? imageUrl;
+  double? rating;
 
   String? enDescription;
   String? viDescription;
@@ -46,5 +47,9 @@ abstract class Product {
     } else {
       return enDescription;
     }
+  }
+
+  void setRating(double rating) {
+    this.rating = rating;
   }
 }

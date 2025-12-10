@@ -11,9 +11,10 @@ import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../functions/helper.dart';
+import 'package:intl/intl.dart';
+import '../../media/fullscreen_media_viewer.dart';
 import '../../../generated/l10n.dart';
-import '../../../objects/product_related/product.dart';
-import '../../../services/recommendation_service.dart';
+import '../../../objects/product_related/product.dart';import '../../../services/recommendation_service.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
 import '../../../widgets/product/product_card.dart';
@@ -344,9 +345,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 //   _buildTextField(context, S.of(context).description,
                                 //       widget.product.getDescription(context)!),
                                 // ],
-
-                                _buildRecommendationsSection(
-                                    context, state.product),
+                                const SizedBox(height: 24),
+                                _buildRatingSection(state),
+                                const SizedBox(height: 24),
+                                _buildRecommendationsSection(context, state.product),
                               ],
                             ),
                           ),
@@ -727,6 +729,191 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           const SizedBox(height: 12),
         ],
       ),
+    );
+  }
+
+  // Ratings section for mobile product detail
+  Widget _buildRatingSection(ProductDetailState state) {
+    final ratings = state.ratings;
+    final hasRatings = ratings.isNotEmpty;
+
+    // Use average provided by cubit/database (accurate across all ratings)
+    final double average = state.averageRating;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Ratings & Reviews',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Average summary (no highlight)
+        Container(
+          margin: EdgeInsets.zero,
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      (state.averageRating > 0) ? state.averageRating.toStringAsFixed(1) : '0.0',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      (state.totalRatingsCount > 0) ? '${state.totalRatingsCount} reviews' : 'No ratings yet',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Individual rating cards
+        if (!hasRatings)
+          const SizedBox()
+        else
+          Column(
+            children: ratings.map((r) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Card(
+                  elevation: 2,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Theme.of(context).dividerColor.withAlpha(30))),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                r.username ?? 'Anonymous',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            if (r.rating > 0) ...[
+                              Text(r.rating.toDouble().toStringAsFixed(1), style: TextStyle(fontWeight: FontWeight.w600)),
+                              const SizedBox(width: 6),
+                              const Icon(Icons.star, color: Colors.amber, size: 16),
+                            ]
+                          ],
+                        ),
+                        // Date row (dd/MM/yyyy)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6.0),
+                          child: Text(
+                            DateFormat('dd/MM/yyyy').format(r.timeSent),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ),
+                        if (r.comment != null && r.comment!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(r.comment!),
+                          ),
+                        if ((r.videoUrl != null && r.videoUrl!.isNotEmpty) || (r.imagesUrl != null && r.imagesUrl!.isNotEmpty))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (r.videoUrl != null && r.videoUrl!.isNotEmpty)
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(MaterialPageRoute(
+                                        builder: (_) => FullscreenMediaViewer(videoUrl: r.videoUrl),
+                                      ));
+                                    },
+                                    child: Container(
+                                      height: 160,
+                                      color: Theme.of(context).colorScheme.surface,
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          Image.network(r.videoUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
+                                          Center(
+                                            child: Icon(Icons.play_circle, color: Colors.white.withOpacity(0.9), size: 56),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                if (r.imagesUrl != null && r.imagesUrl!.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: SizedBox(
+                                      height: 80,
+                                      child: ListView(
+                                        scrollDirection: Axis.horizontal,
+                                        children: r.imagesUrl!.map((img) => Padding(
+                                          padding: const EdgeInsets.only(right: 8.0),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.of(context).push(MaterialPageRoute(
+                                                builder: (_) => FullscreenMediaViewer(imageUrl: img),
+                                              ));
+                                            },
+                                            child: Image.network(img, height: 80, fit: BoxFit.cover),
+                                          ),
+                                        )).toList(),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        // Show more button
+        if (state.hasMoreRatings)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () async {
+                  await cubit.loadMoreRatings();
+                },
+                child: const Text('Show more'),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

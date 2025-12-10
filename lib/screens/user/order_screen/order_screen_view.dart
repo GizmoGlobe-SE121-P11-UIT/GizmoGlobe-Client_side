@@ -300,12 +300,11 @@ class _OrderScreenState extends State<OrderScreen>
       final userId = Database().userID.isEmpty
           ? (await Database().getCurrentUserID() ?? '')
           : Database().userID;
-      final ratings =
-      userId.isEmpty ? <Rating>[] : await Firebase().getRatingsByUser(userId);
+      await Database().getRating();
+      final ratings = userId.isEmpty ? <Rating>[] : Database().ratingList;
       if (mounted) setState(() => _userRatings = ratings);
     } catch (e) {
       if (kDebugMode) print('Error loading user ratings: $e');
-      // don't block UI on rating fetch failure
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Rating {
   String? ratingID;
   String userID;
+  String? username;
   String productID;
   DateTime timeSent;
   int rating;
@@ -16,6 +17,7 @@ class Rating {
     required this.productID,
     required this.timeSent,
     required this.rating,
+    this.username,
     this.comment,
     this.imagesUrl,
     this.videoUrl,
@@ -27,6 +29,7 @@ class Rating {
     productID,
     timeSent,
     rating,
+    username,
     comment,
     imagesUrl,
     videoUrl,
@@ -39,6 +42,7 @@ class Rating {
     DateTime? timeSent,
     int? rating,
     String? comment,
+    String? username,
     List<String>? imagesUrl,
     String? videoUrl,
   }) {
@@ -49,6 +53,7 @@ class Rating {
       timeSent: timeSent ?? this.timeSent,
       rating: rating ?? this.rating,
       comment: comment ?? this.comment,
+      username: username ?? this.username,
       imagesUrl: imagesUrl ?? this.imagesUrl,
       videoUrl: videoUrl ?? this.videoUrl,
     );

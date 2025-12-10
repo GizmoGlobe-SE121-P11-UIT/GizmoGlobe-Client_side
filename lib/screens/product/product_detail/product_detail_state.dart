@@ -3,10 +3,15 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 
 import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
+import '../../../objects/invoice_related/rating.dart';
 
 class ProductDetailState extends Equatable {
   final Product product;
   final Map<String, String> technicalSpecs;
+  final List<Rating> ratings;
+  final bool hasMoreRatings;
+  final double averageRating;
+  final int totalRatingsCount;
   final int quantity;
   final ProcessState processState;
   final DialogName dialogName;
@@ -17,6 +22,10 @@ class ProductDetailState extends Equatable {
   const ProductDetailState({
     required this.product,
     this.technicalSpecs = const {},
+    this.ratings = const [],
+    this.hasMoreRatings = false,
+    this.averageRating = 0.0,
+    this.totalRatingsCount = 0,
     this.quantity = 1,
     this.processState = ProcessState.idle,
     this.dialogName = DialogName.empty,
@@ -29,6 +38,10 @@ class ProductDetailState extends Equatable {
   List<Object?> get props => [
         product,
         technicalSpecs,
+        ratings,
+        hasMoreRatings,
+        averageRating,
+        totalRatingsCount,
         quantity,
         dialogName,
         message,
@@ -40,6 +53,10 @@ class ProductDetailState extends Equatable {
   ProductDetailState copyWith({
     Product? product,
     Map<String, String>? technicalSpecs,
+    List<Rating>? ratings,
+    bool? hasMoreRatings,
+    double? averageRating,
+    int? totalRatingsCount,
     int? quantity,
     ProcessState? processState,
     DialogName? dialogName,
@@ -50,6 +67,10 @@ class ProductDetailState extends Equatable {
     return ProductDetailState(
       product: product ?? this.product,
       technicalSpecs: technicalSpecs ?? this.technicalSpecs,
+      ratings: ratings ?? this.ratings,
+      hasMoreRatings: hasMoreRatings ?? this.hasMoreRatings,
+      averageRating: averageRating ?? this.averageRating,
+      totalRatingsCount: totalRatingsCount ?? this.totalRatingsCount,
       quantity: quantity ?? this.quantity,
       processState: processState ?? this.processState,
       dialogName: dialogName ?? this.dialogName,
