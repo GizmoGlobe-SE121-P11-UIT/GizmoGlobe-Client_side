@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gizmoglobe_client/objects/invoice_related/reply.dart';
 
 class Rating {
   String? ratingID;
@@ -10,6 +11,7 @@ class Rating {
   String? comment;
   List<String>? imagesUrl;
   String? videoUrl;
+  Reply? reply;
 
   Rating({
     this.ratingID = '',
@@ -21,6 +23,7 @@ class Rating {
     this.comment,
     this.imagesUrl,
     this.videoUrl,
+    this.reply,
   });
 
   List<Object?> get props => [
@@ -33,6 +36,7 @@ class Rating {
     comment,
     imagesUrl,
     videoUrl,
+    reply,
   ];
 
   Rating copyWith({
@@ -45,6 +49,7 @@ class Rating {
     String? username,
     List<String>? imagesUrl,
     String? videoUrl,
+    Reply? reply,
   }) {
     return Rating(
       ratingID: ratingID ?? this.ratingID,
@@ -56,6 +61,7 @@ class Rating {
       username: username ?? this.username,
       imagesUrl: imagesUrl ?? this.imagesUrl,
       videoUrl: videoUrl ?? this.videoUrl,
+      reply: reply ?? this.reply,
     );
   }
 
@@ -69,7 +75,13 @@ class Rating {
       'comment': comment,
       'imagesUrl': imagesUrl,
       'videoUrl': videoUrl,
+      'reply': reply?.toMap(),
     };
+  }
+
+  static Rating fromDoc(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+    return Rating.fromMap(doc.id, data);
   }
 
   static Rating fromMap(String id, Map<String, dynamic> map) {
@@ -111,6 +123,8 @@ class Rating {
     final videoVal = map['videoUrl'];
     final parsedVideo = (videoVal is String && videoVal.isNotEmpty) ? videoVal : null;
 
+    final replyVal = map['reply'];
+
     return Rating(
       ratingID: id,
       userID: (map['userID'] as String?) ?? '',
@@ -120,6 +134,7 @@ class Rating {
       comment: map['comment'] as String?,
       imagesUrl: parsedImages,
       videoUrl: parsedVideo,
+      reply: replyVal != null ? Reply.fromMap(replyVal as Map<String, dynamic>) : null,
     );
   }
 }

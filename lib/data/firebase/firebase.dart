@@ -1202,8 +1202,6 @@ class Firebase {
     }
   }
 
-  /// Returns average rating and total count for a product.
-  /// Map contains: {'average': double, 'count': int, 'sum': int}
   Future<Map<String, dynamic>> getAverageRatingForProduct(String productId) async {
     try {
       if (productId.isEmpty) return {'average': 0.0, 'count': 0, 'sum': 0};

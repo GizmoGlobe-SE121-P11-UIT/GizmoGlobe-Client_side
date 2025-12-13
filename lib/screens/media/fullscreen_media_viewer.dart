@@ -5,7 +5,7 @@ class FullscreenMediaViewer extends StatefulWidget {
   final String? imageUrl;
   final String? videoUrl;
 
-  const FullscreenMediaViewer({Key? key, this.imageUrl, this.videoUrl}) : super(key: key);
+  const FullscreenMediaViewer({super.key, this.imageUrl, this.videoUrl});
 
   @override
   State<FullscreenMediaViewer> createState() => _FullscreenMediaViewerState();

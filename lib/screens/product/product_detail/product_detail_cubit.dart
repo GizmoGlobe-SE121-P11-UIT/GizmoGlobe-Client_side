@@ -204,7 +204,6 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
     }
   }
 
-  /// Refresh average and total count for the product (useful because paging may not include all records)
   Future<void> refreshAverage() async {
     try {
       final productId = state.product.productID ?? '';
@@ -223,7 +222,6 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       final productId = state.product.productID ?? '';
       if (productId.isEmpty) return;
 
-      // Try server-side paged fetch if we have a last doc; otherwise use client-side continuation
       if (_lastRatingsDoc != null) {
         final page = await _firebase.getRatingsPageByProduct(productId, startAfter: _lastRatingsDoc, limit: limit);
         _lastRatingsDoc = page.lastDocument;
@@ -232,7 +230,6 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
         return;
       }
 
-      // Fallback client-side: fetch all and append next slice
       final all = await _firebase.getRatingsByProductWithUsername(productId);
       final current = state.ratings.length;
       if (current >= all.length) {

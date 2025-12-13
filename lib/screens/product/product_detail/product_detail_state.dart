@@ -8,16 +8,18 @@ import '../../../objects/invoice_related/rating.dart';
 class ProductDetailState extends Equatable {
   final Product product;
   final Map<String, String> technicalSpecs;
+  final ProcessState processState;
+  final DialogName dialogName;
+
+  final String message;
+  final Set<String> favorites;
+  final bool isFavorite;
+
   final List<Rating> ratings;
   final bool hasMoreRatings;
   final double averageRating;
   final int totalRatingsCount;
   final int quantity;
-  final ProcessState processState;
-  final DialogName dialogName;
-  final String message;
-  final Set<String> favorites;
-  final bool isFavorite;
 
   const ProductDetailState({
     required this.product,

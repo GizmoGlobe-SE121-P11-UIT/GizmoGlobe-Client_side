@@ -11,10 +11,10 @@ import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../functions/helper.dart';
-import 'package:intl/intl.dart';
-import '../../media/fullscreen_media_viewer.dart';
+import '../../../widgets/order/rating_card.dart';
 import '../../../generated/l10n.dart';
-import '../../../objects/product_related/product.dart';import '../../../services/recommendation_service.dart';
+import '../../../objects/product_related/product.dart';
+import '../../../services/recommendation_service.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
 import '../../../widgets/product/product_card.dart';
@@ -737,9 +737,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final ratings = state.ratings;
     final hasRatings = ratings.isNotEmpty;
 
-    // Use average provided by cubit/database (accurate across all ratings)
-    final double average = state.averageRating;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -798,106 +795,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           const SizedBox()
         else
           Column(
-            children: ratings.map((r) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Card(
-                  elevation: 2,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Theme.of(context).dividerColor.withAlpha(30))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                r.username ?? 'Anonymous',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                            if (r.rating > 0) ...[
-                              Text(r.rating.toDouble().toStringAsFixed(1), style: TextStyle(fontWeight: FontWeight.w600)),
-                              const SizedBox(width: 6),
-                              const Icon(Icons.star, color: Colors.amber, size: 16),
-                            ]
-                          ],
-                        ),
-                        // Date row (dd/MM/yyyy)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6.0),
-                          child: Text(
-                            DateFormat('dd/MM/yyyy').format(r.timeSent),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                            ),
-                          ),
-                        ),
-                        if (r.comment != null && r.comment!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(r.comment!),
-                          ),
-                        if ((r.videoUrl != null && r.videoUrl!.isNotEmpty) || (r.imagesUrl != null && r.imagesUrl!.isNotEmpty))
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (r.videoUrl != null && r.videoUrl!.isNotEmpty)
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context).push(MaterialPageRoute(
-                                        builder: (_) => FullscreenMediaViewer(videoUrl: r.videoUrl),
-                                      ));
-                                    },
-                                    child: Container(
-                                      height: 160,
-                                      color: Theme.of(context).colorScheme.surface,
-                                      child: Stack(
-                                        fit: StackFit.expand,
-                                        children: [
-                                          Image.network(r.videoUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
-                                          Center(
-                                            child: Icon(Icons.play_circle, color: Colors.white.withOpacity(0.9), size: 56),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                if (r.imagesUrl != null && r.imagesUrl!.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: SizedBox(
-                                      height: 80,
-                                      child: ListView(
-                                        scrollDirection: Axis.horizontal,
-                                        children: r.imagesUrl!.map((img) => Padding(
-                                          padding: const EdgeInsets.only(right: 8.0),
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              Navigator.of(context).push(MaterialPageRoute(
-                                                builder: (_) => FullscreenMediaViewer(imageUrl: img),
-                                              ));
-                                            },
-                                            child: Image.network(img, height: 80, fit: BoxFit.cover),
-                                          ),
-                                        )).toList(),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
+            children: ratings.map((r) => RatingCard(rating: r)).toList(),
           ),
         // Show more button
         if (state.hasMoreRatings)
