@@ -11,6 +11,9 @@ class SignInState with EquatableMixin {
   final String email;
   final String password;
   final bool isGuestLogin;
+  final bool isEmailLoading;
+  final bool isGoogleLoading;
+  final bool isGuestLoading;
 
   const SignInState({
     this.processState = ProcessState.idle,
@@ -19,11 +22,23 @@ class SignInState with EquatableMixin {
     this.email = '',
     this.password = '',
     this.isGuestLogin = false,
+    this.isEmailLoading = false,
+    this.isGoogleLoading = false,
+    this.isGuestLoading = false,
   });
 
   @override
-  List<Object?> get props =>
-      [processState, dialogName, message, email, password, isGuestLogin];
+  List<Object?> get props => [
+        processState,
+        dialogName,
+        message,
+        email,
+        password,
+        isGuestLogin,
+        isEmailLoading,
+        isGoogleLoading,
+        isGuestLoading,
+      ];
 
   SignInState copyWith({
     ProcessState? processState,
@@ -32,6 +47,9 @@ class SignInState with EquatableMixin {
     String? email,
     String? password,
     bool? isGuestLogin,
+    bool? isEmailLoading,
+    bool? isGoogleLoading,
+    bool? isGuestLoading,
   }) {
     return SignInState(
       processState: processState ?? this.processState,
@@ -40,6 +58,9 @@ class SignInState with EquatableMixin {
       email: email ?? this.email,
       password: password ?? this.password,
       isGuestLogin: isGuestLogin ?? this.isGuestLogin,
+      isEmailLoading: isEmailLoading ?? this.isEmailLoading,
+      isGoogleLoading: isGoogleLoading ?? this.isGoogleLoading,
+      isGuestLoading: isGuestLoading ?? this.isGuestLoading,
     );
   }
 }

@@ -1,8 +1,14 @@
-const functions = require('firebase-functions');
+const {onRequest} = require('firebase-functions/v2/https');
+const {onDocumentWritten} = require('firebase-functions/v2/firestore');
+const {onSchedule} = require('firebase-functions/v2/scheduler');
+const {defineSecret, defineString} = require('firebase-functions/params');
 const admin = require('firebase-admin');
 
 // Initialize Firebase Admin
 admin.initializeApp();
+
+// Define secret parameter for SePay API token
+const sepayApiToken = defineSecret('SEPAY_API_TOKEN');
 
 /**
  * SePay Webhook Handler
@@ -14,7 +20,7 @@ admin.initializeApp();
  * 
  * @see https://docs.sepay.vn/lap-trinh-webhooks.html
  */
-exports.sepayWebhook = functions.https.onRequest(async (req, res) => {
+exports.sepayWebhook = onRequest(async (req, res) => {
   // Enable CORS
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -183,7 +189,7 @@ exports.sepayWebhook = functions.https.onRequest(async (req, res) => {
  * 
  * URL: https://us-central1-se121p11-gizmoglobe.cloudfunctions.net/sepayWebhookTest
  */
-exports.sepayWebhookTest = functions.https.onRequest(async (req, res) => {
+exports.sepayWebhookTest = onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   
   return res.status(200).json({
@@ -210,45 +216,43 @@ exports.sepayWebhookTest = functions.https.onRequest(async (req, res) => {
  *   "data": {} // Request data (for POST/PUT)
  * }
  */
-exports.sepayApiProxy = functions.https.onRequest(async (req, res) => {
-  // Enable CORS
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+exports.sepayApiProxy = onRequest(
+  {secrets: [sepayApiToken]},
+  async (req, res) => {
+    // Enable CORS
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('');
-    return;
-  }
-
-  // Handle GET requests (for testing)
-  if (req.method === 'GET') {
-    return res.status(200).json({
-      success: true,
-      message: 'SePay API Proxy is active',
-      endpoint: 'sepayApiProxy',
-      usage: 'POST requests with endpoint, method, and data',
-      timestamp: new Date().toISOString(),
-    });
-  }
-
-  try {
-    // Get SePay API token from environment config
-    // Priority: 1. Firebase config, 2. Environment variable
-    let apiToken = functions.config().sepay?.api_token;
-    if (!apiToken) {
-      apiToken = process.env.SEPAY_API_TOKEN;
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
     }
-    
-    if (!apiToken) {
-      console.error('SePay API token not configured');
-      return res.status(500).json({
-        success: false,
-        error: 'SePay API token not configured. Set it using: firebase functions:config:set sepay.api_token="YOUR_TOKEN"',
-        note: 'Or set SEPAY_API_TOKEN environment variable in Firebase Console',
+
+    // Handle GET requests (for testing)
+    if (req.method === 'GET') {
+      return res.status(200).json({
+        success: true,
+        message: 'SePay API Proxy is active',
+        endpoint: 'sepayApiProxy',
+        usage: 'POST requests with endpoint, method, and data',
+        timestamp: new Date().toISOString(),
       });
     }
+
+    try {
+      // Get SePay API token from secret
+      const apiToken = sepayApiToken.value();
+      
+      if (!apiToken) {
+        console.error('SePay API token not configured');
+        return res.status(500).json({
+          success: false,
+          error: 'SePay API token not configured. Set it using: firebase functions:secrets:set SEPAY_API_TOKEN',
+          note: 'See https://firebase.google.com/docs/functions/config-env for more info',
+        });
+      }
 
     const baseUrl = 'https://my.sepay.vn/userapi';
     const endpoint = req.body.endpoint;
@@ -354,7 +358,7 @@ exports.sepayApiProxy = functions.https.onRequest(async (req, res) => {
       }
 
       reqSePay.end();
-    });
+    }); // This closes the Promise
 
   } catch (error) {
     console.error('SePay API Proxy Error:', error);
@@ -364,4 +368,198 @@ exports.sepayApiProxy = functions.https.onRequest(async (req, res) => {
     });
   }
 });
+
+/**
+ * Product Rating Aggregation Functions
+ * 
+ * These functions aggregate product ratings to avoid recalculating on each product load.
+ * Aggregated data is stored in: aggregations/product_ratings
+ * 
+ * Structure:
+ * {
+ *   "products": {
+ *     "productID": {
+ *       "avgRating": 4.5,
+ *       "ratingCount": 120,
+ *       "lastUpdated": timestamp
+ *     }
+ *   },
+ *   "lastFullRecalc": timestamp
+ * }
+ */
+
+/**
+ * Helper function to aggregate ratings for a single product
+ * @param {string} productId - The product ID to aggregate ratings for
+ */
+async function aggregateProductRating(productId) {
+  try {
+    if (!productId || productId.trim().length === 0) {
+      console.log('Invalid productId provided to aggregateProductRating');
+      return;
+    }
+
+    console.log(`Aggregating ratings for product: ${productId}`);
+
+    // Query all ratings for this product
+    const ratingsSnapshot = await admin.firestore()
+      .collection('order_ratings')
+      .where('productID', '==', productId)
+      .get();
+
+    let sum = 0;
+    let count = 0;
+
+    // Calculate sum and count
+    ratingsSnapshot.forEach((doc) => {
+      const data = doc.data();
+      const rating = data.rating;
+      
+      // Parse rating value (handle different types)
+      let parsedRating = 0;
+      if (typeof rating === 'number') {
+        parsedRating = rating;
+      } else if (typeof rating === 'string') {
+        parsedRating = parseInt(rating, 10) || 0;
+      }
+      
+      if (parsedRating > 0) {
+        sum += parsedRating;
+        count += 1;
+      }
+    });
+
+    const avgRating = count > 0 ? Math.round((sum / count) * 10) / 10 : 0;
+
+    // Update aggregations/product_ratings document
+    const aggregationsRef = admin.firestore()
+      .collection('aggregations')
+      .doc('productRatings');
+
+    // Get current document to preserve other products
+    const currentDoc = await aggregationsRef.get();
+    const currentData = currentDoc.exists ? currentDoc.data() : {};
+    const products = currentData.products || {};
+
+    // Update the specific product in the products map
+    products[productId] = {
+      avgRating: avgRating,
+      ratingCount: count,
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Write back the entire products map
+    await aggregationsRef.set({
+      products: products,
+    }, { merge: true });
+
+    console.log(`Updated rating aggregation for product ${productId}: avg=${avgRating.toFixed(2)}, count=${count}`);
+  } catch (error) {
+    console.error(`Error aggregating ratings for product ${productId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Firestore Trigger: Update product rating aggregation when rating is created, updated, or deleted
+ * 
+ * Triggers on: order_ratings collection changes
+ */
+exports.onRatingWritten = onDocumentWritten('order_ratings/{ratingId}', async (event) => {
+  try {
+    // Get productID from the rating document
+    let productId = null;
+
+    if (event.data.after) {
+      // Document was created or updated
+      const newData = event.data.after.data();
+      productId = newData.productID || newData.productId;
+    } else if (event.data.before) {
+      // Document was deleted
+      const oldData = event.data.before.data();
+      productId = oldData.productID || oldData.productId;
+    }
+
+      if (!productId) {
+        console.log('No productID found in rating document, skipping aggregation');
+        return null;
+      }
+
+      console.log(`Rating changed for product ${productId}, triggering aggregation`);
+      await aggregateProductRating(productId);
+
+      return null;
+    } catch (error) {
+      console.error('Error in onRatingWritten trigger:', error);
+      // Don't throw - allow the rating operation to succeed even if aggregation fails
+      return null;
+    }
+  });
+
+/**
+ * Scheduled Function: Recalculate all product ratings daily at midnight (Asia/Bangkok timezone)
+ * 
+ * Schedule: Every day at 00:00 Bangkok time (17:00 UTC previous day)
+ * Timezone: Asia/Bangkok (UTC+7)
+ */
+exports.dailyRatingsRecalc = onSchedule(
+  {
+    schedule: '0 0 * * *', // Midnight every day
+    timeZone: 'Asia/Bangkok',
+    timeoutSeconds: 540,
+    memory: '512MiB',
+  },
+  async (event) => {
+    try {
+      console.log('Starting daily product ratings recalculation...');
+      const startTime = Date.now();
+
+      // Get all unique productIDs from order_ratings
+      const ratingsSnapshot = await admin.firestore()
+        .collection('order_ratings')
+        .get();
+
+      const productIds = new Set();
+      ratingsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        const productId = data.productID || data.productId;
+        if (productId && productId.trim().length > 0) {
+          productIds.add(productId);
+        }
+      });
+
+      console.log(`Found ${productIds.size} unique products with ratings`);
+
+      // Aggregate ratings for each product
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const productId of productIds) {
+        try {
+          await aggregateProductRating(productId);
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to aggregate ratings for product ${productId}:`, error);
+          errorCount++;
+        }
+      }
+
+      // Update lastFullRecalc timestamp
+      await admin.firestore()
+        .collection('aggregations')
+        .doc('productRatings') 
+        .set({
+          lastFullRecalc: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log(`Daily ratings recalculation completed in ${duration}s`);
+      console.log(`Success: ${successCount}, Errors: ${errorCount}`);
+
+      return null;
+    } catch (error) {
+      console.error('Error in dailyRatingsRecalc:', error);
+      throw error;
+    }
+  });
 

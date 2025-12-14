@@ -1127,20 +1127,20 @@ class Firebase {
     }
   }
 
-  Map<String, dynamic>? _serializeAddress(Address? address) {
-    if (address == null) return null;
-    return {
-      'addressID': address.addressID ?? '',
-      'customerID': address.customerID,
-      'receiverName': address.receiverName,
-      'receiverPhone': address.receiverPhone,
-      'provinceCode': address.province?.code,
-      'districtCode': address.district?.code,
-      'wardCode': address.ward?.code,
-      'street': address.street,
-      'hidden': address.hidden,
-    };
-  }
+  // Map<String, dynamic>? _serializeAddress(Address? address) {
+  //   if (address == null) return null;
+  //   return {
+  //     'addressID': address.addressID ?? '',
+  //     'customerID': address.customerID,
+  //     'receiverName': address.receiverName,
+  //     'receiverPhone': address.receiverPhone,
+  //     'provinceCode': address.province?.code,
+  //     'districtCode': address.district?.code,
+  //     'wardCode': address.ward?.code,
+  //     'street': address.street,
+  //     'hidden': address.hidden,
+  //   };
+  // }
 
   /// Decrement product stock when invoice is created
   Future<void> _decrementProductStock(
@@ -1270,6 +1270,7 @@ class Firebase {
   /// Get the primary image (position 1) for a product
   Future<ProductImage?> getProductPrimaryImage(String productId) async {
     try {
+      // First try to get image with position 1
       final QuerySnapshot snapshot = await _firestore
           .collection('products')
           .doc(productId)
@@ -1278,13 +1279,29 @@ class Firebase {
           .limit(1)
           .get();
 
-      if (snapshot.docs.isEmpty) {
+      if (snapshot.docs.isNotEmpty) {
+        return ProductImage.fromMap(
+          snapshot.docs.first.id,
+          snapshot.docs.first.data() as Map<String, dynamic>,
+        );
+      }
+
+      // Fallback: If no image with position 1, get the first image ordered by position
+      final fallbackSnapshot = await _firestore
+          .collection('products')
+          .doc(productId)
+          .collection('images')
+          .orderBy('position')
+          .limit(1)
+          .get();
+
+      if (fallbackSnapshot.docs.isEmpty) {
         return null;
       }
 
       return ProductImage.fromMap(
-        snapshot.docs.first.id,
-        snapshot.docs.first.data() as Map<String, dynamic>,
+        fallbackSnapshot.docs.first.id,
+        fallbackSnapshot.docs.first.data(),
       );
     } catch (e) {
       if (kDebugMode) {
@@ -1327,9 +1344,10 @@ class Firebase {
             }
           }
         } catch (e) {
-          if (kDebugMode)
+          if (kDebugMode) {
             print(
                 'Warning: could not fetch username for rating ${rating.ratingID}: $e');
+          }
         }
 
         ratings.add(rating);
@@ -1350,8 +1368,9 @@ class Firebase {
   Future<RatingsPage> getRatingsPageByProduct(String productId,
       {DocumentSnapshot? startAfter, int limit = 5}) async {
     try {
-      if (productId.isEmpty)
+      if (productId.isEmpty) {
         return RatingsPage(ratings: [], lastDocument: null, hasMore: false);
+      }
 
       Query query = _firestore
           .collection('order_ratings')
@@ -1413,14 +1432,15 @@ class Firebase {
         final data = doc.data() as Map<String, dynamic>;
         final ratingVal = data['rating'];
         int parsed = 0;
-        if (ratingVal is int)
+        if (ratingVal is int) {
           parsed = ratingVal;
-        else if (ratingVal is num)
+        } else if (ratingVal is num) {
           parsed = ratingVal.toInt();
-        else if (ratingVal is String)
+        } else if (ratingVal is String) {
           parsed = int.tryParse(ratingVal) ?? 0;
-        else
+        } else {
           parsed = 0;
+        }
         sum += parsed;
         count += 1;
       }
@@ -1433,142 +1453,40 @@ class Firebase {
     }
   }
 
-  Future<List<Rating>> getRatingsByProductWithUsername(String productId) async {
-    try {
-      if (productId.isEmpty) return [];
-
-      // Avoid server-side ordering that requires a composite index.
-      // Fetch ratings for the product and sort locally by timeSent descending.
-      final QuerySnapshot snapshot = await _firestore
-          .collection('order_ratings')
-          .where('productID', isEqualTo: productId)
-          .get();
-
-      final List<Rating> ratings = [];
-
-      for (final doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final rating = Rating.fromMap(doc.id, data);
-
-        // Try to fetch username from customers collection using userID
-        try {
-          if (rating.userID.isNotEmpty) {
-            final userDoc = await _firestore
-                .collection('customers')
-                .doc(rating.userID)
-                .get();
-            if (userDoc.exists) {
-              final userData = userDoc.data();
-              final customerName = (userData?['customerName'] as String?) ?? '';
-              if (customerName.isNotEmpty) {
-                rating.username = customerName;
-              }
-            }
-          }
-        } catch (e) {
-          if (kDebugMode)
-            print(
-                'Warning: could not fetch username for rating ${rating.ratingID}: $e');
-        }
-
-        ratings.add(rating);
-      }
-
-      // Sort ratings in-memory by timeSent descending (newest first)
-      ratings.sort((a, b) => b.timeSent.compareTo(a.timeSent));
-
-      return ratings;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error getting ratings by product: $e');
-      }
-      rethrow;
-    }
-  }
-
-  Future<RatingsPage> getRatingsPageByProduct(String productId,
-      {DocumentSnapshot? startAfter, int limit = 5}) async {
-    try {
-      if (productId.isEmpty)
-        return RatingsPage(ratings: [], lastDocument: null, hasMore: false);
-
-      Query query = _firestore
-          .collection('order_ratings')
-          .where('productID', isEqualTo: productId)
-          .orderBy('timeSent', descending: true)
-          .limit(limit);
-
-      if (startAfter != null) query = query.startAfterDocument(startAfter);
-
-      final QuerySnapshot snapshot = await query.get();
-
-      final List<Rating> ratings = [];
-      for (final doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final rating = Rating.fromMap(doc.id, data);
-
-        // attach username if possible
-        try {
-          if (rating.userID.isNotEmpty) {
-            final userDoc = await _firestore
-                .collection('customers')
-                .doc(rating.userID)
-                .get();
-            if (userDoc.exists) {
-              final userData = userDoc.data();
-              final customerName = (userData?['customerName'] as String?) ?? '';
-              if (customerName.isNotEmpty) rating.username = customerName;
-            }
-          }
-        } catch (_) {}
-
-        ratings.add(rating);
-      }
-
-      final lastDoc = snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
-      final hasMore = snapshot.docs.length == limit;
-
-      return RatingsPage(
-          ratings: ratings, lastDocument: lastDoc, hasMore: hasMore);
-    } catch (e) {
-      if (kDebugMode) print('Server-side paged query failed: $e');
-      rethrow; // let caller handle fallback
-    }
-  }
-
-  Future<Map<String, dynamic>> getAverageRatingForProduct(
+  /// Get aggregated product rating from Cloud Functions aggregation
+  /// Returns null if no aggregated data exists for this product
+  Future<Map<String, dynamic>?> getAggregatedProductRating(
       String productId) async {
     try {
-      if (productId.isEmpty) return {'average': 0.0, 'count': 0, 'sum': 0};
+      if (productId.isEmpty) return null;
 
-      final QuerySnapshot snapshot = await _firestore
-          .collection('order_ratings')
-          .where('productID', isEqualTo: productId)
+      final doc = await _firestore
+          .collection('aggregations')
+          .doc('productRatings')
           .get();
 
-      int sum = 0;
-      int count = 0;
-      for (final doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final ratingVal = data['rating'];
-        int parsed = 0;
-        if (ratingVal is int)
-          parsed = ratingVal;
-        else if (ratingVal is num)
-          parsed = ratingVal.toInt();
-        else if (ratingVal is String)
-          parsed = int.tryParse(ratingVal) ?? 0;
-        else
-          parsed = 0;
-        sum += parsed;
-        count += 1;
+      if (!doc.exists) return null;
+
+      final data = doc.data();
+      final products = data?['products'] as Map<String, dynamic>?;
+
+      if (products == null || !products.containsKey(productId)) {
+        return null;
       }
 
-      final average = (count > 0) ? (sum / count) : 0.0;
-      return {'average': average, 'count': count, 'sum': sum};
+      final productRating = products[productId] as Map<String, dynamic>?;
+      if (productRating == null) return null;
+
+      return {
+        'avgRating': productRating['avgRating'] ?? 0.0,
+        'ratingCount': productRating['ratingCount'] ?? 0,
+        'lastUpdated': productRating['lastUpdated'],
+      };
     } catch (e) {
-      if (kDebugMode) print('Error computing average rating: $e');
-      return {'average': 0.0, 'count': 0, 'sum': 0};
+      if (kDebugMode) {
+        print('Error getting aggregated rating for product $productId: $e');
+      }
+      return null;
     }
   }
 }

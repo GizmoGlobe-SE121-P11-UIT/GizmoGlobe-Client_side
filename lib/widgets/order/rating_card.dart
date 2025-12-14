@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../generated/l10n.dart';
 import '../../screens/media/fullscreen_media_viewer.dart';
 
 class RatingCard extends StatelessWidget {
@@ -49,7 +50,10 @@ class RatingCard extends StatelessWidget {
                 DateFormat('dd/MM/yyyy').format(r.timeSent),
                 style: TextStyle(
                   fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                 ),
               ),
             ),
@@ -69,7 +73,8 @@ class RatingCard extends StatelessWidget {
                       GestureDetector(
                         onTap: () {
                           Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => FullscreenMediaViewer(videoUrl: r.videoUrl),
+                            builder: (_) =>
+                                FullscreenMediaViewer(videoUrl: r.videoUrl),
                           ));
                         },
                         child: Container(
@@ -78,9 +83,15 @@ class RatingCard extends StatelessWidget {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.network(r.videoUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
+                              Image.network(r.videoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      const SizedBox()),
                               Center(
-                                child: Icon(Icons.play_circle, color: const Color.fromRGBO(255, 255, 255, 0.9), size: 56),
+                                child: Icon(Icons.play_circle,
+                                    color: const Color.fromRGBO(
+                                        255, 255, 255, 0.9),
+                                    size: 56),
                               ),
                             ],
                           ),
@@ -98,11 +109,17 @@ class RatingCard extends StatelessWidget {
                                 padding: const EdgeInsets.only(right: 8.0),
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (_) => FullscreenMediaViewer(imageUrl: img),
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                      builder: (_) =>
+                                          FullscreenMediaViewer(imageUrl: img),
                                     ));
                                   },
-                                  child: Image.network(img, height: 80, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
+                                  child: Image.network(img,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) =>
+                                          const SizedBox()),
                                 ),
                               );
                             }).toList(),
@@ -112,9 +129,7 @@ class RatingCard extends StatelessWidget {
                   ],
                 ),
               ),
-
             const SizedBox(height: 8),
-
             if (r.reply != null) ...[
               Container(
                 padding: const EdgeInsets.all(10),
@@ -125,12 +140,21 @@ class RatingCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Gizmo Gloze', style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
+                    Text(S.of(context).appTitle,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface)),
                     const SizedBox(height: 6),
                     Text(r.reply.comment ?? ''),
                     const SizedBox(height: 6),
                     if (r.reply.timestamp != null)
-                      Text(DateFormat('dd/MM/yyyy HH:mm').format(r.reply.timestamp), style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.6))),
+                      Text(
+                          DateFormat('dd/MM/yyyy HH:mm')
+                              .format(r.reply.timestamp),
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface
+                                  .withValues(alpha: 0.6))),
                   ],
                 ),
               ),

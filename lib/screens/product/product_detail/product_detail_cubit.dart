@@ -222,8 +222,9 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
             ratings: page.ratings, hasMoreRatings: page.hasMore));
       } catch (e) {
         // Server-side paging may fail due to missing index; fallback to client-side full fetch then local pagination
-        if (kDebugMode)
+        if (kDebugMode) {
           print('Falling back to client-side fetch for ratings: $e');
+        }
         final all = await _firebase.getRatingsByProductWithUsername(productId);
         final initial = all.take(limit).toList();
         final hasMore = all.length > initial.length;

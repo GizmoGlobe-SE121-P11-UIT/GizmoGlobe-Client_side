@@ -10,6 +10,9 @@ import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_cubit.d
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.dart';
 import 'package:gizmoglobe_client/widgets/order/sales_invoice_widget.dart';
 import 'package:gizmoglobe_client/screens/user/order_detail_screen/order_detail_webview.dart';
+import 'package:gizmoglobe_client/screens/user/order_screen/rating_order/rate_order_webview.dart';
+import 'package:gizmoglobe_client/objects/invoice_related/rating.dart';
+import 'package:gizmoglobe_client/data/database/database.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import 'package:gizmoglobe_client/services/platform_actions.dart'
     as platform_actions;
@@ -33,6 +36,7 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
   OrderScreenCubit get cubit => context.read<OrderScreenCubit>();
   late TabController _tabController;
   bool _initialSynced = false;
+  List<Rating> _userRatings = [];
 
   void _handleTabChange() {
     if (!_initialSynced) return;
@@ -73,6 +77,7 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
       }
       cubit.initialize(OrderOption.values[syncedIndex]);
       _updateUrlForTab(syncedIndex);
+      _loadUserRatings();
       setState(() {
         _initialSynced = true;
       });
@@ -382,10 +387,30 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
           padding: const EdgeInsets.only(bottom: 16),
           child: SalesInvoiceWidget(
             salesInvoice: salesInvoice,
+            userRatings: _userRatings,
             onTap: () => OrderDetailWebView.show(
               context,
               salesInvoice: salesInvoice,
             ),
+            onRate: (String productId) async {
+              final invoiceId = salesInvoice.salesInvoiceID ?? '';
+              final result = await RateOrderWebView.show(
+                context: context,
+                invoiceId: invoiceId,
+                productId: productId,
+              );
+
+              if (!mounted) return;
+
+              if (result == true) {
+                await _loadUserRatings();
+                await cubit.completeInvoiceIfAllProductsRated(
+                  salesInvoice,
+                  _userRatings,
+                );
+                cubit.initialize(OrderOption.values[_tabController.index]);
+              }
+            },
             onPressed: () async {
               if (enableConfirmDelivery &&
                   salesInvoice.salesStatus == SalesStatus.shipped) {
@@ -396,5 +421,18 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
         );
       },
     );
+  }
+
+  Future<void> _loadUserRatings() async {
+    try {
+      final userId = Database().userID.isEmpty
+          ? (await Database().getCurrentUserID() ?? '')
+          : Database().userID;
+      await Database().getRating();
+      final ratings = userId.isEmpty ? <Rating>[] : Database().ratingList;
+      if (mounted) setState(() => _userRatings = ratings);
+    } catch (e) {
+      if (kDebugMode) print('Error loading user ratings: $e');
+    }
   }
 }

@@ -13,6 +13,7 @@ import 'package:gizmoglobe_client/objects/product_related/mainboard_related/main
 import 'package:gizmoglobe_client/services/recommendation_service.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
+import 'package:gizmoglobe_client/widgets/order/rating_card.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
@@ -1597,91 +1598,233 @@ class _ProductDetailScreenWebViewState
   }
 
   Widget _buildRatingAndCommentsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section Title
-        Text(
-          'Ratings & Reviews',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+    return BlocBuilder<ProductDetailCubit, ProductDetailState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.of(context).ratingsAndReviews,
+              style: TextStyle(
                 fontSize: 24,
-                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
-        ),
-        const SizedBox(height: 16),
-
-        // Rating Summary Card
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).dividerColor,
             ),
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 600;
-              if (isWide) {
-                return Row(
-                  children: [
-                    // Overall Rating
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            '0.0',
-                            style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
+            const SizedBox(height: 16),
+
+            // Rating Summary Card
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor,
+                ),
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 600;
+
+                  // Calculate star distribution
+                  Map<int, int> starCounts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+                  for (var rating in state.ratings) {
+                    if (rating.rating > 0 && rating.rating <= 5) {
+                      starCounts[rating.rating] =
+                          (starCounts[rating.rating] ?? 0) + 1;
+                    }
+                  }
+
+                  final total = state.totalRatingsCount;
+                  final avgRating = state.averageRating;
+                  final hasRatings = total > 0;
+
+                  if (isWide) {
+                    return Row(
+                      children: [
+                        // Overall Rating
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Text(
+                                hasRatings
+                                    ? avgRating.toStringAsFixed(1)
+                                    : '0.0',
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(5, (index) {
+                                  final starIndex = index + 1;
+                                  final isFilled = hasRatings &&
+                                      starIndex <= avgRating.round();
+                                  return Icon(
+                                    isFilled ? Icons.star : Icons.star_border,
+                                    color: isFilled
+                                        ? Colors.amber
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.3),
+                                    size: 24,
+                                  );
+                                }),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                hasRatings
+                                    ? S.of(context).reviews(total)
+                                    : S.of(context).noRatingsYet,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Divider
+                        Container(
+                          width: 1,
+                          height: 120,
+                          color: Theme.of(context).dividerColor,
+                        ),
+
+                        // Rating Breakdown
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(5, (index) {
+                                final starCount = 5 - index;
+                                final count = starCounts[starCount] ?? 0;
+                                final percentage =
+                                    total > 0 ? (count / total * 100) : 0.0;
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        '$starCount',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(
+                                        Icons.star,
+                                        size: 14,
+                                        color: Colors.amber,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Container(
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: FractionallySizedBox(
+                                            alignment: Alignment.centerLeft,
+                                            widthFactor: percentage / 100,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.amber,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      SizedBox(
+                                        width: 35,
+                                        child: Text(
+                                          '${percentage.toStringAsFixed(0)}%',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.6),
+                                          ),
+                                          textAlign: TextAlign.right,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
                             ),
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(5, (index) {
-                              return Icon(
-                                Icons.star_border,
+                        ),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              '0.0',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(5, (index) {
+                                return Icon(
+                                  Icons.star_border,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.3),
+                                  size: 24,
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              S.of(context).noRatingsYet,
+                              style: TextStyle(
+                                fontSize: 14,
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onSurface
-                                    .withValues(alpha: 0.3),
-                                size: 24,
-                              );
-                            }),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'No ratings yet',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
+                                    .withValues(alpha: 0.6),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Divider
-                    Container(
-                      width: 1,
-                      height: 80,
-                      color: Theme.of(context).dividerColor,
-                    ),
-
-                    // Rating Breakdown
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 24),
-                        child: Column(
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Divider(
+                          color: Theme.of(context).dividerColor,
+                        ),
+                        const SizedBox(height: 24),
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: List.generate(5, (index) {
                             final starCount = 5 - index;
@@ -1747,225 +1890,132 @@ class _ProductDetailScreenWebViewState
                             );
                           }),
                         ),
-                      ),
-                    ),
-                  ],
-                );
-              } else {
-                return Column(
-                  children: [
-                    Column(
-                      children: [
-                        Text(
-                          '0.0',
-                          style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(5, (index) {
-                            return Icon(
-                              Icons.star_border,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.3),
-                              size: 24,
-                            );
-                          }),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'No ratings yet',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.6),
-                          ),
-                        ),
                       ],
-                    ),
-                    const SizedBox(height: 24),
-                    Divider(
-                      color: Theme.of(context).dividerColor,
-                    ),
-                    const SizedBox(height: 24),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(5, (index) {
-                        final starCount = 5 - index;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
-                            children: [
-                              Text(
-                                '$starCount',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.star,
-                                size: 14,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Container(
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: 0.0,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '0%',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ),
-                  ],
-                );
-              }
-            },
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Comments List
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).dividerColor,
+                    );
+                  }
+                },
+              ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Sort/Filter bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+            const SizedBox(height: 24),
+
+            // Comments List
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'All Reviews',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.sort,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7),
-                    ),
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'recent',
-                        child: Text('Most Recent'),
+                  // Sort/Filter bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        S.of(context).allReviews,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                      PopupMenuItem(
-                        value: 'helpful',
-                        child: Text('Most Helpful'),
-                      ),
-                      PopupMenuItem(
-                        value: 'highest',
-                        child: Text('Highest Rated'),
-                      ),
-                      PopupMenuItem(
-                        value: 'lowest',
-                        child: Text('Lowest Rated'),
+                      PopupMenuButton<String>(
+                        icon: Icon(
+                          Icons.sort,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
+                        ),
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'recent',
+                            child: Text(S.of(context).mostRecent),
+                          ),
+                          PopupMenuItem(
+                            value: 'helpful',
+                            child: Text(S.of(context).mostHelpful),
+                          ),
+                          PopupMenuItem(
+                            value: 'highest',
+                            child: Text(S.of(context).highestRated),
+                          ),
+                          PopupMenuItem(
+                            value: 'lowest',
+                            child: Text(S.of(context).lowestRated),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 24),
+
+                  // Rating Cards or Empty State
+                  if (state.ratings.isEmpty)
+                    Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.reviews_outlined,
+                            size: 64,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.3),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            S.of(context).noRatingsYet,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Column(
+                      children: state.ratings
+                          .map((r) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: RatingCard(rating: r),
+                              ))
+                          .toList(),
+                    ),
+
+                  // Show more button
+                  if (state.hasMoreRatings)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            await context
+                                .read<ProductDetailCubit>()
+                                .loadMoreRatings();
+                          },
+                          child: Text(S.of(context).showMore),
+                        ),
+                      ),
+                    ),
                 ],
               ),
-
-              const SizedBox(height: 24),
-
-              // Empty State
-              Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.reviews_outlined,
-                      size: 64,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.3),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No reviews yet',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Be the first to share your experience!',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -2103,6 +2153,68 @@ class _ProductDetailScreenWebViewState
                       ),
           ),
         ),
+        // Left navigation arrow
+        if (hasImages &&
+            state.productImages.length > 1 &&
+            _currentImageIndex > 0)
+          Positioned(
+            left: 16,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 32,
+                ),
+                onPressed: () {
+                  _pageController.previousPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                style: IconButton.styleFrom(
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .surface
+                      .withValues(alpha: 0.9),
+                  padding: const EdgeInsets.all(12),
+                ),
+              ),
+            ),
+          ),
+        // Right navigation arrow
+        if (hasImages &&
+            state.productImages.length > 1 &&
+            _currentImageIndex < state.productImages.length - 1)
+          Positioned(
+            right: 16,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_forward_ios,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 32,
+                ),
+                onPressed: () {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                style: IconButton.styleFrom(
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .surface
+                      .withValues(alpha: 0.9),
+                  padding: const EdgeInsets.all(12),
+                ),
+              ),
+            ),
+          ),
         // Page indicator dots
         if (hasImages && state.productImages.length > 1)
           Positioned(

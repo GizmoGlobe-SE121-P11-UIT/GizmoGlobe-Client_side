@@ -83,7 +83,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
                           : Theme.of(context)
                               .colorScheme
                               .onPrimary
-                              .withOpacity(0.5),
+                              .withValues(alpha: 0.5),
                     ),
                   ),
                 );
@@ -105,7 +105,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7),
+                          .withValues(alpha: 0.7),
                     ),
               ),
             );
@@ -180,7 +180,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, -1),
             blurRadius: 6,
           ),
@@ -190,7 +190,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            '${S.of(context).itemsCount(state.selectedProducts.length)}',
+            S.of(context).itemsCount(state.selectedProducts.length),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -251,7 +251,7 @@ class _MobileProductCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -280,8 +280,8 @@ class _MobileProductCard extends StatelessWidget {
                                 return Container(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .surfaceVariant
-                                      .withOpacity(0.4),
+                                      .surfaceContainerHighest
+                                      .withValues(alpha: 0.4),
                                   child: Center(
                                     child: Icon(
                                       Icons.memory,
@@ -289,7 +289,7 @@ class _MobileProductCard extends StatelessWidget {
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
-                                          .withOpacity(0.4),
+                                          .withValues(alpha: 0.4),
                                     ),
                                   ),
                                 );
@@ -302,8 +302,8 @@ class _MobileProductCard extends StatelessWidget {
                                   return Container(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .surfaceVariant
-                                        .withOpacity(0.4),
+                                        .surfaceContainerHighest
+                                        .withValues(alpha: 0.4),
                                     child: Center(
                                       child: Icon(
                                         Icons.memory,
@@ -311,7 +311,7 @@ class _MobileProductCard extends StatelessWidget {
                                         color: Theme.of(context)
                                             .colorScheme
                                             .onSurface
-                                            .withOpacity(0.4),
+                                            .withValues(alpha: 0.4),
                                       ),
                                     ),
                                   );
@@ -322,8 +322,8 @@ class _MobileProductCard extends StatelessWidget {
                         : Container(
                             color: Theme.of(context)
                                 .colorScheme
-                                .surfaceVariant
-                                .withOpacity(0.4),
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.4),
                             child: Center(
                               child: Icon(
                                 Icons.memory,
@@ -331,7 +331,7 @@ class _MobileProductCard extends StatelessWidget {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onSurface
-                                    .withOpacity(0.4),
+                                    .withValues(alpha: 0.4),
                               ),
                             ),
                           ),
@@ -378,8 +378,8 @@ class _MobileProductCard extends StatelessWidget {
                         ? Theme.of(context).colorScheme.primary
                         : Theme.of(context)
                             .colorScheme
-                            .surfaceVariant
-                            .withOpacity(0.85),
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.85),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

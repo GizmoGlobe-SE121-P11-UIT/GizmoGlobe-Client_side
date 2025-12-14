@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'rate_order_cubit.dart';
 import 'rate_order_state.dart';
 import '../../../../enums/processing/process_state_enum.dart';
+import '../../../../generated/l10n.dart';
 
 class RateOrderView extends StatelessWidget {
   final String productId;
@@ -23,7 +24,7 @@ class RateOrderView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Rate Product')),
+      appBar: AppBar(title: Text(S.of(context).rateProduct)),
       body: BlocConsumer<RateOrderCubit, RateOrderState>(
         listener: (context, state) {
           if (state.processState == ProcessState.success) {
@@ -59,9 +60,9 @@ class RateOrderView extends StatelessWidget {
                 const SizedBox(height: 8),
                 TextField(
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Comment (optional)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: S.of(context).commentOptional,
+                    border: const OutlineInputBorder(),
                   ),
                   onChanged: cubit.setComment,
                 ),
@@ -73,13 +74,13 @@ class RateOrderView extends StatelessWidget {
                           ? null
                           : cubit.pickImages,
                       icon: const Icon(Icons.photo_library),
-                      label: const Text('Add images'),
+                      label: Text(S.of(context).addImages),
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
                       onPressed: state.video != null ? null : cubit.pickVideo,
                       icon: const Icon(Icons.videocam),
-                      label: const Text('Add video'),
+                      label: Text(S.of(context).addVideo),
                     ),
                     const Spacer(),
                     Text('${totalMb.toStringAsFixed(2)} MB'),
@@ -96,11 +97,11 @@ class RateOrderView extends StatelessWidget {
                         : () => cubit.submit(productId),
                     child: state.processState == ProcessState.loading
                         ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                        : const Text('Submit Rating'),
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(S.of(context).submitRating),
                   ),
                 ),
               ],
@@ -146,7 +147,6 @@ class RateOrderView extends StatelessWidget {
     }
 
     if (state.video != null) {
-      final v = state.video!;
       children.add(Stack(
         alignment: Alignment.topRight,
         children: [

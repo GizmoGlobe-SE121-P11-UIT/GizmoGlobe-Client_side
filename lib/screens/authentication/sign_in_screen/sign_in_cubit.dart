@@ -36,7 +36,9 @@ class SignInCubit extends Cubit<SignInState> {
 
   Future<void> signInWithEmailPassword() async {
     try {
-      emit(state.copyWith(processState: ProcessState.loading));
+      if (isClosed) return;
+      emit(state.copyWith(
+          processState: ProcessState.loading, isEmailLoading: true));
 
       // Clear any existing guest data when signing in with account
       await _localGuestService.clearGuestUser();
@@ -50,10 +52,12 @@ class SignInCubit extends Cubit<SignInState> {
         // Gửi lại email xác thực nếu cần
         await userCredential.user!.sendEmailVerification();
 
+        if (isClosed) return;
         emit(state.copyWith(
           processState: ProcessState.failure,
           dialogName: DialogName.failure,
-          message: NotifyMessage.msg10,
+          message: NotifyMessage.msg3,
+          isEmailLoading: false,
         ));
 
         // Đăng xuất user vì chưa xác thực
@@ -69,17 +73,21 @@ class SignInCubit extends Cubit<SignInState> {
             print('Error refreshing user data after email sign-in: $e');
           }
         }
+        if (isClosed) return;
         emit(state.copyWith(
           processState: ProcessState.success,
           dialogName: DialogName.success,
           message: NotifyMessage.msg1,
+          isEmailLoading: false,
         ));
       }
     } catch (error) {
+      if (isClosed) return;
       emit(state.copyWith(
         processState: ProcessState.failure,
         dialogName: DialogName.failure,
         message: NotifyMessage.msg2,
+        isEmailLoading: false,
       ));
     }
   }
@@ -87,7 +95,8 @@ class SignInCubit extends Cubit<SignInState> {
   Future<void> signInWithGoogle() async {
     try {
       if (isClosed) return;
-      emit(state.copyWith(processState: ProcessState.loading));
+      emit(state.copyWith(
+          processState: ProcessState.loading, isGoogleLoading: true));
 
       UserCredential userCredential;
 
@@ -136,6 +145,7 @@ class SignInCubit extends Cubit<SignInState> {
               processState: ProcessState.failure,
               dialogName: DialogName.failure,
               message: NotifyMessage.msg2,
+              isGoogleLoading: false,
             ));
           }
           return;
@@ -150,6 +160,7 @@ class SignInCubit extends Cubit<SignInState> {
               processState: ProcessState.failure,
               dialogName: DialogName.failure,
               message: NotifyMessage.msg2,
+              isGoogleLoading: false,
             ));
           }
           return;
@@ -172,7 +183,8 @@ class SignInCubit extends Cubit<SignInState> {
             print('Google Sign-In cancelled by user');
           }
           if (!isClosed) {
-            emit(state.copyWith(processState: ProcessState.idle));
+            emit(state.copyWith(
+                processState: ProcessState.idle, isGoogleLoading: false));
           }
           return;
         }
@@ -210,6 +222,7 @@ class SignInCubit extends Cubit<SignInState> {
             processState: ProcessState.success,
             dialogName: DialogName.success,
             message: NotifyMessage.msg1,
+            isGoogleLoading: false,
           ));
         }
       }
@@ -223,6 +236,7 @@ class SignInCubit extends Cubit<SignInState> {
           processState: ProcessState.failure,
           dialogName: DialogName.failure,
           message: NotifyMessage.msg2,
+          isGoogleLoading: false,
         ));
       }
     } catch (error, stackTrace) {
@@ -235,6 +249,7 @@ class SignInCubit extends Cubit<SignInState> {
           processState: ProcessState.failure,
           dialogName: DialogName.failure,
           message: NotifyMessage.msg2,
+          isGoogleLoading: false,
         ));
       }
     }
@@ -242,7 +257,9 @@ class SignInCubit extends Cubit<SignInState> {
 
   Future<void> signInAsGuest() async {
     try {
-      emit(state.copyWith(processState: ProcessState.loading));
+      if (isClosed) return;
+      emit(state.copyWith(
+          processState: ProcessState.loading, isGuestLoading: true));
 
       // Sign out any existing Firebase user first
       if (_auth.currentUser != null) {
@@ -258,11 +275,13 @@ class SignInCubit extends Cubit<SignInState> {
               'Guest user signed in successfully: ${guestUserData['userid']}');
         }
 
+        if (isClosed) return;
         emit(state.copyWith(
           processState: ProcessState.success,
           dialogName: DialogName.success,
           message: NotifyMessage.msg1,
           isGuestLogin: true,
+          isGuestLoading: false,
         ));
       } else {
         throw Exception('Failed to create guest user data');
@@ -271,10 +290,12 @@ class SignInCubit extends Cubit<SignInState> {
       if (kDebugMode) {
         print('Error signing in as guest: $error');
       }
+      if (isClosed) return;
       emit(state.copyWith(
         processState: ProcessState.failure,
         dialogName: DialogName.failure,
         message: NotifyMessage.msg2,
+        isGuestLoading: false,
       ));
     }
   }

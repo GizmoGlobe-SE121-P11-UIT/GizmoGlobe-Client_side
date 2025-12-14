@@ -229,12 +229,11 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                         },
                         builder: (context, state) {
                           return ElevatedButton(
-                            onPressed:
-                                state.processState == ProcessState.loading
-                                    ? null
-                                    : () async {
-                                        cubit.signInWithEmailPassword();
-                                      },
+                            onPressed: state.isEmailLoading
+                                ? null
+                                : () async {
+                                    cubit.signInWithEmailPassword();
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: theme.colorScheme.primary,
                               foregroundColor: theme.colorScheme.onPrimary,
@@ -243,7 +242,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: state.processState == ProcessState.loading
+                            child: state.isEmailLoading
                                 ? const SizedBox(
                                     width: 24,
                                     height: 24,
@@ -400,12 +399,11 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                           width: double.infinity,
                           height: 48,
                           child: OutlinedButton(
-                            onPressed:
-                                state.processState == ProcessState.loading
-                                    ? null
-                                    : () async {
-                                        await cubit.signInWithGoogle();
-                                      },
+                            onPressed: state.isGoogleLoading
+                                ? null
+                                : () async {
+                                    await cubit.signInWithGoogle();
+                                  },
                             style: OutlinedButton.styleFrom(
                               backgroundColor: theme.colorScheme.surface,
                               side: BorderSide(
@@ -416,7 +414,7 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: state.processState == ProcessState.loading
+                            child: state.isGoogleLoading
                                 ? Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -503,12 +501,12 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                       },
                       builder: (context, state) {
                         return TextButton(
-                          onPressed: state.processState == ProcessState.loading
+                          onPressed: state.isGuestLoading
                               ? null
                               : () async {
                                   await cubit.signInAsGuest();
                                 },
-                          child: state.processState == ProcessState.loading
+                          child: state.isGuestLoading
                               ? Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [

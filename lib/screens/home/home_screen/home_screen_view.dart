@@ -198,13 +198,39 @@ class _HomeScreen extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontSize: 24,
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontSize: 24,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            Row(
+              children: [
+                TextButton(
+                  onPressed: onSeeAll,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.secondary,
+                    textStyle:
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                  ),
+                  child: Text(S.of(context).seeAll),
+                ),
+                Icon(
+                  Icons.arrow_right_alt_outlined,
+                  color: Theme.of(context).colorScheme.secondary,
+                  size: 20,
+                ),
+              ],
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         GridView.builder(
@@ -221,25 +247,6 @@ class _HomeScreen extends State<HomeScreen> {
             return ProductCard(product: products[index]);
           },
         ),
-        Row(children: [
-          Expanded(child: SizedBox()),
-          TextButton(
-            onPressed: onSeeAll,
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.secondary,
-              textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            child: Text(S.of(context).seeAll),
-          ),
-          Icon(
-            Icons.arrow_right_alt_outlined,
-            color: Theme.of(context).colorScheme.secondary,
-            size: 20,
-          ),
-        ]),
       ],
     );
   }

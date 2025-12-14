@@ -18,7 +18,6 @@ import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/order/sales_invoice_widget.dart';
 import '../../main/main_screen/main_screen_view.dart';
 
-import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import '../../../objects/invoice_related/rating.dart';
 import '../../../data/database/database.dart';
 
@@ -28,9 +27,9 @@ class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key, required this.orderOption});
 
   static Widget newInstance({required OrderOption orderOption}) => BlocProvider(
-    create: (context) => OrderScreenCubit(),
-    child: OrderScreen(orderOption: orderOption),
-  );
+        create: (context) => OrderScreenCubit(),
+        child: OrderScreen(orderOption: orderOption),
+      );
 
   @override
   State<OrderScreen> createState() => _OrderScreenState();
@@ -178,7 +177,7 @@ class _OrderScreenState extends State<OrderScreen>
                                 invoices: state.cancelledList,
                                 emptyLabel: S.of(context).noCancelledOrders,
                                 cubit: cubit,
-                                enableConfirmDelivery: false,
+                                enableButton: false,
                               ),
                             ],
                           ),
@@ -285,6 +284,8 @@ class _OrderScreenState extends State<OrderScreen>
                 ),
               ),
             );
+
+            if (!mounted) return;
 
             await _loadUserRatings();
             await cubit.completeInvoiceIfAllProductsRated(

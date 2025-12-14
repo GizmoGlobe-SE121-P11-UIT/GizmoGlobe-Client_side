@@ -884,84 +884,84 @@ class AIService {
 
   /// Extract product names from AI response text using NLP (legacy method, kept for compatibility)
   /// Only extracts products actually mentioned in the response, not all possible products
-  Future<List<String>> _extractProductNamesFromResponse(
-      String response, bool isVietnamese) async {
-    // Remove product card markup to avoid extracting from card data
-    final cleanedResponse = response.replaceAll(
-        RegExp(r'\[PRODUCT_CARDS\].*?\[/PRODUCT_CARDS\]', dotAll: true), '');
+  // Future<List<String>> _extractProductNamesFromResponse(
+  //     String response, bool isVietnamese) async {
+  //   // Remove product card markup to avoid extracting from card data
+  //   final cleanedResponse = response.replaceAll(
+  //       RegExp(r'\[PRODUCT_CARDS\].*?\[/PRODUCT_CARDS\]', dotAll: true), '');
 
-    // First, try using NLP to extract product names intelligently
-    try {
-      final nlpProductNames = await _nlpService.extractProductNamesFromText(
-          cleanedResponse, isVietnamese);
-      if (nlpProductNames.isNotEmpty) {
-        if (kDebugMode) {
-          print('NLP extracted product names: $nlpProductNames');
-        }
-        return nlpProductNames.take(3).toList();
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('NLP extraction failed, falling back to regex: $e');
-      }
-    }
+  //   // First, try using NLP to extract product names intelligently
+  //   try {
+  //     final nlpProductNames = await _nlpService.extractProductNamesFromText(
+  //         cleanedResponse, isVietnamese);
+  //     if (nlpProductNames.isNotEmpty) {
+  //       if (kDebugMode) {
+  //         print('NLP extracted product names: $nlpProductNames');
+  //       }
+  //       return nlpProductNames.take(3).toList();
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print('NLP extraction failed, falling back to regex: $e');
+  //     }
+  //   }
 
-    // Fallback to regex patterns if NLP fails
-    final productNames = <String>{};
+  //   // Fallback to regex patterns if NLP fails
+  //   final productNames = <String>{};
 
-    // Extract from [PRODUCT_NAME:...] format (used in prompts)
-    final productNamePattern = RegExp(r'\[PRODUCT_NAME:([^\]]+)\]');
-    for (final match in productNamePattern.allMatches(cleanedResponse)) {
-      final name = match.group(1)?.trim();
-      if (name != null && name.isNotEmpty && name.length > 3) {
-        productNames.add(name);
-      }
-    }
+  //   // Extract from [PRODUCT_NAME:...] format (used in prompts)
+  //   final productNamePattern = RegExp(r'\[PRODUCT_NAME:([^\]]+)\]');
+  //   for (final match in productNamePattern.allMatches(cleanedResponse)) {
+  //     final name = match.group(1)?.trim();
+  //     if (name != null && name.isNotEmpty && name.length > 3) {
+  //       productNames.add(name);
+  //     }
+  //   }
 
-    // Extract using regex patterns for product names that appear in the response text
-    final productPatterns = [
-      // Match full product names like "Intel Core i7-12700K" or "Intel Core i7 12700K" (with or without dash)
-      RegExp(
-          r'\b(?:CPU\s+)?(?:Intel|AMD|NVIDIA|Samsung|Kingston|Corsair|ASUS|MSI|Gigabyte)\s+(?:Core\s+(?:Ultra\s*[3579]\s*\d+[A-Z]*|i[3579]\s*\d+[A-Z\-]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*|HyperX\s+Fury|DDR\d+)\b',
-          caseSensitive: false,
-          unicode: true),
-      // Match "i7-12700K" or "i7 12700K" format (short form)
-      RegExp(r'\b(?:i[3579]|Ryzen\s*[3579]|RTX|GTX)\s*[\-]?\s*\d+[A-Z]*\b',
-          caseSensitive: false, unicode: true),
-      // Match brand + product combinations
-      RegExp(
-          r'\b(?:Kingston|Intel|AMD|NVIDIA|Samsung|Corsair|ASUS|MSI|Gigabyte)\s+(?:HyperX\s+)?(?:Fury|Core|Ryzen|RTX|GTX|DDR\d+)\s+(?:\d+[A-Z\-]*|[^\s]+(?:\s+[^\s]+)*)',
-          caseSensitive: false,
-          unicode: true),
-      // Match product model numbers with dashes
-      RegExp(
-          r'\b(?:Core\s+(?:Ultra\s*[3579]\s*\d+[A-Z]*|i[3579]\s*\d+[A-Z\-]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*)\b',
-          caseSensitive: false,
-          unicode: true),
-    ];
+  //   // Extract using regex patterns for product names that appear in the response text
+  //   final productPatterns = [
+  //     // Match full product names like "Intel Core i7-12700K" or "Intel Core i7 12700K" (with or without dash)
+  //     RegExp(
+  //         r'\b(?:CPU\s+)?(?:Intel|AMD|NVIDIA|Samsung|Kingston|Corsair|ASUS|MSI|Gigabyte)\s+(?:Core\s+(?:Ultra\s*[3579]\s*\d+[A-Z]*|i[3579]\s*\d+[A-Z\-]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*|HyperX\s+Fury|DDR\d+)\b',
+  //         caseSensitive: false,
+  //         unicode: true),
+  //     // Match "i7-12700K" or "i7 12700K" format (short form)
+  //     RegExp(r'\b(?:i[3579]|Ryzen\s*[3579]|RTX|GTX)\s*[\-]?\s*\d+[A-Z]*\b',
+  //         caseSensitive: false, unicode: true),
+  //     // Match brand + product combinations
+  //     RegExp(
+  //         r'\b(?:Kingston|Intel|AMD|NVIDIA|Samsung|Corsair|ASUS|MSI|Gigabyte)\s+(?:HyperX\s+)?(?:Fury|Core|Ryzen|RTX|GTX|DDR\d+)\s+(?:\d+[A-Z\-]*|[^\s]+(?:\s+[^\s]+)*)',
+  //         caseSensitive: false,
+  //         unicode: true),
+  //     // Match product model numbers with dashes
+  //     RegExp(
+  //         r'\b(?:Core\s+(?:Ultra\s*[3579]\s*\d+[A-Z]*|i[3579]\s*\d+[A-Z\-]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*)\b',
+  //         caseSensitive: false,
+  //         unicode: true),
+  //   ];
 
-    for (final pattern in productPatterns) {
-      for (final match in pattern.allMatches(cleanedResponse)) {
-        final name = match.group(0)?.trim();
-        if (name != null && name.isNotEmpty && name.length > 3) {
-          // Clean the product name
-          final cleanedName = _utils.cleanProductName(name);
-          if (cleanedName.isNotEmpty) {
-            productNames.add(cleanedName);
-          }
-        }
-      }
-    }
+  //   for (final pattern in productPatterns) {
+  //     for (final match in pattern.allMatches(cleanedResponse)) {
+  //       final name = match.group(0)?.trim();
+  //       if (name != null && name.isNotEmpty && name.length > 3) {
+  //         // Clean the product name
+  //         final cleanedName = _utils.cleanProductName(name);
+  //         if (cleanedName.isNotEmpty) {
+  //           productNames.add(cleanedName);
+  //         }
+  //       }
+  //     }
+  //   }
 
-    // Also use the existing extraction method as fallback
-    final extractedName = _utils.extractProductNameFromText(cleanedResponse);
-    if (extractedName != null && extractedName.isNotEmpty) {
-      productNames.add(extractedName);
-    }
+  //   // Also use the existing extraction method as fallback
+  //   final extractedName = _utils.extractProductNameFromText(cleanedResponse);
+  //   if (extractedName != null && extractedName.isNotEmpty) {
+  //     productNames.add(extractedName);
+  //   }
 
-    // Return unique product names, limited to first 3 mentioned
-    return productNames.take(3).toList();
-  }
+  //   // Return unique product names, limited to first 3 mentioned
+  //   return productNames.take(3).toList();
+  // }
 
   Future<String> _handleGeneralQuestion(
       String processedMessage, String? userId, bool isVietnamese) async {

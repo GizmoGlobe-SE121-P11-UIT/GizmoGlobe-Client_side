@@ -31,15 +31,13 @@ class CheckoutScreenWebView extends StatefulWidget {
 
   const CheckoutScreenWebView({
     super.key,
-    required List<Map<Product, int>> cartItems,
-  })  : cartItems = cartItems,
-        salesInvoiceID = null;
+    required List<Map<Product, int>> this.cartItems,
+  }) : salesInvoiceID = null;
 
   const CheckoutScreenWebView.fromInvoiceId({
     super.key,
-    required String salesInvoiceID,
-  })  : cartItems = null,
-        salesInvoiceID = salesInvoiceID;
+    required String this.salesInvoiceID,
+  }) : cartItems = null;
 
   static Widget newInstance({required List<Map<Product, int>> cartItems}) =>
       BlocProvider(
@@ -566,7 +564,7 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
         ],
       ),
     );

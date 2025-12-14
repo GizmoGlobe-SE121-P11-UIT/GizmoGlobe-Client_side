@@ -773,7 +773,6 @@ class SVI extends S {
   @override
   String get description => 'Mô tả';
   String get specifications => 'Thông số kỹ thuật';
-  String get reviews => 'Đánh giá';
   String get relatedProducts => 'Sản phẩm liên quan';
   String get shoppingCart => 'Giỏ hàng';
   String get startShopping => 'Bắt đầu mua sắm';
@@ -1378,6 +1377,50 @@ class SVI extends S {
 
   @override
   String get loading => 'Đang tải...';
+
+  // Ratings
+  @override
+  String get ratingsAndReviews => 'Đánh giá & Nhận xét';
+
+  @override
+  String reviews(int count) => '$count đánh giá';
+
+  @override
+  String get noRatingsYet => 'Chưa có đánh giá';
+
+  @override
+  String get showMore => 'Xem thêm';
+
+  @override
+  String get allReviews => 'Tất cả đánh giá';
+
+  // Order Rating
+  @override
+  String get rateProduct => 'Đánh giá';
+
+  @override
+  String get commentOptional => 'Nhận xét (tùy chọn)';
+
+  @override
+  String get addImages => 'Thêm hình ảnh';
+
+  @override
+  String get addVideo => 'Thêm video';
+
+  @override
+  String get submitRating => 'Gửi';
+
+  @override
+  String get mostRecent => 'Mới nhất';
+
+  @override
+  String get mostHelpful => 'Hữu ích nhất';
+
+  @override
+  String get highestRated => 'Đánh giá cao nhất';
+
+  @override
+  String get lowestRated => 'Đánh giá thấp nhất';
 
   @override
   String get goodWithThisProduct => 'Tương thích với sản phẩm này';

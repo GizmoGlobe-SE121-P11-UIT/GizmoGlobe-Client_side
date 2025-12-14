@@ -344,8 +344,10 @@ Respond in JSON format:
               final parts = content['parts'] as List;
               if (parts.isNotEmpty) {
                 if (useFallback && kDebugMode) {
-                  print(
-                      'NLP Service: Successfully used fallback model: $model');
+                  if (kDebugMode) {
+                    print(
+                        'NLP Service: Successfully used fallback model: $model');
+                  }
                 }
                 return parts[0]['text'] as String;
               }

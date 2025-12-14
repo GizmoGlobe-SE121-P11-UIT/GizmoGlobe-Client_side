@@ -65,8 +65,7 @@ class S {
   String get pleaseConfirmDelivery =>
       Intl.message('Please confirm the delivery.',
           name: 'pleaseConfirmDelivery');
-  String get rate =>
-      Intl.message('Rate this order', name: 'rate');
+  String get rate => Intl.message('Rate this order', name: 'rate');
   String get received => Intl.message('Received', name: 'received');
   String get orderCompleted =>
       Intl.message('Your order has been completed.', name: 'orderCompleted');
@@ -928,6 +927,33 @@ class S {
         args: [count],
       );
   String get loading => Intl.message('Loading...', name: 'loading');
+
+  // Ratings
+  String get ratingsAndReviews =>
+      Intl.message('Ratings & Reviews', name: 'ratingsAndReviews');
+  String reviews(int count) => Intl.message(
+        '$count reviews',
+        name: 'reviews',
+        args: [count],
+      );
+  String get noRatingsYet =>
+      Intl.message('No ratings yet', name: 'noRatingsYet');
+  String get showMore => Intl.message('Show more', name: 'showMore');
+
+  // Order Rating
+  String get rateProduct => Intl.message('Rate Product', name: 'rateProduct');
+  String get commentOptional =>
+      Intl.message('Comment (optional)', name: 'commentOptional');
+  String get addImages => Intl.message('Add images', name: 'addImages');
+  String get addVideo => Intl.message('Add video', name: 'addVideo');
+  String get submitRating => Intl.message('Submit', name: 'submitRating');
+  String get allReviews => Intl.message('All Reviews', name: 'allReviews');
+  String get mostRecent => Intl.message('Most Recent', name: 'mostRecent');
+  String get mostHelpful => Intl.message('Most Helpful', name: 'mostHelpful');
+  String get highestRated =>
+      Intl.message('Highest Rated', name: 'highestRated');
+  String get lowestRated => Intl.message('Lowest Rated', name: 'lowestRated');
+
   String get goodWithThisProduct =>
       Intl.message('Good with this product', name: 'goodWithThisProduct');
 

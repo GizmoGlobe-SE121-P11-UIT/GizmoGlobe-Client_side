@@ -102,12 +102,11 @@ class SalesInvoiceWidget extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           '#${salesInvoice.salesInvoiceID ?? ''}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: colorScheme.onSurface.withOpacity(0.8),
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurface
+                                        .withValues(alpha: 0.8),
+                                  ),
                         ),
                       ],
                     ),

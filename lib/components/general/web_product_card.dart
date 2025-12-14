@@ -44,6 +44,39 @@ class _WebProductCardState extends State<WebProductCard> {
     if (widget.product.productID != null) {
       _imageFuture =
           Firebase().getProductPrimaryImage(widget.product.productID!);
+      _fetchAggregatedRating();
+    }
+  }
+
+  Future<void> _fetchAggregatedRating() async {
+    if (widget.product.productID == null) return;
+
+    try {
+      final aggregated = await Firebase()
+          .getAggregatedProductRating(widget.product.productID!);
+
+      if (aggregated != null && mounted) {
+        final avgRating = (aggregated['avgRating'] as num?)?.toDouble() ?? 0.0;
+        final ratingCount = (aggregated['ratingCount'] as num?)?.toInt() ?? 0;
+        widget.product.setAggregatedRating(avgRating, ratingCount);
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      // Silently fail - will show 0.0 rating
+    }
+  }
+
+  @override
+  void didUpdateWidget(WebProductCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Refresh image future if product changed
+    if (oldWidget.product.productID != widget.product.productID) {
+      if (widget.product.productID != null) {
+        _imageFuture =
+            Firebase().getProductPrimaryImage(widget.product.productID!);
+      } else {
+        _imageFuture = null;
+      }
     }
   }
 
@@ -146,6 +179,8 @@ class _WebProductCardState extends State<WebProductCard> {
                                               topRight: Radius.circular(12),
                                             ),
                                             child: CachedNetworkImage(
+                                              key: ValueKey(
+                                                  'product_image_${widget.product.productID}'),
                                               imageUrl: snapshot.data!.url,
                                               fit: BoxFit.cover,
                                               width: double.infinity,
@@ -316,33 +351,7 @@ class _WebProductCardState extends State<WebProductCard> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(Icons.star,
-                                  color: Color(0xFFFBBF24), size: 14),
-                              const SizedBox(width: 3),
-                              Text(
-                                '0.0',
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                '(0)',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.5),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
+                          _buildRatingSection(context),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -482,6 +491,43 @@ class _WebProductCardState extends State<WebProductCard> {
         ),
       );
     }
+  }
+
+  Widget _buildRatingSection(BuildContext context) {
+    final double? rating = widget.product.rating;
+    final int? ratingCount = widget.product.ratingCount;
+    final String ratingText =
+        (rating != null && rating > 0) ? rating.toStringAsFixed(1) : '0.0';
+    final String countText = '(${ratingCount ?? 0})';
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(
+          Icons.star,
+          color: Colors.amber,
+          size: 14,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          ratingText,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          countText,
+          style: TextStyle(
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
   }
 
   IconData _getCategoryIcon(CategoryEnum category) {

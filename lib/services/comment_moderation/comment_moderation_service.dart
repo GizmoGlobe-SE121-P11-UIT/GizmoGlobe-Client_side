@@ -231,7 +231,7 @@ JSON schema:
 
 User info (optional): ${userId ?? 'anonymous'}
 Comment to review (read-only):
-\"\"\"$comment\"\"\"
+"""${comment}"""
 ''';
 
   Map<String, dynamic>? _parseGeminiPayload(String? raw) {

@@ -9,7 +9,7 @@ import '../../functions/helper.dart';
 import '../../objects/product_related/product_image.dart';
 import 'favorites/favorites_cubit.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback? onTap;
 
@@ -20,11 +20,42 @@ class ProductCard extends StatelessWidget {
   });
 
   @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product.productID != null) {
+      _fetchAggregatedRating();
+    }
+  }
+
+  Future<void> _fetchAggregatedRating() async {
+    if (widget.product.productID == null) return;
+
+    try {
+      final aggregated = await Firebase()
+          .getAggregatedProductRating(widget.product.productID!);
+
+      if (aggregated != null && mounted) {
+        final avgRating = (aggregated['avgRating'] as num?)?.toDouble() ?? 0.0;
+        final ratingCount = (aggregated['ratingCount'] as num?)?.toInt() ?? 0;
+        widget.product.setAggregatedRating(avgRating, ratingCount);
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      // Silently fail - will show 0.0 rating
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<FavoritesCubit, Set<String>>(
       builder: (context, favorites) {
-        final isFavorite =
-            product.productID != null && favorites.contains(product.productID);
+        final isFavorite = widget.product.productID != null &&
+            favorites.contains(widget.product.productID);
 
         return Card(
           elevation: 4,
@@ -40,7 +71,7 @@ class ProductCard extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          ProductDetailScreen.newInstance(product),
+                          ProductDetailScreen.newInstance(widget.product),
                     ),
                   );
                 },
@@ -51,10 +82,10 @@ class ProductCard extends StatelessWidget {
                       flex: 3,
                       child: Container(
                         color: Theme.of(context).colorScheme.surface,
-                        child: product.productID != null
+                        child: widget.product.productID != null
                             ? FutureBuilder<ProductImage?>(
-                                future: Firebase()
-                                    .getProductPrimaryImage(product.productID!),
+                                future: Firebase().getProductPrimaryImage(
+                                    widget.product.productID!),
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                           ConnectionState.waiting ||
@@ -128,7 +159,7 @@ class ProductCard extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  product.productName,
+                                  widget.product.productName,
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -148,10 +179,10 @@ class ProductCard extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       const SizedBox(height: 2),
-                                      if (product.discount > 0) ...[
+                                      if (widget.product.discount > 0) ...[
                                         Text(
                                           Helper.toCurrencyFormat(
-                                              product.price),
+                                              widget.product.price),
                                           style: TextStyle(
                                             decoration:
                                                 TextDecoration.lineThrough,
@@ -171,7 +202,7 @@ class ProductCard extends StatelessWidget {
                                       ],
                                       Text(
                                         Helper.toCurrencyFormat(
-                                            product.discountedPrice),
+                                            widget.product.discountedPrice),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Theme.of(context).brightness ==
@@ -193,7 +224,7 @@ class ProductCard extends StatelessWidget {
                                       SizedBox(
                                         height: 4,
                                       ),
-                                      product.discount > 0
+                                      widget.product.discount > 0
                                           ? Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
@@ -208,7 +239,7 @@ class ProductCard extends StatelessWidget {
                                                     BorderRadius.circular(4),
                                               ),
                                               child: Text(
-                                                '-${product.discount.toStringAsFixed(0)}%',
+                                                '-${widget.product.discount.toStringAsFixed(0)}%',
                                                 style: TextStyle(
                                                   color: Theme.of(context)
                                                       .colorScheme
@@ -240,9 +271,9 @@ class ProductCard extends StatelessWidget {
                     color: isFavorite ? Colors.red[400] : Colors.grey,
                   ),
                   onPressed: () {
-                    if (product.productID != null) {
+                    if (widget.product.productID != null) {
                       context.read<FavoritesCubit>().toggleFavorite(
-                            product.productID!,
+                            widget.product.productID!,
                           );
                     }
                   },
@@ -256,30 +287,39 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildRatingSection() {
-    final double? rating = product.rating;
-    if (rating == null || rating == 0) {
-      return const SizedBox.shrink();
-    }
-
-    final String ratingText = rating.toStringAsFixed(1);
+    final double? rating = widget.product.rating;
+    final int? ratingCount = widget.product.ratingCount;
+    final String ratingText =
+        (rating != null && rating > 0) ? rating.toStringAsFixed(1) : '0.0';
+    final String countText = '(${ratingCount ?? 0})';
 
     return Padding(
       padding: const EdgeInsets.only(top: 2.0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            ratingText,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(width: 4),
           const Icon(
             Icons.star,
             color: Colors.amber,
-            size: 16,
+            size: 14,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            ratingText,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            countText,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
+              fontWeight: FontWeight.w400,
+              fontSize: 11,
+            ),
           ),
         ],
       ),
@@ -287,7 +327,7 @@ class ProductCard extends StatelessWidget {
   }
 
   IconData _getCategoryIcon() {
-    switch (product.category) {
+    switch (widget.product.category) {
       case CategoryEnum.ram:
         return Icons.memory;
       case CategoryEnum.cpu:

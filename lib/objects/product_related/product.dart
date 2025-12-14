@@ -18,6 +18,7 @@ abstract class Product {
   ProductStatusEnum status;
   String? imageUrl;
   double? rating;
+  int? ratingCount;
 
   String? enDescription;
   String? viDescription;
@@ -51,5 +52,10 @@ abstract class Product {
 
   void setRating(double rating) {
     this.rating = rating;
+  }
+
+  void setAggregatedRating(double avgRating, int count) {
+    rating = avgRating;
+    ratingCount = count;
   }
 }

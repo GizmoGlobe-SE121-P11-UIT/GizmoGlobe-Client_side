@@ -279,7 +279,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 const SizedBox(height: 24),
                                 _buildRatingSection(state),
                                 const SizedBox(height: 24),
-                                _buildRecommendationsSection(context, state.product),
+                                _buildRecommendationsSection(
+                                    context, state.product),
                               ],
                             ),
                           ),
@@ -837,7 +838,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Ratings & Reviews',
+          S.of(context).ratingsAndReviews,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -857,7 +858,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      (state.averageRating > 0) ? state.averageRating.toStringAsFixed(1) : '0.0',
+                      (state.averageRating > 0)
+                          ? state.averageRating.toStringAsFixed(1)
+                          : '0.0',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -872,9 +875,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      (state.totalRatingsCount > 0) ? '${state.totalRatingsCount} reviews' : 'No ratings yet',
+                      (state.totalRatingsCount > 0)
+                          ? S.of(context).reviews(state.totalRatingsCount)
+                          : S.of(context).noRatingsYet,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.75),
                       ),
                     ),
                   ],
@@ -903,7 +911,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 onPressed: () async {
                   await cubit.loadMoreRatings();
                 },
-                child: const Text('Show more'),
+                child: Text(S.of(context).showMore),
               ),
             ),
           ),

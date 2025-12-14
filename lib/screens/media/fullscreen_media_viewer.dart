@@ -19,13 +19,14 @@ class _FullscreenMediaViewerState extends State<FullscreenMediaViewer> {
   void initState() {
     super.initState();
     if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty) {
-      _videoController = VideoPlayerController.network(widget.videoUrl!)
-        ..initialize().then((_) {
-          setState(() {
-            _videoInitialized = true;
-            _videoController?.play();
-          });
-        });
+      _videoController =
+          VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl!))
+            ..initialize().then((_) {
+              setState(() {
+                _videoInitialized = true;
+                _videoController?.play();
+              });
+            });
       _videoController?.setLooping(true);
     }
   }
@@ -52,21 +53,26 @@ class _FullscreenMediaViewerState extends State<FullscreenMediaViewer> {
                         fit: BoxFit.contain,
                         loadingBuilder: (context, child, progress) {
                           if (progress == null) return child;
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         },
-                        errorBuilder: (context, error, stack) => const Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                        errorBuilder: (context, error, stack) => const Center(
+                            child:
+                                Icon(Icons.broken_image, color: Colors.white)),
                       ),
                     )
                   : (widget.videoUrl != null && widget.videoUrl!.isNotEmpty)
                       ? _videoInitialized
                           ? Center(
                               child: AspectRatio(
-                                aspectRatio: _videoController!.value.aspectRatio,
+                                aspectRatio:
+                                    _videoController!.value.aspectRatio,
                                 child: VideoPlayer(_videoController!),
                               ),
                             )
                           : const Center(child: CircularProgressIndicator())
-                      : const Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                      : const Center(
+                          child: Icon(Icons.broken_image, color: Colors.white)),
             ),
             Positioned(
               top: 12,
@@ -97,7 +103,9 @@ class _FullscreenMediaViewerState extends State<FullscreenMediaViewer> {
                         });
                       },
                       icon: Icon(
-                        _videoController!.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
+                        _videoController!.value.isPlaying
+                            ? Icons.pause_circle
+                            : Icons.play_circle,
                         color: Colors.white,
                         size: 48,
                       ),
@@ -111,4 +119,3 @@ class _FullscreenMediaViewerState extends State<FullscreenMediaViewer> {
     );
   }
 }
-

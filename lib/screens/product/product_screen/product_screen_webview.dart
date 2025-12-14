@@ -460,10 +460,6 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
                                       cubit.updateSearchText(
                                           searchController.text);
                                     },
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(
-                                          RegExp(r'[a-zA-Z0-9\\s-]')),
-                                    ],
                                   ),
                                 ),
                               ),
