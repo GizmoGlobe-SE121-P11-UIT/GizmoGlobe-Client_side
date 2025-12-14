@@ -4,7 +4,7 @@ class CartItem {
   final Product product;
   final int quantity;
 
-  double subTotal() {
+  int subTotal() {
     return product.discountedPrice * quantity;
   }
 

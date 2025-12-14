@@ -11,6 +11,7 @@ import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 import '../../../functions/helper.dart';
+import '../../../widgets/order/rating_card.dart';
 import '../../../generated/l10n.dart';
 import '../../../objects/product_related/product.dart';
 import '../../../services/recommendation_service.dart';
@@ -344,9 +345,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 //   _buildTextField(context, S.of(context).description,
                                 //       widget.product.getDescription(context)!),
                                 // ],
-
-                                _buildRecommendationsSection(
-                                    context, state.product),
+                                const SizedBox(height: 24),
+                                _buildRatingSection(state),
+                                const SizedBox(height: 24),
+                                _buildRecommendationsSection(context, state.product),
                               ],
                             ),
                           ),
@@ -727,6 +729,89 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           const SizedBox(height: 12),
         ],
       ),
+    );
+  }
+
+  // Ratings section for mobile product detail
+  Widget _buildRatingSection(ProductDetailState state) {
+    final ratings = state.ratings;
+    final hasRatings = ratings.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Ratings & Reviews',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Average summary (no highlight)
+        Container(
+          margin: EdgeInsets.zero,
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      (state.averageRating > 0) ? state.averageRating.toStringAsFixed(1) : '0.0',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      (state.totalRatingsCount > 0) ? '${state.totalRatingsCount} reviews' : 'No ratings yet',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Individual rating cards
+        if (!hasRatings)
+          const SizedBox()
+        else
+          Column(
+            children: ratings.map((r) => RatingCard(rating: r)).toList(),
+          ),
+        // Show more button
+        if (state.hasMoreRatings)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () async {
+                  await cubit.loadMoreRatings();
+                },
+                child: const Text('Show more'),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

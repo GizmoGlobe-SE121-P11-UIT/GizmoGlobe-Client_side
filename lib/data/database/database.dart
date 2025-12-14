@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:gizmoglobe_client/objects/invoice_related/rating.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -49,6 +50,7 @@ class Database {
   List<SalesInvoice> salesInvoiceList = [];
   List<Voucher> allVoucherList = [];
   List<OwnedVoucher> ownedVoucherList = [];
+  List<Rating> ratingList = [];
 
   List<RAM> ramList = [];
   List<CPU> cpuList = [];
@@ -230,6 +232,7 @@ class Database {
       await getCartItems();
 
       await fetchSalesInvoice();
+      await getRating();
     } catch (e) {
       if (kDebugMode) {
         print('Fetching data error: $e');
@@ -695,6 +698,103 @@ class Database {
       if (kDebugMode) {
         print('Failed to cache sales invoices: $e');
       }
+    }
+  }
+
+  Future<void> getRating() async {
+    ratingList = await Firebase().getRatingsByUser(userID);
+    await calculateProductRatings();
+  }
+
+  Future<void> calculateProductRatings({bool refreshRatings = false}) async {
+    try {
+      if (productList.isEmpty) return;
+
+      if (refreshRatings || ratingList.isEmpty) {
+        ratingList = await Firebase().getRatingsByUser(userID);
+      }
+
+      final Map<String, List<double>> ratingsMap = {};
+
+      for (final r in ratingList) {
+        final String? pid = (r.productID.isNotEmpty)
+            ? r.productID
+            : null;
+        if (pid == null) continue;
+
+        double value;
+        try {
+          final dynamic raw = r.rating;
+          if (raw is num) {
+            value = raw.toDouble();
+          } else {
+            value = double.tryParse(raw.toString()) ?? 0.0;
+          }
+        } catch (_) {
+          value = 0.0;
+        }
+
+        ratingsMap.putIfAbsent(pid, () => []).add(value);
+      }
+
+      for (final product in productList) {
+        final pid = product.productID;
+        if (pid == null || !ratingsMap.containsKey(pid)) {
+          product.rating = null;
+          continue;
+        }
+        final List<double> values = ratingsMap[pid]!;
+        if (values.isEmpty) {
+          product.rating = null;
+          continue;
+        }
+        final double sum = values.fold(0.0, (a, b) => a + b);
+        final double avg = sum / values.length;
+        final double rounded = (avg * 10).roundToDouble() / 10.0;
+        product.setRating(rounded);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error calculating product ratings: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// Update average rating for a single product using server-side aggregation
+  Future<void> updateProductAverage(String productId) async {
+    try {
+      if (productId.isEmpty) return;
+      final result = await Firebase().getAverageRatingForProduct(productId);
+      final avg = (result['average'] as num?)?.toDouble() ?? 0.0;
+      final count = (result['count'] as int?) ?? (result['count'] as num?)?.toInt() ?? 0;
+
+      final product = productList.firstWhere(
+        (p) => p.productID == productId,
+      );
+
+      if (count == 0) {
+        product.setRating(0);
+      } else {
+        final double rounded = (avg * 10).roundToDouble() / 10.0;
+        product.setRating(rounded);
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error updating product average for $productId: $e');
+    }
+  }
+
+  /// Update average ratings for all products in productList.
+  /// This calls Firestore per product and may be slow for large catalogs.
+  Future<void> updateAllProductAverages() async {
+    try {
+      for (final p in productList) {
+        final pid = p.productID;
+        if (pid == null || pid.isEmpty) continue;
+        await updateProductAverage(pid);
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error updating all product averages: $e');
     }
   }
 

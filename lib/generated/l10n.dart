@@ -65,6 +65,8 @@ class S {
   String get pleaseConfirmDelivery =>
       Intl.message('Please confirm the delivery.',
           name: 'pleaseConfirmDelivery');
+  String get rate =>
+      Intl.message('Rate this order', name: 'rate');
   String get received => Intl.message('Received', name: 'received');
   String get orderCompleted =>
       Intl.message('Your order has been completed.', name: 'orderCompleted');

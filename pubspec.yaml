@@ -63,6 +63,7 @@ dependencies:
   speech_to_text: ^7.0.0
   awesome_snackbar_content: ^0.1.8
   web: ^1.1.1
+  video_player: ^2.5.1
   printing: ^5.12.0
   flutter_profanity_words_checker:
     git:

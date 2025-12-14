@@ -240,6 +240,7 @@ class OrderStatusChip extends StatelessWidget {
         statusColor = colorScheme.primary;
         break;
       case SalesStatus.completed:
+      case SalesStatus.received:
         statusColor = colorScheme.secondaryContainer;
         break;
       default:

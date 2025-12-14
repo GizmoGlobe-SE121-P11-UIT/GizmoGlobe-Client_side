@@ -43,14 +43,6 @@ class ProductCard extends StatelessWidget {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    // gradient: LinearGradient(
-                    //   begin: Alignment.topCenter,
-                    //   end: Alignment.bottomCenter,
-                    //   colors: [
-                    //     Colors.grey[100]!,
-                    //     Colors.grey[100]!,
-                    //   ],
-                    // ),
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   child: Column(
@@ -138,31 +130,37 @@ class ProductCard extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  product.discount > 0
-                                      ? Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .error,
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                          ),
-                                          child: Text(
-                                            '-${product.discount.toStringAsFixed(0)}%',
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onError,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        )
-                                      : const SizedBox(),
+                                  Column(
+                                    children: [
+                                      _buildRatingSection(),
+                                      SizedBox(height: 4,),
+                                      product.discount > 0
+                                          ? Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 6,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .error,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '-${product.discount.toStringAsFixed(0)}%',
+                                                style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onError,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            )
+                                          : const SizedBox(),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ],
@@ -194,6 +192,37 @@ class ProductCard extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildRatingSection() {
+    final double? rating = product.rating;
+    if (rating == null || rating == 0) {
+      return const SizedBox.shrink();
+    }
+
+    final String ratingText = rating.toStringAsFixed(1);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 2.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            ratingText,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(
+            Icons.star,
+            color: Colors.amber,
+            size: 16,
+          ),
+        ],
+      ),
     );
   }
 
