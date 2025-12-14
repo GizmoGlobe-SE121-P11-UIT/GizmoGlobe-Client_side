@@ -25,7 +25,7 @@ enum PSUModular {
 extension PSUModularExtension on PSUModular {
   static PSUModular fromName(String name) {
     return PSUModular.values.firstWhere(
-      (e) => e.getName() == name,
+      (e) => e.getName().toLowerCase() == name.toLowerCase(),
       orElse: () => PSUModular.unknown,
     );
   }

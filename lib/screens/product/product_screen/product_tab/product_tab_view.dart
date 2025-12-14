@@ -205,7 +205,7 @@ class _ProductTabState extends State<ProductTab>
                       return Center(
                         child: Text(
                           // S.of(context).noProductsFound,
-                          'No Products Found',
+                          S.of(context).noProductsFound,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       );

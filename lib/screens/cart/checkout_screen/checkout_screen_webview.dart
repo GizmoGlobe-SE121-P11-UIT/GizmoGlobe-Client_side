@@ -3,10 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/components/general/web_header.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
+import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/address_related/address.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/objects/product_related/product_image.dart';
 import 'package:gizmoglobe_client/screens/cart/choose_address_screen/choose_address_screen_view.dart';
 import 'package:gizmoglobe_client/screens/cart/choose_address_screen/choose_address_popup_webview.dart';
 import 'package:gizmoglobe_client/screens/cart/choose_voucher_screen/choose_voucher_screen_view.dart';
@@ -440,14 +442,16 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                             .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: product.imageUrl != null &&
-                              product.imageUrl!.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                product.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
+                      child: product.productID != null
+                          ? FutureBuilder<ProductImage?>(
+                              future: Firebase()
+                                  .getProductPrimaryImage(product.productID!),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                        ConnectionState.waiting ||
+                                    !snapshot.hasData ||
+                                    snapshot.data == null ||
+                                    snapshot.data!.url.isEmpty) {
                                   return Center(
                                     child: Icon(
                                       _getCategoryIcon(product.category),
@@ -458,8 +462,27 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                                           .withValues(alpha: 0.6),
                                     ),
                                   );
-                                },
-                              ),
+                                }
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    snapshot.data!.url,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Icon(
+                                          _getCategoryIcon(product.category),
+                                          size: 36,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.6),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
                             )
                           : Center(
                               child: Icon(

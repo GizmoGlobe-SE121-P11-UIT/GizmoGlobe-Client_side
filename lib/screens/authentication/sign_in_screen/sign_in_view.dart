@@ -79,93 +79,262 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
     final theme = Theme.of(context);
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            height: MediaQuery.of(context).size.height -
-                MediaQuery.of(context).padding.top,
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 60),
-                    const AppLogo(
-                      alignment: Alignment.centerRight,
-                    ),
-                    const SizedBox(height: 32),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: GradientText(
-                        text: S.of(context).login,
-                        fontSize: 32,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 30),
+                      const AppLogo(
+                        alignment: Alignment.centerRight,
                       ),
-                    ),
-                    const SizedBox(height: 30),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: FieldWithIcon(
-                        controller: _emailController,
-                        hintText: S.of(context).email,
-                        fillColor: theme.colorScheme.surface,
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
-                        textColor: theme.colorScheme.onSurface,
-                        hintTextColor: theme.colorScheme.onSurfaceVariant,
-                        onChanged: (value) {
-                          cubit.emailChanged(value);
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: FieldWithIcon(
-                        controller: _passwordController,
-                        hintText: S.of(context).password,
-                        fillColor: theme.colorScheme.surface,
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
-                        obscureText: true,
-                        textColor: theme.colorScheme.onSurface,
-                        hintTextColor: theme.colorScheme.onSurfaceVariant,
-                        onChanged: (value) {
-                          cubit.passwordChanged(value);
-                        },
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          showForgetPasswordModal(context);
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor:
-                              theme.colorScheme.primary.withValues(alpha: 0.8),
-                          padding: EdgeInsets.zero,
+                      const SizedBox(height: 20),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: GradientText(
+                          text: S.of(context).login,
+                          fontSize: 32,
                         ),
-                        child: Text(
-                          S.of(context).forgotPassword,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.primary
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: FieldWithIcon(
+                          controller: _emailController,
+                          hintText: S.of(context).email,
+                          fillColor: theme.colorScheme.surface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                          textColor: theme.colorScheme.onSurface,
+                          hintTextColor: theme.colorScheme.onSurfaceVariant,
+                          onChanged: (value) {
+                            cubit.emailChanged(value);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: FieldWithIcon(
+                          controller: _passwordController,
+                          hintText: S.of(context).password,
+                          fillColor: theme.colorScheme.surface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                          obscureText: true,
+                          textColor: theme.colorScheme.onSurface,
+                          hintTextColor: theme.colorScheme.onSurfaceVariant,
+                          onChanged: (value) {
+                            cubit.passwordChanged(value);
+                          },
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            showForgetPasswordModal(context);
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: theme.colorScheme.primary
                                 .withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w500,
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            S.of(context).forgotPassword,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.primary
+                                  .withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      BlocConsumer<SignInCubit, SignInState>(
+                        listener: (context, state) async {
+                          if (state.processState == ProcessState.failure) {
+                            if (context.mounted) {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (BuildContext dialogContext) =>
+                                    InformationDialog(
+                                  dialogName: state.dialogName,
+                                  content: state.message.toLocalizedString(),
+                                  onPressed: () {
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          // Handle success state
+                          if (state.processState == ProcessState.success) {
+                            if (state.isGuestLogin) {
+                              // For guest login, navigate directly
+                              if (context.mounted) {
+                                // Use Future.microtask to avoid emitting after close
+                                Future.microtask(() {
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    '/main',
+                                  );
+                                });
+                              }
+                            } else {
+                              // For other login methods, show success dialog first
+                              if (context.mounted) {
+                                await showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (BuildContext dialogContext) =>
+                                      InformationDialog(
+                                    dialogName: state.dialogName,
+                                    content: state.message.toLocalizedString(),
+                                    onPressed: () {
+                                      Navigator.of(dialogContext).pop();
+                                      if (context.mounted) {
+                                        // Use Future.microtask to avoid emitting after close
+                                        Future.microtask(() {
+                                          Navigator.pushReplacementNamed(
+                                            context,
+                                            '/main',
+                                          );
+                                        });
+                                      }
+                                    },
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        },
+                        builder: (context, state) {
+                          return ElevatedButton(
+                            onPressed:
+                                state.processState == ProcessState.loading
+                                    ? null
+                                    : () async {
+                                        cubit.signInWithEmailPassword();
+                                      },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: state.processState == ProcessState.loading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
+                                  )
+                                : Text(
+                                    S.of(context).login,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          S.of(context).dontHaveAccount,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/sign-up');
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: theme.colorScheme.primary
+                                .withValues(alpha: 0.8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          child: Text(
+                            S.of(context).register,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.primary
+                                  .withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.3),
+                            thickness: 1,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            S.of(context).or,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.3),
+                            thickness: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Google Sign In Button
                     BlocConsumer<SignInCubit, SignInState>(
                       listener: (context, state) async {
                         if (state.processState == ProcessState.failure) {
@@ -191,7 +360,6 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                           if (state.isGuestLogin) {
                             // For guest login, navigate directly
                             if (context.mounted) {
-                              // Use Future.microtask to avoid emitting after close
                               Future.microtask(() {
                                 Navigator.pushReplacementNamed(
                                   context,
@@ -228,35 +396,152 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                         }
                       },
                       builder: (context, state) {
-                        return ElevatedButton(
+                        return SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: OutlinedButton(
+                            onPressed:
+                                state.processState == ProcessState.loading
+                                    ? null
+                                    : () async {
+                                        await cubit.signInWithGoogle();
+                                      },
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.surface,
+                              side: BorderSide(
+                                color: theme.colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.5),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: state.processState == ProcessState.loading
+                                ? Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                            theme.colorScheme.primary,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Loading...',
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                          color: theme.colorScheme.onSurface,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Google Logo SVG
+                                      CustomPaint(
+                                        size: const Size(20, 20),
+                                        painter: GoogleLogoPainter(),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Continue with Google',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    // Continue as Guest Button
+                    BlocConsumer<SignInCubit, SignInState>(
+                      listener: (context, state) async {
+                        if (state.processState == ProcessState.failure) {
+                          if (context.mounted) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext dialogContext) =>
+                                  InformationDialog(
+                                dialogName: state.dialogName,
+                                content: state.message.toLocalizedString(),
+                                onPressed: () {
+                                  Navigator.of(dialogContext).pop();
+                                },
+                              ),
+                            );
+                          }
+                          return;
+                        }
+
+                        // Handle success state for guest login
+                        if (state.processState == ProcessState.success &&
+                            state.isGuestLogin) {
+                          // For guest login, navigate directly
+                          if (context.mounted) {
+                            Future.microtask(() {
+                              Navigator.pushReplacementNamed(
+                                context,
+                                '/main',
+                              );
+                            });
+                          }
+                        }
+                      },
+                      builder: (context, state) {
+                        return TextButton(
                           onPressed: state.processState == ProcessState.loading
                               ? null
                               : () async {
-                                  cubit.signInWithEmailPassword();
+                                  await cubit.signInAsGuest();
                                 },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.colorScheme.primary,
-                            foregroundColor: theme.colorScheme.onPrimary,
-                            minimumSize: const Size(double.infinity, 50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
                           child: state.processState == ProcessState.loading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
+                              ? Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          theme.colorScheme.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      S.of(context).loading,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: theme.colorScheme.primary
+                                            .withValues(alpha: 0.8),
+                                      ),
+                                    ),
+                                  ],
                                 )
                               : Text(
-                                  S.of(context).login,
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                  S.of(context).continueAsGuest,
+                                  style: TextStyle(
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.primary
+                                        .withValues(alpha: 0.8),
                                   ),
                                 ),
                         );
@@ -264,200 +549,8 @@ class _SignInScreen extends State<SignInScreen> with WidgetsBindingObserver {
                     ),
                   ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            S.of(context).dontHaveAccount,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontSize: 14,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/sign-up');
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: theme.colorScheme.primary
-                                  .withValues(alpha: 0.8),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                            ),
-                            child: Text(
-                              S.of(context).register,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.primary
-                                    .withValues(alpha: 0.8),
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Divider(
-                              color: theme.colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.3),
-                              thickness: 1,
-                            ),
-                          ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text(
-                              S.of(context).or,
-                              style: TextStyle(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              color: theme.colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.3),
-                              thickness: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Google Sign In Button
-                      BlocConsumer<SignInCubit, SignInState>(
-                        listener: (context, state) async {
-                          if (state.processState == ProcessState.failure) {
-                            if (context.mounted) {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (BuildContext dialogContext) =>
-                                    InformationDialog(
-                                  dialogName: state.dialogName,
-                                  content: state.message.toLocalizedString(),
-                                  onPressed: () {
-                                    Navigator.of(dialogContext).pop();
-                                  },
-                                ),
-                              );
-                            }
-                            return;
-                          }
-
-                          // Handle success state
-                          if (state.processState == ProcessState.success) {
-                            if (context.mounted) {
-                              await showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (BuildContext dialogContext) =>
-                                    InformationDialog(
-                                  dialogName: state.dialogName,
-                                  content: state.message.toLocalizedString(),
-                                  onPressed: () {
-                                    Navigator.of(dialogContext).pop();
-                                    if (context.mounted) {
-                                      // Use Future.microtask to avoid emitting after close
-                                      Future.microtask(() {
-                                        Navigator.pushReplacementNamed(
-                                          context,
-                                          '/main',
-                                        );
-                                      });
-                                    }
-                                  },
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        builder: (context, state) {
-                          return SizedBox(
-                            width: double.infinity,
-                            height: 48,
-                            child: OutlinedButton(
-                              onPressed:
-                                  state.processState == ProcessState.loading
-                                      ? null
-                                      : () async {
-                                          await cubit.signInWithGoogle();
-                                        },
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: theme.colorScheme.surface,
-                                side: BorderSide(
-                                  color: theme.colorScheme.onSurfaceVariant
-                                      .withValues(alpha: 0.5),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: state.processState == ProcessState.loading
-                                  ? Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                              theme.colorScheme.primary,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          'Loading...',
-                                          style: theme.textTheme.titleMedium
-                                              ?.copyWith(
-                                            color: theme.colorScheme.onSurface,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        // Google Logo SVG
-                                        CustomPaint(
-                                          size: const Size(20, 20),
-                                          painter: GoogleLogoPainter(),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Continue with Google',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: theme.colorScheme.onSurface,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

@@ -26,6 +26,7 @@ class WebChatMessages extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return ListView.builder(
       shrinkWrap: false,
+      reverse: true,
       physics: const BouncingScrollPhysics(),
       controller: controller,
       padding: EdgeInsets.symmetric(
@@ -34,7 +35,9 @@ class WebChatMessages extends StatelessWidget {
       ),
       itemCount: messages.length,
       itemBuilder: (context, index) {
-        final message = messages[index];
+        // With reverse: true, index 0 is the last message, so we need to reverse the index
+        final reversedIndex = messages.length - 1 - index;
+        final message = messages[reversedIndex];
         final isUser = !message.isFromBot;
         final isAdminBot =
             !message.isAIMode && message.isFromBot; // admin reply

@@ -44,11 +44,13 @@ class SalesInvoiceWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: salesInvoice.details.map((detail) {
                   final productId = detail.product.productID ?? '';
-                  final alreadyRated = (userRatings ?? []).any((r) => r.productID == productId);
-                  final canRate = salesInvoice.salesStatus == SalesStatus.received &&
-                      onRate != null &&
-                      productId.isNotEmpty &&
-                      !alreadyRated;
+                  final alreadyRated =
+                      (userRatings ?? []).any((r) => r.productID == productId);
+                  final canRate =
+                      salesInvoice.salesStatus == SalesStatus.received &&
+                          onRate != null &&
+                          productId.isNotEmpty &&
+                          !alreadyRated;
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
@@ -66,8 +68,10 @@ class SalesInvoiceWidget extends StatelessWidget {
                                 style: OutlinedButton.styleFrom(
                                   side: BorderSide(color: colorScheme.primary),
                                   foregroundColor: colorScheme.primary,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8)),
                                 ),
                                 child: const Text('Rate product'),
                               ),
@@ -87,19 +91,23 @@ class SalesInvoiceWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          S.of(context).totalItems(
-                              salesInvoice.getTotalItems(), Helper.toCurrencyFormat(salesInvoice.totalPrice)),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurface,
-                          ),
+                          S.of(context).totalItems(salesInvoice.getTotalItems(),
+                              Helper.toCurrencyFormat(salesInvoice.totalPrice)),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: colorScheme.onSurface,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '#${salesInvoice.salesInvoiceID ?? ''}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.8),
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: colorScheme.onSurface.withOpacity(0.8),
+                              ),
                         ),
                       ],
                     ),
@@ -115,15 +123,15 @@ class SalesInvoiceWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusWidget(BuildContext context, SalesInvoice salesInvoice,
-      VoidCallback onPressed) {
+  Widget _buildStatusWidget(
+      BuildContext context, SalesInvoice salesInvoice, VoidCallback onPressed) {
     final colorScheme = Theme.of(context).colorScheme;
     final isVietnameseLocale = Localizations.localeOf(context)
         .languageCode
         .toLowerCase()
         .startsWith('vi');
     final localizedStatus =
-    salesInvoice.salesStatus.getLocalizedDescription(isVietnameseLocale);
+        salesInvoice.salesStatus.getLocalizedDescription(isVietnameseLocale);
 
     switch (salesInvoice.salesStatus) {
       case SalesStatus.pending:
@@ -153,8 +161,8 @@ class SalesInvoiceWidget extends StatelessWidget {
             Text(
               S.of(context).pleaseConfirmDelivery,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface,
-              ),
+                    color: colorScheme.onSurface,
+                  ),
             ),
             const SizedBox(height: 8),
             FilledButton(
@@ -173,9 +181,9 @@ class SalesInvoiceWidget extends StatelessWidget {
           text: localizedStatus,
           color: colorScheme.secondary,
         );
-      default:
+      case SalesStatus.cancelled:
         return _StatusChip(
-          text: S.of(context).statusUnknown,
+          text: localizedStatus,
           color: colorScheme.secondary,
         );
     }
@@ -200,9 +208,9 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         text,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
       ),
     );
   }

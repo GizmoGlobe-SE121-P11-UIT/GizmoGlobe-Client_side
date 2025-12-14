@@ -58,6 +58,8 @@ class _OrderScreenState extends State<OrderScreen>
         return S.of(context).toReceive;
       case OrderOption.completed:
         return S.of(context).completed;
+      case OrderOption.cancelled:
+        return S.of(context).cancelled;
     }
   }
 
@@ -170,6 +172,13 @@ class _OrderScreenState extends State<OrderScreen>
                                 emptyLabel: S.of(context).noCompletedOrders,
                                 cubit: cubit,
                                 enableButton: true,
+                              ),
+                              _buildInvoiceList(
+                                context: context,
+                                invoices: state.cancelledList,
+                                emptyLabel: S.of(context).noCancelledOrders,
+                                cubit: cubit,
+                                enableConfirmDelivery: false,
                               ),
                             ],
                           ),

@@ -183,7 +183,7 @@ abstract class TabCubit extends Cubit<TabState> {
     emit(state.copyWith(isLoadingMore: true));
 
     // Simulate async loading (small delay for smooth UX)
-    Future.delayed(const Duration(milliseconds: 300), () {
+    Future.delayed(const Duration(milliseconds: 200), () {
       if (!isClosed) {
         emit(state.copyWith(
           currentPage: state.currentPage + 1,

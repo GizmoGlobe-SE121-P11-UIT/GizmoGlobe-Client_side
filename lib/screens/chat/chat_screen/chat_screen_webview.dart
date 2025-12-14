@@ -40,6 +40,10 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
   void initState() {
     super.initState();
     cubit.initialize(context);
+    // Initialize scroll position at bottom after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 
   @override
@@ -143,10 +147,22 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
 
   Widget _buildWebView(BuildContext context) {
     return BlocBuilder<ChatScreenCubit, ChatScreenState>(
+      buildWhen: (previous, current) {
+        // Rebuild when messages change
+        return previous.messages.length != current.messages.length ||
+            previous.processState != current.processState;
+      },
       builder: (context, state) {
         final theme = Theme.of(context);
         // final colorScheme = theme.colorScheme; // kept for future styling hooks
         final isMobile = MediaQuery.of(context).size.width < 600;
+
+        // Scroll to bottom when new messages arrive
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (state.messages.isNotEmpty) {
+            _scrollToBottom();
+          }
+        });
 
         return Scaffold(
           body: Column(

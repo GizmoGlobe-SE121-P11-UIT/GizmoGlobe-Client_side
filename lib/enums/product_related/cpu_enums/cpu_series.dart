@@ -30,7 +30,7 @@ enum CPUSeries {
 extension CPUSeriesExtension on CPUSeries {
   static CPUSeries fromName(String name) {
     return CPUSeries.values.firstWhere(
-      (e) => e.getName() == name,
+      (e) => e.getName().toLowerCase() == name.toLowerCase(),
       orElse: () => CPUSeries.unknown,
     );
   }

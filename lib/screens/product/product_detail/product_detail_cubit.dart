@@ -31,6 +31,27 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
     loadRatingsPage();
     // Load average rating for accurate avg display
     refreshAverage();
+    _loadProductImages();
+  }
+
+  Future<void> _loadProductImages() async {
+    if (state.product.productID == null) {
+      emit(state.copyWith(isLoadingImages: false, productImages: []));
+      return;
+    }
+
+    try {
+      final images = await _firebase.getProductImages(state.product.productID!);
+      emit(state.copyWith(
+        productImages: images,
+        isLoadingImages: false,
+      ));
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading product images: $e');
+      }
+      emit(state.copyWith(isLoadingImages: false, productImages: []));
+    }
   }
 
   DocumentSnapshot? _lastRatingsDoc;
@@ -43,23 +64,31 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       case CategoryEnum.ram:
         final ram = product as RAM;
         specs.addAll({
-          'Type': ram.type.toString(),
-          'Bus': '${ram.bus} MHz',
+          'RAM Type': ram.type.toString(),
+          'RAM Bus': '${ram.bus} MHz',
           'CL Latency': 'CL${ram.clLatency}',
-          'Kit Stick Count': ram.kitStickCount.toString(),
-          'Capacity per Stick': '${ram.capacityPerStickGb} GB',
+          if (ram.kitStickCount > 1)
+            'Kit Stick Count': ram.kitStickCount.toString(),
         });
+        if (ram.kitStickCount == 1) {
+          specs['RAM Capacity'] = '${ram.capacityPerStickGb} GB';
+        } else {
+          specs['RAM Capacity'] =
+              '${ram.kitStickCount * ram.capacityPerStickGb} GB';
+          specs['Capacity Per Stick'] = '${ram.capacityPerStickGb} GB';
+        }
         break;
 
       case CategoryEnum.cpu:
         final cpu = product as CPU;
         specs.addAll({
+          'Series': cpu.series.toString(),
+          'Socket': cpu.socket.toString(),
           'Cores': cpu.core.toString(),
           'Threads': cpu.thread.toString(),
           'Base Clock': '${cpu.baseClock} GHz',
           'Turbo Clock': '${cpu.turboClock} GHz',
           'TDP': '${cpu.tdp} W',
-          'Socket': cpu.socket.toString(),
         });
         break;
 
@@ -186,12 +215,15 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       final productId = state.product.productID ?? '';
       if (productId.isEmpty) return;
       try {
-        final page = await _firebase.getRatingsPageByProduct(productId, limit: limit);
+        final page =
+            await _firebase.getRatingsPageByProduct(productId, limit: limit);
         _lastRatingsDoc = page.lastDocument;
-        emit(state.copyWith(ratings: page.ratings, hasMoreRatings: page.hasMore));
+        emit(state.copyWith(
+            ratings: page.ratings, hasMoreRatings: page.hasMore));
       } catch (e) {
         // Server-side paging may fail due to missing index; fallback to client-side full fetch then local pagination
-        if (kDebugMode) print('Falling back to client-side fetch for ratings: $e');
+        if (kDebugMode)
+          print('Falling back to client-side fetch for ratings: $e');
         final all = await _firebase.getRatingsByProductWithUsername(productId);
         final initial = all.take(limit).toList();
         final hasMore = all.length > initial.length;
@@ -210,7 +242,8 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       if (productId.isEmpty) return;
       final result = await _firebase.getAverageRatingForProduct(productId);
       final avg = (result['average'] as num?)?.toDouble() ?? 0.0;
-      final count = (result['count'] as int?) ?? (result['count'] as num?)?.toInt() ?? 0;
+      final count =
+          (result['count'] as int?) ?? (result['count'] as num?)?.toInt() ?? 0;
       emit(state.copyWith(averageRating: avg, totalRatingsCount: count));
     } catch (e) {
       if (kDebugMode) print('Error refreshing average rating: $e');
@@ -223,7 +256,8 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       if (productId.isEmpty) return;
 
       if (_lastRatingsDoc != null) {
-        final page = await _firebase.getRatingsPageByProduct(productId, startAfter: _lastRatingsDoc, limit: limit);
+        final page = await _firebase.getRatingsPageByProduct(productId,
+            startAfter: _lastRatingsDoc, limit: limit);
         _lastRatingsDoc = page.lastDocument;
         final combined = List<Rating>.from(state.ratings)..addAll(page.ratings);
         emit(state.copyWith(ratings: combined, hasMoreRatings: page.hasMore));

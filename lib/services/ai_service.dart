@@ -68,7 +68,14 @@ class AIService {
 
       // Handle voucher questions
       if (isVoucherQuestion) {
-        return await _handleVoucherQuestion(userMessage, userId, isVietnamese);
+        final voucherResponse =
+            await _handleVoucherQuestion(userMessage, userId, isVietnamese);
+        // Attach product cards if products are mentioned
+        return await _attachProductCardsToResponse(
+          voucherResponse,
+          processedMessage,
+          isVietnamese,
+        );
       }
 
       // Handle favorite or cart questions
@@ -342,8 +349,16 @@ class AIService {
         basePrompt, sectionTitle, content, userMessage, isVietnamese);
     final response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
 
-    _conversationService.updateHistory(userId, userMessage, response);
-    return response;
+    // Extract and attach product cards if products are mentioned
+    final responseWithProducts = await _attachProductCardsToResponse(
+      response,
+      userMessage,
+      isVietnamese,
+    );
+
+    _conversationService.updateHistory(
+        userId, userMessage, responseWithProducts);
+    return responseWithProducts;
   }
 
   Future<String> _handleProductQuestion(
@@ -429,12 +444,16 @@ class AIService {
     );
     final disableCardFallback = brand.trim().isNotEmpty;
 
+    // Detect sorting requirements from user query
+    final sortType = _detectSortType(processedMessage, isVietnamese);
+
     final cardSelection = _prepareProductCardSelection(
       productsSnapshot.docs,
       isVietnamese: isVietnamese,
       keywordFilters: productCardFilters,
       disableFallbackOnEmptyMatch: disableCardFallback,
       limit: 3,
+      sortType: sortType,
     );
 
     final prompt = cardSelection.docs.isNotEmpty
@@ -450,18 +469,498 @@ class AIService {
       isVietnamese,
     );
 
-    final productCardsAttachment = cardSelection.cards.isEmpty
-        ? ''
-        : '[PRODUCT_CARDS]${jsonEncode(cardSelection.cards)}[/PRODUCT_CARDS]';
+    // Ensure product cards are attached
+    final responseWithProducts = await _attachProductCardsToResponse(
+      formattedResponse,
+      processedMessage,
+      isVietnamese,
+      existingCards: cardSelection.cards,
+    );
 
     if (userId != null) {
       _conversationService.updateHistory(
-          userId, processedMessage, formattedResponse);
+          userId, processedMessage, responseWithProducts);
     }
 
-    return productCardsAttachment.isEmpty
-        ? formattedResponse
-        : '$formattedResponse\n\n$productCardsAttachment';
+    return responseWithProducts;
+  }
+
+  /// Extract product mentions from any response and attach ProductMiniCard widgets
+  /// This ensures products are always navigable, not just in product questions
+  /// Maximum 3 cards per response, only for products actually mentioned in the response
+  Future<String> _attachProductCardsToResponse(
+    String response,
+    String originalMessage,
+    bool isVietnamese, {
+    List<Map<String, dynamic>>? existingCards,
+  }) async {
+    // If cards already exist, limit to max 3
+    if (existingCards != null && existingCards.isNotEmpty) {
+      final limitedCards = existingCards.take(3).toList();
+      final productCardsAttachment =
+          '[PRODUCT_CARDS]${jsonEncode(limitedCards)}[/PRODUCT_CARDS]';
+      return '$response\n\n$productCardsAttachment';
+    }
+
+    // Check if response already has product cards
+    if (response.contains('[PRODUCT_CARDS]')) {
+      return response;
+    }
+
+    // Extract product names and brands from the response (only products actually mentioned)
+    // Use NLP first, fallback to regex if needed
+    final extractionResult =
+        await _extractProductNamesAndBrandsFromResponse(response, isVietnamese);
+    final productNames = extractionResult['product_names'] ?? [];
+    final mentionedBrands = extractionResult['brands'] ?? [];
+
+    if (productNames.isEmpty) {
+      return response;
+    }
+
+    if (kDebugMode) {
+      print('Found product mentions in response: $productNames');
+      print('Found brand mentions in response: $mentionedBrands');
+    }
+
+    // Search for products - limit to first 3 product names mentioned
+    final isConnected = await _productService.checkFirebaseConnection();
+    if (!isConnected) {
+      return response;
+    }
+
+    final List<Map<String, dynamic>> productCards = [];
+    final Set<String> addedProductIds = {};
+    final List<String> unavailableProducts = [];
+    final List<String> suggestionMessages = [];
+
+    // For each mentioned product name, find the best matching product
+    for (final productName in productNames.take(3)) {
+      if (productCards.length >= 3) break;
+
+      bool exactMatchFound = false;
+
+      // First try using findProductByName which has better similarity matching
+      final foundProduct = await _productService.findProductByName(productName);
+
+      if (foundProduct != null && foundProduct['productID'] != null) {
+        final productId = foundProduct['productID'] as String;
+        final data = foundProduct;
+        final foundProductName =
+            (data['productName'] ?? '').toString().toLowerCase();
+        final normalizedMention = productName.toLowerCase();
+
+        // Check if this is an exact or very close match (similarity > 0.8)
+        bool isExactMatch = false;
+        if (foundProductName == normalizedMention) {
+          isExactMatch = true;
+        } else if (foundProductName.contains(normalizedMention) ||
+            normalizedMention.contains(foundProductName)) {
+          // Check word overlap for high similarity
+          final mentionWords = normalizedMention.split(RegExp(r'[\s\-]+'));
+          final foundWords = foundProductName.split(RegExp(r'[\s\-]+'));
+          final commonWords =
+              mentionWords.where((w) => foundWords.contains(w)).length;
+          final similarity =
+              commonWords / (mentionWords.isNotEmpty ? mentionWords.length : 1);
+          isExactMatch = similarity >= 0.8;
+        }
+
+        if (isExactMatch && !addedProductIds.contains(productId)) {
+          // Exact match found - add it
+          exactMatchFound = true;
+
+          // Check brand match if brands are mentioned in response
+          if (mentionedBrands.isNotEmpty) {
+            final productBrand = _extractBrandFromProduct(data);
+            final brandMatches = mentionedBrands.any((mentionedBrand) =>
+                productBrand
+                    .toLowerCase()
+                    .contains(mentionedBrand.toLowerCase()) ||
+                mentionedBrand
+                    .toLowerCase()
+                    .contains(productBrand.toLowerCase()));
+
+            if (!brandMatches) {
+              if (kDebugMode) {
+                print(
+                    'Product ${data['productName']} brand mismatch. Product brand: $productBrand, Mentioned brands: $mentionedBrands.');
+              }
+            }
+          }
+
+          final sellingPrice = (data['sellingPrice'] as num?)?.toDouble() ?? 0;
+          final discount = (data['discount'] as num?)?.toDouble() ?? 0;
+          final discountedPrice =
+              (data['discountedPrice'] as num?)?.toDouble() ??
+                  sellingPrice * (1 - discount / 100);
+          final category = data['category']?.toString() ?? '';
+
+          productCards.add({
+            'id': productId,
+            'name': data['productName'] ?? '',
+            'price': discountedPrice,
+            'originalPrice': sellingPrice,
+            'discount': discount,
+            'stock': data['stock'] ?? 0,
+            'imageUrl': data['imageUrl'],
+            'category': category,
+          });
+
+          addedProductIds.add(productId);
+          continue; // Skip to next product name
+        }
+      }
+
+      // If no exact match found, try fallback search
+      if (!exactMatchFound) {
+        final productsSnapshot = await _productService.searchProducts(
+          keyword: productName,
+        );
+
+        QueryDocumentSnapshot? bestMatch;
+        double bestScore = 0.0;
+
+        if (productsSnapshot.docs.isNotEmpty) {
+          // Find the best match for this product name
+          for (final doc in productsSnapshot.docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            final docProductName =
+                (data['productName'] ?? '').toString().toLowerCase();
+            final normalizedMention = productName.toLowerCase();
+
+            // Calculate similarity score
+            double score = 0.0;
+            if (docProductName == normalizedMention) {
+              score = 1.0;
+            } else if (docProductName.contains(normalizedMention) ||
+                normalizedMention.contains(docProductName)) {
+              score = 0.8;
+            } else {
+              // Calculate word overlap
+              final mentionWords = normalizedMention.split(RegExp(r'[\s\-]+'));
+              final docWords = docProductName.split(RegExp(r'[\s\-]+'));
+              final commonWords =
+                  mentionWords.where((w) => docWords.contains(w)).length;
+              score = commonWords /
+                  (mentionWords.isNotEmpty ? mentionWords.length : 1);
+            }
+
+            if (score > bestScore && !addedProductIds.contains(doc.id)) {
+              bestScore = score;
+              bestMatch = doc;
+            }
+          }
+
+          // Only consider it an exact match if score is very high (>= 0.8)
+          if (bestMatch != null && bestScore >= 0.8) {
+            exactMatchFound = true;
+            final doc = bestMatch;
+            final data = doc.data() as Map<String, dynamic>;
+
+            final sellingPrice =
+                (data['sellingPrice'] as num?)?.toDouble() ?? 0;
+            final discount = (data['discount'] as num?)?.toDouble() ?? 0;
+            final discountedPrice =
+                (data['discountedPrice'] as num?)?.toDouble() ??
+                    sellingPrice * (1 - discount / 100);
+            final category = data['category']?.toString() ?? '';
+
+            productCards.add({
+              'id': doc.id,
+              'name': data['productName'] ?? '',
+              'price': discountedPrice,
+              'originalPrice': sellingPrice,
+              'discount': discount,
+              'stock': data['stock'] ?? 0,
+              'imageUrl': data['imageUrl'],
+              'category': category,
+            });
+
+            addedProductIds.add(doc.id);
+            continue; // Skip to next product name
+          }
+        }
+
+        // No exact match found - mark as unavailable and get suggestions
+        if (!exactMatchFound) {
+          unavailableProducts.add(productName);
+
+          // Get similar product suggestions
+          final suggestions =
+              await _productService.getProductSuggestions(productName);
+
+          // Filter suggestions to only include those with reasonable similarity (> 0.3)
+          final filteredSuggestions = suggestions.where((suggestion) {
+            final similarityScore =
+                suggestion['similarityScore'] as double? ?? 0.0;
+
+            // Must have reasonable similarity
+            return similarityScore >= 0.3;
+          }).toList();
+
+          // Add top suggestions (up to 2 per unavailable product, max 3 total)
+          for (final suggestion in filteredSuggestions.take(2)) {
+            if (productCards.length >= 3) break;
+            if (addedProductIds.contains(suggestion['productID'])) continue;
+
+            final sellingPrice =
+                (suggestion['sellingPrice'] as num?)?.toDouble() ?? 0;
+            final discount = (suggestion['discount'] as num?)?.toDouble() ?? 0;
+            final discountedPrice =
+                (suggestion['discountedPrice'] as num?)?.toDouble() ??
+                    sellingPrice * (1 - discount / 100);
+            final category = suggestion['category']?.toString() ?? '';
+
+            productCards.add({
+              'id': suggestion['productID'],
+              'name': suggestion['productName'] ?? '',
+              'price': discountedPrice,
+              'originalPrice': sellingPrice,
+              'discount': discount,
+              'stock': suggestion['stock'] ?? 0,
+              'imageUrl': suggestion['imageUrl'],
+              'category': category,
+            });
+
+            addedProductIds.add(suggestion['productID'] as String);
+          }
+        }
+      }
+    }
+
+    // Add notification messages for unavailable products
+    if (unavailableProducts.isNotEmpty) {
+      String notificationMessage = '';
+      if (isVietnamese) {
+        notificationMessage =
+            'Rất tiếc, shop hiện không có sản phẩm "${unavailableProducts.join('", "')}". ';
+        if (productCards.isNotEmpty) {
+          notificationMessage +=
+              'Dưới đây là một số sản phẩm tương tự bạn có thể quan tâm:';
+        }
+      } else {
+        notificationMessage =
+            'Sorry, we currently don\'t have "${unavailableProducts.join('", "')}" in stock. ';
+        if (productCards.isNotEmpty) {
+          notificationMessage +=
+              'Here are some similar products you might be interested in:';
+        }
+      }
+      suggestionMessages.add(notificationMessage);
+    }
+
+    // Add notification messages before product cards if there are unavailable products
+    String finalResponse = response;
+    if (suggestionMessages.isNotEmpty) {
+      finalResponse = '$response\n\n${suggestionMessages.join('\n')}';
+    }
+
+    if (productCards.isEmpty) {
+      return finalResponse;
+    }
+
+    // Create product cards - maximum 3
+    final limitedCards = productCards.take(3).toList();
+    final productCardsAttachment =
+        '[PRODUCT_CARDS]${jsonEncode(limitedCards)}[/PRODUCT_CARDS]';
+    return '$finalResponse\n\n$productCardsAttachment';
+  }
+
+  /// Extract product names and brands from AI response text using NLP
+  /// Only extracts products actually mentioned in the response, not all possible products
+  Future<Map<String, List<String>>> _extractProductNamesAndBrandsFromResponse(
+      String response, bool isVietnamese) async {
+    // Remove product card markup to avoid extracting from card data
+    final cleanedResponse = response.replaceAll(
+        RegExp(r'\[PRODUCT_CARDS\].*?\[/PRODUCT_CARDS\]', dotAll: true), '');
+
+    // First, try using NLP to extract product names and brands intelligently
+    try {
+      final nlpResult = await _nlpService.extractProductNamesAndBrands(
+          cleanedResponse, isVietnamese);
+      if (nlpResult['product_names']!.isNotEmpty ||
+          nlpResult['brands']!.isNotEmpty) {
+        if (kDebugMode) {
+          print('NLP extracted product names: ${nlpResult['product_names']}');
+          print('NLP extracted brands: ${nlpResult['brands']}');
+        }
+        return {
+          'product_names': nlpResult['product_names']!.take(3).toList(),
+          'brands': nlpResult['brands']!.take(3).toList(),
+        };
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('NLP extraction failed, falling back to regex: $e');
+      }
+    }
+
+    // Fallback to regex patterns if NLP fails
+    final productNames = <String>{};
+    final brands = <String>{};
+
+    // Extract from [PRODUCT_NAME:...] format (used in prompts)
+    final productNamePattern = RegExp(r'\[PRODUCT_NAME:([^\]]+)\]');
+    for (final match in productNamePattern.allMatches(cleanedResponse)) {
+      final name = match.group(1)?.trim();
+      if (name != null && name.isNotEmpty && name.length > 3) {
+        productNames.add(name);
+        // Extract brand from product name
+        final brand = _extractBrandFromProductName(name);
+        if (brand.isNotEmpty) {
+          brands.add(brand);
+        }
+      }
+    }
+
+    // Extract using regex patterns for product names that appear in the response text
+    final productPatterns = [
+      // Match full product names like "Intel Core i7-12700K" or "Intel Core i7 12700K" (with or without dash)
+      RegExp(
+          r'\b(?:CPU\s+)?(?:Intel|AMD|NVIDIA|Samsung|Kingston|Corsair|ASUS|MSI|Gigabyte)\s+(?:Core\s+(?:Ultra\s*[3579]\s*\d+[A-Z]*|i[3579]\s*\d+[A-Z\-]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*|HyperX\s+Fury|DDR\d+)\b',
+          caseSensitive: false,
+          unicode: true),
+      // Match "i7-12700K" or "i7 12700K" format (short form)
+      RegExp(r'\b(?:i[3579]|Ryzen\s*[3579]|RTX|GTX)\s*[\-]?\s*\d+[A-Z]*\b',
+          caseSensitive: false, unicode: true),
+      // Match brand + product combinations
+      RegExp(
+          r'\b(?:Kingston|Intel|AMD|NVIDIA|Samsung|Corsair|ASUS|MSI|Gigabyte)\s+(?:HyperX\s+)?(?:Fury|Core|Ryzen|RTX|GTX|DDR\d+)\s+(?:\d+[A-Z\-]*|[^\s]+(?:\s+[^\s]+)*)',
+          caseSensitive: false,
+          unicode: true),
+      // Match product model numbers with dashes
+      RegExp(
+          r'\b(?:Core\s+(?:Ultra\s*[3579]\s*\d+[A-Z]*|i[3579]\s*\d+[A-Z\-]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*)\b',
+          caseSensitive: false,
+          unicode: true),
+    ];
+
+    for (final pattern in productPatterns) {
+      for (final match in pattern.allMatches(cleanedResponse)) {
+        final name = match.group(0)?.trim();
+        if (name != null && name.isNotEmpty && name.length > 3) {
+          // Clean the product name
+          final cleanedName = _utils.cleanProductName(name);
+          if (cleanedName.isNotEmpty) {
+            productNames.add(cleanedName);
+            // Extract brand from product name
+            final brand = _extractBrandFromProductName(cleanedName);
+            if (brand.isNotEmpty) {
+              brands.add(brand);
+            }
+          }
+        }
+      }
+    }
+
+    // Also use the existing extraction method as fallback
+    final extractedName = _utils.extractProductNameFromText(cleanedResponse);
+    if (extractedName != null && extractedName.isNotEmpty) {
+      productNames.add(extractedName);
+      final brand = _extractBrandFromProductName(extractedName);
+      if (brand.isNotEmpty) {
+        brands.add(brand);
+      }
+    }
+
+    // Extract standalone brand mentions
+    final brandPattern = RegExp(
+        r'\b(Intel|AMD|NVIDIA|Samsung|Kingston|Corsair|ASUS|MSI|Gigabyte)\b',
+        caseSensitive: false);
+    for (final match in brandPattern.allMatches(cleanedResponse)) {
+      final brand = match.group(1);
+      if (brand != null && brand.isNotEmpty) {
+        brands.add(brand);
+      }
+    }
+
+    // Return unique product names and brands, limited to first 3 mentioned
+    return {
+      'product_names': productNames.take(3).toList(),
+      'brands': brands.take(3).toList(),
+    };
+  }
+
+  /// Extract product names from AI response text using NLP (legacy method, kept for compatibility)
+  /// Only extracts products actually mentioned in the response, not all possible products
+  Future<List<String>> _extractProductNamesFromResponse(
+      String response, bool isVietnamese) async {
+    // Remove product card markup to avoid extracting from card data
+    final cleanedResponse = response.replaceAll(
+        RegExp(r'\[PRODUCT_CARDS\].*?\[/PRODUCT_CARDS\]', dotAll: true), '');
+
+    // First, try using NLP to extract product names intelligently
+    try {
+      final nlpProductNames = await _nlpService.extractProductNamesFromText(
+          cleanedResponse, isVietnamese);
+      if (nlpProductNames.isNotEmpty) {
+        if (kDebugMode) {
+          print('NLP extracted product names: $nlpProductNames');
+        }
+        return nlpProductNames.take(3).toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('NLP extraction failed, falling back to regex: $e');
+      }
+    }
+
+    // Fallback to regex patterns if NLP fails
+    final productNames = <String>{};
+
+    // Extract from [PRODUCT_NAME:...] format (used in prompts)
+    final productNamePattern = RegExp(r'\[PRODUCT_NAME:([^\]]+)\]');
+    for (final match in productNamePattern.allMatches(cleanedResponse)) {
+      final name = match.group(1)?.trim();
+      if (name != null && name.isNotEmpty && name.length > 3) {
+        productNames.add(name);
+      }
+    }
+
+    // Extract using regex patterns for product names that appear in the response text
+    final productPatterns = [
+      // Match full product names like "Intel Core i7-12700K" or "Intel Core i7 12700K" (with or without dash)
+      RegExp(
+          r'\b(?:CPU\s+)?(?:Intel|AMD|NVIDIA|Samsung|Kingston|Corsair|ASUS|MSI|Gigabyte)\s+(?:Core\s+(?:Ultra\s*[3579]\s*\d+[A-Z]*|i[3579]\s*\d+[A-Z\-]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*|HyperX\s+Fury|DDR\d+)\b',
+          caseSensitive: false,
+          unicode: true),
+      // Match "i7-12700K" or "i7 12700K" format (short form)
+      RegExp(r'\b(?:i[3579]|Ryzen\s*[3579]|RTX|GTX)\s*[\-]?\s*\d+[A-Z]*\b',
+          caseSensitive: false, unicode: true),
+      // Match brand + product combinations
+      RegExp(
+          r'\b(?:Kingston|Intel|AMD|NVIDIA|Samsung|Corsair|ASUS|MSI|Gigabyte)\s+(?:HyperX\s+)?(?:Fury|Core|Ryzen|RTX|GTX|DDR\d+)\s+(?:\d+[A-Z\-]*|[^\s]+(?:\s+[^\s]+)*)',
+          caseSensitive: false,
+          unicode: true),
+      // Match product model numbers with dashes
+      RegExp(
+          r'\b(?:Core\s+(?:Ultra\s*[3579]\s*\d+[A-Z]*|i[3579]\s*\d+[A-Z\-]*)|Ryzen\s*[3579]\s*\d+[A-Z]*|RTX\s*\d+\s*[A-Z]*|GTX\s*\d+\s*[A-Z]*)\b',
+          caseSensitive: false,
+          unicode: true),
+    ];
+
+    for (final pattern in productPatterns) {
+      for (final match in pattern.allMatches(cleanedResponse)) {
+        final name = match.group(0)?.trim();
+        if (name != null && name.isNotEmpty && name.length > 3) {
+          // Clean the product name
+          final cleanedName = _utils.cleanProductName(name);
+          if (cleanedName.isNotEmpty) {
+            productNames.add(cleanedName);
+          }
+        }
+      }
+    }
+
+    // Also use the existing extraction method as fallback
+    final extractedName = _utils.extractProductNameFromText(cleanedResponse);
+    if (extractedName != null && extractedName.isNotEmpty) {
+      productNames.add(extractedName);
+    }
+
+    // Return unique product names, limited to first 3 mentioned
+    return productNames.take(3).toList();
   }
 
   Future<String> _handleGeneralQuestion(
@@ -470,11 +969,19 @@ class AIService {
         processedMessage, isVietnamese);
     final response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
 
+    // Extract and attach product cards if products are mentioned
+    final responseWithProducts = await _attachProductCardsToResponse(
+      response,
+      processedMessage,
+      isVietnamese,
+    );
+
     if (userId != null) {
-      _conversationService.updateHistory(userId, processedMessage, response);
+      _conversationService.updateHistory(
+          userId, processedMessage, responseWithProducts);
     }
 
-    return response;
+    return responseWithProducts;
   }
 
   Future<String> _callGeminiAPI(String prompt) async {
@@ -658,11 +1165,6 @@ Processed message starts with context: ${processedMessage.startsWith('CONVERSATI
   }
 }
 
-String _formatSpec(dynamic value) {
-  if (value == null) return '';
-  return value.toString();
-}
-
 List<String> _buildProductCardFilters({
   String? brand,
   String? productName,
@@ -699,12 +1201,20 @@ class _ProductCardSelection {
   const _ProductCardSelection({required this.docs, required this.cards});
 }
 
+enum _ProductSortType {
+  none,
+  priceLowest,
+  priceHighest,
+  salesHighest,
+}
+
 _ProductCardSelection _prepareProductCardSelection(
   List<QueryDocumentSnapshot> originalDocs, {
   required bool isVietnamese,
   int limit = 3,
   List<String>? keywordFilters,
   bool disableFallbackOnEmptyMatch = false,
+  _ProductSortType sortType = _ProductSortType.none,
 }) {
   if (originalDocs.isEmpty) {
     return const _ProductCardSelection(docs: [], cards: []);
@@ -735,6 +1245,39 @@ _ProductCardSelection _prepareProductCardSelection(
     }
   }
 
+  // Sort products based on sortType
+  if (sortType != _ProductSortType.none) {
+    docs.sort((a, b) {
+      final dataA = a.data() as Map<String, dynamic>;
+      final dataB = b.data() as Map<String, dynamic>;
+
+      switch (sortType) {
+        case _ProductSortType.priceLowest:
+          final priceA = (dataA['discountedPrice'] as num?)?.toDouble() ??
+              ((dataA['sellingPrice'] as num?)?.toDouble() ?? 0) *
+                  (1 - ((dataA['discount'] as num?)?.toDouble() ?? 0) / 100);
+          final priceB = (dataB['discountedPrice'] as num?)?.toDouble() ??
+              ((dataB['sellingPrice'] as num?)?.toDouble() ?? 0) *
+                  (1 - ((dataB['discount'] as num?)?.toDouble() ?? 0) / 100);
+          return priceA.compareTo(priceB);
+        case _ProductSortType.priceHighest:
+          final priceA = (dataA['discountedPrice'] as num?)?.toDouble() ??
+              ((dataA['sellingPrice'] as num?)?.toDouble() ?? 0) *
+                  (1 - ((dataA['discount'] as num?)?.toDouble() ?? 0) / 100);
+          final priceB = (dataB['discountedPrice'] as num?)?.toDouble() ??
+              ((dataB['sellingPrice'] as num?)?.toDouble() ?? 0) *
+                  (1 - ((dataB['discount'] as num?)?.toDouble() ?? 0) / 100);
+          return priceB.compareTo(priceA);
+        case _ProductSortType.salesHighest:
+          final salesA = (dataA['sales'] as num?)?.toInt() ?? 0;
+          final salesB = (dataB['sales'] as num?)?.toInt() ?? 0;
+          return salesB.compareTo(salesA);
+        case _ProductSortType.none:
+          return 0;
+      }
+    });
+  }
+
   final limitedDocs = docs.take(limit).toList();
 
   final cards = limitedDocs.map((doc) {
@@ -745,35 +1288,6 @@ _ProductCardSelection _prepareProductCardSelection(
         sellingPrice * (1 - discount / 100);
     final category = data['category']?.toString() ?? '';
 
-    final List<String> quickSpecs = [];
-    switch (category.toLowerCase()) {
-      case 'cpu':
-        quickSpecs.add('${_formatSpec(data['core'])} cores');
-        quickSpecs.add('${_formatSpec(data['thread'])} threads');
-        quickSpecs.add('Turbo ${_formatSpec(data['turboClock'])}GHz');
-        break;
-      case 'gpu':
-        quickSpecs.add('${_formatSpec(data['memory'])} VRAM');
-        quickSpecs.add('Clock ${_formatSpec(data['clockSpeed'])}MHz');
-        break;
-      case 'ram':
-        quickSpecs.add('${_formatSpec(data['capacity'])} Capacity');
-        quickSpecs.add('${_formatSpec(data['bus'])} MHz');
-        break;
-      case 'psu':
-        quickSpecs.add('${_formatSpec(data['wattage'])}W');
-        quickSpecs.add('Efficiency ${_formatSpec(data['efficiency'])}');
-        break;
-      case 'drive':
-        quickSpecs.add('${_formatSpec(data['capacity'])}');
-        quickSpecs.add('${_formatSpec(data['type'])}');
-        break;
-      case 'mainboard':
-        quickSpecs.add('${_formatSpec(data['formFactor'])}');
-        quickSpecs.add('Socket ${_formatSpec(data['socket'])}');
-        break;
-    }
-
     return {
       'id': doc.id,
       'name': data['productName'] ?? '',
@@ -783,10 +1297,6 @@ _ProductCardSelection _prepareProductCardSelection(
       'stock': data['stock'] ?? 0,
       'imageUrl': data['imageUrl'],
       'category': category,
-      'quickSpecs': quickSpecs.where((s) => s.trim().isNotEmpty).toList(),
-      'description': isVietnamese
-          ? data['viDescription'] ?? ''
-          : data['enDescription'] ?? '',
     };
   }).toList();
 
@@ -802,6 +1312,99 @@ String _formatProductSuggestionResponse(
   return isVietnamese
       ? 'Mình đã tìm được một vài sản phẩm phù hợp. Nếu bạn cần thêm thông tin chi tiết, cứ nói mình nhé!'
       : 'I found a few matching products. Let me know if you want more details!';
+}
+
+_ProductSortType _detectSortType(String message, bool isVietnamese) {
+  final lowerMessage = message.toLowerCase();
+
+  // Price sorting keywords
+  final priceLowestKeywords = isVietnamese
+      ? [
+          'giá thấp',
+          'giá rẻ',
+          'rẻ nhất',
+          'thấp nhất',
+          'giá thấp nhất',
+          'rẻ',
+          'giá thấp nhất'
+        ]
+      : [
+          'lowest price',
+          'cheapest',
+          'lowest',
+          'cheap',
+          'low price',
+          'affordable'
+        ];
+
+  final priceHighestKeywords = isVietnamese
+      ? [
+          'giá cao',
+          'giá cao nhất',
+          'đắt nhất',
+          'cao nhất',
+          'giá đắt nhất',
+          'đắt'
+        ]
+      : [
+          'highest price',
+          'most expensive',
+          'highest',
+          'expensive',
+          'high price',
+          'premium'
+        ];
+
+  // Sales sorting keywords
+  final salesHighestKeywords = isVietnamese
+      ? ['bán chạy', 'bán chạy nhất', 'phổ biến', 'nổi tiếng', 'được mua nhiều']
+      : [
+          'best selling',
+          'popular',
+          'best seller',
+          'top selling',
+          'most popular',
+          'trending'
+        ];
+
+  // Check for price lowest
+  if (priceLowestKeywords.any((keyword) => lowerMessage.contains(keyword))) {
+    return _ProductSortType.priceLowest;
+  }
+
+  // Check for price highest
+  if (priceHighestKeywords.any((keyword) => lowerMessage.contains(keyword))) {
+    return _ProductSortType.priceHighest;
+  }
+
+  // Check for sales highest
+  if (salesHighestKeywords.any((keyword) => lowerMessage.contains(keyword))) {
+    return _ProductSortType.salesHighest;
+  }
+
+  return _ProductSortType.none;
+}
+
+/// Extract brand name from product data
+String _extractBrandFromProduct(Map<String, dynamic> data) {
+  // Try manufacturerID first
+  final manufacturerId = data['manufacturerID']?.toString() ?? '';
+  if (manufacturerId.isNotEmpty) {
+    return manufacturerId;
+  }
+
+  // Try extracting from product name
+  final productName = data['productName']?.toString() ?? '';
+  return _extractBrandFromProductName(productName);
+}
+
+/// Extract brand name from product name string
+String _extractBrandFromProductName(String productName) {
+  final brandPattern = RegExp(
+      r'\b(Intel|AMD|NVIDIA|Samsung|Kingston|Corsair|ASUS|MSI|Gigabyte)\b',
+      caseSensitive: false);
+  final match = brandPattern.firstMatch(productName);
+  return match?.group(1) ?? '';
 }
 
 String _extractManufacturerName(Map<String, dynamic> data) {

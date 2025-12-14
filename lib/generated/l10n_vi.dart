@@ -492,10 +492,55 @@ class SVI extends S {
   String get psuWattage => 'Công suất PSU';
 
   @override
+  String get psuEfficiency => 'Chuẩn hiệu suất PSU';
+
+  @override
+  String get psuModular => 'Loại module PSU';
+
+  @override
+  String get connectors => 'Cổng kết nối';
+
+  @override
   String get series => 'Dòng sản phẩm';
 
   @override
   String get gpuClockSpeed => 'Xung nhịp GPU';
+
+  @override
+  String get gpuMemory => 'Bộ nhớ GPU';
+
+  @override
+  String get gpuVersion => 'Phiên bản GPU';
+
+  @override
+  String get ioPorts => 'Cổng I/O';
+
+  @override
+  String get driveGeneration => 'Thế hệ';
+
+  @override
+  String get driveCapacity => 'Dung lượng';
+
+  @override
+  String get driveInterface => 'Giao tiếp';
+
+  @override
+  String get readSpeed => 'Tốc độ đọc';
+
+  @override
+  String get writeSpeed => 'Tốc độ ghi';
+
+  @override
+  String get chipset => 'Chipset';
+
+  @override
+  String get ramSpec => 'Thông số RAM';
+
+  @override
+  String get storageSlots => 'Khe cắm lưu trữ';
+
+  @override
+  String get pcieSlots => 'Khe cắm PCIe';
 
   @override
   String get formFactor => 'Kích thước';
@@ -573,6 +618,27 @@ class SVI extends S {
 
   @override
   String get ramType => 'Loại RAM';
+
+  @override
+  String get ramBus => 'Tốc độ bus RAM';
+
+  @override
+  String get clLatency => 'Độ trễ CL';
+
+  @override
+  String get kitStickCount => 'Số thanh RAM';
+
+  @override
+  String get ramCapacity => 'Dung lượng';
+
+  @override
+  String get capacityPerStick => 'Dung lượng mỗi thanh';
+
+  @override
+  String get gbEach => 'GB mỗi thanh';
+
+  @override
+  String get gbInTotal => 'GB tổng cộng';
 
   @override
   String get cores => 'Số nhân';
@@ -1152,11 +1218,15 @@ class SVI extends S {
       'Sản phẩm được đánh giá cao nhất được khách hàng yêu thích';
 
   @override
-  String get yourFavorites => 'Yêu Thích Của Bạn';
+  String get yourFavorites => 'Yêu thích của bạn';
 
   @override
   String get productsInYourWishlist =>
       'Sản phẩm trong danh sách yêu thích của bạn';
+
+  @override
+  String get productRecommendationsForYourBuild =>
+      'Gợi ý sản phẩm cho PC của bạn';
 
   // Guest restrictions
   @override
@@ -1240,6 +1310,30 @@ class SVI extends S {
   @override
   String get downloadInvoice => 'Tải xuống hóa đơn';
 
+  @override
+  String get cannotCancelTitle => 'Không thể hủy';
+
+  @override
+  String get cannotCancelMessage => 'Đơn hàng này không thể hủy nữa.';
+
+  @override
+  String get cancelSuccessTitle => 'Đã hủy đơn hàng';
+
+  @override
+  String get cancelSuccessMessage => 'Đơn hàng đã được hủy thành công.';
+
+  @override
+  String get cancelFailedTitle => 'Hủy thất bại';
+
+  @override
+  String cancelFailedMessage(Object error) => 'Không thể hủy đơn hàng này.';
+
+  @override
+  String get cancelled => 'Đã hủy';
+
+  @override
+  String get noCancelledOrders => 'Bạn chưa có đơn hàng đã hủy.';
+
   // PC Builder
   @override
   String get enableCompatibilityChecker => 'Bật kiểm tra tương thích';
@@ -1281,6 +1375,12 @@ class SVI extends S {
 
   @override
   String get builderSessionUpdatedLabel => 'Cập nhật';
+
+  @override
+  String get loading => 'Đang tải...';
+
+  @override
+  String get goodWithThisProduct => 'Tương thích với sản phẩm này';
 
   @override
   String builderSessionComponents(int count) => '$count linh kiện';

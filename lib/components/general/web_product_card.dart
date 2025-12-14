@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/objects/product_related/product_image.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
-import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_webview.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
@@ -34,6 +36,16 @@ class _WebProductCardState extends State<WebProductCard> {
   bool isHovered = false;
   bool _isAddHovered = false;
   final WebGuestService _webGuestService = WebGuestService();
+  Future<ProductImage?>? _imageFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product.productID != null) {
+      _imageFuture =
+          Firebase().getProductPrimaryImage(widget.product.productID!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,15 +63,21 @@ class _WebProductCardState extends State<WebProductCard> {
             borderRadius: BorderRadius.circular(12),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => kIsWeb
-                        ? ProductDetailScreenWebView.newInstance(widget.product)
-                        : ProductDetailScreen.newInstance(widget.product),
-                  ),
-                );
+              onTap: () async {
+                final productId = widget.product.productID;
+                if (kIsWeb && productId != null) {
+                  // On web, use pushNamed for proper URL/history integration
+                  await Navigator.of(context).pushNamed('/products/$productId');
+                } else {
+                  // On mobile, use traditional navigation
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ProductDetailScreen.newInstance(widget.product),
+                    ),
+                  );
+                }
               },
               borderRadius: BorderRadius.circular(12),
               child: AnimatedContainer(
@@ -101,21 +119,15 @@ class _WebProductCardState extends State<WebProductCard> {
                           child: Stack(
                             children: [
                               Center(
-                                child: widget.product.imageUrl != null &&
-                                        widget.product.imageUrl!.isNotEmpty
-                                    ? ClipRRect(
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          topRight: Radius.circular(12),
-                                        ),
-                                        child: Image.network(
-                                          widget.product.imageUrl!,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          height: double.infinity,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                            // Fallback to category icon if image fails to load
+                                child: _imageFuture != null
+                                    ? FutureBuilder<ProductImage?>(
+                                        future: _imageFuture,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                                  ConnectionState.waiting ||
+                                              !snapshot.hasData ||
+                                              snapshot.data == null ||
+                                              snapshot.data!.url.isEmpty) {
                                             return Center(
                                               child: Icon(
                                                 _getCategoryIcon(
@@ -126,8 +138,51 @@ class _WebProductCardState extends State<WebProductCard> {
                                                 size: 96,
                                               ),
                                             );
-                                          },
-                                        ),
+                                          }
+                                          return ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                              topLeft: Radius.circular(12),
+                                              topRight: Radius.circular(12),
+                                            ),
+                                            child: CachedNetworkImage(
+                                              imageUrl: snapshot.data!.url,
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              placeholder: (context, url) =>
+                                                  Container(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .surfaceContainerHighest
+                                                    .withValues(alpha: 0.3),
+                                                child: Center(
+                                                  child: Icon(
+                                                    _getCategoryIcon(widget
+                                                        .product.category),
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                        .withValues(alpha: 0.3),
+                                                    size: 48,
+                                                  ),
+                                                ),
+                                              ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      Center(
+                                                child: Icon(
+                                                  _getCategoryIcon(
+                                                      widget.product.category),
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                                  size: 96,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
                                       )
                                     : Center(
                                         child: Icon(
@@ -282,7 +337,7 @@ class _WebProductCardState extends State<WebProductCard> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .onSurface
-                                      .withOpacity(0.5),
+                                      .withValues(alpha: 0.5),
                                   fontSize: 12,
                                 ),
                               ),

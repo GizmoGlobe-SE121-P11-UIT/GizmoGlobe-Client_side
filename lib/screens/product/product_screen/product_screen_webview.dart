@@ -47,17 +47,26 @@ class NoAnimationTabController extends TabController {
 class ProductScreenWebView extends StatefulWidget {
   final List<Product>? initialProducts;
   final SortEnum? initialSortOption;
+  final bool isFavorites;
 
-  const ProductScreenWebView(
-      {super.key, this.initialProducts, this.initialSortOption});
+  const ProductScreenWebView({
+    super.key,
+    this.initialProducts,
+    this.initialSortOption,
+    this.isFavorites = false,
+  });
 
-  static Widget newInstance(
-          {List<Product>? initialProducts, SortEnum? initialSortOption}) =>
+  static Widget newInstance({
+    List<Product>? initialProducts,
+    SortEnum? initialSortOption,
+    bool isFavorites = false,
+  }) =>
       BlocProvider(
         create: (context) => ProductScreenCubit(),
         child: ProductScreenWebView(
           initialProducts: initialProducts,
           initialSortOption: initialSortOption,
+          isFavorites: isFavorites,
         ),
       );
 
@@ -150,9 +159,19 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
 
     // If a product detail ID is present in the hash, do not override it
     final currentHash = platform_actions.getHashPath();
-    final isDetail = RegExp(r'^/products/[^/]+/[^/]+$').hasMatch(currentHash);
-    if (isDetail) {
-      return;
+    // Check if this is a product detail URL (not a category)
+    if (currentHash.startsWith('/products/')) {
+      final segments = currentHash.split('/');
+      if (segments.length >= 3) {
+        final possibleProductId = segments[2];
+        // Check if it's a category name or a product ID
+        final categories = ['ram', 'cpu', 'gpu', 'psu', 'drive', 'mainboard'];
+        final isCategory = categories.contains(possibleProductId.toLowerCase());
+        // If it's not a category, it's likely a product ID - don't override
+        if (!isCategory) {
+          return;
+        }
+      }
     }
 
     String newUrl;
@@ -167,8 +186,9 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
       }
     }
 
-    // Update the hash so the address bar reflects the current tab (no reload)
-    platform_actions.setHashFragment(newUrl);
+    // Use replaceState to update URL without creating history entry for tab switches
+    // This ensures tab switches don't interfere with back/forward navigation
+    platform_actions.replaceHashUrl(newUrl);
   }
 
   @override
@@ -523,7 +543,7 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
                                       tabController.index = previous;
                                       _tabSwitchTimer?.cancel();
                                       _tabSwitchTimer =
-                                          Timer(const Duration(seconds: 3), () {
+                                          Timer(const Duration(seconds: 1), () {
                                         if (!mounted) return;
                                         setState(() {
                                           _shownTabIndex = value;
@@ -687,6 +707,10 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
   }
 
   String _currentCategoryLabel(BuildContext context) {
+    // Show favorites label if navigating from favorites section
+    if (widget.isFavorites) {
+      return S.of(context).yourFavorites;
+    }
     switch (tabController.index) {
       case 0:
         return S.of(context).all;
@@ -961,7 +985,7 @@ class _WebProductTabState extends State<WebProductTab>
                     if (state.filteredProductList.isEmpty) {
                       return Center(
                         child: Text(
-                          'No Products Found',
+                          S.of(context).noProductsFound,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       );
@@ -976,7 +1000,7 @@ class _WebProductTabState extends State<WebProductTab>
                         state.filteredProductList.isNotEmpty) {
                       return Center(
                         child: Text(
-                          'No Products Found',
+                          S.of(context).noProductsFound,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       );

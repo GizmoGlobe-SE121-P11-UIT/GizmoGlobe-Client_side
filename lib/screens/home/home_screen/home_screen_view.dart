@@ -15,6 +15,9 @@ import 'package:gizmoglobe_client/components/general/web_footer.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../product/product_screen/product_screen_view.dart';
+import 'package:gizmoglobe_client/services/web_guest_service.dart';
+import 'package:gizmoglobe_client/data/database/database.dart';
+import 'package:gizmoglobe_client/components/general/web_product_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -49,21 +52,33 @@ class _HomeScreen extends State<HomeScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: BlocBuilder<HomeScreenCubit, HomeScreenState>(
           builder: (context, state) {
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  const WebHeader(),
-                  const WebHeroSection(),
-                  // const SizedBox(height: 80),
-                  // const WebCategoryNav(),
-                  // const SizedBox(height: 80),
-                  WebBestSellersSection(products: state.bestSellerProducts),
-                  const SizedBox(height: 80),
-                  WebFavoritesSection(products: state.favoriteProducts),
-                  const SizedBox(height: 80),
-                  const WebFooter(),
-                ],
-              ),
+            return FutureBuilder<bool>(
+              future: WebGuestService().isCurrentUserGuest(),
+              builder: (context, snapshot) {
+                final isGuest = snapshot.data ?? false;
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const WebHeader(),
+                      const WebHeroSection(),
+                      WebBestSellersSection(products: state.bestSellerProducts),
+                      if (!isGuest && state.favoriteProducts.isNotEmpty) ...[
+                        const SizedBox(height: 80),
+                        WebFavoritesSection(products: state.favoriteProducts),
+                      ],
+                      if (!isGuest && state.recommendedProducts.isNotEmpty) ...[
+                        const SizedBox(height: 80),
+                        _buildWebRecommendationSection(
+                          context,
+                          state.recommendedProducts,
+                        ),
+                      ],
+                      const SizedBox(height: 80),
+                      const WebFooter(),
+                    ],
+                  ),
+                );
+              },
             );
           },
         ),
@@ -126,26 +141,25 @@ class _HomeScreen extends State<HomeScreen> {
                               products: state.bestSellerProducts,
                               onSeeAll: () {
                                 Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProductScreen.newInstance(initialProducts: state.favoriteProducts)
-                                ));
-                              },
-                              length: 4,
-                            ),
-                            _buildCarousel(
-                              context,
-                              title: S.of(context).favorites,
-                              products: state.favoriteProducts,
-                              onSeeAll: () {
-                                Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => ProductScreen.newInstance(initialProducts: state.recommendedProducts)
-                                    ));
+                                        builder: (context) =>
+                                            ProductScreen.newInstance(
+                                                initialProducts:
+                                                    state.favoriteProducts)));
                               },
                               length: 4,
                             ),
+                            if (!_isGuestMobile())
+                              _buildCarousel(
+                                context,
+                                title: S.of(context).favorites,
+                                products: state.favoriteProducts,
+                                onSeeAll: () {
+                                  Navigator.pushNamed(context, '/products');
+                                },
+                                length: 4,
+                              ),
                             _buildCarousel(
                               context,
                               title: S.of(context).recommendedForYou,
@@ -175,6 +189,8 @@ class _HomeScreen extends State<HomeScreen> {
       required List<Product> products,
       required VoidCallback onSeeAll,
       required int length}) {
+    if (products.isEmpty) return Container();
+
     if (products.isEmpty) return Container();
 
     final itemCount = products.length > length ? length : products.length;
@@ -225,6 +241,94 @@ class _HomeScreen extends State<HomeScreen> {
           ),
         ]),
       ],
+    );
+  }
+
+  bool _isGuestMobile() {
+    // Treat empty userID as guest for non-web
+    return Database().userID.isEmpty;
+  }
+
+  Widget _buildWebRecommendationSection(
+      BuildContext context, List<Product> products) {
+    final displayCount = products.length > 5 ? 5 : products.length;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 80),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    S.of(context).recommendedForYou,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    S.of(context).productRecommendationsForYourBuild,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/products');
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      S.of(context).seeAll,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward,
+                      color: Theme.of(context).colorScheme.secondary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            height: 280,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: displayCount,
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 200,
+                  margin: EdgeInsets.only(
+                    right: index < displayCount - 1 ? 20 : 0,
+                  ),
+                  child: WebProductCard(product: products[index]),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
