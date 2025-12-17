@@ -763,69 +763,116 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildRecommendationsSection(
       BuildContext context, Product currentProduct) {
-    final recs = RecommendationService()
-        .getCompatibleForProduct(currentProduct)
-        .where((p) => p.productID != currentProduct.productID)
-        .toList();
+    return FutureBuilder<List<Product>>(
+      future: RecommendationService().getSimilarProducts(
+        currentProduct,
+        topN: 6,
+        excludeOutOfStock: false,
+      ),
+      builder: (context, snapshot) {
+        // Get compatible products (cross-category) synchronously
+        final compatibleProducts = RecommendationService()
+            .getCompatibleForProduct(currentProduct, topN: 6)
+            .where((p) => p.productID != currentProduct.productID)
+            .toList();
 
-    if (recs.isEmpty) return const SizedBox();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            S.of(context).goodWithThisProduct,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontSize: 18,
+        // Loading state for similar products
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Show compatible products while loading similar products
+          if (compatibleProducts.isEmpty) {
+            return Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+              child: Center(
+                child: CircularProgressIndicator(
                   color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
                 ),
-          ),
-          const SizedBox(height: 8),
-          LayoutBuilder(builder: (context, constraints) {
-            const int crossAxisCount = !kIsWeb ? 2 : 4;
-            const double spacing = 8.0;
-            const double itemHeight = 260.0;
-
-            final totalSpacing = spacing * (crossAxisCount - 1);
-            final itemWidth =
-                (constraints.maxWidth - totalSpacing) / crossAxisCount;
-            final childAspectRatio = itemWidth / itemHeight;
-
-            return GridView.builder(
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: recs.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                mainAxisSpacing: spacing,
-                crossAxisSpacing: spacing,
-                childAspectRatio: childAspectRatio,
               ),
-              itemBuilder: (context, index) {
-                final product = recs[index];
-                return GestureDetector(
-                  onTap: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (ctx) =>
-                            ProductDetailScreen.newInstance(product),
-                      ),
+            );
+          }
+        }
+
+        // Get similar products (same category, AI-powered)
+        final similarProducts =
+            (snapshot.hasData ? snapshot.data! : <Product>[])
+                .where((p) => p.productID != currentProduct.productID)
+                .toList();
+
+        // Combine both lists (similar first, then compatible)
+        final allRecommendations = <Product>[
+          ...similarProducts,
+          ...compatibleProducts,
+        ];
+
+        // Remove duplicates based on productID
+        final seenIds = <String>{};
+        final uniqueRecommendations = allRecommendations.where((product) {
+          if (product.productID == null) return false;
+          if (seenIds.contains(product.productID!)) return false;
+          seenIds.add(product.productID!);
+          return true;
+        }).toList();
+
+        if (uniqueRecommendations.isEmpty) return const SizedBox();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                S.of(context).goodWithThisProduct,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontSize: 18,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              LayoutBuilder(builder: (context, constraints) {
+                const int crossAxisCount = !kIsWeb ? 2 : 4;
+                const double spacing = 8.0;
+                const double itemHeight = 260.0;
+
+                final totalSpacing = spacing * (crossAxisCount - 1);
+                final itemWidth =
+                    (constraints.maxWidth - totalSpacing) / crossAxisCount;
+                final childAspectRatio = itemWidth / itemHeight;
+
+                return GridView.builder(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: uniqueRecommendations.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    mainAxisSpacing: spacing,
+                    crossAxisSpacing: spacing,
+                    childAspectRatio: childAspectRatio,
+                  ),
+                  itemBuilder: (context, index) {
+                    final product = uniqueRecommendations[index];
+                    return GestureDetector(
+                      onTap: () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (ctx) =>
+                                ProductDetailScreen.newInstance(product),
+                          ),
+                        );
+                      },
+                      child: !kIsWeb
+                          ? ProductCard(product: product)
+                          : WebProductCard(product: product),
                     );
                   },
-                  child: !kIsWeb
-                      ? ProductCard(product: product)
-                      : WebProductCard(product: product),
                 );
-              },
-            );
-          }),
-          const SizedBox(height: 12),
-        ],
-      ),
+              }),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
     );
   }
 

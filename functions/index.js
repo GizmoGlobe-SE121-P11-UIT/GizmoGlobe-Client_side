@@ -563,3 +563,1016 @@ exports.dailyRatingsRecalc = onSchedule(
     }
   });
 
+
+// =============================================================================
+// PRODUCT SIMILARITY & RECOMMENDATION FUNCTIONS
+// =============================================================================
+
+/**
+ * Track Product View
+ * Records when a user views a product for collaborative filtering.
+ */
+exports.trackProductView = onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  try {
+    const { userId, productId, sessionId } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({ success: false, error: 'Missing productId' });
+    }
+
+    await admin.firestore().collection('product_views').add({
+      userId: userId || 'anonymous',
+      productId: productId,
+      sessionId: sessionId || null,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error tracking product view:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Compute Product Similarity (Collaborative Filtering)
+ * Scheduled function that computes similarity based on co-purchase patterns.
+ */
+exports.computeProductSimilarity = onSchedule(
+  {
+    schedule: '0 */6 * * *',
+    timeZone: 'Asia/Bangkok',
+    timeoutSeconds: 540,
+    memory: '1GiB',
+  },
+  async (event) => {
+    try {
+      console.log('Starting product similarity computation...');
+      const startTime = Date.now();
+
+      const invoicesSnapshot = await admin.firestore()
+        .collection('sales_invoices')
+        .get();
+
+      const coPurchaseMatrix = new Map();
+      const purchaseCounts = new Map();
+
+      for (const invoiceDoc of invoicesSnapshot.docs) {
+        const invoiceId = invoiceDoc.id;
+        
+        const detailsSnapshot = await admin.firestore()
+          .collection('sales_invoice_details')
+          .where('salesInvoiceID', '==', invoiceId)
+          .get();
+
+        const productIds = detailsSnapshot.docs.map(d => d.data().productID).filter(Boolean);
+
+        for (const productId of productIds) {
+          purchaseCounts.set(productId, (purchaseCounts.get(productId) || 0) + 1);
+        }
+
+        for (let i = 0; i < productIds.length; i++) {
+          for (let j = 0; j < productIds.length; j++) {
+            if (i !== j) {
+              const productA = productIds[i];
+              const productB = productIds[j];
+
+              if (!coPurchaseMatrix.has(productA)) {
+                coPurchaseMatrix.set(productA, new Map());
+              }
+              coPurchaseMatrix.get(productA).set(productB, 
+                (coPurchaseMatrix.get(productA).get(productB) || 0) + 1);
+            }
+          }
+        }
+      }
+
+      console.log('Built co-purchase matrix for ' + coPurchaseMatrix.size + ' products');
+
+      let batchCount = 0;
+      let batch = admin.firestore().batch();
+
+      for (const [productId, coProducts] of coPurchaseMatrix) {
+        const productPurchases = purchaseCounts.get(productId) || 1;
+
+        const similarities = [];
+        for (const [coProductId, coCount] of coProducts) {
+          const coProductPurchases = purchaseCounts.get(coProductId) || 1;
+          const union = productPurchases + coProductPurchases - coCount;
+          const score = coCount / Math.max(union, 1);
+
+          similarities.push({
+            productId: coProductId,
+            score: Math.round(score * 1000) / 1000,
+            coPurchaseCount: coCount,
+            reason: 'co-purchase',
+          });
+        }
+
+        similarities.sort((a, b) => b.score - a.score);
+        const topSimilar = similarities.slice(0, 20);
+
+        const docRef = admin.firestore()
+          .collection('product_similarity')
+          .doc(productId);
+
+        batch.set(docRef, {
+          productId: productId,
+          similar: topSimilar,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+          algorithm: 'collaborative-filtering',
+        });
+
+        batchCount++;
+
+        if (batchCount >= 400) {
+          await batch.commit();
+          batch = admin.firestore().batch();
+          batchCount = 0;
+        }
+      }
+
+      if (batchCount > 0) {
+        await batch.commit();
+      }
+
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log('Similarity computation completed in ' + duration + 's');
+
+      await admin.firestore()
+        .collection('aggregations')
+        .doc('productSimilarity')
+        .set({
+          lastComputation: admin.firestore.FieldValue.serverTimestamp(),
+          productCount: coPurchaseMatrix.size,
+        }, { merge: true });
+
+      return null;
+    } catch (error) {
+      console.error('Error computing product similarity:', error);
+      throw error;
+    }
+  }
+);
+
+/**
+ * Get Similar Products API
+ */
+exports.getSimilarProducts = onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  try {
+    const productId = req.query.productId || req.body?.productId;
+    const limit = parseInt(req.query.limit || req.body?.limit || '10');
+
+    if (!productId) {
+      return res.status(400).json({ success: false, error: 'Missing productId' });
+    }
+
+    const configDoc = await admin.firestore()
+      .collection('config')
+      .doc('recommendations')
+      .get();
+
+    const config = configDoc.exists ? configDoc.data() : {};
+
+    if (config.vertexAIEnabled) {
+      const vertexDoc = await admin.firestore()
+        .collection('vertex_recommendations')
+        .doc(productId)
+        .get();
+
+      if (vertexDoc.exists) {
+        return res.status(200).json({
+          success: true,
+          source: 'vertex-ai',
+          similar: (vertexDoc.data().similar || []).slice(0, limit),
+        });
+      }
+    }
+
+    const similarityDoc = await admin.firestore()
+      .collection('product_similarity')
+      .doc(productId)
+      .get();
+
+    if (similarityDoc.exists) {
+      return res.status(200).json({
+        success: true,
+        source: 'collaborative-filtering',
+        similar: (similarityDoc.data().similar || []).slice(0, limit),
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      source: 'none',
+      similar: [],
+    });
+
+  } catch (error) {
+    console.error('Error getting similar products:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Vertex AI Recommendation API
+ * 
+ * Calls the Retail API to get product recommendations.
+ * 
+ * Query params:
+ * - productId: The product to get recommendations for
+ * - visitorId: (optional) User/visitor ID for personalization
+ * - limit: (optional) Number of recommendations (default: 10)
+ * - type: (optional) "similar" or "recently_viewed" (default: "similar")
+ */
+exports.getVertexAIRecommendations = onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  try {
+    const productId = req.query.productId || req.body?.productId;
+    const visitorId = req.query.visitorId || req.body?.visitorId || 'anonymous-' + Date.now();
+    const limit = parseInt(req.query.limit || req.body?.limit || '10');
+    const type = req.query.type || req.body?.type || 'similar';
+
+    if (!productId && type === 'similar') {
+      return res.status(400).json({
+        success: false,
+        error: 'productId is required for similar items recommendations',
+      });
+    }
+
+    const {PredictionServiceClient} = require('@google-cloud/retail');
+    const client = new PredictionServiceClient();
+
+    const projectId = '413433346211'; // Numeric project ID
+    const location = 'global';
+    const catalogId = 'default_catalog';
+    
+    // Determine serving config based on type
+    let servingConfigId;
+    if (type === 'recently_viewed') {
+      servingConfigId = 'recently_viewed_default';
+    } else {
+      // Use the similar items serving config
+      servingConfigId = 'similar-items-serving';
+    }
+
+    const placement = `projects/${projectId}/locations/${location}/catalogs/${catalogId}/servingConfigs/${servingConfigId}`;
+
+    const request = {
+      placement: placement,
+      visitorId: visitorId,
+      pageSize: limit,
+    };
+
+    // For similar items, add the product detail
+    if (type === 'similar' && productId) {
+      request.productDetails = [{
+        product: {
+          id: productId,
+        },
+        quantity: { value: 1 },
+      }];
+    }
+
+    console.log('Calling Retail API with request:', JSON.stringify(request));
+
+    const [response] = await client.predict(request);
+
+    // Extract product IDs from results
+    const recommendations = (response.results || []).map(result => ({
+      productId: result.id,
+      score: result.metadata?.score || null,
+    }));
+
+    console.log('Got ' + recommendations.length + ' recommendations');
+
+    return res.status(200).json({
+      success: true,
+      source: 'vertex-ai',
+      servingConfig: servingConfigId,
+      recommendations: recommendations,
+      attributionToken: response.attributionToken,
+    });
+
+  } catch (error) {
+    console.error('Error getting Vertex AI recommendations:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      details: error.details || null,
+    });
+  }
+});
+
+/**
+ * Cache Vertex AI Recommendations
+ * 
+ * Scheduled function that fetches Vertex AI recommendations for all products
+ * and caches them in Firestore for fast access.
+ * 
+ * Runs every 12 hours to keep recommendations fresh.
+ */
+exports.cacheVertexAIRecommendations = onSchedule(
+  {
+    schedule: '0 */12 * * *', // Every 12 hours
+    timeZone: 'Asia/Bangkok',
+    timeoutSeconds: 540,
+    memory: '1GiB',
+  },
+  async (event) => {
+    try {
+      console.log('Starting Vertex AI recommendations caching...');
+      const startTime = Date.now();
+
+      // Check if Vertex AI is enabled
+      const configDoc = await admin.firestore()
+        .collection('config')
+        .doc('recommendations')
+        .get();
+
+      if (!configDoc.exists || !configDoc.data()?.vertexAIEnabled) {
+        console.log('Vertex AI is disabled in config, skipping cache');
+        return null;
+      }
+
+      const config = configDoc.data();
+      const servingConfigId = config.servingConfigId || 'similar-items-serving';
+
+      // Get all products
+      const productsSnapshot = await admin.firestore()
+        .collection('products')
+        .get();
+
+      console.log(`Caching recommendations for ${productsSnapshot.size} products...`);
+
+      const {PredictionServiceClient} = require('@google-cloud/retail');
+      const client = new PredictionServiceClient();
+
+      const projectId = '413433346211'; // Numeric project ID
+      const location = 'global';
+      const catalogId = 'default_catalog';
+      const placement = `projects/${projectId}/locations/${location}/catalogs/${catalogId}/servingConfigs/${servingConfigId}`;
+
+      let successCount = 0;
+      let errorCount = 0;
+      let batch = admin.firestore().batch();
+      let batchCount = 0;
+
+      for (const doc of productsSnapshot.docs) {
+        try {
+          const productId = doc.id;
+
+          const request = {
+            placement: placement,
+            userEvent: {
+              eventType: 'detail-page-view',
+              visitorId: 'batch-caching-' + Date.now(),
+              productDetails: [{
+                product: { id: productId },
+              }],
+            },
+            pageSize: 20,
+          };
+
+          const [response] = await client.predict(request);
+
+          // Extract product IDs from results
+          const similarIds = (response.results || []).map(result => result.id);
+
+          if (similarIds.length > 0) {
+            const cacheRef = admin.firestore()
+              .collection('vertex_recommendations')
+              .doc(productId);
+
+            batch.set(cacheRef, {
+              productId: productId,
+              similar: similarIds,
+              lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+              servingConfig: servingConfigId,
+              source: 'vertex-ai',
+            });
+
+            batchCount++;
+            successCount++;
+
+            // Commit batch every 400 writes
+            if (batchCount >= 400) {
+              await batch.commit();
+              batch = admin.firestore().batch();
+              batchCount = 0;
+            }
+          }
+
+          // Rate limiting: wait 100ms between requests to avoid quota issues
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+        } catch (error) {
+          console.error(`Error getting recommendations for product ${doc.id}:`, error.message);
+          errorCount++;
+        }
+      }
+
+      // Commit remaining batch
+      if (batchCount > 0) {
+        await batch.commit();
+      }
+
+      // Update metadata
+      await admin.firestore()
+        .collection('aggregations')
+        .doc('vertexRecommendations')
+        .set({
+          lastCached: admin.firestore.FieldValue.serverTimestamp(),
+          cachedCount: successCount,
+          errorCount: errorCount,
+        }, { merge: true });
+
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log(`Vertex AI caching completed in ${duration}s`);
+      console.log(`Success: ${successCount}, Errors: ${errorCount}`);
+
+      return null;
+    } catch (error) {
+      console.error('Error caching Vertex AI recommendations:', error);
+      throw error;
+    }
+  }
+);
+
+/**
+ * Trigger Vertex AI caching manually (HTTP endpoint)
+ * 
+ * Call this endpoint to immediately cache recommendations for all products.
+ * Useful for initial setup or testing.
+ * 
+ * POST /triggerVertexAICaching
+ */
+exports.triggerVertexAICaching = onRequest(
+  {
+    timeoutSeconds: 540,
+    memory: '1GiB',
+  },
+  async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+
+    try {
+      console.log('Manual Vertex AI caching triggered');
+      
+      // Check if Vertex AI is enabled
+      const configDoc = await admin.firestore()
+        .collection('config')
+        .doc('recommendations')
+        .get();
+
+      if (!configDoc.exists || !configDoc.data()?.vertexAIEnabled) {
+        return res.status(400).json({
+          success: false,
+          error: 'Vertex AI is disabled in config/recommendations',
+        });
+      }
+
+      const config = configDoc.data();
+      const servingConfigId = config.servingConfigId || 'similar-items-serving';
+      const startTime = Date.now();
+
+      // Get all products
+      const productsSnapshot = await admin.firestore()
+        .collection('products')
+        .get();
+
+      console.log(`Caching recommendations for ${productsSnapshot.size} products...`);
+
+      const {PredictionServiceClient} = require('@google-cloud/retail');
+      const client = new PredictionServiceClient();
+
+      const projectId = '413433346211'; // Numeric project ID
+      const location = 'global';
+      const catalogId = 'default_catalog';
+      const placement = `projects/${projectId}/locations/${location}/catalogs/${catalogId}/servingConfigs/${servingConfigId}`;
+
+      let successCount = 0;
+      let errorCount = 0;
+      let batch = admin.firestore().batch();
+      let batchCount = 0;
+
+      for (const doc of productsSnapshot.docs) {
+        try {
+          const productId = doc.id;
+
+          const request = {
+            placement: placement,
+            userEvent: {
+              eventType: 'detail-page-view',
+              visitorId: 'manual-caching-' + Date.now(),
+              productDetails: [{
+                product: { id: productId },
+              }],
+            },
+            pageSize: 20,
+          };
+
+          const [response] = await client.predict(request);
+          const similarIds = (response.results || []).map(result => result.id);
+
+          if (similarIds.length > 0) {
+            const cacheRef = admin.firestore()
+              .collection('vertex_recommendations')
+              .doc(productId);
+
+            batch.set(cacheRef, {
+              productId: productId,
+              similar: similarIds,
+              lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+              servingConfig: servingConfigId,
+              source: 'vertex-ai',
+            });
+
+            batchCount++;
+            successCount++;
+
+            if (batchCount >= 400) {
+              await batch.commit();
+              batch = admin.firestore().batch();
+              batchCount = 0;
+            }
+          }
+
+          // Rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+        } catch (error) {
+          console.error(`Error for product ${doc.id}:`, error.message);
+          errorCount++;
+        }
+      }
+
+      if (batchCount > 0) {
+        await batch.commit();
+      }
+
+      await admin.firestore()
+        .collection('aggregations')
+        .doc('vertexRecommendations')
+        .set({
+          lastCached: admin.firestore.FieldValue.serverTimestamp(),
+          cachedCount: successCount,
+          errorCount: errorCount,
+        }, { merge: true });
+
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+
+     return res.status(200).json({
+        success: true,
+        message: 'Vertex AI caching completed',
+        duration: duration + 's',
+        productsProcessed: productsSnapshot.size,
+        successCount: successCount,
+        errorCount: errorCount,
+      });
+
+    } catch (error) {
+      console.error('Error in manual caching:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+);
+
+// =============================================================================
+// VERTEX AI - PRODUCT EXPORT TO BIGQUERY
+// =============================================================================
+
+/**
+ * Export Products to BigQuery for Retail API Import
+ * 
+ * This function exports all products from Firestore to BigQuery in the
+ * format required by Vertex AI Retail API.
+ * 
+ * Call this endpoint to trigger a full product export:
+ * POST /exportProductsToBigQuery
+ */
+exports.exportProductsToBigQuery = onRequest(
+  {
+    timeoutSeconds: 540,
+    memory: '1GiB',
+  },
+  async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+
+    try {
+      console.log('Starting product export to BigQuery...');
+      const startTime = Date.now();
+
+      // Get all products from Firestore
+      const productsSnapshot = await admin.firestore()
+        .collection('products')
+        .get();
+
+      console.log('Found ' + productsSnapshot.size + ' products to export');
+
+      // Get all manufacturers for lookup
+      const manufacturersSnapshot = await admin.firestore()
+        .collection('manufacturers')
+        .get();
+
+      const manufacturersMap = {};
+      manufacturersSnapshot.forEach((doc) => {
+        manufacturersMap[doc.id] = doc.data().manufacturerName || 'Unknown';
+      });
+
+      console.log('Loaded ' + Object.keys(manufacturersMap).length + ' manufacturers');
+
+      // Transform products to Retail API format
+      const products = [];
+      const timestamp = new Date().toISOString();
+
+      productsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        const productId = doc.id;
+
+        // Build description from both English and Vietnamese descriptions
+        let description = '';
+        if (data.enDescription) {
+          description = data.enDescription;
+        } else if (data.viDescription) {
+          description = data.viDescription;
+        } else {
+          // Fallback: generate description from product name and category
+          description = `${data.productName || 'Product'} - ${data.category || 'Electronics'}`;
+        }
+
+        // Get manufacturer name from manufacturers collection
+        const manufacturerId = data.manufacturer;
+        const manufacturerName = manufacturersMap[manufacturerId] || 'Unknown';
+
+        // Handle price correctly:
+        // - sellingPrice: current price in thousands VND (e.g., 1776 = 1,776,000 VND)
+        // - discount: percentage (e.g., 33 = 33%)
+        // - Calculate original price from selling price and discount
+        const sellingPrice = data.sellingPrice || 0;
+        const discountPercent = data.discount || 0;
+        
+        // Calculate original price: if discount is 33%, selling price is 67% of original
+        // Original = sellingPrice / (1 - discount/100)
+        let originalPrice = sellingPrice;
+        if (discountPercent > 0) {
+          originalPrice = Math.round(sellingPrice / (1 - discountPercent / 100));
+        }
+
+        // Convert to actual VND (multiply by 1000)
+        const priceInVND = sellingPrice * 1000;
+        const originalPriceInVND = originalPrice * 1000;
+
+        // Map to Retail API product schema
+        products.push({
+          id: productId,
+          name: 'projects/se121p11-gizmoglobe/locations/global/catalogs/default_catalog/branches/default_branch/products/' + productId,
+          title: data.productName || 'Unknown Product',
+          description: description,
+          categories: [data.category || 'uncategorized'],
+          brands: [manufacturerName],
+          priceInfo: {
+            currencyCode: 'VND',
+            price: priceInVND,
+            originalPrice: originalPriceInVND,
+          },
+          availability: (data.stock > 0) ? 'IN_STOCK' : 'OUT_OF_STOCK',
+          availableQuantity: data.stock || 0,
+          uri: 'https://gizmoglobe.com/products/' + productId,
+          images: data.imageUrl ? [{ uri: data.imageUrl, width: 500, height: 500 }] : [],
+          attributes: {
+            manufacturer: { text: [manufacturerName] },
+            category: { text: [data.category || 'uncategorized'] },
+            price_range: { text: [getPriceRange(sellingPrice)] },
+            stock_status: { text: [(data.stock > 0) ? 'in_stock' : 'out_of_stock'] },
+            discount: { numbers: [discountPercent] },
+          },
+          retrievableFields: 'id,title,description,categories,brands,priceInfo,availability,attributes',
+          publishTime: timestamp,
+        });
+      });
+
+      // Helper function to categorize price ranges
+      function getPriceRange(price) {
+        if (price < 500) return 'budget';
+        if (price < 2000) return 'mid_range';
+        if (price < 5000) return 'premium';
+        return 'high_end';
+      }
+
+
+      // Store in Firestore for now (can be extended to BigQuery later)
+      // This creates a collection that can be exported to BigQuery using the extension
+      const batch = admin.firestore().batch();
+      
+      for (const product of products) {
+        const docRef = admin.firestore()
+          .collection('retail_products_export')
+          .doc(product.id);
+        batch.set(docRef, product);
+      }
+
+      await batch.commit();
+
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log('Product export completed in ' + duration + 's');
+
+      return res.status(200).json({
+        success: true,
+        message: 'Exported ' + products.length + ' products',
+        duration: duration + 's',
+        collection: 'retail_products_export',
+      });
+
+    } catch (error) {
+      console.error('Error exporting products:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * Export User Events to BigQuery for Retail API
+ * 
+ * Exports purchase events in Retail API format.
+ */
+exports.exportUserEventsToBigQuery = onRequest(
+  {
+    timeoutSeconds: 540,
+    memory: '1GiB',
+  },
+  async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+
+    try {
+      console.log('Starting user events export...');
+      const startTime = Date.now();
+
+      // Get all completed sales invoices
+      const invoicesSnapshot = await admin.firestore()
+        .collection('sales_invoices')
+        .get();
+
+      const userEvents = [];
+      const timestamp = new Date().toISOString();
+
+      for (const invoiceDoc of invoicesSnapshot.docs) {
+        const invoice = invoiceDoc.data();
+        const invoiceId = invoiceDoc.id;
+
+        // Get invoice details
+        const detailsSnapshot = await admin.firestore()
+          .collection('sales_invoice_details')
+          .where('salesInvoiceID', '==', invoiceId)
+          .get();
+
+        if (detailsSnapshot.empty) continue;
+
+        const productDetails = detailsSnapshot.docs.map(d => {
+          const detail = d.data();
+          return {
+            product: { id: detail.productID },
+            quantity: { value: detail.quantity || 1 },
+          };
+        });
+
+        userEvents.push({
+          eventType: 'purchase-complete',
+          visitorId: invoice.customerID || 'anonymous',
+          eventTime: invoice.date ? invoice.date.toDate().toISOString() : timestamp,
+          productDetails: productDetails,
+          attributionToken: invoiceId,
+        });
+      }
+
+      // Store in Firestore collection for export
+      const batch = admin.firestore().batch();
+      let count = 0;
+
+      for (const event of userEvents) {
+        const docRef = admin.firestore()
+          .collection('retail_events_export')
+          .doc();
+        batch.set(docRef, event);
+        count++;
+
+        if (count % 400 === 0) {
+          await batch.commit();
+        }
+      }
+
+      if (count % 400 !== 0) {
+        await batch.commit();
+      }
+
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log('User events export completed in ' + duration + 's');
+
+      return res.status(200).json({
+        success: true,
+        message: 'Exported ' + userEvents.length + ' user events',
+        duration: duration + 's',
+      });
+
+    } catch (error) {
+      console.error('Error exporting user events:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * Export Firestore products directly to BigQuery table
+ * for Retail API import with exact schema match
+ */
+exports.exportToBigQueryTable = onRequest(
+  {
+    timeoutSeconds: 540,
+    memory: '1GiB',
+  },
+  async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+
+    try {
+      const {BigQuery} = require('@google-cloud/bigquery');
+      const bigquery = new BigQuery({ projectId: 'se121p11-gizmoglobe' });
+
+      // First, fetch all manufacturers to create a lookup map
+      console.log('Fetching manufacturers...');
+      const manufacturersSnapshot = await admin.firestore().collection('manufacturers').get();
+      const manufacturerMap = {};
+      manufacturersSnapshot.forEach(doc => {
+        const data = doc.data();
+        manufacturerMap[doc.id] = data.manufacturerName || 'Unknown';
+      });
+      console.log('Found ' + Object.keys(manufacturerMap).length + ' manufacturers');
+
+      console.log('Fetching products from Firestore...');
+      const snapshot = await admin.firestore().collection('products').get();
+      console.log('Found ' + snapshot.size + ' products');
+
+      // Transform to Retail API schema for BigQuery
+      // Schema must match: id, title, categories (REPEATED), priceInfo (STRUCT)
+      const rows = [];
+      snapshot.forEach(doc => {
+        const p = doc.data();
+        const productId = doc.id;
+        
+        // Only include active products
+        if (p.status !== 'active') return;
+
+        // Get manufacturer name from lookup map
+        // Products store manufacturer as ID in 'manufacturer' field
+        const manufacturerId = p.manufacturer;
+        const manufacturerName = manufacturerId && manufacturerMap[manufacturerId] 
+          ? manufacturerMap[manufacturerId] 
+          : 'Unknown';
+
+        // Calculate price values
+        // sellingPrice is stored as 1000 to mean 1,000,000 VND (x1000 format)
+        const sellingPrice = (parseFloat(p.sellingPrice) || 0) * 1000;
+        const discount = parseFloat(p.discount) || 0;
+        const discountedPrice = sellingPrice * (1 - discount / 100);
+        
+        rows.push({
+          id: productId,
+          title: p.productName || 'Unknown Product',
+          categories: [p.category || 'uncategorized'], // REPEATED STRING
+          priceInfo: {
+            currencyCode: 'VND',
+            price: discountedPrice,
+            originalPrice: sellingPrice,
+          },
+          availability: (p.stock > 0) ? 'IN_STOCK' : 'OUT_OF_STOCK',
+          availableQuantity: p.stock || 0,
+          uri: 'https://gizmoglobe.com/products/' + productId,
+          brands: [manufacturerName],
+        });
+      });
+
+      const dataset = bigquery.dataset('recommendations');
+      const tableName = 'retail_products';
+
+      // Schema matching Vertex AI Retail API product schema
+      const schema = [
+        {name: 'id', type: 'STRING', mode: 'REQUIRED'},
+        {name: 'title', type: 'STRING', mode: 'REQUIRED'},
+        {name: 'categories', type: 'STRING', mode: 'REPEATED'},
+        {name: 'priceInfo', type: 'RECORD', fields: [
+          {name: 'currencyCode', type: 'STRING'},
+          {name: 'price', type: 'FLOAT'},
+          {name: 'originalPrice', type: 'FLOAT'},
+        ]},
+        {name: 'availability', type: 'STRING'},
+        {name: 'availableQuantity', type: 'INTEGER'},
+        {name: 'uri', type: 'STRING'},
+        {name: 'brands', type: 'STRING', mode: 'REPEATED'},
+      ];
+
+      const table = dataset.table(tableName);
+
+      // Try to delete existing table, ignore if it doesn't exist
+      try {
+        console.log('Attempting to delete existing table...');
+        await table.delete();
+        console.log('Table deleted');
+      } catch (e) {
+        console.log('Table did not exist or could not be deleted:', e.message);
+      }
+
+      // Wait a moment for deletion to propagate
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Create fresh table
+      console.log('Creating table with Retail API schema...');
+      await dataset.createTable(tableName, { schema });
+      console.log('Table created');
+
+      // Wait for table to be available
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Insert in batches
+      const batchSize = 100;
+      
+      for (let i = 0; i < rows.length; i += batchSize) {
+        const batch = rows.slice(i, i + batchSize);
+        await table.insert(batch);
+        console.log('Inserted batch ' + (Math.floor(i/batchSize) + 1) + ' (' + batch.length + ' rows)');
+      }
+
+      console.log('Export complete!');
+      return res.status(200).json({
+        success: true,
+        message: 'Exported ' + rows.length + ' products to BigQuery',
+        table: 'se121p11-gizmoglobe.recommendations.retail_products',
+        schema: 'Vertex AI Retail API compatible',
+      });
+
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+);

@@ -14,6 +14,7 @@ import '../../../objects/product_related/mainboard_related/mainboard.dart';
 import '../../../objects/product_related/psu_related/psu.dart';
 import '../../../objects/product_related/ram_related/ram.dart';
 import '../../../services/local_guest_service_platform.dart';
+import '../../../services/product_view_service.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 
@@ -22,6 +23,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final LocalGuestService _localGuestService = LocalGuestService();
+  final ProductViewService _viewService = ProductViewService();
 
   ProductDetailCubit(Product product)
       : super(ProductDetailState(product: product)) {
@@ -32,6 +34,15 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
     // Load average rating for accurate avg display
     refreshAverage();
     _loadProductImages();
+    // Track product view for collaborative filtering recommendations
+    _trackProductView();
+  }
+
+  /// Track this product view for recommendation system
+  Future<void> _trackProductView() async {
+    if (state.product.productID != null) {
+      await _viewService.trackProductView(state.product.productID!);
+    }
   }
 
   Future<void> _loadProductImages() async {

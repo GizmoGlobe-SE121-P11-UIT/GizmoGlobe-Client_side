@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/components/general/web_header.dart';
@@ -2021,61 +2022,107 @@ class _ProductDetailScreenWebViewState
 
   Widget _buildRecommendationsSection(
       BuildContext context, Product currentProduct) {
-    final recs = RecommendationService()
-        .getCompatibleForProduct(currentProduct)
-        .where((p) => p.productID != currentProduct.productID)
-        .toList();
+    return FutureBuilder<List<Product>>(
+      future: RecommendationService().getSimilarProducts(
+        currentProduct,
+        topN: 8,
+        excludeOutOfStock: false,
+      ),
+      builder: (context, snapshot) {
+        // Get compatible products (cross-category) synchronously
+        final compatibleProducts = RecommendationService()
+            .getCompatibleForProduct(currentProduct, topN: 8)
+            .where((p) => p.productID != currentProduct.productID)
+            .toList();
 
-    if (recs.isEmpty) return const SizedBox();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          S.of(context).goodWithThisProduct,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontSize: 24,
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
+        // Loading state for similar products
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Show compatible products while loading similar products
+          if (compatibleProducts.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 1200;
-          final crossAxisCount = isWide
-              ? 5
-              : constraints.maxWidth >= 900
-                  ? 4
-                  : 3;
-          const double spacing = 16.0;
+            );
+          }
+        }
 
-          return GridView.builder(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: recs.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              mainAxisSpacing: spacing,
-              crossAxisSpacing: spacing,
-              childAspectRatio: 0.75,
+        // Get similar products (same category, AI-powered)
+        final similarProducts =
+            (snapshot.hasData ? snapshot.data! : <Product>[])
+                .where((p) => p.productID != currentProduct.productID)
+                .toList();
+
+        // Combine both lists (similar first, then compatible)
+        final allRecommendations = <Product>[
+          ...similarProducts,
+          ...compatibleProducts,
+        ];
+
+        // Remove duplicates based on productID
+        final seenIds = <String>{};
+        final uniqueRecommendations = allRecommendations.where((product) {
+          if (product.productID == null) return false;
+          if (seenIds.contains(product.productID!)) return false;
+          seenIds.add(product.productID!);
+          return true;
+        }).toList();
+
+        if (uniqueRecommendations.isEmpty) return const SizedBox();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.of(context).goodWithThisProduct,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontSize: 24,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
-            itemBuilder: (context, index) {
-              final product = recs[index];
-              return GestureDetector(
-                onTap: () async {
-                  final productId = product.productID;
-                  if (productId != null) {
-                    await Navigator.of(context)
-                        .pushNamed('/products/$productId');
-                  }
+            const SizedBox(height: 16),
+            LayoutBuilder(builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 1200;
+              final crossAxisCount = isWide
+                  ? 5
+                  : constraints.maxWidth >= 900
+                      ? 4
+                      : 3;
+              const double spacing = 16.0;
+
+              return GridView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: uniqueRecommendations.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: spacing,
+                  crossAxisSpacing: spacing,
+                  childAspectRatio: 0.75,
+                ),
+                itemBuilder: (context, index) {
+                  final product = uniqueRecommendations[index];
+                  return GestureDetector(
+                    onTap: () async {
+                      final productId = product.productID;
+                      if (productId != null) {
+                        await Navigator.of(context)
+                            .pushNamed('/products/$productId');
+                      }
+                    },
+                    child: WebProductCard(product: product),
+                  );
                 },
-                child: WebProductCard(product: product),
               );
-            },
-          );
-        }),
-      ],
+            }),
+          ],
+        );
+      },
     );
   }
 
