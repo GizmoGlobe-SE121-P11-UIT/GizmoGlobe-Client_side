@@ -24,6 +24,7 @@ class RateOrderView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(title: Text(S.of(context).rateProduct)),
       body: BlocConsumer<RateOrderCubit, RateOrderState>(
         listener: (context, state) {
@@ -38,6 +39,9 @@ class RateOrderView extends StatelessWidget {
         builder: (context, state) {
           final cubit = context.read<RateOrderCubit>();
           final totalMb = (state.totalBytes / (1024 * 1024));
+          final bool eligibleForPoints =
+              ((state.images.length >= 2) || (state.video != null && state.images.isNotEmpty)) &&
+              state.comment.trim().isNotEmpty;
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -60,6 +64,9 @@ class RateOrderView extends StatelessWidget {
                 const SizedBox(height: 8),
                 TextField(
                   maxLines: 4,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                  onEditingComplete: () => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
                     labelText: S.of(context).commentOptional,
                     border: const OutlineInputBorder(),
@@ -89,20 +96,46 @@ class RateOrderView extends StatelessWidget {
                 const SizedBox(height: 12),
                 _buildPreview(state, cubit),
                 const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: state.processState == ProcessState.loading
-                        ? null
-                        : () => cubit.submit(productId),
-                    child: state.processState == ProcessState.loading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(S.of(context).submitRating),
-                  ),
+                Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Expanded(
+                          child: Text(
+                            'Add at least 2 images or video and write a comment to get 200 points',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: state.processState == ProcessState.loading
+                            ? null
+                            : () => cubit.submit(productId),
+                        child: state.processState == ProcessState.loading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(
+                                eligibleForPoints
+                                    ? 'Submit and get 200 points'
+                                    : S.of(context).submitRating,
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

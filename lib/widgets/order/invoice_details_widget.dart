@@ -55,33 +55,29 @@ class InvoiceDetailsWidget extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  Helper.toCurrencyFormat(detail.sellingPrice),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      Helper.toCurrencyFormat(detail.sellingPrice),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
-                  ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'x${detail.quantity}',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const SizedBox(height: 36),
-              Container(
-                constraints: const BoxConstraints(minWidth: 16),
-                alignment: Alignment.center,
-                child: Text(
-                  'x${detail.quantity}',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                ),
-              ),
-            ],
           ),
         ],
       ),

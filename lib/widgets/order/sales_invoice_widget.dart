@@ -63,17 +63,32 @@ class SalesInvoiceWidget extends StatelessWidget {
                           Row(
                             children: [
                               const Spacer(),
-                              OutlinedButton(
-                                onPressed: () => onRate!(productId),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: colorScheme.primary),
-                                  foregroundColor: colorScheme.primary,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 10),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8)),
-                                ),
-                                child: const Text('Rate product'),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 140,
+                                        child: FilledButton(
+                                          onPressed: () => onRate!(productId),
+                                          child: const Text('Rate product'),
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).colorScheme.surface,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          'To get 200 points',
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                color: colorScheme.onSurface.withValues(alpha: 0.9),
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                               ),
                             ],
                           ),
@@ -149,6 +164,7 @@ class SalesInvoiceWidget extends StatelessWidget {
           color: colorScheme.primary,
         );
       case SalesStatus.shipped:
+        final int points = salesInvoice.totalPrice.round();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -156,17 +172,30 @@ class SalesInvoiceWidget extends StatelessWidget {
               text: localizedStatus,
               color: colorScheme.primary,
             ),
-            const SizedBox(height: 4),
-            Text(
-              S.of(context).pleaseConfirmDelivery,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-            ),
             const SizedBox(height: 8),
-            FilledButton(
-              onPressed: onPressed,
-              child: Text(S.of(context).received),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 140,
+                  child: FilledButton(
+                    onPressed: onPressed,
+                    child: Text(S.of(context).received),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'To get $points point${points == 1 ? '' : 's'}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         );

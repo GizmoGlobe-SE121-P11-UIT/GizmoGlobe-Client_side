@@ -8,6 +8,7 @@ import '../../data/database/database.dart';
 import '../../enums/invoice_related/sales_status.dart';
 import '../../enums/manufacturer/manufacturer_status.dart';
 import '../../enums/product_related/product_status_enum.dart';
+import '../../enums/voucher_related/voucher_display_type.dart';
 import '../../objects/address_related/address.dart';
 import '../../objects/invoice_related/rating.dart';
 import '../../objects/invoice_related/ratings_page.dart';
@@ -469,16 +470,14 @@ class Firebase {
 
   Future<List<SalesInvoice>> getSalesInvoices() async {
     try {
-      final userID = Database().userID.isEmpty
-          ? (await Database().getCurrentUserID() ?? '')
-          : Database().userID;
-      if (userID.isEmpty) {
+      String userId = Database().userID;
+      if (userId.isEmpty) {
         return [];
       }
 
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('sales_invoices')
-          .where('customerID', isEqualTo: userID)
+          .where('customerID', isEqualTo: userId)
           .get();
 
       return await Future.wait(snapshot.docs.map((doc) async {
@@ -498,11 +497,9 @@ class Firebase {
             throw Exception('Product ID is missing in sales invoice detail');
           }
 
-          // Try to find product in fullProductList first, then productList
           final product = Database().fullProductList.firstWhere(
             (product) => product.productID == productID,
             orElse: () {
-              // Fallback to productList if not found in fullProductList
               return Database().productList.firstWhere(
                     (product) => product.productID == productID,
                     orElse: () => throw Exception(
@@ -529,6 +526,13 @@ class Firebase {
       }
       rethrow;
     }
+  }
+
+  Future<void> updateLoyalPoint(String userID, int point) async {
+      await FirebaseFirestore.instance
+          .collection('customers')
+          .doc(userID)
+          .update({'loyalPoint': point});
   }
 
   Future<SalesInvoice?> getSalesInvoiceById(String salesInvoiceID) async {
@@ -577,7 +581,6 @@ class Firebase {
         final product = Database().fullProductList.firstWhere(
           (product) => product.productID == productID,
           orElse: () {
-            // Fallback to productList if not found in fullProductList
             return Database().productList.firstWhere(
                   (product) => product.productID == productID,
                   orElse: () => throw Exception(
@@ -639,11 +642,7 @@ class Firebase {
 
   Future<List<Rating>> getRatingsByUser(String userID) async {
     try {
-      final uid = (userID.isEmpty)
-          ? (Database().userID.isEmpty
-              ? (await Database().getCurrentUserID() ?? '')
-              : Database().userID)
-          : userID;
+      final uid = Database().userID;
       if (uid.isEmpty) return [];
 
       final QuerySnapshot snapshot = await _firestore
@@ -852,7 +851,6 @@ class Firebase {
         }
       }
 
-      // Revert voucher usage if voucher was applied and revertVoucherUsage is true
       if (revertVoucherUsage && voucherID != null && voucherID.isNotEmpty) {
         try {
           final voucher = Database().allVoucherList.firstWhere(
@@ -865,7 +863,6 @@ class Firebase {
           if (kDebugMode) {
             print('Warning: Could not revert voucher usage: $e');
           }
-          // Continue with cancellation even if voucher revert fails
         }
       }
 
@@ -911,80 +908,118 @@ class Firebase {
 
   Future<List<Voucher>> getVouchers() async {
     try {
-      final QuerySnapshot snapshot =
-          await _firestore.collection('vouchers').get();
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['voucherID'] = doc.id;
+      final QuerySnapshot snapshot = await _firestore.collection('vouchers').get();
+      final List<Voucher> vouchers = [];
 
-        // Convert date strings to DateTime objects and ensure startTime is never null
-        if (data['startTime'] is String) {
-          data['startTime'] = DateTime.parse(data['startTime']);
-        } else if (data['startTime'] == null) {
-          data['startTime'] = DateTime.now();
-        }
+      for (final doc in snapshot.docs) {
+        final raw = Map<String, dynamic>.from(doc.data() as Map);
+        try {
+          final Map<String, dynamic> data = {};
 
-        // Handle endTime for vouchers with end time
-        if (data['hasEndTime'] == true) {
-          if (data['endTime'] is String) {
-            data['endTime'] = DateTime.parse(data['endTime']);
-          } else if (data['endTime'] == null) {
-            data['endTime'] = DateTime.now()
-                .add(const Duration(days: 30)); // Default to 30 days from now
+          // id
+          data['voucherID'] = doc.id;
+
+          // Strings with safe defaults
+          data['voucherName'] = (raw['voucherName']?.toString()) ?? '';
+          data['enDescription'] = (raw['enDescription']?.toString()) ?? '';
+          data['viDescription'] = (raw['viDescription']?.toString()) ?? '';
+
+          // Booleans with defaults
+          data['isEnabled'] = raw['isEnabled'] == null ? true : (raw['isEnabled'] == true);
+          data['isPercentage'] = raw['isPercentage'] == true;
+          data['hasEndTime'] = raw['hasEndTime'] == true;
+          data['isLimited'] = raw['isLimited'] == true;
+
+          // Dates: handle Timestamp, String, DateTime, or absent
+          dynamic start = raw['startTime'];
+          if (start is Timestamp) {
+            start = start.toDate();
+          } else if (start is String) {
+            try {
+              start = DateTime.parse(start);
+            } catch (_) {
+              start = DateTime.now();
+            }
+          } else if (start is! DateTime) { 
+            start = DateTime.now();
           }
-        }
+          data['startTime'] = start;
 
-        // Handle required fields with default values
-        data['voucherName'] ??= '';
-        data['discountValue'] ??= 0.0;
-        data['minimumPurchase'] ??= 0;
-        data['maxUsagePerPerson'] ??= 1;
-        data['isVisible'] ??= true;
-        data['isEnabled'] ??= true;
-        data['enDescription'] ??= '';
-        data['viDescription'] ??= '';
-        data['isPercentage'] ??= false;
-        data['hasEndTime'] ??= false;
-        data['isLimited'] ??= false;
+          if (data['hasEndTime'] == true) {
+            dynamic end = raw['endTime'];
+            if (end is Timestamp) {
+              end = end.toDate();
+            } else if (end is String) {
+              try {
+                end = DateTime.parse(end);
+              } catch (_) {
+                end = DateTime.now().add(const Duration(days: 30));
+              }
+            } else if (end is! DateTime) {
+              end = DateTime.now().add(const Duration(days: 30));
+            }
+            data['endTime'] = end;
+          }
 
-        // Handle fields for limited vouchers
-        if (data['isLimited'] == true) {
-          data['maximumUsage'] ??= 0;
-          data['usageLeft'] ??= 0;
-        }
+          // Display type: accept string or enum, always pass a string to factory
+          final disp = raw['displayType'];
+          if (disp is String) {
+            data['displayType'] = disp;
+          } else if (disp is VoucherDisplayType) {
+            data['displayType'] = disp.getName();
+          } else {
+            data['displayType'] = VoucherDisplayType.adminOnly.getName();
+          }
 
-        // Handle fields for percentage vouchers
-        if (data['isPercentage'] == true) {
-          data['maximumDiscountValue'] ??= 0;
-        }
+          // Numeric values: coerce safely
+          double parseDouble(dynamic v, [double def = 0.0]) {
+            if (v is num) return v.toDouble();
+            if (v is String) return double.tryParse(v) ?? def;
+            return def;
+          }
 
-        // Ensure all DateTime fields are properly set
-        if (data['startTime'] is! DateTime) {
-          data['startTime'] = DateTime.now();
-        }
-        if (data['hasEndTime'] == true && data['endTime'] is! DateTime) {
-          data['endTime'] = DateTime.now().add(const Duration(days: 30));
-        }
+          int parseInt(dynamic v, [int def = 0]) {
+            if (v is num) return v.toInt();
+            if (v is String) return int.tryParse(v) ?? def;
+            return def;
+          }
 
-        return VoucherFactory.fromMap(doc.id, data);
-      }).toList();
+          data['discountValue'] = parseDouble(raw['discountValue'], 0.0);
+          data['minimumPurchase'] = parseInt(raw['minimumPurchase'], 0);
+          data['maxUsagePerPerson'] = parseInt(raw['maxUsagePerPerson'], 1);
+          data['redeemPrice'] = parseInt(raw['redeemPrice'], 0);
+
+          if (data['isLimited'] == true) {
+            data['maximumUsage'] = parseInt(raw['maximumUsage'], 0);
+            data['usageLeft'] = parseInt(raw['usageLeft'], 0);
+          }
+
+          if (data['isPercentage'] == true) {
+            data['maximumDiscountValue'] = parseDouble(raw['maximumDiscountValue'], 0.0);
+          } else {
+            data['maximumDiscountValue'] = 0.0;
+          }
+
+          // Finally try to build voucher
+          final voucher = VoucherFactory.fromMap(doc.id, data);
+          vouchers.add(voucher);
+        } catch (e, st) {
+          if (kDebugMode) {
+            print('Warning: skipping voucher ${doc.id} due to parse error: $e');
+            print('Document raw data: $raw');
+            print(st);
+          }
+          // skip this doc and continue
+        }
+      }
+
+      return vouchers;
     } catch (e) {
       if (kDebugMode) {
         print('Error getting vouchers: $e');
       }
       rethrow;
     }
-  }
-
-  Future<List<OwnedVoucher>> getOwnedVouchers() async {
-    final QuerySnapshot snapshot = await _firestore
-        .collection('owned_vouchers')
-        .where('customerID', isEqualTo: Database().userID)
-        .where('numberOfUses', isGreaterThan: 0)
-        .get();
-    return snapshot.docs.map((doc) {
-      return OwnedVoucher.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-    }).toList();
   }
 
   Future<void> addOwnedVoucher(OwnedVoucher ownedVoucher) async {
@@ -1014,10 +1049,77 @@ class Firebase {
     }
   }
 
+  Future<OwnedVoucher> redeemVoucher(String customerID, Voucher voucher) async {
+    return await _retryOperation(() async {
+      if (customerID.isEmpty) {
+        throw Exception('Customer ID is required to redeem voucher');
+      }
+
+      if (voucher.isLimited) {
+        final voucherRef = _firestore.collection('vouchers').doc(voucher.voucherID);
+        await _firestore.runTransaction((tx) async {
+          final snap = await tx.get(voucherRef);
+          if (!snap.exists) {
+            throw Exception('Voucher not found: ${voucher.voucherID}');
+          }
+          final currentLeft = (snap.data()?['usageLeft'] as num?)?.toInt() ?? 0;
+          if (currentLeft <= 0) {
+            throw Exception('Voucher has no remaining uses');
+          }
+          tx.update(voucherRef, {'usageLeft': currentLeft - 1});
+        });
+      }
+
+      final ownedCollection = _firestore.collection('owned_vouchers');
+      final existingQuery = await ownedCollection
+          .where('customerID', isEqualTo: customerID)
+          .where('voucherID', isEqualTo: voucher.voucherID)
+          .limit(1)
+          .get();
+
+      OwnedVoucher ownedVoucher;
+      if (existingQuery.docs.isEmpty) {
+        // create new owned voucher
+        final docRef = ownedCollection.doc();
+        final data = {
+          'customerID': customerID,
+          'voucherID': voucher.voucherID,
+          'numberOfUses': 1,
+          'createdAt': FieldValue.serverTimestamp(),
+        };
+        await docRef.set(data);
+        await docRef.update({'ownedVoucherID': docRef.id});
+        ownedVoucher = OwnedVoucher(
+          ownedVoucherID: docRef.id,
+          voucherID: voucher.voucherID!,
+          customerID: customerID,
+          numberOfUses: 1,
+        );
+      } else {
+        // increment existing owned voucher uses
+        final doc = existingQuery.docs.first;
+        final currentUses = (doc.data()['numberOfUses'] as num?)?.toInt() ?? 0;
+        await doc.reference.update({'numberOfUses': currentUses + 1});
+        final updated = await doc.reference.get();
+        final newUses = (updated.data()?['numberOfUses'] as num?)?.toInt() ?? (currentUses + 1);
+        ownedVoucher = OwnedVoucher(
+          ownedVoucherID: updated.id,
+          voucherID: voucher.voucherID!,
+          customerID: customerID,
+          numberOfUses: newUses,
+        );
+      }
+
+      // 3) Refresh local lists so cubits / UI can pick up changes
+      await Database().updateVoucherLists();
+
+      return ownedVoucher;
+    });
+  }
+
   Future<List<OwnedVoucher>> getOwnedVouchersByCustomerId(
       String customerId) async {
     try {
-      // Using a simple where clause without sorting to avoid needing a composite index
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('owned_vouchers')
           .where('customerID', isEqualTo: customerId)
@@ -1043,7 +1145,6 @@ class Firebase {
   /// Used when an invoice with a voucher is cancelled
   Future<void> _revertVoucherUses(String customerId, Voucher voucher) async {
     try {
-      // 1. Increase owned voucher usage count (revert the reduction)
       final ownedVoucherQuery = await _firestore
           .collection('owned_vouchers')
           .where('customerID', isEqualTo: customerId)
@@ -1054,11 +1155,9 @@ class Firebase {
       if (ownedVoucherQuery.docs.isNotEmpty) {
         final ownedVoucherDoc = ownedVoucherQuery.docs.first;
         final currentUsage = ownedVoucherDoc.data()['numberOfUses'] as int;
-        // Increase usage by 1 to revert the previous reduction
         await ownedVoucherDoc.reference
             .update({'numberOfUses': currentUsage + 1});
       }
-      // 2. If it's a limited voucher, increase usageLeft by 1 (revert the reduction)
       if (voucher.isLimited) {
         final voucherDoc = await _firestore
             .collection('vouchers')
@@ -1084,7 +1183,6 @@ class Firebase {
 
   Future<void> _updateVoucherUses(String customerId, Voucher voucher) async {
     try {
-      // 1. Reduce owned voucher usage count
       final ownedVoucherQuery = await _firestore
           .collection('owned_vouchers')
           .where('customerID', isEqualTo: customerId)
@@ -1095,13 +1193,11 @@ class Firebase {
       if (ownedVoucherQuery.docs.isNotEmpty) {
         final ownedVoucherDoc = ownedVoucherQuery.docs.first;
         final currentUsage = ownedVoucherDoc.data()['numberOfUses'] as int;
-        // Reduce usage by 1
-        await ownedVoucherDoc.reference
-            .update({'numberOfUses': currentUsage - 1});
+        await ownedVoucherDoc.reference.update({'numberOfUses': currentUsage - 1});
       }
 
-      // 2. If it's a limited voucher, reduce usageLeft by 1
-      if (voucher.isLimited) {
+      // Decrease global usageLeft for limited vouchers, except redeemable vouchers.
+      if (voucher.isLimited && voucher.displayType != VoucherDisplayType.redeemable) {
         final voucherDoc = await _firestore
             .collection('vouchers')
             .doc(voucher.voucherID)
@@ -1110,13 +1206,11 @@ class Firebase {
         if (voucherDoc.exists) {
           final currentUsageLeft = voucherDoc.data()?['usageLeft'] as int? ?? 0;
           if (currentUsageLeft > 0) {
-            await voucherDoc.reference
-                .update({'usageLeft': currentUsageLeft - 1});
+            await voucherDoc.reference.update({'usageLeft': currentUsageLeft - 1});
           }
         }
       }
 
-      // Update local voucher lists to reflect changes
       await Database().updateVoucherLists();
     } catch (e) {
       if (kDebugMode) {
@@ -1242,11 +1336,9 @@ class Firebase {
         print('Error restoring product stock: $e');
         print('Error details: ${e.toString()}');
       }
-      // Continue with cancellation even if stock restore fails
     }
   }
 
-  /// Get all images for a product from the images subcollection
   Future<List<ProductImage>> getProductImages(String productId) async {
     try {
       final QuerySnapshot snapshot = await _firestore

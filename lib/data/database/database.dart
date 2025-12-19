@@ -19,10 +19,10 @@ import 'package:gizmoglobe_client/objects/product_related/gpu_related/gpu.dart';
 import 'package:gizmoglobe_client/objects/product_related/mainboard_related/mainboard.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/objects/product_related/psu_related/psu.dart';
-import 'package:gizmoglobe_client/objects/voucher_related/owned_voucher.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
 
 import '../../enums/manufacturer/manufacturer_status.dart';
+import '../../enums/voucher_related/voucher_display_type.dart';
 import '../../enums/voucher_related/voucher_status.dart';
 import '../../objects/address_related/province.dart';
 import '../../objects/product_related/product_factory.dart';
@@ -38,18 +38,20 @@ class Database {
   String userID = '';
   String username = '';
   String email = '';
+  int loyalPoint = 0;
 
   List<Manufacturer> manufacturerList = [];
   List<Manufacturer> inactiveManufacturerList = [];
   List<Product> productList = [];
-  List<Product> fullProductList = []; // Full product list for sales orders
+  List<Product> fullProductList = [];
   List<Province> provinceList = [];
   List<Address> addressList = [];
   List<Product> favoriteProducts = [];
   List<Product> bestSellerProducts = [];
   List<SalesInvoice> salesInvoiceList = [];
   List<Voucher> allVoucherList = [];
-  List<OwnedVoucher> ownedVoucherList = [];
+  List<Voucher> ownedVoucherList = [];
+  List<Voucher> redeemableVoucherList = [];
   List<Rating> ratingList = [];
 
   List<RAM> ramList = [];
@@ -59,11 +61,11 @@ class Database {
   List<Mainboard> mainboardList = [];
   List<Drive> driveList = [];
 
-  // Add these properties to store voucher lists
-  List<Voucher> userVouchers = [];
   List<Voucher> ongoingVouchers = [];
   List<Voucher> upcomingVouchers = [];
   List<CartItem> cartItems = [];
+  // Map of voucherID -> numberOfUses owned by current user (populated on updateVoucherLists)
+  Map<String, int> ownedVoucherUses = {};
 
   // final List<Map<String, dynamic>> voucherDataList = [
   //   {
@@ -192,10 +194,12 @@ class Database {
 
   Future<void> fetchDataFromFirestore() async {
     try {
+      userID = await getCurrentUserID() ?? '';
+
       // await addStatusToAllProducts();
       await _ensureAuthStateInitialized();
       await getUserData();
-
+      await getLoyalPoint();
       // print('Đang lấy dữ liệu từ Firebase');
       provinceList = await fetchProvinces();
 
@@ -227,9 +231,8 @@ class Database {
       bestSellerProducts = fetchBestSellerProducts();
       favoriteProducts = await fetchFavoriteProducts(userID);
 
-      allVoucherList = await Firebase().getVouchers();
-
       await getCartItems();
+      await updateVoucherLists();
 
       await fetchSalesInvoice();
       await getRating();
@@ -237,7 +240,6 @@ class Database {
       if (kDebugMode) {
         print('Fetching data error: $e');
       }
-      // print('Lỗi khi lấy dữ liệu: $e');
       rethrow;
     }
   }
@@ -245,8 +247,6 @@ class Database {
   Future<void> getCartItems() async {
     await _ensureAuthStateInitialized();
     try {
-      String userID = await getCurrentUserID() ?? '';
-
       if (userID.isEmpty) {
         return;
       }
@@ -453,6 +453,18 @@ class Database {
     }
   }
 
+  Future<void> addLoyalPoint(int point) async {
+    loyalPoint += point;
+    await Firebase().updateLoyalPoint(userID, loyalPoint);
+    await getLoyalPoint();
+  }
+
+  Future<void> subtractLoyalPoint(int point) async {
+    loyalPoint -= point;
+    await Firebase().updateLoyalPoint(userID, loyalPoint);
+    await getLoyalPoint();
+  }
+
   Future<void> getUserData() async {
     await _ensureAuthStateInitialized();
     final User? user = FirebaseAuth.instance.currentUser;
@@ -464,6 +476,18 @@ class Database {
       userID = user.uid;
       username = userDoc['username'];
       email = userDoc['email'];
+    }
+  }
+
+  Future<void> getLoyalPoint() async {
+    await _ensureAuthStateInitialized();
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('customers')
+          .doc(user.uid)
+          .get();
+      loyalPoint = userDoc['loyalPoint'] ?? 0;
     }
   }
 
@@ -568,123 +592,139 @@ class Database {
 
   Future<void> updateVoucherLists() async {
     try {
-      // Step 1: Get all vouchers
-      List<Voucher> allVouchers = await Firebase().getVouchers();
+      allVoucherList = await Firebase().getVouchers();
 
-      // Step 2: Get current user ID
-      final userId = await getCurrentUserID();
-      if (userId == null) {
-        // If not logged in, set empty lists
-        userVouchers = [];
+      if (userID.isEmpty) {
         ongoingVouchers = [];
         upcomingVouchers = [];
+        ownedVoucherList = [];
+        redeemableVoucherList = [];
         return;
       }
 
-      // Step 3: Get owned vouchers - using a simpler query to avoid index issues
-      List<OwnedVoucher> ownedVouchers =
-          await Firebase().getOwnedVouchersByCustomerId(userId);
+      final ownedRecords = await Firebase().getOwnedVouchersByCustomerId(userID);
 
-      // Step 4: Create maps for faster lookups
-      Map<String, Voucher> voucherMap = {
-        for (var voucher in allVouchers) voucher.voucherID!: voucher
-      };
-
-      Map<String, OwnedVoucher> ownedVoucherMap = {
-        for (var ownedVoucher in ownedVouchers)
-          ownedVoucher.voucherID: ownedVoucher
-      };
-
-      // Step 5: Identify owned vouchers to remove (invalid ones)
-      List<Future<void>> removalOperations = [];
-      Set<String> validOwnedVoucherIds = {};
-
-      for (var ownedVoucher in ownedVouchers) {
-        final voucher = voucherMap[ownedVoucher.voucherID];
-        final isValid = voucher != null &&
-            voucher.isEnabled &&
-            voucher.voucherTimeStatus != VoucherTimeStatus.expired;
-
-        if (isValid) {
-          validOwnedVoucherIds.add(ownedVoucher.voucherID);
-        } else if (ownedVoucher.ownedVoucherID != null) {
-          removalOperations
-              .add(Firebase().removeOwnedVoucher(ownedVoucher.ownedVoucherID!));
-        }
+      final Map<String, int> ownedUsesByVoucherId = {};
+      for (final o in ownedRecords) {
+        final id = o.voucherID.trim();
+        if (id.isEmpty) continue;
+        ownedUsesByVoucherId[id] = o.numberOfUses;
       }
 
-      // Step 6: Find vouchers eligible for claiming
-      List<Future<void>> claimOperations = [];
+      final ownedIds = ownedRecords
+          .where((o) => (o.numberOfUses) > 0)
+          .map((o) => o.voucherID.trim())
+          .where((id) => id.isNotEmpty)
+          .toSet();
 
-      for (var voucher in allVouchers) {
-        if (voucher.isVisible &&
-            voucher.isEnabled &&
-            voucher.voucherTimeStatus != VoucherTimeStatus.expired &&
-            !voucher.voucherRanOut &&
-            !validOwnedVoucherIds.contains(voucher.voucherID)) {
-          OwnedVoucher newOwnedVoucher = OwnedVoucher(
-            voucherID: voucher.voucherID!,
-            customerID: userId,
-            numberOfUses: voucher.maxUsagePerPerson,
-          );
-
-          claimOperations.add(Firebase().addOwnedVoucher(newOwnedVoucher));
-          // Add to valid IDs since we're claiming it now
-          validOwnedVoucherIds.add(voucher.voucherID!);
-          // Add the new owned voucher to our map for later use
-          ownedVoucherMap[voucher.voucherID!] = newOwnedVoucher;
-        }
-      }
-
-      // Step 7: Execute all Firebase operations in parallel
-      if (removalOperations.isNotEmpty || claimOperations.isNotEmpty) {
-        await Future.wait([...removalOperations, ...claimOperations]);
-      }
-
-      // Step 8: Replace maxUsagePerPerson with numberOfUses for each voucher
-      List<Voucher> tempVouchers = [];
-      for (var voucher in allVouchers) {
-        if (validOwnedVoucherIds.contains(voucher.voucherID)) {
-          // Replace maxUsagePerPerson with the user's numberOfUses for this voucher
-          final ownedVoucher = ownedVoucherMap[voucher.voucherID];
-          if (ownedVoucher != null) {
-            voucher.maxUsagePerPerson = ownedVoucher.numberOfUses;
+      bool hasNoTotalUsage(dynamic v) {
+        try {
+          final isLimited = (v as dynamic).isLimited ?? false;
+          if (isLimited) {
+            final maxUsage = (v as dynamic).maximumUsage ?? 0;
+            return maxUsage == 0;
           }
-          // Only add vouchers with uses remaining
-          if (voucher.maxUsagePerPerson > 0) {
-            tempVouchers.add(voucher);
-          }
+          return false;
+        } catch (_) {
+          return false;
         }
       }
-      userVouchers = tempVouchers;
 
-      // Step 9: Filter ongoing and upcoming vouchers
-      ongoingVouchers = userVouchers
-          .where((voucher) =>
-              voucher.voucherTimeStatus == VoucherTimeStatus.ongoing)
-          .toList();
+      bool isVoucherRedeemable(dynamic v) {
+        try {
+          final dt = (v as dynamic).displayType;
+          if (dt is VoucherDisplayType) {
+            return dt == VoucherDisplayType.redeemable;
+          } else if (dt is String) {
+            return dt.toLowerCase() ==
+                VoucherDisplayType.redeemable.getName().toLowerCase();
+          }
+        } catch (_) {}
+        return false;
+      }
 
-      upcomingVouchers = userVouchers
-          .where((voucher) =>
-              voucher.voucherTimeStatus == VoucherTimeStatus.upcoming)
-          .toList();
+      ownedVoucherList = allVoucherList.where((v) {
+        final vid = (v.voucherID ?? '').trim();
+        if (vid.isEmpty) return false;
+        if (!ownedIds.contains(vid)) return false;
+        if (hasNoTotalUsage(v)) return false;
 
-      // Sort all lists
-      userVouchers.sort((a, b) => a.startTime.compareTo(b.startTime));
-      ongoingVouchers.sort((a, b) => a.startTime.compareTo(b.startTime));
-      upcomingVouchers.sort((a, b) => a.startTime.compareTo(b.startTime));
+        try {
+          final ranOut = (v as dynamic).voucherRanOut ?? false;
+          if (ranOut) {
+            final ownedUses = ownedUsesByVoucherId[vid] ?? 0;
+            final isRedeemableAndOwned = isVoucherRedeemable(v) && ownedUses > 0;
+            if (!isRedeemableAndOwned) return false;
+          }
+        } catch (_) {
+        }
+
+        return true;
+      }).toList();
+
+      redeemableVoucherList = allVoucherList.where((v) {
+        final vid = (v.voucherID ?? '').trim();
+        if (vid.isEmpty) return false;
+        if (ownedIds.contains(vid)) return false;
+
+        if (hasNoTotalUsage(v)) return false;
+
+        bool ranOut = false;
+        try {
+          ranOut = (v as dynamic).voucherRanOut ?? false;
+        } catch (_) {
+          ranOut = false;
+        }
+        if (ranOut) return false;
+
+        bool isRedeemable = false;
+        try {
+          final dt = (v as dynamic).displayType;
+          if (dt is VoucherDisplayType) {
+            isRedeemable = dt == VoucherDisplayType.redeemable;
+          } else if (dt is String) {
+            isRedeemable = dt.toLowerCase() ==
+                VoucherDisplayType.redeemable.getName().toLowerCase();
+          }
+        } catch (_) {
+          isRedeemable = false;
+        }
+        if (!isRedeemable) return false;
+
+        return true;
+      }).toList();
+
+      ongoingVouchers = ownedVoucherList.where((v) {
+        try {
+          return (v as dynamic).voucherTimeStatus ==
+              VoucherTimeStatus.ongoing;
+        } catch (_) {
+          return false;
+        }
+      }).toList();
+
+      upcomingVouchers = ownedVoucherList.where((v) {
+        try {
+          return (v as dynamic).voucherTimeStatus ==
+              VoucherTimeStatus.upcoming;
+        } catch (_) {
+          return false;
+        }
+      }).toList();
+
+      // Populate ownedVoucherUses map for easy access in widgets
+      ownedVoucherUses = {};
+      for (final o in ownedRecords) {
+        final id = o.voucherID.trim();
+        if (id.isEmpty) continue;
+        ownedVoucherUses[id] = o.numberOfUses;
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error updating voucher lists: $e');
       }
-      rethrow;
     }
   }
-
-  // Get methods for voucher lists
-  List<Voucher> getUserVouchers() => userVouchers;
-  List<Voucher> getOngoingVouchers() => ongoingVouchers;
-  List<Voucher> getUpcomingVouchers() => upcomingVouchers;
 
   Future<void> fetchSalesInvoice() async {
     await _ensureAuthStateInitialized();
@@ -694,7 +734,6 @@ class Database {
       if (kDebugMode) {
         print('Error fetching sales invoices: $e');
       }
-      // For guest users or when userID is empty, try loading local cache
       await _loadSalesInvoicesFromCache();
     }
 

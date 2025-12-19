@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import '../../data/database/database.dart';
 import '../../functions/converter.dart';
 import '../../objects/voucher_related/end_time_interface.dart';
 import '../../objects/voucher_related/limited_interface.dart';
@@ -59,23 +60,14 @@ class VoucherWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Header with voucher name and status
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            voucher.voucherName,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                        ),
-                        _buildStatusChip(context),
-                      ],
+                    Text(
+                      voucher.voucherName,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    // Discount information
                     Text(
                       _getDiscountText(context),
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -84,7 +76,6 @@ class VoucherWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Minimum purchase
                     Row(
                       children: [
                         Icon(
@@ -94,7 +85,7 @@ class VoucherWidget extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${S.of(context).minimumPurchase}:',
+                          '${S.of(context).minimumPurchase}: ',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onPrimaryContainer
                                 .withValues(alpha: 0.7),
@@ -125,48 +116,6 @@ class VoucherWidget extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    String statusText;
-    Color backgroundColor;
-    Color textColor;
-    if (!voucher.isEnabled) {
-      statusText = S.of(context).disabled;
-      backgroundColor = colorScheme.error.withValues(alpha: 0.2);
-      textColor = colorScheme.error;
-    } else if (voucher.isLimited &&
-        (voucher as LimitedInterface).usageLeft <= 0) {
-      statusText = S.of(context).ranOut;
-      backgroundColor = colorScheme.error.withValues(alpha: 0.2);
-      textColor = colorScheme.error;
-    } else if (voucher.hasEndTime &&
-        voucher is EndTimeInterface &&
-        (voucher as EndTimeInterface).endTime.isBefore(DateTime.now())) {
-      statusText = S.of(context).expired;
-      backgroundColor = colorScheme.error.withValues(alpha: 0.2);
-      textColor = colorScheme.error;
-    } else {
-      statusText = S.of(context).available;
-      backgroundColor = colorScheme.tertiary.withValues(alpha: 0.2);
-      textColor = Colors.green;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        statusText,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: textColor,
-          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -228,6 +177,30 @@ class VoucherWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final limited = voucher as LimitedInterface;
+    try {
+      final vid = (voucher.voucherID ?? '').trim();
+      final ownedUses = Database().ownedVoucherUses[vid];
+      if (ownedUses != null) {
+        return Row(
+          children: [
+            Icon(
+              Icons.card_giftcard_outlined,
+              size: 16,
+              color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '$ownedUses/${voucher.maxUsagePerPerson}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        );
+      }
+    } catch (_) {}
+
+    // Fallback to showing remaining/maximum when no owned record exists
     return Row(
       children: [
         Icon(

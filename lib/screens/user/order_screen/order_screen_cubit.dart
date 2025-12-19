@@ -70,6 +70,16 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
         salesStatus: SalesStatus.received,
       );
       await Firebase().confirmDelivery(updatedInvoice);
+
+      try {
+        final int pointsToAdd = salesInvoice.totalPrice.round();
+        await Database().addLoyalPoint(pointsToAdd);
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error adding loyal points: $e');
+        }
+      }
+
       emit(state.copyWith(processState: ProcessState.success));
     } catch (e) {
       emit(state.copyWith(processState: ProcessState.failure));

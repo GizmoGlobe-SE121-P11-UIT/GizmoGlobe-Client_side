@@ -207,6 +207,7 @@ class _OrderScreenState extends State<OrderScreen>
       ),
       child: TabBar(
         controller: tabController,
+        tabAlignment: TabAlignment.start,
         labelColor: Theme.of(context).colorScheme.onPrimary,
         unselectedLabelColor:
             Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
@@ -225,7 +226,7 @@ class _OrderScreenState extends State<OrderScreen>
             WidgetStateProperty.resolveWith((_) => Colors.transparent),
         splashFactory: NoSplash.splashFactory,
         dividerColor: Colors.transparent,
-        isScrollable: false,
+        isScrollable: true,
         tabs: OrderOption.values
             .map(
               (option) => Padding(

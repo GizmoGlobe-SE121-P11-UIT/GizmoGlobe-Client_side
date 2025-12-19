@@ -1,6 +1,7 @@
 // dart
 import 'dart:io';
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import 'package:image_picker/image_picker.dart';
@@ -97,6 +98,18 @@ class RateOrderCubit extends Cubit<RateOrderState> {
         images: state.images.isEmpty ? null : state.images,
         video: state.video,
       );
+
+      final bool eligibleForPoints =
+          ((state.images.length >= 2) || (state.video != null && state.images.isNotEmpty)) &&
+          state.comment.trim().isNotEmpty;
+
+      if (eligibleForPoints) {
+        try {
+          await Database().addLoyalPoint(200);
+        } catch (e) {
+          if (kDebugMode) print('Failed to add loyal points: $e');
+        }
+      }
 
       emit(state.copyWith(processState: ProcessState.success));
     } catch (e) {

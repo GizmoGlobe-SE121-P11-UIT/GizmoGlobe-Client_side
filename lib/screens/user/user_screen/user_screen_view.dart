@@ -43,6 +43,7 @@ class _UserScreen extends State<UserScreen> {
   void initState() {
     super.initState();
     cubit.getUser();
+    cubit.loadLoyalPoint();
   }
 
   void _showAccountSettingsModal() {
@@ -625,69 +626,119 @@ class _UserScreen extends State<UserScreen> {
                               : null,
                           background: Container(
                             color: Theme.of(context).colorScheme.primary,
-                            child:
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
                                 BlocBuilder<UserScreenCubit, UserScreenState>(
-                              builder: (context, state) {
-                                return SafeArea(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const SizedBox(height: 16),
-                                      AvatarPicker(
-                                        userId: FirebaseAuth
-                                                .instance.currentUser?.uid ??
-                                            '',
-                                        currentAvatarUrl: state.avatarUrl,
-                                        onAvatarChanged: (String newAvatarUrl) {
-                                          cubit.updateAvatar(newAvatarUrl);
-                                        },
-                                        isGuest: state.isGuest,
+                                  builder: (context, state) {
+                                    return SafeArea(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const SizedBox(height: 16),
+                                          AvatarPicker(
+                                            userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                                            currentAvatarUrl: state.avatarUrl,
+                                            onAvatarChanged: (String newAvatarUrl) {
+                                              cubit.updateAvatar(newAvatarUrl);
+                                            },
+                                            isGuest: state.isGuest,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            state.isGuest
+                                                ? S.of(context).guestAccount
+                                                : state.username,
+                                            style: const TextStyle(
+                                              fontSize: 28,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 20,
+                                              vertical: 8,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.15),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              border: Border.all(
+                                                color: Colors.white
+                                                    .withValues(alpha: 0.3),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              state.isGuest
+                                                  ? S.of(context).guestAccount
+                                                  : state.email,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.white,
+                                                letterSpacing: 0.3,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        state.isGuest
-                                            ? S.of(context).guestAccount
-                                            : state.username,
-                                        style: const TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.15),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          border: Border.all(
+                                    );
+                                  },
+                                ),
+                                BlocBuilder<UserScreenCubit, UserScreenState>(
+                                  builder: (context, state) {
+                                    if (state.isGuest || state.loyalPoint <= 0) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Positioned(
+                                      top: 12,
+                                      left: 16,
+                                      child: SafeArea(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
                                             color: Colors.white
-                                                .withValues(alpha: 0.3),
-                                            width: 1,
+                                                .withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.3),
+                                              width: 1,
+                                            ),
                                           ),
-                                        ),
-                                        child: Text(
-                                          state.isGuest
-                                              ? S.of(context).guestAccount
-                                              : state.email,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.white,
-                                            letterSpacing: 0.3,
-                                            fontWeight: FontWeight.w500,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                '${state.loyalPoint}',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              const Icon(
+                                                Icons.auto_awesome,
+                                                color: Colors.white,
+                                                size: 14,
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -697,7 +748,6 @@ class _UserScreen extends State<UserScreen> {
                   SliverToBoxAdapter(
                     child: Column(
                       children: [
-                        // Clean Orders Section
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
                           child: Card(
@@ -741,50 +791,51 @@ class _UserScreen extends State<UserScreen> {
                                         context,
                                         FontAwesomeIcons.box,
                                         S.of(context).toShip,
-                                        () {
-                                          Navigator.push(
+                                        () async {
+                                          await Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) =>
-                                                  OrderScreen.newInstance(
-                                                orderOption: OrderOption.toShip,
+                                                  OrderScreen.newInstance(orderOption: OrderOption.toShip,
                                               ),
                                             ),
                                           );
+                                          if (!mounted) return;
+                                          cubit.loadLoyalPoint();
                                         },
                                       ),
                                       _buildEnhancedOrderStatus(
                                         context,
                                         Icons.local_shipping_outlined,
                                         S.of(context).toReceive,
-                                        () {
-                                          Navigator.push(
+                                        () async {
+                                          await Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) =>
-                                                  OrderScreen.newInstance(
-                                                orderOption:
-                                                    OrderOption.toReceive,
+                                                  OrderScreen.newInstance(orderOption: OrderOption.toReceive,
                                               ),
                                             ),
                                           );
+                                          if (!mounted) return;
+                                          cubit.loadLoyalPoint();
                                         },
                                       ),
                                       _buildEnhancedOrderStatus(
                                         context,
                                         FontAwesomeIcons.circleCheck,
                                         S.of(context).completed,
-                                        () {
-                                          Navigator.push(
+                                        () async {
+                                          await Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) =>
-                                                  OrderScreen.newInstance(
-                                                orderOption:
-                                                    OrderOption.completed,
+                                                  OrderScreen.newInstance(orderOption: OrderOption.completed,
                                               ),
                                             ),
                                           );
+                                          if (!mounted) return;
+                                          cubit.loadLoyalPoint();
                                         },
                                       ),
                                     ],
@@ -867,14 +918,16 @@ class _UserScreen extends State<UserScreen> {
                               borderRadius: BorderRadius.circular(24),
                             ),
                             child: InkWell(
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         VoucherScreen.newInstance(),
                                   ),
                                 );
+                                if (!mounted) return;
+                                cubit.loadLoyalPoint();
                               },
                               borderRadius: BorderRadius.circular(24),
                               child: Container(
@@ -1285,8 +1338,7 @@ class _UserScreen extends State<UserScreen> {
                                                                 ],
                                                               ),
                                                             ),
-                                                            Consumer<
-                                                                ThemeProvider>(
+                                                            Consumer<ThemeProvider>(
                                                               builder: (context,
                                                                   themeProvider,
                                                                   child) {
@@ -1403,31 +1455,26 @@ class _UserScreen extends State<UserScreen> {
                                   isScrollControlled: true,
                                   builder: (context) => Padding(
                                     padding: EdgeInsets.only(
-                                      bottom: MediaQuery.of(context)
-                                              .viewInsets
-                                              .bottom +
+                                      bottom: MediaQuery.of(context).viewInsets.bottom +
                                           MediaQuery.of(context).padding.bottom,
                                     ),
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: Theme.of(context)
                                             .scaffoldBackgroundColor,
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                                top: Radius.circular(24)),
+                                        borderRadius: const BorderRadius.vertical(
+                                            top: Radius.circular(24)),
                                       ),
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Container(
-                                            margin:
-                                                const EdgeInsets.only(top: 12),
+                                            margin: const EdgeInsets.only(top: 12),
                                             width: 40,
                                             height: 4,
                                             decoration: BoxDecoration(
                                               color: Colors.grey[600],
-                                              borderRadius:
-                                                  BorderRadius.circular(2),
+                                              borderRadius: BorderRadius.circular(2),
                                             ),
                                           ),
                                           Container(
