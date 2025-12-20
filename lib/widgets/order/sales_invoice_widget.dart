@@ -73,7 +73,7 @@ class SalesInvoiceWidget extends StatelessWidget {
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8)),
                                 ),
-                                child: const Text('Rate product'),
+                                child: Text(S.of(context).rateProduct),
                               ),
                             ],
                           ),

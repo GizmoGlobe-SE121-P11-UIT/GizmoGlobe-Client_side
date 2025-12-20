@@ -258,83 +258,97 @@ class _HomeScreen extends State<HomeScreen> {
 
   Widget _buildWebRecommendationSection(
       BuildContext context, List<Product> products) {
-    final displayCount = products.length > 5 ? 5 : products.length;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 80),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Responsive: show more cards on wider screens
+          final maxCards = constraints.maxWidth >= 1400
+              ? 7
+              : constraints.maxWidth >= 1200
+                  ? 6
+                  : constraints.maxWidth >= 900
+                      ? 5
+                      : 4;
+          final displayCount =
+              products.length > maxCards ? maxCards : products.length;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    S.of(context).recommendedForYou,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        S.of(context).recommendedForYou,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        S.of(context).productRecommendationsForYourBuild,
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    S.of(context).productRecommendationsForYourBuild,
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.6),
-                      fontSize: 16,
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/products');
+                    },
+                    child: Row(
+                      children: [
+                        Text(
+                          S.of(context).seeAll,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: Theme.of(context).colorScheme.secondary,
+                          size: 20,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/products');
-                },
-                child: Row(
-                  children: [
-                    Text(
-                      S.of(context).seeAll,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+              const SizedBox(height: 24),
+              SizedBox(
+                height: 280,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: displayCount,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      width: 200,
+                      margin: EdgeInsets.only(
+                        right: index < displayCount - 1 ? 20 : 0,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward,
-                      color: Theme.of(context).colorScheme.secondary,
-                      size: 20,
-                    ),
-                  ],
+                      child: WebProductCard(product: products[index]),
+                    );
+                  },
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 280,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: displayCount,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: 200,
-                  margin: EdgeInsets.only(
-                    right: index < displayCount - 1 ? 20 : 0,
-                  ),
-                  child: WebProductCard(product: products[index]),
-                );
-              },
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

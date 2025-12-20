@@ -4,6 +4,7 @@ import 'rate_order_cubit.dart';
 import 'rate_order_state.dart';
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../generated/l10n.dart';
+import '../../../../services/comment_moderation/comment_moderation_service.dart';
 
 class RateOrderWebView extends StatelessWidget {
   final String productId;
@@ -43,10 +44,6 @@ class RateOrderWebView extends StatelessWidget {
           listener: (context, state) {
             if (state.processState == ProcessState.success) {
               Navigator.of(context).pop(true);
-            } else if (state.error != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.error!)),
-              );
             }
           },
           builder: (context, state) {
@@ -133,6 +130,9 @@ class RateOrderWebView extends StatelessWidget {
                           onChanged: cubit.setComment,
                         ),
 
+                        if (state.sentiment != null || state.isAnalyzing)
+                          _buildSentimentIndicator(context, state),
+
                         const SizedBox(height: 20),
 
                         // Media Buttons
@@ -213,31 +213,33 @@ class RateOrderWebView extends StatelessWidget {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: state.processState == ProcessState.loading
+                      onPressed: state.processState == ProcessState.loading ||
+                              state.isAnalyzing
                           ? null
-                          : () => cubit.submit(productId),
+                          : () {
+                              if (state.isContentVerified) {
+                                cubit.submitRating(productId, context);
+                              } else {
+                                cubit.checkContent(context);
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onPrimary,
+                        foregroundColor: Colors.white,
                       ),
-                      child: state.processState == ProcessState.loading
+                      child: state.processState == ProcessState.loading ||
+                              state.isAnalyzing
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(
-                              S.of(context).submitRating,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              state.isContentVerified
+                                  ? S.of(context).submitRatingButton
+                                  : S.of(context).checkContent,
+                              style: const TextStyle(fontSize: 16),
                             ),
                     ),
                   ),
@@ -332,6 +334,81 @@ class RateOrderWebView extends StatelessWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: children,
+      ),
+    );
+  }
+
+  Widget _buildSentimentIndicator(BuildContext context, RateOrderState state) {
+    if (state.isAnalyzing) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 8),
+            Text(S.of(context).analyzingSentiment,
+                style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+          ],
+        ),
+      );
+    }
+
+    final sentiment = state.sentiment!;
+    IconData icon;
+    Color color;
+    String text;
+
+    switch (sentiment) {
+      case CommentSentiment.positive:
+        icon = Icons.sentiment_very_satisfied;
+        color = Colors.green;
+        text = S.of(context).sentimentPositive;
+        break;
+      case CommentSentiment.negative:
+        icon = Icons.sentiment_very_dissatisfied;
+        color = Colors.red;
+        text = S.of(context).sentimentNegative;
+        break;
+      case CommentSentiment.neutral:
+        icon = Icons.sentiment_neutral;
+        color = Colors.grey;
+        text = S.of(context).sentimentNeutral;
+        break;
+      case CommentSentiment.mixed:
+        icon = Icons.sentiment_satisfied;
+        color = Colors.orange;
+        text = S.of(context).sentimentMixed;
+        break;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

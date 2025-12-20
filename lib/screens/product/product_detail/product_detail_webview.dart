@@ -670,7 +670,7 @@ class _ProductDetailScreenWebViewState
                                                     ],
                                                   ),
                                                   const SizedBox(height: 32),
-                                                  ..._buildProductSpecificDetails(
+                                                  _buildProductSpecificDetails(
                                                       context,
                                                       state.product,
                                                       state.technicalSpecs),
@@ -1107,7 +1107,7 @@ class _ProductDetailScreenWebViewState
                                               ],
                                             ),
                                             const SizedBox(height: 24),
-                                            ..._buildProductSpecificDetails(
+                                            _buildProductSpecificDetails(
                                                 context,
                                                 state.product,
                                                 state.technicalSpecs),
@@ -1455,9 +1455,9 @@ class _ProductDetailScreenWebViewState
     );
   }
 
-  List<Widget> _buildProductSpecificDetails(
+  Widget _buildProductSpecificDetails(
       BuildContext context, Product product, Map<String, String> specs) {
-    return specs.entries.map((entry) {
+    final specsList = specs.entries.map((entry) {
       String value = entry.value;
       // Format RAM Spec with localization if it's a Mainboard
       if (entry.key == 'RAM Spec' &&
@@ -1465,9 +1465,38 @@ class _ProductDetailScreenWebViewState
         final mainboard = product as Mainboard;
         value = mainboard.ramSpec.toLocalizedString(S.of(context));
       }
-      return _buildSpecificationRow(
-          _getLocalizedSpecKey(context, entry.key), value);
+      return MapEntry(_getLocalizedSpecKey(context, entry.key), value);
     }).toList();
+
+    // Split specs into 2 columns
+    final halfLength = (specsList.length / 2).ceil();
+    final leftColumn = specsList.sublist(0, halfLength);
+    final rightColumn = specsList.length > halfLength
+        ? specsList.sublist(halfLength)
+        : <MapEntry<String, String>>[];
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left column
+        Expanded(
+          child: Column(
+            children: leftColumn
+                .map((entry) => _buildSpecificationRow(entry.key, entry.value))
+                .toList(),
+          ),
+        ),
+        const SizedBox(width: 32),
+        // Right column
+        Expanded(
+          child: Column(
+            children: rightColumn
+                .map((entry) => _buildSpecificationRow(entry.key, entry.value))
+                .toList(),
+          ),
+        ),
+      ],
+    );
   }
 
   String _getLocalizedSpecKey(BuildContext context, String key) {
@@ -2086,12 +2115,14 @@ class _ProductDetailScreenWebViewState
             ),
             const SizedBox(height: 16),
             LayoutBuilder(builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 1200;
-              final crossAxisCount = isWide
-                  ? 5
-                  : constraints.maxWidth >= 900
-                      ? 4
-                      : 3;
+              // Responsive grid: 7 cards for extra-wide, 6 for wide, 5 for medium, 4 for narrow
+              final crossAxisCount = constraints.maxWidth >= 1400
+                  ? 7
+                  : constraints.maxWidth >= 1200
+                      ? 6
+                      : constraints.maxWidth >= 900
+                          ? 5
+                          : 4;
               const double spacing = 16.0;
 
               return GridView.builder(

@@ -16,9 +16,12 @@ import '../../../../objects/product_related/gpu_related/gpu.dart';
 import '../../../../objects/product_related/mainboard_related/mainboard.dart';
 import '../../../../objects/product_related/psu_related/psu.dart';
 import '../../../../objects/product_related/ram_related/ram.dart';
+import '../../../../services/vertex_ai_event_service.dart';
 import 'product_tab_state.dart';
 
 abstract class TabCubit extends Cubit<TabState> {
+  final VertexAIEventService _vertexEventService = VertexAIEventService();
+
   TabCubit() : super(const TabState());
 
   void initialize(FilterArgument filter,
@@ -81,6 +84,38 @@ abstract class TabCubit extends Cubit<TabState> {
   void updateSearchText(String? searchText) {
     emit(state.copyWith(searchText: searchText));
     applyFilters();
+
+    // Track search to Vertex AI
+    if (searchText != null && searchText.trim().isNotEmpty) {
+      final filters = _getCurrentFilters();
+      _vertexEventService.trackSearch(searchText, filters);
+    }
+  }
+
+  /// Helper to extract current filter state for search event tracking
+  List<String> _getCurrentFilters() {
+    final filters = <String>[];
+    final fa = state.filterArgument;
+
+    // Add active category
+    if (state.activeCategory != CategoryEnum.empty) {
+      filters.add('category:${state.activeCategory.toString()}');
+    }
+
+    // Add manufacturer filters
+    if (fa.manufacturerList.isNotEmpty) {
+      for (final manu in fa.manufacturerList) {
+        filters.add('manufacturer:${manu.manufacturerID}');
+      }
+    }
+
+    // Add price range if set
+    if (fa.minPrice.isNotEmpty || fa.maxPrice.isNotEmpty) {
+      filters.add(
+          'price:${fa.minPrice.isEmpty ? "0" : fa.minPrice}-${fa.maxPrice.isEmpty ? "inf" : fa.maxPrice}');
+    }
+
+    return filters;
   }
 
   void updateTabIndex(int index) {
@@ -135,7 +170,8 @@ abstract class TabCubit extends Cubit<TabState> {
       }
 
       // Price range
-      if (!matchesMinMax(product.discountedPrice.toDouble(), fa.minPrice, fa.maxPrice)) {
+      if (!matchesMinMax(
+          product.discountedPrice.toDouble(), fa.minPrice, fa.maxPrice)) {
         continue;
       }
 

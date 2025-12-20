@@ -1422,6 +1422,55 @@ class SVI extends S {
   @override
   String get lowestRated => 'Đánh giá thấp nhất';
 
+  // Sentiment Analysis
+  @override
+  String get checkContent => 'Kiểm tra nội dung';
+
+  @override
+  String get submitRatingButton => 'Gửi đánh giá';
+
+  @override
+  String get analyzingSentiment => 'Đang phân tích cảm xúc...';
+
+  @override
+  String get sentimentPositive => 'Tích cực';
+
+  @override
+  String get sentimentNegative => 'Tiêu cực';
+
+  @override
+  String get sentimentNeutral => 'Trung lập';
+
+  @override
+  String get sentimentMixed => 'Hỗn hợp';
+
+  // Rating validation messages
+  @override
+  String get ratingRequired => 'Cần đánh giá';
+
+  @override
+  String get pleaseProvideRating => 'Vui lòng cung cấp đánh giá.';
+
+  @override
+  String get fileSizeLimit => 'Giới hạn kích thước';
+
+  @override
+  String get totalSizeMustBe10MB => 'Tổng kích thước phải <= 10 MB.';
+
+  @override
+  String get inappropriateContent => 'Nội dung không phù hợp';
+
+  @override
+  String get commentContainsInappropriateLanguage =>
+      'Bình luận của bạn chứa ngôn ngữ không phù hợp. Vui lòng sửa lại và thử lại.';
+
+  @override
+  String get ratingMismatch => 'Đánh giá không khớp';
+
+  @override
+  String ratingMismatchMessage(String sentiment, int stars) =>
+      'Bình luận của bạn có vẻ $sentiment, nhưng bạn cho $stars sao${stars > 1 ? '' : ''}. Vui lòng đảm bảo đánh giá của bạn phù hợp với trải nghiệm.';
+
   @override
   String get goodWithThisProduct => 'Tương thích với sản phẩm này';
 

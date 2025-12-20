@@ -15,6 +15,7 @@ import '../../../objects/product_related/psu_related/psu.dart';
 import '../../../objects/product_related/ram_related/ram.dart';
 import '../../../services/local_guest_service_platform.dart';
 import '../../../services/product_view_service.dart';
+import '../../../services/vertex_ai_event_service.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
 
@@ -24,6 +25,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final LocalGuestService _localGuestService = LocalGuestService();
   final ProductViewService _viewService = ProductViewService();
+  final VertexAIEventService _vertexEventService = VertexAIEventService();
 
   ProductDetailCubit(Product product)
       : super(ProductDetailState(product: product)) {
@@ -41,7 +43,11 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
   /// Track this product view for recommendation system
   Future<void> _trackProductView() async {
     if (state.product.productID != null) {
+      // Track to collaborative filtering (existing)
       await _viewService.trackProductView(state.product.productID!);
+
+      // Track to Vertex AI for improved recommendations
+      await _vertexEventService.trackDetailPageView(state.product.productID!);
     }
   }
 
