@@ -954,6 +954,43 @@ class S {
       Intl.message('Highest Rated', name: 'highestRated');
   String get lowestRated => Intl.message('Lowest Rated', name: 'lowestRated');
 
+  // Sentiment Analysis
+  String get checkContent =>
+      Intl.message('Check Content', name: 'checkContent');
+  String get submitRatingButton =>
+      Intl.message('Submit Rating', name: 'submitRatingButton');
+  String get analyzingSentiment =>
+      Intl.message('Analyzing sentiment...', name: 'analyzingSentiment');
+  String get sentimentPositive =>
+      Intl.message('Positive', name: 'sentimentPositive');
+  String get sentimentNegative =>
+      Intl.message('Negative', name: 'sentimentNegative');
+  String get sentimentNeutral =>
+      Intl.message('Neutral', name: 'sentimentNeutral');
+  String get sentimentMixed => Intl.message('Mixed', name: 'sentimentMixed');
+
+  // Rating validation messages
+  String get ratingRequired =>
+      Intl.message('Rating Required', name: 'ratingRequired');
+  String get pleaseProvideRating =>
+      Intl.message('Please provide a rating.', name: 'pleaseProvideRating');
+  String get fileSizeLimit =>
+      Intl.message('File Size Limit', name: 'fileSizeLimit');
+  String get totalSizeMustBe10MB =>
+      Intl.message('Total size must be <= 10 MB.', name: 'totalSizeMustBe10MB');
+  String get inappropriateContent =>
+      Intl.message('Inappropriate Content', name: 'inappropriateContent');
+  String get commentContainsInappropriateLanguage => Intl.message(
+      'Your comment contains inappropriate language. Please revise and try again.',
+      name: 'commentContainsInappropriateLanguage');
+  String get ratingMismatch =>
+      Intl.message('Rating Mismatch', name: 'ratingMismatch');
+  String ratingMismatchMessage(String sentiment, int stars) => Intl.message(
+        'Your comment seems $sentiment, but you gave $stars star${stars > 1 ? 's' : ''}. Please make sure your rating matches your experience.',
+        name: 'ratingMismatchMessage',
+        args: [sentiment, stars],
+      );
+
   String get goodWithThisProduct =>
       Intl.message('Good with this product', name: 'goodWithThisProduct');
 

@@ -260,7 +260,7 @@ class AIUtils {
         voucherKeywords['vi']!.any((keyword) => lowerMessage.contains(keyword));
   }
 
-  /// Detect add to cart requests
+  /// Detect add to cart OR add to favorites requests
   bool isAddToCartRequest(String message) {
     final addToCartKeywords = {
       'en': [
@@ -271,6 +271,12 @@ class AIUtils {
         'add it to cart',
         'add to shopping cart',
         'add to basket',
+        'add to favorites',
+        'add to favourites',
+        'add to wishlist',
+        'save to favorites',
+        'save to wishlist',
+        'add to liked',
         'buy this',
         'purchase this',
         'order this',
@@ -289,11 +295,16 @@ class AIUtils {
         'thêm vào giỏ hàng',
         'thêm vào giỏ',
         'cho vào giỏ hàng',
+        'thêm vào yêu thích',
+        'thêm vào danh sách yêu thích',
+        'lưu vào yêu thích',
+        'cho vào yêu thích',
         'mua cái này',
         'đặt hàng cái này',
         'lấy cái này',
         'thêm',
         'giỏ hàng',
+        'yêu thích',
         'mua',
         'đặt hàng',
         'lấy',
@@ -325,14 +336,52 @@ class AIUtils {
       'gtx',
       'core'
     ];
-    final cartTerms = ['cart', 'giỏ', 'buy', 'mua', 'purchase', 'đặt'];
+    final actionTerms = [
+      'cart',
+      'giỏ',
+      'buy',
+      'mua',
+      'purchase',
+      'đặt',
+      'yêu thích',
+      'wishlist',
+      'favorites',
+      'favourite'
+    ];
 
     final hasProductTerm =
         productTerms.any((term) => lowerMessage.contains(term.toLowerCase()));
-    final hasCartTerm =
-        cartTerms.any((term) => lowerMessage.contains(term.toLowerCase()));
+    final hasActionTerm =
+        actionTerms.any((term) => lowerMessage.contains(term.toLowerCase()));
 
-    return hasKeyword || (hasProductTerm && hasCartTerm);
+    return hasKeyword || (hasProductTerm && hasActionTerm);
+  }
+
+  /// Detect if action is specifically for favorites (vs cart)
+  bool isFavoritesAction(String message) {
+    final favoritesKeywords = {
+      'en': [
+        'favorites',
+        'favourites',
+        'wishlist',
+        'liked',
+        'wish list',
+        'favorite',
+        'favourite',
+      ],
+      'vi': [
+        'yêu thích',
+        'danh sách yêu thích',
+        'ưa thích',
+        'wishlist',
+      ]
+    };
+
+    final lowerMessage = message.toLowerCase();
+    return favoritesKeywords['en']!
+            .any((keyword) => lowerMessage.contains(keyword)) ||
+        favoritesKeywords['vi']!
+            .any((keyword) => lowerMessage.contains(keyword));
   }
 
   /// Extract product name from add to cart request

@@ -69,42 +69,44 @@ class WebFooter extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 48),
-              // Right: Features in horizontal row
-              Expanded(
-                flex: 3,
-                child: Row(
-                  children: [
-                    _buildFeatureBadge(
-                      context,
-                      Icons.local_shipping_outlined,
-                      s.freeShipping,
-                      s.onAllOrders,
-                    ),
-                    const SizedBox(width: 12),
-                    _buildFeatureBadge(
-                      context,
-                      Icons.verified_user_outlined,
-                      s.oneYearWarranty,
-                      s.onAllProducts,
-                    ),
-                    const SizedBox(width: 12),
-                    _buildFeatureBadge(
-                      context,
-                      Icons.support_agent_outlined,
-                      s.support247,
-                      s.expertAssistance,
-                    ),
-                    const SizedBox(width: 12),
-                    _buildFeatureBadge(
-                      context,
-                      Icons.lock_outline,
-                      s.securePayment,
-                      s.sslEncrypted,
-                    ),
-                  ],
+              // Right: Features in horizontal row (only on larger screens)
+              if (MediaQuery.of(context).size.width >= 900) ...[
+                const SizedBox(width: 48),
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    children: [
+                      _buildFeatureBadge(
+                        context,
+                        Icons.local_shipping_outlined,
+                        s.freeShipping,
+                        s.onAllOrders,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildFeatureBadge(
+                        context,
+                        Icons.verified_user_outlined,
+                        s.oneYearWarranty,
+                        s.onAllProducts,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildFeatureBadge(
+                        context,
+                        Icons.support_agent_outlined,
+                        s.support247,
+                        s.expertAssistance,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildFeatureBadge(
+                        context,
+                        Icons.lock_outline,
+                        s.securePayment,
+                        s.sslEncrypted,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
           const SizedBox(height: 24),

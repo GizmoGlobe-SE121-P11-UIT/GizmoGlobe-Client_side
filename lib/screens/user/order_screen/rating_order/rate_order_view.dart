@@ -4,6 +4,7 @@ import 'rate_order_cubit.dart';
 import 'rate_order_state.dart';
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../generated/l10n.dart';
+import '../../../../services/comment_moderation/comment_moderation_service.dart';
 
 class RateOrderView extends StatelessWidget {
   final String productId;
@@ -30,17 +31,13 @@ class RateOrderView extends StatelessWidget {
         listener: (context, state) {
           if (state.processState == ProcessState.success) {
             Navigator.of(context).pop(true);
-          } else if (state.error != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error!)),
-            );
           }
         },
         builder: (context, state) {
           final cubit = context.read<RateOrderCubit>();
           final totalMb = (state.totalBytes / (1024 * 1024));
-          final bool eligibleForPoints =
-              ((state.images.length >= 2) || (state.video != null && state.images.isNotEmpty)) &&
+          final bool eligibleForPoints = ((state.images.length >= 2) ||
+                  (state.video != null && state.images.isNotEmpty)) &&
               state.comment.trim().isNotEmpty;
           return Padding(
             padding: const EdgeInsets.all(16),
@@ -73,6 +70,8 @@ class RateOrderView extends StatelessWidget {
                   ),
                   onChanged: cubit.setComment,
                 ),
+                if (state.sentiment != null || state.isAnalyzing)
+                  _buildSentimentIndicator(context, state),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -108,9 +107,13 @@ class RateOrderView extends StatelessWidget {
                         child: Expanded(
                           child: Text(
                             'Add at least 2 images or video and write a comment to get 200 points',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.9),
+                                    ),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -126,7 +129,8 @@ class RateOrderView extends StatelessWidget {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : Text(
                                 eligibleForPoints
@@ -213,6 +217,81 @@ class RateOrderView extends StatelessWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: children,
+      ),
+    );
+  }
+
+  Widget _buildSentimentIndicator(BuildContext context, RateOrderState state) {
+    if (state.isAnalyzing) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 8),
+            Text(S.of(context).analyzingSentiment,
+                style: TextStyle(fontSize: 12)),
+          ],
+        ),
+      );
+    }
+
+    final sentiment = state.sentiment!;
+    IconData icon;
+    Color color;
+    String text;
+
+    switch (sentiment) {
+      case CommentSentiment.positive:
+        icon = Icons.sentiment_very_satisfied;
+        color = Colors.green;
+        text = S.of(context).sentimentPositive;
+        break;
+      case CommentSentiment.negative:
+        icon = Icons.sentiment_very_dissatisfied;
+        color = Colors.red;
+        text = S.of(context).sentimentNegative;
+        break;
+      case CommentSentiment.neutral:
+        icon = Icons.sentiment_neutral;
+        color = Colors.grey;
+        text = S.of(context).sentimentNeutral;
+        break;
+      case CommentSentiment.mixed:
+        icon = Icons.sentiment_satisfied;
+        color = Colors.orange;
+        text = S.of(context).sentimentMixed;
+        break;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -19,7 +19,7 @@ class AINLPService {
       String userQuery, bool isVietnamese) async {
     try {
       final prompt = _createAnalysisPrompt(userQuery, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       if (kDebugMode) {
         print('NLP Analysis Response: $response');
@@ -39,7 +39,7 @@ class AINLPService {
       String productName, bool isVietnamese) async {
     try {
       final prompt = _createSynonymsPrompt(productName, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       return _parseSynonymsResponse(response);
     } catch (e) {
@@ -55,7 +55,7 @@ class AINLPService {
       String colloquialTerm, bool isVietnamese) async {
     try {
       final prompt = _createMappingPrompt(colloquialTerm, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       return _parseMappingResponse(response);
     } catch (e) {
@@ -72,7 +72,7 @@ class AINLPService {
     try {
       final prompt =
           _createFeatureExtractionPrompt(userDescription, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       return _parseFeatureResponse(response);
     } catch (e) {
@@ -89,7 +89,7 @@ class AINLPService {
       String text, bool isVietnamese) async {
     try {
       final prompt = _createProductNameExtractionPrompt(text, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       if (kDebugMode) {
         print('NLP Product Name Extraction Response: $response');
@@ -111,7 +111,7 @@ class AINLPService {
     try {
       final prompt =
           _createMultipleProductNamesExtractionPrompt(text, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       if (kDebugMode) {
         print('NLP Multiple Product Names Extraction Response: $response');
@@ -281,7 +281,7 @@ Respond in JSON format:
 ''';
   }
 
-  Future<String> _callGeminiAPI(String prompt) async {
+  Future<String> callGeminiAPI(String prompt) async {
     final apiKey = dotenv.env['GEMINI_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
       throw Exception('GEMINI_API_KEY not found in .env file');
@@ -648,7 +648,7 @@ Examples:
     try {
       final prompt =
           _createMultipleProductNamesExtractionPrompt(text, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       if (kDebugMode) {
         print('NLP Product Names and Brands Extraction Response: $response');

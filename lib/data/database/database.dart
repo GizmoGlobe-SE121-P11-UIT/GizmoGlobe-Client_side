@@ -539,8 +539,8 @@ class Database {
       // Sort by sales in descending order
       sortedProducts.sort((a, b) => b.sales.compareTo(a.sales));
 
-      // Take the top 5 best sellers
-      List<Product> bestSellers = sortedProducts.take(5).toList();
+      // Take the top 10 best sellers (UI will show 4-7 based on screen width)
+      List<Product> bestSellers = sortedProducts.take(10).toList();
 
       return bestSellers;
     } catch (e) {
@@ -809,9 +809,7 @@ class Database {
       final Map<String, List<double>> ratingsMap = {};
 
       for (final r in ratingList) {
-        final String? pid = (r.productID.isNotEmpty)
-            ? r.productID
-            : null;
+        final String? pid = (r.productID.isNotEmpty) ? r.productID : null;
         if (pid == null) continue;
 
         double value;
@@ -859,7 +857,8 @@ class Database {
       if (productId.isEmpty) return;
       final result = await Firebase().getAverageRatingForProduct(productId);
       final avg = (result['average'] as num?)?.toDouble() ?? 0.0;
-      final count = (result['count'] as int?) ?? (result['count'] as num?)?.toInt() ?? 0;
+      final count =
+          (result['count'] as int?) ?? (result['count'] as num?)?.toInt() ?? 0;
 
       final product = productList.firstWhere(
         (p) => p.productID == productId,
@@ -872,7 +871,8 @@ class Database {
         product.setRating(rounded);
       }
     } catch (e) {
-      if (kDebugMode) print('Error updating product average for $productId: $e');
+      if (kDebugMode)
+        print('Error updating product average for $productId: $e');
     }
   }
 

@@ -669,6 +669,7 @@ class Firebase {
     String? comment,
     List<File>? images,
     File? video,
+    String? sentiment,
     String? invoiceId,
   }) async {
     await _retryOperation(() async {
@@ -683,6 +684,7 @@ class Firebase {
           'timeSent': FieldValue.serverTimestamp(),
           'rating': rating,
           'comment': comment,
+          'sentiment': sentiment,
           'imagesUrl': null,
           'videoUrl': null,
         });

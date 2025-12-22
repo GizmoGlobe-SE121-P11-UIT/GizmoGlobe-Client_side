@@ -231,10 +231,11 @@ class AIProductService {
         final score =
             normalizedScore > originalScore ? normalizedScore : originalScore;
 
-        if (kDebugMode) {
-          print(
-              'Product: "$originalName" - Score: $score (Normalized: $normalizedScore, Original: $originalScore)');
-        }
+        // Uncomment for debugging product matching scores
+        // if (kDebugMode) {
+        //   print(
+        //       'Product: "$originalName" - Score: $score (Normalized: $normalizedScore, Original: $originalScore)');
+        // }
 
         if (score > bestScore && score > 0.2) {
           // Lowered threshold for better matching
@@ -357,52 +358,123 @@ class AIProductService {
         buffer.writeln('\n   📝 Technical Specifications:');
         switch (category) {
           case 'gpu':
+            final gpuAttrs = data['attributes'] as Map<String, dynamic>?;
             buffer.writeln(
                 '      • Series: ${data['series']?.toString() ?? 'N/A'}');
             buffer.writeln(
-                '      • Memory: ${formatValue(data['capacity'], 'capacity')}');
+                '      • Version: ${gpuAttrs?['version']?.toString() ?? 'N/A'}');
+            buffer.writeln(
+                '      • Memory (VRAM): ${formatValue(data['capacity'], 'capacity')}');
             buffer.writeln(
                 '      • Bus Width: ${formatValue(data['bus'], 'bus')}');
             buffer.writeln(
-                '      • Clock Speed: ${formatValue(data['clockSpeed'], 'clock')}');
+                '      • Boost Clock: ${formatValue(data['clockSpeed'], 'clock')}');
+            final gpuTdp = gpuAttrs?['tdp'];
+            if (gpuTdp != null) {
+              buffer.writeln('      • TDP: ${gpuTdp}W');
+            }
             break;
           case 'cpu':
+            final cpuAttrs = data['attributes'] as Map<String, dynamic>?;
             buffer.writeln(
-                '      • Family: ${data['family']?.toString() ?? 'N/A'}');
+                '      • Series: ${data['family']?.toString() ?? 'N/A'}');
+            final cpuSocket = cpuAttrs?['socket']?.toString();
+            if (cpuSocket != null) {
+              buffer.writeln('      • Socket: ${cpuSocket.toUpperCase()}');
+            }
             buffer.writeln(
                 '      • Cores: ${data['core']?.toString() ?? 'N/A'} cores');
             buffer.writeln(
                 '      • Threads: ${data['thread']?.toString() ?? 'N/A'} threads');
-            buffer.writeln(
-                '      • Clock Speed: ${formatValue(data['clockSpeed'], 'clock')}');
+            final baseClock = cpuAttrs?['baseClock'];
+            if (baseClock != null) {
+              buffer.writeln(
+                  '      • Base Clock: ${formatValue(baseClock, 'clock')}');
+            }
+            final turboClock = data['clockSpeed'] ?? cpuAttrs?['turboClock'];
+            if (turboClock != null) {
+              buffer.writeln(
+                  '      • Turbo Clock: ${formatValue(turboClock, 'clock')}');
+            }
+            final cpuTdp = cpuAttrs?['tdp'];
+            if (cpuTdp != null) {
+              buffer.writeln('      • TDP: ${cpuTdp}W');
+            }
             break;
           case 'ram':
+            final ramAttrs = data['attributes'] as Map<String, dynamic>?;
             buffer.writeln(
-                '      • Type: ${data['ramType']?.toString() ?? 'N/A'}');
+                '      • Type: ${data['ramType']?.toString() ?? ramAttrs?['ramType']?.toString() ?? 'N/A'}');
             buffer.writeln(
                 '      • Capacity: ${formatValue(data['capacity'], 'capacity')}');
+            final capacityPerStick = ramAttrs?['capacityPerStickGb'];
+            final kitStickCount = ramAttrs?['kitStickCount'];
+            if (capacityPerStick != null && kitStickCount != null) {
+              buffer.writeln(
+                  '      • Kit: ${kitStickCount}x ${capacityPerStick}GB sticks');
+            }
             buffer
                 .writeln('      • Speed: ${formatValue(data['bus'], 'speed')}');
+            final clLatency = ramAttrs?['clLatency'];
+            if (clLatency != null) {
+              buffer.writeln('      • CL Latency: CL$clLatency');
+            }
             break;
           case 'psu':
+            final psuAttrs = data['attributes'] as Map<String, dynamic>?;
             buffer.writeln(
-                '      • Wattage: ${data['wattage'] != null ? '${data['wattage']}W' : 'N/A'}');
+                '      • Wattage: ${data['wattage'] != null ? '${data['wattage']}W' : psuAttrs?['maxWattage'] != null ? '${psuAttrs!['maxWattage']}W' : 'N/A'}');
             buffer.writeln(
-                '      • Efficiency: ${data['efficiency']?.toString() ?? 'N/A'}');
+                '      • Efficiency: ${data['efficiency']?.toString() ?? psuAttrs?['efficiency']?.toString() ?? 'N/A'}');
             buffer.writeln(
-                '      • Modular: ${formatValue(data['modular'], 'modular')}');
+                '      • Modular: ${formatValue(data['modular'] ?? psuAttrs?['modularity'], 'modular')}');
             break;
           case 'drive':
-            buffer
-                .writeln('      • Type: ${data['type']?.toString() ?? 'N/A'}');
+            final driveAttrs = data['attributes'] as Map<String, dynamic>?;
+            buffer.writeln(
+                '      • Type: ${data['type']?.toString() ?? driveAttrs?['driveType']?.toString() ?? 'N/A'}');
             buffer.writeln(
                 '      • Capacity: ${formatValue(data['capacity'], 'capacity')}');
+            final driveGen = driveAttrs?['gen'];
+            if (driveGen != null) {
+              buffer.writeln('      • Generation: $driveGen');
+            }
+            final interfaceType = driveAttrs?['interfaceType'];
+            if (interfaceType != null) {
+              buffer.writeln('      • Interface: $interfaceType');
+            }
+            final formFactor = driveAttrs?['formFactor'];
+            if (formFactor != null) {
+              buffer.writeln('      • Form Factor: $formFactor');
+            }
+            final speed = driveAttrs?['speed'];
+            if (speed != null) {
+              buffer.writeln('      • Speed: $speed');
+            }
             break;
           case 'mainboard':
+            final mbAttrs = data['attributes'] as Map<String, dynamic>?;
+            final mbSocket = mbAttrs?['socket']?.toString();
+            if (mbSocket != null) {
+              buffer.writeln('      • Socket: ${mbSocket.toUpperCase()}');
+            }
+            final chipset = mbAttrs?['chipsetCode'];
+            if (chipset != null) {
+              buffer.writeln('      • Chipset: $chipset');
+            }
             buffer.writeln(
-                '      • Form Factor: ${data['formFactor']?.toString() ?? 'N/A'}');
+                '      • Form Factor: ${data['formFactor']?.toString() ?? mbAttrs?['formFactor']?.toString() ?? 'N/A'}');
             buffer.writeln(
                 '      • Series: ${data['series']?.toString() ?? 'N/A'}');
+            final ramSpec = mbAttrs?['ramSpec'];
+            if (ramSpec != null && ramSpec is Map) {
+              final ramType = ramSpec['type']?.toString();
+              final maxCapacity = ramSpec['maxCapacity'];
+              if (ramType != null) {
+                buffer.writeln(
+                    '      • RAM Support: ${ramType.toUpperCase()}${maxCapacity != null ? ' (Max ${maxCapacity}GB)' : ''}');
+              }
+            }
             buffer.writeln(
                 '      • Compatibility: ${data['compatibility']?.toString() ?? 'N/A'}');
             break;

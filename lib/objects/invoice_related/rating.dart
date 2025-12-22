@@ -11,6 +11,8 @@ class Rating {
   String? comment;
   List<String>? imagesUrl;
   String? videoUrl;
+  String?
+      sentiment; // Sentiment analysis result: Positive, Negative, Neutral, Mixed
   Reply? reply;
 
   Rating({
@@ -23,21 +25,23 @@ class Rating {
     this.comment,
     this.imagesUrl,
     this.videoUrl,
+    this.sentiment,
     this.reply,
   });
 
   List<Object?> get props => [
-    ratingID,
-    userID,
-    productID,
-    timeSent,
-    rating,
-    username,
-    comment,
-    imagesUrl,
-    videoUrl,
-    reply,
-  ];
+        ratingID,
+        userID,
+        productID,
+        timeSent,
+        rating,
+        username,
+        comment,
+        imagesUrl,
+        videoUrl,
+        sentiment,
+        reply,
+      ];
 
   Rating copyWith({
     String? ratingID,
@@ -49,6 +53,7 @@ class Rating {
     String? username,
     List<String>? imagesUrl,
     String? videoUrl,
+    String? sentiment,
     Reply? reply,
   }) {
     return Rating(
@@ -61,6 +66,7 @@ class Rating {
       username: username ?? this.username,
       imagesUrl: imagesUrl ?? this.imagesUrl,
       videoUrl: videoUrl ?? this.videoUrl,
+      sentiment: sentiment ?? this.sentiment,
       reply: reply ?? this.reply,
     );
   }
@@ -75,6 +81,7 @@ class Rating {
       'comment': comment,
       'imagesUrl': imagesUrl,
       'videoUrl': videoUrl,
+      'sentiment': sentiment,
       'reply': reply?.toMap(),
     };
   }
@@ -112,7 +119,10 @@ class Rating {
     List<String>? parsedImages;
     final imagesVal = map['imagesUrl'];
     if (imagesVal is List) {
-      parsedImages = imagesVal.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList();
+      parsedImages = imagesVal
+          .map((e) => e?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
       if (parsedImages.isEmpty) parsedImages = null;
     } else if (imagesVal is String && imagesVal.isNotEmpty) {
       parsedImages = [imagesVal];
@@ -121,20 +131,25 @@ class Rating {
     }
 
     final videoVal = map['videoUrl'];
-    final parsedVideo = (videoVal is String && videoVal.isNotEmpty) ? videoVal : null;
+    final parsedVideo =
+        (videoVal is String && videoVal.isNotEmpty) ? videoVal : null;
 
     final replyVal = map['reply'];
 
     return Rating(
       ratingID: id,
       userID: (map['userID'] as String?) ?? '',
-      productID: (map['productID'] as String?) ?? (map['productId'] as String?) ?? '',
+      productID:
+          (map['productID'] as String?) ?? (map['productId'] as String?) ?? '',
       timeSent: parsedTime,
       rating: parsedRating ?? 0,
       comment: map['comment'] as String?,
       imagesUrl: parsedImages,
       videoUrl: parsedVideo,
-      reply: replyVal != null ? Reply.fromMap(replyVal as Map<String, dynamic>) : null,
+      sentiment: map['sentiment'] as String?,
+      reply: replyVal != null
+          ? Reply.fromMap(replyVal as Map<String, dynamic>)
+          : null,
     );
   }
 }

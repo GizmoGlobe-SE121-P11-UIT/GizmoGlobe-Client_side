@@ -66,29 +66,35 @@ class SalesInvoiceWidget extends StatelessWidget {
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      SizedBox(
-                                        width: 140,
-                                        child: FilledButton(
-                                          onPressed: () => onRate!(productId),
-                                          child: const Text('Rate product'),
-                                        ),
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 140,
+                                      child: FilledButton(
+                                        onPressed: () => onRate!(productId),
+                                        child: const Text('Rate product'),
                                       ),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context).colorScheme.surface,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          'To get 200 points',
-                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                color: colorScheme.onSurface.withValues(alpha: 0.9),
-                                              ),
-                                        ),
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                    ],
-                                  ),
+                                      child: Text(
+                                        'To get 200 points',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: colorScheme.onSurface
+                                                  .withValues(alpha: 0.9),
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -191,8 +197,8 @@ class SalesInvoiceWidget extends StatelessWidget {
                   child: Text(
                     'To get $points point${points == 1 ? '' : 's'}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.9),
-                    ),
+                          color: colorScheme.onSurface.withValues(alpha: 0.9),
+                        ),
                   ),
                 ),
               ],

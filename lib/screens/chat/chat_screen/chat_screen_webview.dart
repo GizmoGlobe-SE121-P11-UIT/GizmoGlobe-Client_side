@@ -157,10 +157,15 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
         // final colorScheme = theme.colorScheme; // kept for future styling hooks
         final isMobile = MediaQuery.of(context).size.width < 600;
 
-        // Scroll to bottom when new messages arrive
+        // Scroll to bottom only when new messages arrive (not on every rebuild)
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (state.messages.isNotEmpty) {
-            _scrollToBottom();
+          // Check if this is actually a new message by comparing with buildWhen condition
+          if (state.messages.isNotEmpty && _scrollController.hasClients) {
+            // Only scroll if at bottom or new message
+            final isAtBottom = _scrollController.position.pixels == 0.0;
+            if (isAtBottom) {
+              _scrollToBottom();
+            }
           }
         });
 
