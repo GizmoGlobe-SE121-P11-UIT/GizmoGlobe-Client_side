@@ -910,55 +910,65 @@ class Firebase {
     try {
       final QuerySnapshot snapshot = await _firestore.collection('vouchers').get();
       final List<Voucher> vouchers = [];
+      // Collect heavy auto-claim tasks and run them after parsing so this function
+      // can return quickly and avoid blocking on per-voucher transactions.
+      final List<Future<void>> autoClaimTasks = [];
 
       for (final doc in snapshot.docs) {
         final raw = Map<String, dynamic>.from(doc.data() as Map);
         try {
           final Map<String, dynamic> data = {};
 
-          // id
           data['voucherID'] = doc.id;
 
-          // Strings with safe defaults
           data['voucherName'] = (raw['voucherName']?.toString()) ?? '';
           data['enDescription'] = (raw['enDescription']?.toString()) ?? '';
           data['viDescription'] = (raw['viDescription']?.toString()) ?? '';
 
-          // Booleans with defaults
           data['isEnabled'] = raw['isEnabled'] == null ? true : (raw['isEnabled'] == true);
           data['isPercentage'] = raw['isPercentage'] == true;
           data['hasEndTime'] = raw['hasEndTime'] == true;
           data['isLimited'] = raw['isLimited'] == true;
 
-          // Dates: handle Timestamp, String, DateTime, or absent
+          // parse start and end times into local variables to avoid relying on Voucher getters
+          DateTime? startDate;
+          DateTime? endDate;
+
           dynamic start = raw['startTime'];
           if (start is Timestamp) {
-            start = start.toDate();
+            startDate = start.toDate();
           } else if (start is String) {
             try {
-              start = DateTime.parse(start);
+              startDate = DateTime.parse(start);
             } catch (_) {
-              start = DateTime.now();
+              startDate = DateTime.now();
             }
-          } else if (start is! DateTime) { 
-            start = DateTime.now();
+          } else if (start is DateTime) {
+            startDate = start;
+          } else {
+            startDate = DateTime.now();
           }
-          data['startTime'] = start;
+          data['startTime'] = startDate;
 
           if (data['hasEndTime'] == true) {
             dynamic end = raw['endTime'];
             if (end is Timestamp) {
-              end = end.toDate();
+              endDate = end.toDate();
             } else if (end is String) {
               try {
-                end = DateTime.parse(end);
+                endDate = DateTime.parse(end);
               } catch (_) {
-                end = DateTime.now().add(const Duration(days: 30));
+                endDate = DateTime.now().add(const Duration(days: 30));
               }
-            } else if (end is! DateTime) {
-              end = DateTime.now().add(const Duration(days: 30));
+            } else if (end is DateTime) {
+              endDate = end;
+            } else {
+              endDate = DateTime.now().add(const Duration(days: 30));
             }
-            data['endTime'] = end;
+            data['endTime'] = endDate;
+          } else {
+            data['endTime'] = null;
+            endDate = null;
           }
 
           // Display type: accept string or enum, always pass a string to factory
@@ -971,20 +981,13 @@ class Firebase {
             data['displayType'] = VoucherDisplayType.adminOnly.getName();
           }
 
-          // Numeric values: coerce safely
-          double parseDouble(dynamic v, [double def = 0.0]) {
-            if (v is num) return v.toDouble();
-            if (v is String) return double.tryParse(v) ?? def;
-            return def;
-          }
-
           int parseInt(dynamic v, [int def = 0]) {
             if (v is num) return v.toInt();
             if (v is String) return int.tryParse(v) ?? def;
             return def;
           }
 
-          data['discountValue'] = parseDouble(raw['discountValue'], 0.0);
+          data['discountValue'] = parseInt(raw['discountValue'], 0);
           data['minimumPurchase'] = parseInt(raw['minimumPurchase'], 0);
           data['maxUsagePerPerson'] = parseInt(raw['maxUsagePerPerson'], 1);
           data['redeemPrice'] = parseInt(raw['redeemPrice'], 0);
@@ -995,22 +998,145 @@ class Firebase {
           }
 
           if (data['isPercentage'] == true) {
-            data['maximumDiscountValue'] = parseDouble(raw['maximumDiscountValue'], 0.0);
+            data['maximumDiscountValue'] = parseInt(raw['maximumDiscountValue'], 0);
           } else {
             data['maximumDiscountValue'] = 0.0;
           }
 
-          // Finally try to build voucher
           final voucher = VoucherFactory.fromMap(doc.id, data);
           vouchers.add(voucher);
+
+          try {
+            final currentUserId = Database().userID;
+            final bool isEveryone = voucher.displayType == VoucherDisplayType.everyone;
+            final bool notExpired = data['hasEndTime'] != true || (endDate != null && endDate.isAfter(DateTime.now()));
+            final bool started = !startDate.isAfter(DateTime.now());
+            if (currentUserId.isNotEmpty && isEveryone && notExpired && started) {
+              final int maxPerPerson = (data['maxUsagePerPerson'] as int?) ?? 1;
+              final bool voucherIsLimited = voucher.isLimited;
+              final String? voucherIdLocal = voucher.voucherID;
+              final String userIdLocal = currentUserId;
+
+              autoClaimTasks.add((() async {
+                if (voucherIdLocal == null || voucherIdLocal.isEmpty) return;
+                try {
+                  int toGrant = maxPerPerson;
+
+                  if (voucherIsLimited) {
+                    final voucherRef = _firestore.collection('vouchers').doc(voucherIdLocal);
+                    final int granted = await _firestore.runTransaction<int>((tx) async {
+                      final snap = await tx.get(voucherRef);
+                      if (!snap.exists) return 0;
+
+                      final dynamic snapData = snap.data();
+                      int currentLeft = 0;
+                      if (snapData is Map) {
+                        final usageLeftVal = snapData['usageLeft'];
+                        if (usageLeftVal is num) {
+                          currentLeft = usageLeftVal.toInt();
+                        } else if (usageLeftVal is String) {
+                          currentLeft = int.tryParse(usageLeftVal) ?? 0;
+                        } else {
+                          if (kDebugMode) {
+                            print('Warning: voucher $voucherIdLocal usageLeft has unexpected type: ${usageLeftVal.runtimeType}');
+                          }
+                          currentLeft = 0;
+                        }
+                      } else {
+                        if (kDebugMode) {
+                          print('Warning: voucher $voucherIdLocal document data is not a Map but ${snapData.runtimeType}');
+                        }
+                        return 0;
+                      }
+
+                      if (currentLeft <= 0) return 0;
+                      final int take = toGrant <= currentLeft ? toGrant : currentLeft;
+                      tx.update(voucherRef, {'usageLeft': currentLeft - take});
+                      return take;
+                    });
+                    toGrant = granted;
+                  }
+
+                  if (toGrant <= 0) return;
+
+                  final ownedCollection = _firestore.collection('owned_vouchers');
+                  final existingQuery = await ownedCollection
+                      .where('customerID', isEqualTo: userIdLocal)
+                      .where('voucherID', isEqualTo: voucherIdLocal)
+                      .limit(1)
+                      .get();
+
+                  if (existingQuery.docs.isEmpty) {
+                    final docRef = ownedCollection.doc();
+                    final dataMap = {
+                      'customerID': userIdLocal,
+                      'voucherID': voucherIdLocal,
+                      'numberOfUses': toGrant,
+                      'createdAt': FieldValue.serverTimestamp(),
+                    };
+                    await docRef.set(dataMap);
+                    await docRef.update({'ownedVoucherID': docRef.id});
+                  } else {
+                    final docSnap = existingQuery.docs.first;
+                    final dynamic existingData = docSnap.data();
+                    int currentUses = 0;
+                    if (existingData is Map) {
+                      final numberVal = existingData['numberOfUses'];
+                      if (numberVal is num) {
+                        currentUses = numberVal.toInt();
+                      } else if (numberVal is String) {
+                        currentUses = int.tryParse(numberVal) ?? 0;
+                      } else {
+                        if (kDebugMode) {
+                          print('Warning: owned_voucher ${docSnap.id} numberOfUses has unexpected type: ${numberVal.runtimeType}');
+                        }
+                        currentUses = 0;
+                      }
+                    } else {
+                      if (kDebugMode) {
+                        print('Warning: owned_voucher ${docSnap.id} data is not a Map but ${existingData.runtimeType}');
+                      }
+                      currentUses = 0;
+                    }
+
+                    final needed = toGrant - currentUses;
+                    if (needed > 0) {
+                      await docSnap.reference.update({'numberOfUses': currentUses + needed});
+                    }
+                  }
+                } catch (e) {
+                  if (kDebugMode) {
+                    print('Warning: background auto-claim for voucher $voucherIdLocal failed: $e');
+                  }
+                }
+              })());
+             }
+           } catch (e) {
+             if (kDebugMode) {
+               print('Warning: auto-claim for voucher ${voucher.voucherID} failed: $e');
+             }
+           }
         } catch (e, st) {
           if (kDebugMode) {
             print('Warning: skipping voucher ${doc.id} due to parse error: $e');
             print('Document raw data: $raw');
             print(st);
           }
-          // skip this doc and continue
         }
+      }
+
+      // Run queued auto-claim tasks in background (don't await here) and refresh lists once
+      if (autoClaimTasks.isNotEmpty) {
+        Future.microtask(() async {
+          try {
+            await Future.wait(autoClaimTasks);
+            await Database().updateVoucherLists();
+          } catch (e) {
+            if (kDebugMode) {
+              print('Warning: background auto-claim failed: $e');
+            }
+          }
+        });
       }
 
       return vouchers;

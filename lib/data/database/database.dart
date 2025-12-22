@@ -703,8 +703,9 @@ class Database {
         }
       }).toList();
 
-      upcomingVouchers = ownedVoucherList.where((v) {
+      upcomingVouchers = allVoucherList.where((v) {
         try {
+          if (hasNoTotalUsage(v)) return false;
           return (v as dynamic).voucherTimeStatus ==
               VoucherTimeStatus.upcoming;
         } catch (_) {
@@ -712,7 +713,6 @@ class Database {
         }
       }).toList();
 
-      // Populate ownedVoucherUses map for easy access in widgets
       ownedVoucherUses = {};
       for (final o in ownedRecords) {
         final id = o.voucherID.trim();
