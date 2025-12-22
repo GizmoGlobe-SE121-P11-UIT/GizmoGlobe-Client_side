@@ -258,6 +258,18 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
     try {
       final productId = state.product.productID ?? '';
       if (productId.isEmpty) return;
+      
+      // Try to get pre-aggregated data from database first
+      final aggregated = await _firebase.getAggregatedProductRating(productId);
+      if (aggregated != null) {
+        final avg = (aggregated['avgRating'] as num?)?.toDouble() ?? 0.0;
+        final count = (aggregated['ratingCount'] as int?) ?? 
+                     (aggregated['ratingCount'] as num?)?.toInt() ?? 0;
+        emit(state.copyWith(averageRating: avg, totalRatingsCount: count));
+        return;
+      }
+      
+      // Fallback to recalculation if aggregated data doesn't exist
       final result = await _firebase.getAverageRatingForProduct(productId);
       final avg = (result['average'] as num?)?.toDouble() ?? 0.0;
       final count =

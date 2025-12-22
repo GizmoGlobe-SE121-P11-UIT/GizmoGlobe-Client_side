@@ -97,6 +97,7 @@ class _HomeScreen extends State<HomeScreen> {
             Scaffold(
               key: _scaffoldKey,
               appBar: AppBar(
+                automaticallyImplyLeading: false,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 title: Stack(children: [
