@@ -15,7 +15,7 @@ import '../../../widgets/order/rating_card.dart';
 import '../../../generated/l10n.dart';
 import '../../../objects/product_related/product.dart';
 import '../../../objects/product_related/mainboard_related/mainboard.dart';
-import '../../../services/recommendation_service.dart';
+import 'package:gizmoglobe_client/services/recommendation/recommendation_service.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../widgets/product/favorites/favorites_cubit.dart';
 import '../../../widgets/product/product_card.dart';

@@ -10,7 +10,7 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/main.dart' show rootNavigatorKey;
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/objects/product_related/mainboard_related/mainboard.dart';
-import 'package:gizmoglobe_client/services/recommendation_service.dart';
+import 'package:gizmoglobe_client/services/recommendation/recommendation_service.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
 import 'package:gizmoglobe_client/widgets/order/rating_card.dart';
@@ -2021,6 +2021,7 @@ class _ProductDetailScreenWebViewState
 
   Widget _buildRecommendationsSection(
       BuildContext context, Product currentProduct) {
+    // Trigger re-analysis
     final recs = RecommendationService()
         .getCompatibleForProduct(currentProduct)
         .where((p) => p.productID != currentProduct.productID)

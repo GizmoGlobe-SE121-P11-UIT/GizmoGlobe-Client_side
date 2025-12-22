@@ -66,6 +66,7 @@ class Database {
   List<CartItem> cartItems = [];
   // Map of voucherID -> numberOfUses owned by current user (populated on updateVoucherLists)
   Map<String, int> ownedVoucherUses = {};
+  Map<String, dynamic>? userSurveyProfile;
 
   // final List<Map<String, dynamic>> voucherDataList = [
   //   {
@@ -476,6 +477,8 @@ class Database {
       userID = user.uid;
       username = userDoc['username'];
       email = userDoc['email'];
+
+      userSurveyProfile = await Firebase().getUserSurveyProfile(userID);
     }
   }
 

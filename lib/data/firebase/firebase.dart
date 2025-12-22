@@ -1707,4 +1707,27 @@ class Firebase {
       return null;
     }
   }
+
+  Future<Map<String, dynamic>?> getUserSurveyProfile(String userId) async {
+    try {
+      final doc = await _firestore
+          .collection('surveyResponses_raw')
+          .doc(userId)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        // The actual answers are nested inside the 'raw' map
+        if (data != null && data['raw'] is Map) {
+          return Map<String, dynamic>.from(data['raw']);
+        }
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting user survey profile: $e');
+      }
+      return null;
+    }
+  }
 }

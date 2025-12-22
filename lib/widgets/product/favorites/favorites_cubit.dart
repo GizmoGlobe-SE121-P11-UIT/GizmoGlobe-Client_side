@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gizmoglobe_client/data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
 import '../../../services/local_guest_service_platform.dart';
 
@@ -78,5 +79,21 @@ class FavoritesCubit extends Cubit<Set<String>> {
       await _firebase.addFavorite(user.uid, productId);
     }
     emit(currentFavorites);
+  }
+
+  void _updateDatabaseFavorites(Set<String> favoriteIds) {
+    final db = Database();
+    // Use fullProductList to find product objects for the IDs
+    // If fullProductList is empty, we might need to rely on productList or fetch them,
+    // but typically fullProductList should be populated.
+    db.favoriteProducts = db.fullProductList
+        .where((p) => favoriteIds.contains(p.productID))
+        .toList();
+  }
+
+  @override
+  void onChange(Change<Set<String>> change) {
+    super.onChange(change);
+    _updateDatabaseFavorites(change.nextState);
   }
 }
