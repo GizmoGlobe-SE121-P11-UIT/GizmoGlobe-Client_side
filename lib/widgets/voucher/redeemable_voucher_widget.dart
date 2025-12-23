@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
-import 'package:gizmoglobe_client/enums/voucher_related/voucher_display_type.dart';
+import 'package:gizmoglobe_client/enums/voucher_related/distribution_type.dart';
 import '../../functions/converter.dart';
 import '../../objects/voucher_related/end_time_interface.dart';
 import '../../objects/voucher_related/limited_interface.dart';
@@ -126,7 +126,7 @@ class RedeemableVoucherWidget extends StatelessWidget {
                               const SizedBox(width: 16),
                               _buildUsageInfo(context),
                             ],
-                            if (voucher.displayType == VoucherDisplayType.redeemable &&
+                            if (voucher.distributionType == DistributionType.rewards &&
                                 (voucher.redeemPrice != null)) ...[
                               const SizedBox(width: 12),
                               ElevatedButton(

@@ -99,10 +99,6 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                             .colorScheme
                             .onSurface
                             .withValues(alpha: 0.5),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'[a-zA-Z\s]')),
-                        ],
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -176,10 +172,6 @@ class _EditAddressScreen extends State<EditAddressScreen> {
                             .colorScheme
                             .onSurface
                             .withValues(alpha: 0.5),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'[a-zA-Z0-9\s,\-\./]')),
-                        ],
                       ),
                     ],
                   ),

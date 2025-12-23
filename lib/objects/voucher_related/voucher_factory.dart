@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:gizmoglobe_client/enums/voucher_related/voucher_display_type.dart';
+import 'package:gizmoglobe_client/enums/voucher_related/distribution_type.dart';
 import 'package:gizmoglobe_client/objects/voucher_children/limited_percentage_voucher_with_end_time.dart';
 import 'package:gizmoglobe_client/objects/voucher_children/limited_percentage_voucher_without_end_time.dart';
 import 'package:gizmoglobe_client/objects/voucher_children/limited_amount_voucher_with_end_time.dart';
@@ -21,7 +21,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
+      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -42,7 +42,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
+      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -62,7 +62,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
+      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -82,7 +82,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
+      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -101,7 +101,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
+      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -120,7 +120,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
+      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -138,7 +138,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
+      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -156,7 +156,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
+      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],

@@ -103,9 +103,6 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                       .colorScheme
                       .onSurface
                       .withValues(alpha: 0.5),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
-                  ],
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -176,10 +173,6 @@ class _AddAddressScreen extends State<AddAddressScreen> {
                       .colorScheme
                       .onSurface
                       .withValues(alpha: 0.5),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                        RegExp(r'[a-zA-Z0-9\s,\-\./]')),
-                  ],
                 ),
                 const SizedBox(height: 24),
                 SizedBox(

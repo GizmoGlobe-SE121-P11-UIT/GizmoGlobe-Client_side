@@ -8,7 +8,7 @@ import '../../data/database/database.dart';
 import '../../enums/invoice_related/sales_status.dart';
 import '../../enums/manufacturer/manufacturer_status.dart';
 import '../../enums/product_related/product_status_enum.dart';
-import '../../enums/voucher_related/voucher_display_type.dart';
+import '../../enums/voucher_related/distribution_type.dart';
 import '../../objects/address_related/address.dart';
 import '../../objects/invoice_related/rating.dart';
 import '../../objects/invoice_related/ratings_page.dart';
@@ -972,13 +972,13 @@ class Firebase {
           }
 
           // Display type: accept string or enum, always pass a string to factory
-          final disp = raw['displayType'];
+          final disp = raw['distributionType'];
           if (disp is String) {
-            data['displayType'] = disp;
-          } else if (disp is VoucherDisplayType) {
-            data['displayType'] = disp.getName();
+            data['distributionType'] = disp;
+          } else if (disp is DistributionType) {
+            data['distributionType'] = disp.getName();
           } else {
-            data['displayType'] = VoucherDisplayType.adminOnly.getName();
+            data['distributionType'] = DistributionType.staffIssued.getName();
           }
 
           int parseInt(dynamic v, [int def = 0]) {
@@ -1008,7 +1008,7 @@ class Firebase {
 
           try {
             final currentUserId = Database().userID;
-            final bool isEveryone = voucher.displayType == VoucherDisplayType.everyone;
+            final bool isEveryone = voucher.distributionType == DistributionType.public;
             final bool notExpired = data['hasEndTime'] != true || (endDate != null && endDate.isAfter(DateTime.now()));
             final bool started = !startDate.isAfter(DateTime.now());
             if (currentUserId.isNotEmpty && isEveryone && notExpired && started) {
@@ -1323,7 +1323,7 @@ class Firebase {
       }
 
       // Decrease global usageLeft for limited vouchers, except redeemable vouchers.
-      if (voucher.isLimited && voucher.displayType != VoucherDisplayType.redeemable) {
+      if (voucher.isLimited && voucher.distributionType != DistributionType.rewards) {
         final voucherDoc = await _firestore
             .collection('vouchers')
             .doc(voucher.voucherID)

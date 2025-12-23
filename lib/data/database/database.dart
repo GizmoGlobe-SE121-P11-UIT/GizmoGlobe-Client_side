@@ -22,7 +22,7 @@ import 'package:gizmoglobe_client/objects/product_related/psu_related/psu.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice_detail.dart';
 
 import '../../enums/manufacturer/manufacturer_status.dart';
-import '../../enums/voucher_related/voucher_display_type.dart';
+import '../../enums/voucher_related/distribution_type.dart';
 import '../../enums/voucher_related/voucher_status.dart';
 import '../../objects/address_related/province.dart';
 import '../../objects/product_related/product_factory.dart';
@@ -635,12 +635,12 @@ class Database {
 
       bool isVoucherRedeemable(dynamic v) {
         try {
-          final dt = (v as dynamic).displayType;
-          if (dt is VoucherDisplayType) {
-            return dt == VoucherDisplayType.redeemable;
+          final dt = (v as dynamic).distributionType;
+          if (dt is DistributionType) {
+            return dt == DistributionType.rewards;
           } else if (dt is String) {
             return dt.toLowerCase() ==
-                VoucherDisplayType.redeemable.getName().toLowerCase();
+                DistributionType.rewards.getName().toLowerCase();
           }
         } catch (_) {}
         return false;
@@ -682,12 +682,12 @@ class Database {
 
         bool isRedeemable = false;
         try {
-          final dt = (v as dynamic).displayType;
-          if (dt is VoucherDisplayType) {
-            isRedeemable = dt == VoucherDisplayType.redeemable;
+          final dt = (v as dynamic).distributionType;
+          if (dt is DistributionType) {
+            isRedeemable = dt == DistributionType.rewards;
           } else if (dt is String) {
             isRedeemable = dt.toLowerCase() ==
-                VoucherDisplayType.redeemable.getName().toLowerCase();
+                DistributionType.rewards.getName().toLowerCase();
           }
         } catch (_) {
           isRedeemable = false;
