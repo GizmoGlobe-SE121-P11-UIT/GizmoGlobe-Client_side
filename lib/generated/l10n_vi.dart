@@ -1129,7 +1129,7 @@ class SVI extends S {
   String get discount => 'Giảm giá';
 
   @override
-  String get myVouchers => 'Mã giảm giá của tôi';
+  String get myVouchers => 'Voucher của tôi';
 
   @override
   String get disabled => 'Vô hiệu hóa';
