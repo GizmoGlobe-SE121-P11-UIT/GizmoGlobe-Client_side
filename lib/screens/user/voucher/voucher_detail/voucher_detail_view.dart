@@ -100,7 +100,7 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
                 context,
                 S.of(context).discount,
                 voucher.isPercentage
-                    ? '${Converter.formatDouble(voucher.discountValue)}% maximum ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
+                    ? '${voucher.discountValue}% maximum ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
                     : Helper.toCurrencyFormat(voucher.discountValue),
               ),
               const SizedBox(height: 12),

@@ -15,7 +15,7 @@ class SePayPaymentScreenCubit extends Cubit<SePayPaymentScreenState> {
   final SePayPaymentListener _paymentListener = SePayPaymentListener.instance;
   final Firebase _firebase = Firebase();
   String? _orderId;
-  double? _amount;
+  int? _amount;
   StreamSubscription<DocumentSnapshot>? _paymentStatusSubscription;
   Timer? _pollingTimer;
 
@@ -24,7 +24,7 @@ class SePayPaymentScreenCubit extends Cubit<SePayPaymentScreenState> {
   /// Initialize payment and create virtual account
   Future<void> initializePayment({
     required String orderId,
-    required double amount,
+    required int amount,
     String? customerName,
     String? description,
   }) async {

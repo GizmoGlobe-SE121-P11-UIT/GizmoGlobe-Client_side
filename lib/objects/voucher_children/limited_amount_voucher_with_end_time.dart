@@ -59,7 +59,7 @@ class LimitedAmountVoucherWithEndTime
     String? voucherID,
     String? voucherName,
     DateTime? startTime,
-    double? discountValue,
+    int? discountValue,
     int? minimumPurchase,
     int? maxUsagePerPerson,
     DistributionType? distributionType,
@@ -71,7 +71,7 @@ class LimitedAmountVoucherWithEndTime
     int? maximumUsage,
     int? usageLeft,
     DateTime? endTime,
-    double? maximumDiscountValue,
+    int? maximumDiscountValue,
   }) {
     super.updateVoucher(
       voucherID: voucherID,

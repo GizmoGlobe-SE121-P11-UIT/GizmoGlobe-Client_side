@@ -25,10 +25,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
   CheckoutScreenCubit() : super(const CheckoutScreenState());
 
-  double _roundToThreeDecimals(double value) =>
-      double.parse(value.toStringAsFixed(3));
-
-  /// Get customer name from Firebase
   Future<String> _getCustomerName() async {
     try {
       final userID = Database().userID;
@@ -52,14 +48,10 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
     }
   }
 
-  /// Update selected payment method
   void updatePaymentMethod(PaymentMethod paymentMethod) {
     emit(state.copyWith(selectedPaymentMethod: paymentMethod));
   }
 
-  /// Create a new sales invoice from cart items and save to Firebase
-  /// This creates an unpaid invoice so it can be recovered on page refresh
-  /// Returns the created invoice ID
   Future<String> createInvoiceFromCartItems(
       List<Map<Product, int>> cartItems) async {
     emit(state.copyWith(processState: ProcessState.loading));
@@ -86,7 +78,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
       // Calculate total without rounding - will be rounded once at checkout
       final totalPrice = details.fold(
-          0.0, (previousValue, element) => previousValue + element.subtotal);
+          0, (previousValue, element) => previousValue + element.subtotal);
 
       SalesInvoice salesInvoice = SalesInvoice(
         customerID: Database().userID,
@@ -149,7 +141,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
     // Calculate total without rounding - will be rounded once at checkout
     final totalPrice = details.fold(
-        0.0, (previousValue, element) => previousValue + element.subtotal);
+        0, (previousValue, element) => previousValue + element.subtotal);
 
     SalesInvoice salesInvoice = SalesInvoice(
       customerID: Database().userID,
@@ -261,7 +253,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       final finalTotal = totalAfterDiscount > 0.0 ? totalAfterDiscount : 0.0;
 
       // Round only once at the end - round to 3 decimal places
-      final roundedTotalPrice = _roundToThreeDecimals(finalTotal);
+      final roundedTotalPrice = (finalTotal).round();
 
       // Update invoice with rounded total price and current state
       final invoiceWithRoundedTotal = invoiceToProcess.copyWith(
@@ -409,7 +401,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
   /// Store checkout data in sessionStorage for web (before redirect)
   /// Uses the rounded total price passed from checkout() method
-  Future<void> _storeCheckoutDataForWeb(double roundedTotalPrice) async {
+  Future<void> _storeCheckoutDataForWeb(int roundedTotalPrice) async {
     if (!kIsWeb || state.salesInvoice == null) return;
 
     try {
@@ -576,7 +568,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
     // Rounding will happen only once at checkout
     final totalBeforeDiscount = updatedInvoice.getTotalBasedPrice();
     final totalAfterDiscount = totalBeforeDiscount - voucherDiscount;
-    final finalTotal = totalAfterDiscount > 0 ? totalAfterDiscount : 0.0;
+    final finalTotal = totalAfterDiscount > 0 ? totalAfterDiscount : 0;
 
     final finalInvoice = updatedInvoice.copyWith(
       totalPrice: finalTotal,
@@ -588,16 +580,16 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
     // Changes will be saved to Firebase when user places the order
   }
 
-  double _calculateVoucherDiscount(Voucher voucher) {
+  int _calculateVoucherDiscount(Voucher voucher) {
     final totalBeforeDiscount = state.salesInvoice!.getTotalBasedPrice();
 
-    double discount;
+    int discount;
     if (voucher.isPercentage) {
-      double calculatedDiscount = (totalBeforeDiscount * (voucher.discountValue / 100));
+      int calculatedDiscount = (totalBeforeDiscount * (voucher.discountValue / 100)).round();
       final percentageVoucher = voucher as PercentageInterface;
       discount =
-          calculatedDiscount > percentageVoucher.maximumDiscountValue.toDouble()
-              ? percentageVoucher.maximumDiscountValue.toDouble()
+          calculatedDiscount > percentageVoucher.maximumDiscountValue
+              ? percentageVoucher.maximumDiscountValue
               : calculatedDiscount;
     } else {
       discount = voucher.discountValue > totalBeforeDiscount

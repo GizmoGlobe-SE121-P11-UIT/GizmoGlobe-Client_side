@@ -621,7 +621,7 @@ class Firebase {
             details: salesInvoice.details,
             voucher: voucher,
             voucherDiscount:
-                (data['voucherDiscount'] as num?)?.toDouble() ?? 0.0,
+                (data['voucherDiscount'] as num?)?.toInt() ?? 0,
           );
         } catch (e) {
           if (kDebugMode) {

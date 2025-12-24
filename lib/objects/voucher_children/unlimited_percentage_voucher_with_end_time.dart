@@ -47,7 +47,7 @@ class UnlimitedPercentageVoucherWithEndTime extends Voucher
     String? voucherID,
     String? voucherName,
     DateTime? startTime,
-    double? discountValue,
+    int? discountValue,
     int? minimumPurchase,
     int? maxUsagePerPerson,
     DistributionType? distributionType,
