@@ -724,11 +724,15 @@ exports.trackVertexAIEvent = onRequest(
       const catalogId = "default_catalog";
       const parent = `projects/${projectId}/locations/${location}/catalogs/${catalogId}`;
 
-      // Build user event object
+      // Build user event object with proper Timestamp format
+      const now = new Date();
       const userEvent = {
         eventType: eventType,
         visitorId: visitorId,
-        eventTime: new Date().toISOString(),
+        eventTime: {
+          seconds: Math.floor(now.getTime() / 1000),
+          nanos: (now.getTime() % 1000) * 1000000,
+        },
       };
 
       // Add event-specific fields
