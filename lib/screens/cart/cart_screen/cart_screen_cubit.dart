@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/objects/cart_item.dart';
 import '../../../data/database/database.dart';
 import '../../../data/firebase/firebase.dart';
