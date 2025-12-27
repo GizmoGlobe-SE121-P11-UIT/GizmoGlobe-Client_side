@@ -11,6 +11,7 @@ class OrderDetailBody extends StatelessWidget {
   final bool showCloseButton;
   final VoidCallback? onClose;
   final Future<void> Function()? onDownloadInvoice;
+  final VoidCallback? onCancel;
 
   const OrderDetailBody({
     super.key,
@@ -18,6 +19,7 @@ class OrderDetailBody extends StatelessWidget {
     this.showCloseButton = true,
     this.onClose,
     this.onDownloadInvoice,
+    this.onCancel,
   });
 
   @override
@@ -27,6 +29,8 @@ class OrderDetailBody extends StatelessWidget {
         .languageCode
         .toLowerCase()
         .startsWith('vi');
+    final canCancel = invoice.salesStatus == SalesStatus.pending ||
+        invoice.salesStatus == SalesStatus.preparing;
 
     return SingleChildScrollView(
       child: Column(
@@ -114,6 +118,19 @@ class OrderDetailBody extends StatelessWidget {
             value:
                 invoice.salesStatus.getLocalizedDescription(isVietnameseLocale),
           ),
+          const SizedBox(height: 16),
+          if (onCancel != null && canCancel)
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.tonal(
+                style: FilledButton.styleFrom(
+                  foregroundColor: colorScheme.onErrorContainer,
+                  backgroundColor: colorScheme.errorContainer,
+                ),
+                onPressed: onCancel,
+                child: Text(S.of(context).cancel),
+              ),
+            ),
         ],
       ),
     );
@@ -240,6 +257,7 @@ class OrderStatusChip extends StatelessWidget {
         statusColor = colorScheme.primary;
         break;
       case SalesStatus.completed:
+      case SalesStatus.received:
         statusColor = colorScheme.secondaryContainer;
         break;
       default:

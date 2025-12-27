@@ -10,6 +10,9 @@ import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_cubit.d
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.dart';
 import 'package:gizmoglobe_client/widgets/order/sales_invoice_widget.dart';
 import 'package:gizmoglobe_client/screens/user/order_detail_screen/order_detail_webview.dart';
+import 'package:gizmoglobe_client/screens/user/order_screen/rating_order/rate_order_webview.dart';
+import 'package:gizmoglobe_client/objects/invoice_related/rating.dart';
+import 'package:gizmoglobe_client/data/database/database.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import 'package:gizmoglobe_client/services/platform_actions.dart'
     as platform_actions;
@@ -32,8 +35,11 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
     with SingleTickerProviderStateMixin {
   OrderScreenCubit get cubit => context.read<OrderScreenCubit>();
   late TabController _tabController;
+  bool _initialSynced = false;
+  List<Rating> _userRatings = [];
 
   void _handleTabChange() {
+    if (!_initialSynced) return;
     if (_tabController.indexIsChanging) return;
     final selectedOption = OrderOption.values[_tabController.index];
     cubit.initialize(selectedOption);
@@ -45,7 +51,12 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
     super.initState();
 
     // Determine initial tab from URL if available
-    final initialTabIndex = widget.initialTab?.index ?? _getInitialTabFromUrl();
+    final rawInitialTabIndex =
+        widget.initialTab?.index ?? _getInitialTabFromUrl();
+    final initialTabIndex = rawInitialTabIndex.clamp(
+      0,
+      OrderOption.values.length - 1,
+    );
     _tabController = TabController(
       length: OrderOption.values.length,
       vsync: this,
@@ -55,26 +66,51 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
     // Add listener to update URL when tab changes
     _tabController.addListener(_handleTabChange);
 
-    // Initialize with the selected tab
-    final initialOption =
-        widget.initialTab ?? OrderOption.values[initialTabIndex];
-    cubit.initialize(initialOption);
+    // Re-sync once after first frame in case the hash/path arrives slightly later
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final syncedIndex = _getInitialTabFromUrl().clamp(
+        0,
+        OrderOption.values.length - 1,
+      );
+      if (_tabController.index != syncedIndex) {
+        _tabController.index = syncedIndex;
+      }
+      cubit.initialize(OrderOption.values[syncedIndex]);
+      _updateUrlForTab(syncedIndex);
+      _loadUserRatings();
+      setState(() {
+        _initialSynced = true;
+      });
+    });
   }
 
   int _getInitialTabFromUrl() {
     if (!kIsWeb) return OrderOption.toShip.index;
 
-    final hashPath = platform_actions.getHashPath();
-    if (hashPath.isEmpty) return OrderOption.toShip.index;
-
-    // Check for hash-based URL patterns like /orders/to-ship
-    if (hashPath.contains('/orders/to-ship')) {
-      return OrderOption.toShip.index;
-    } else if (hashPath.contains('/orders/to-receive')) {
-      return OrderOption.toReceive.index;
-    } else if (hashPath.contains('/orders/completed')) {
-      return OrderOption.completed.index;
+    // Inspect query, hash, and path to determine initial tab on first load
+    final uri = Uri.base;
+    final tabParam = uri.queryParameters['tab']?.toLowerCase();
+    if (tabParam != null) {
+      if (tabParam.contains('cancel')) return OrderOption.cancelled.index;
+      if (tabParam.contains('complete')) return OrderOption.completed.index;
+      if (tabParam.contains('receive')) return OrderOption.toReceive.index;
+      if (tabParam.contains('ship')) return OrderOption.toShip.index;
+      final parsed = int.tryParse(tabParam);
+      if (parsed != null && parsed >= 0 && parsed < OrderOption.values.length) {
+        return parsed;
+      }
     }
+
+    final hashPath = platform_actions.getHashPath().toLowerCase();
+    final fragment = uri.fragment.toLowerCase();
+    final path = uri.path.toLowerCase();
+    final combined =
+        '$path$fragment$hashPath'.replaceAll('_', '-').replaceAll('//', '/');
+
+    if (combined.contains('cancel')) return OrderOption.cancelled.index;
+    if (combined.contains('complete')) return OrderOption.completed.index;
+    if (combined.contains('receive')) return OrderOption.toReceive.index;
+    if (combined.contains('ship')) return OrderOption.toShip.index;
 
     return OrderOption.toShip.index;
   }
@@ -94,10 +130,13 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
       case OrderOption.completed:
         tabName = 'completed';
         break;
+      case OrderOption.cancelled:
+        tabName = 'cancelled';
+        break;
     }
 
     final newUrl = '/orders/$tabName';
-    platform_actions.setHashUrl(newUrl);
+    platform_actions.replaceHashUrl(newUrl);
   }
 
   @override
@@ -115,6 +154,8 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
         return S.of(context).toReceive;
       case OrderOption.completed:
         return S.of(context).completed;
+      case OrderOption.cancelled:
+        return S.of(context).cancelled;
     }
   }
 
@@ -286,6 +327,10 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
                   state.completedList,
                   S.of(context).noCompletedOrders,
                 ),
+                _buildTabContent(
+                  state.cancelledList,
+                  S.of(context).noCancelledOrders,
+                ),
               ],
             ),
           ),
@@ -342,10 +387,30 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
           padding: const EdgeInsets.only(bottom: 16),
           child: SalesInvoiceWidget(
             salesInvoice: salesInvoice,
+            userRatings: _userRatings,
             onTap: () => OrderDetailWebView.show(
               context,
               salesInvoice: salesInvoice,
             ),
+            onRate: (String productId) async {
+              final invoiceId = salesInvoice.salesInvoiceID ?? '';
+              final result = await RateOrderWebView.show(
+                context: context,
+                invoiceId: invoiceId,
+                productId: productId,
+              );
+
+              if (!mounted) return;
+
+              if (result == true) {
+                await _loadUserRatings();
+                await cubit.completeInvoiceIfAllProductsRated(
+                  salesInvoice,
+                  _userRatings,
+                );
+                cubit.initialize(OrderOption.values[_tabController.index]);
+              }
+            },
             onPressed: () async {
               if (enableConfirmDelivery &&
                   salesInvoice.salesStatus == SalesStatus.shipped) {
@@ -356,5 +421,18 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
         );
       },
     );
+  }
+
+  Future<void> _loadUserRatings() async {
+    try {
+      final userId = Database().userID.isEmpty
+          ? (await Database().getCurrentUserID() ?? '')
+          : Database().userID;
+      await Database().getRating();
+      final ratings = userId.isEmpty ? <Rating>[] : Database().ratingList;
+      if (mounted) setState(() => _userRatings = ratings);
+    } catch (e) {
+      if (kDebugMode) print('Error loading user ratings: $e');
+    }
   }
 }

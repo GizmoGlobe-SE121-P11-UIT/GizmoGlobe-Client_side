@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/objects/product_related/product_image.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/screens/cart/cart_screen/cart_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
-import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_webview.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
@@ -34,6 +36,49 @@ class _WebProductCardState extends State<WebProductCard> {
   bool isHovered = false;
   bool _isAddHovered = false;
   final WebGuestService _webGuestService = WebGuestService();
+  Future<ProductImage?>? _imageFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product.productID != null) {
+      _imageFuture =
+          Firebase().getProductPrimaryImage(widget.product.productID!);
+      _fetchAggregatedRating();
+    }
+  }
+
+  Future<void> _fetchAggregatedRating() async {
+    if (widget.product.productID == null) return;
+
+    try {
+      final aggregated = await Firebase()
+          .getAggregatedProductRating(widget.product.productID!);
+
+      if (aggregated != null && mounted) {
+        final avgRating = (aggregated['avgRating'] as num?)?.toDouble() ?? 0.0;
+        final ratingCount = (aggregated['ratingCount'] as num?)?.toInt() ?? 0;
+        widget.product.setAggregatedRating(avgRating, ratingCount);
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      // Silently fail - will show 0.0 rating
+    }
+  }
+
+  @override
+  void didUpdateWidget(WebProductCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Refresh image future if product changed
+    if (oldWidget.product.productID != widget.product.productID) {
+      if (widget.product.productID != null) {
+        _imageFuture =
+            Firebase().getProductPrimaryImage(widget.product.productID!);
+      } else {
+        _imageFuture = null;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,15 +96,21 @@ class _WebProductCardState extends State<WebProductCard> {
             borderRadius: BorderRadius.circular(12),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => kIsWeb
-                        ? ProductDetailScreenWebView.newInstance(widget.product)
-                        : ProductDetailScreen.newInstance(widget.product),
-                  ),
-                );
+              onTap: () async {
+                final productId = widget.product.productID;
+                if (kIsWeb && productId != null) {
+                  // On web, use pushNamed for proper URL/history integration
+                  await Navigator.of(context).pushNamed('/products/$productId');
+                } else {
+                  // On mobile, use traditional navigation
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ProductDetailScreen.newInstance(widget.product),
+                    ),
+                  );
+                }
               },
               borderRadius: BorderRadius.circular(12),
               child: AnimatedContainer(
@@ -101,21 +152,15 @@ class _WebProductCardState extends State<WebProductCard> {
                           child: Stack(
                             children: [
                               Center(
-                                child: widget.product.imageUrl != null &&
-                                        widget.product.imageUrl!.isNotEmpty
-                                    ? ClipRRect(
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          topRight: Radius.circular(12),
-                                        ),
-                                        child: Image.network(
-                                          widget.product.imageUrl!,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          height: double.infinity,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                            // Fallback to category icon if image fails to load
+                                child: _imageFuture != null
+                                    ? FutureBuilder<ProductImage?>(
+                                        future: _imageFuture,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                                  ConnectionState.waiting ||
+                                              !snapshot.hasData ||
+                                              snapshot.data == null ||
+                                              snapshot.data!.url.isEmpty) {
                                             return Center(
                                               child: Icon(
                                                 _getCategoryIcon(
@@ -126,8 +171,53 @@ class _WebProductCardState extends State<WebProductCard> {
                                                 size: 96,
                                               ),
                                             );
-                                          },
-                                        ),
+                                          }
+                                          return ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                              topLeft: Radius.circular(12),
+                                              topRight: Radius.circular(12),
+                                            ),
+                                            child: CachedNetworkImage(
+                                              key: ValueKey(
+                                                  'product_image_${widget.product.productID}'),
+                                              imageUrl: snapshot.data!.url,
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              placeholder: (context, url) =>
+                                                  Container(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .surfaceContainerHighest
+                                                    .withValues(alpha: 0.3),
+                                                child: Center(
+                                                  child: Icon(
+                                                    _getCategoryIcon(widget
+                                                        .product.category),
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                        .withValues(alpha: 0.3),
+                                                    size: 48,
+                                                  ),
+                                                ),
+                                              ),
+                                              errorWidget:
+                                                  (context, url, error) =>
+                                                      Center(
+                                                child: Icon(
+                                                  _getCategoryIcon(
+                                                      widget.product.category),
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                                  size: 96,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
                                       )
                                     : Center(
                                         child: Icon(
@@ -261,33 +351,7 @@ class _WebProductCardState extends State<WebProductCard> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(Icons.star,
-                                  color: Color(0xFFFBBF24), size: 14),
-                              const SizedBox(width: 3),
-                              Text(
-                                '0.0',
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                '(0)',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withOpacity(0.5),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
+                          _buildRatingSection(context),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -427,6 +491,43 @@ class _WebProductCardState extends State<WebProductCard> {
         ),
       );
     }
+  }
+
+  Widget _buildRatingSection(BuildContext context) {
+    final double? rating = widget.product.rating;
+    final int? ratingCount = widget.product.ratingCount;
+    final String ratingText =
+        (rating != null && rating > 0) ? rating.toStringAsFixed(1) : '0.0';
+    final String countText = '(${ratingCount ?? 0})';
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(
+          Icons.star,
+          color: Colors.amber,
+          size: 14,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          ratingText,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          countText,
+          style: TextStyle(
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
   }
 
   IconData _getCategoryIcon(CategoryEnum category) {

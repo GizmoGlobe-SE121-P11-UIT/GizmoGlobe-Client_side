@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
+import '../../data/firebase/firebase.dart';
 import '../../enums/product_related/category_enum.dart';
 import '../../functions/helper.dart';
+import '../../objects/product_related/product_image.dart';
 import 'favorites/favorites_cubit.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback? onTap;
 
@@ -17,11 +20,42 @@ class ProductCard extends StatelessWidget {
   });
 
   @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product.productID != null) {
+      _fetchAggregatedRating();
+    }
+  }
+
+  Future<void> _fetchAggregatedRating() async {
+    if (widget.product.productID == null) return;
+
+    try {
+      final aggregated = await Firebase()
+          .getAggregatedProductRating(widget.product.productID!);
+
+      if (aggregated != null && mounted) {
+        final avgRating = (aggregated['avgRating'] as num?)?.toDouble() ?? 0.0;
+        final ratingCount = (aggregated['ratingCount'] as num?)?.toInt() ?? 0;
+        widget.product.setAggregatedRating(avgRating, ratingCount);
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      // Silently fail - will show 0.0 rating
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<FavoritesCubit, Set<String>>(
       builder: (context, favorites) {
-        final isFavorite =
-            product.productID != null && favorites.contains(product.productID);
+        final isFavorite = widget.product.productID != null &&
+            favorites.contains(widget.product.productID);
 
         return Card(
           elevation: 4,
@@ -37,40 +71,86 @@ class ProductCard extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          ProductDetailScreen.newInstance(product),
+                          ProductDetailScreen.newInstance(widget.product),
                     ),
                   );
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    // gradient: LinearGradient(
-                    //   begin: Alignment.topCenter,
-                    //   end: Alignment.bottomCenter,
-                    //   colors: [
-                    //     Colors.grey[100]!,
-                    //     Colors.grey[100]!,
-                    //   ],
-                    // ),
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Container(
-                          color: Colors.grey[300],
-                          child: Center(
-                            child: Icon(
-                              _getCategoryIcon(),
-                              size: 36,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        color: Theme.of(context).colorScheme.surface,
+                        child: widget.product.productID != null
+                            ? FutureBuilder<ProductImage?>(
+                                future: Firebase().getProductPrimaryImage(
+                                    widget.product.productID!),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.waiting ||
+                                      !snapshot.hasData ||
+                                      snapshot.data == null ||
+                                      snapshot.data!.url.isEmpty) {
+                                    return Container(
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
+                                      child: Center(
+                                        child: Icon(
+                                          _getCategoryIcon(),
+                                          size: 36,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return CachedNetworkImage(
+                                    imageUrl: snapshot.data!.url,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    placeholder: (context, url) => Container(
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
+                                      child: Center(
+                                        child: Icon(
+                                          _getCategoryIcon(),
+                                          size: 36,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) =>
+                                        Container(
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
+                                      child: Center(
+                                        child: Icon(
+                                          _getCategoryIcon(),
+                                          size: 36,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              )
+                            : Container(
+                                color: Theme.of(context).colorScheme.surface,
+                                child: Center(
+                                  child: Icon(
+                                    _getCategoryIcon(),
+                                    size: 36,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ),
                       ),
-                      Expanded(
-                        flex: 2,
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        color: Theme.of(context).colorScheme.primary,
                         child: Padding(
                           padding: const EdgeInsets.all(6.0),
                           child: Column(
@@ -79,7 +159,7 @@ class ProductCard extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  product.productName,
+                                  widget.product.productName,
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -99,10 +179,10 @@ class ProductCard extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       const SizedBox(height: 2),
-                                      if (product.discount > 0) ...[
+                                      if (widget.product.discount > 0) ...[
                                         Text(
                                           Helper.toCurrencyFormat(
-                                              product.price),
+                                              widget.product.price),
                                           style: TextStyle(
                                             decoration:
                                                 TextDecoration.lineThrough,
@@ -122,7 +202,7 @@ class ProductCard extends StatelessWidget {
                                       ],
                                       Text(
                                         Helper.toCurrencyFormat(
-                                            product.discountedPrice),
+                                            widget.product.discountedPrice),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Theme.of(context).brightness ==
@@ -138,39 +218,48 @@ class ProductCard extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  product.discount > 0
-                                      ? Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .error,
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                          ),
-                                          child: Text(
-                                            '-${product.discount.toStringAsFixed(0)}%',
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onError,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        )
-                                      : const SizedBox(),
+                                  Column(
+                                    children: [
+                                      _buildRatingSection(),
+                                      SizedBox(
+                                        height: 4,
+                                      ),
+                                      widget.product.discount > 0
+                                          ? Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 6,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .error,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '-${widget.product.discount.toStringAsFixed(0)}%',
+                                                style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onError,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            )
+                                          : const SizedBox(),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ],
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               Positioned(
@@ -182,9 +271,9 @@ class ProductCard extends StatelessWidget {
                     color: isFavorite ? Colors.red[400] : Colors.grey,
                   ),
                   onPressed: () {
-                    if (product.productID != null) {
+                    if (widget.product.productID != null) {
                       context.read<FavoritesCubit>().toggleFavorite(
-                            product.productID!,
+                            widget.product.productID!,
                           );
                     }
                   },
@@ -197,8 +286,48 @@ class ProductCard extends StatelessWidget {
     );
   }
 
+  Widget _buildRatingSection() {
+    final double? rating = widget.product.rating;
+    final int? ratingCount = widget.product.ratingCount;
+    final String ratingText =
+        (rating != null && rating > 0) ? rating.toStringAsFixed(1) : '0.0';
+    final String countText = '(${ratingCount ?? 0})';
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 2.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.star,
+            color: Colors.amber,
+            size: 14,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            ratingText,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            countText,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimary,
+              fontWeight: FontWeight.w400,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   IconData _getCategoryIcon() {
-    switch (product.category) {
+    switch (widget.product.category) {
       case CategoryEnum.ram:
         return Icons.memory;
       case CategoryEnum.cpu:

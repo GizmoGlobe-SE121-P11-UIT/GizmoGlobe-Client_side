@@ -111,11 +111,11 @@ class AIConversationService {
           }
         });
 
-        // Sort by timestamp
+        // Sort DESCENDING (newest first)
         messages.sort((a, b) =>
-            (a['timestamp'] as DateTime).compareTo(b['timestamp'] as DateTime));
+            (b['timestamp'] as DateTime).compareTo(a['timestamp'] as DateTime));
 
-        // Keep only recent messages and normalize them
+        // Then take first 10 = newest 10
         final recentMessages = messages.take(_maxHistoryLength).toList();
 
         _conversationHistory[userId] = _normalizeHistory(recentMessages);
@@ -265,10 +265,12 @@ class AIConversationService {
     contextBuilder.writeln('CONVERSATION CONTEXT:');
     contextBuilder.writeln('==============================================');
 
-    // Include last 3-5 interactions depending on context need
-    final contextLength = includeDetailedContext ? 5 : 3;
-    final recentHistory =
-        history.take(contextLength).toList().reversed.toList();
+    // Include last 5-10 interactions depending on context need
+    final contextLength = includeDetailedContext ? 10 : 5;
+    // Take the LAST N messages (most recent), then reverse so newest is first
+    final startIndex =
+        history.length > contextLength ? history.length - contextLength : 0;
+    final recentHistory = history.sublist(startIndex).reversed.toList();
 
     for (int i = 0; i < recentHistory.length; i++) {
       final interaction = recentHistory[i];

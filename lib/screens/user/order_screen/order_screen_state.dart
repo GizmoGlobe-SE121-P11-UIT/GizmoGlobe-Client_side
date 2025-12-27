@@ -8,6 +8,7 @@ class OrderScreenState extends Equatable {
   final List<SalesInvoice> toShipList;
   final List<SalesInvoice> toReceiveList;
   final List<SalesInvoice> completedList;
+  final List<SalesInvoice> cancelledList;
   final ProcessState processState;
 
   const OrderScreenState({
@@ -15,23 +16,26 @@ class OrderScreenState extends Equatable {
     this.toShipList = const [],
     this.toReceiveList = const [],
     this.completedList = const [],
+    this.cancelledList = const [],
     this.processState = ProcessState.idle,
   });
 
   @override
   List<Object?> get props => [
-    orderOption,
-    toShipList,
-    toReceiveList,
-    completedList,
-    processState,
-  ];
+        orderOption,
+        toShipList,
+        toReceiveList,
+        completedList,
+        cancelledList,
+        processState,
+      ];
 
   OrderScreenState copyWith({
     OrderOption? orderOption,
     List<SalesInvoice>? toShipList,
     List<SalesInvoice>? toReceiveList,
     List<SalesInvoice>? completedList,
+    List<SalesInvoice>? cancelledList,
     ProcessState? processState,
   }) {
     return OrderScreenState(
@@ -39,6 +43,7 @@ class OrderScreenState extends Equatable {
       toShipList: toShipList ?? this.toShipList,
       toReceiveList: toReceiveList ?? this.toReceiveList,
       completedList: completedList ?? this.completedList,
+      cancelledList: cancelledList ?? this.cancelledList,
       processState: processState ?? this.processState,
     );
   }

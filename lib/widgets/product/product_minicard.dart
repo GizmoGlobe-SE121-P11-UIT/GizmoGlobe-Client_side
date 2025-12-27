@@ -6,7 +6,6 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/main.dart' show rootNavigatorKey;
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_view.dart';
-import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_webview.dart';
 
 class ProductMiniCard extends StatelessWidget {
   final Map<String, dynamic> cardData;
@@ -56,13 +55,16 @@ class ProductMiniCard extends StatelessWidget {
       return;
     }
 
-    await navigator.push(
-      MaterialPageRoute(
-        builder: (_) => kIsWeb
-            ? ProductDetailScreenWebView.newInstance(product)
-            : ProductDetailScreen.newInstance(product),
-      ),
-    );
+    final productId = product.productID;
+    if (kIsWeb && productId != null) {
+      await navigator.pushNamed('/products/$productId');
+    } else {
+      await navigator.push(
+        MaterialPageRoute(
+          builder: (_) => ProductDetailScreen.newInstance(product),
+        ),
+      );
+    }
   }
 
   IconData _getCategoryIcon() {
@@ -135,7 +137,7 @@ class ProductMiniCard extends StatelessWidget {
               height: 72,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: colorScheme.surfaceVariant,
+                color: colorScheme.surfaceContainerHighest,
               ),
               child: Icon(
                 _getCategoryIcon(),

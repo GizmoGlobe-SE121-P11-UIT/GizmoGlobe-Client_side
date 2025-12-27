@@ -86,7 +86,73 @@ class AICartService {
     final finalPrice = price * (1 - discount.toDouble() / 100);
 
     return isVietnamese
-        ? '✅ Đã thêm $quantity ${quantity > 1 ? 'sản phẩm' : 'sản phẩm'} "$productDisplayName" vào giỏ hàng thành công!\n\n💰 Giá: ${Helper.toCurrencyFormat(finalPrice)}\n📦 Số lượng: $quantity\n💵 Tổng: ${Helper.toCurrencyFormat(finalPrice * quantity)}\n\nBạn có thể xem giỏ hàng của mình trong ứng dụng.'
-        : '✅ Successfully added $quantity ${quantity > 1 ? 'items' : 'item'} of "$productDisplayName" to your cart!\n\n💰 Price: ${Helper.toCurrencyFormat(finalPrice)}\n📦 Quantity: $quantity\n💵 Total: ${Helper.toCurrencyFormat(finalPrice * quantity)}\n\nYou can view your cart in the app.';
+        ? 'Đã thêm $quantity ${quantity > 1 ? 'sản phẩm' : 'sản phẩm'} "$productDisplayName" vào giỏ hàng thành công!\n\nGiá: ${Helper.toCurrencyFormat(finalPrice)}\nSố lượng: $quantity\nTổng: ${Helper.toCurrencyFormat(finalPrice * quantity)}\n\nBạn có thể xem giỏ hàng của mình trong ứng dụng.'
+        : 'Successfully added $quantity ${quantity > 1 ? 'items' : 'item'} of "$productDisplayName" to your cart!\n\nPrice: ${Helper.toCurrencyFormat(finalPrice)}\nQuantity: $quantity\nTotal: ${Helper.toCurrencyFormat(finalPrice * quantity)}\n\nYou can view your cart in the app.';
+  }
+
+  /// Add product to favorites/wishlist
+  Future<bool> addProductToFavorites(String userId, String productID) async {
+    try {
+      // Check if user document exists
+      final userDoc =
+          await _firestore.collection('customers').doc(userId).get();
+      if (!userDoc.exists) {
+        await _firestore.collection('customers').doc(userId).set({
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Get product information to verify it exists
+      final productDoc =
+          await _firestore.collection('products').doc(productID).get();
+      if (!productDoc.exists) {
+        if (kDebugMode) {
+          print('Product not found: $productID');
+        }
+        return false;
+      }
+
+      // Reference to favorites item
+      final favoriteRef = _firestore
+          .collection('customers')
+          .doc(userId)
+          .collection('favorites')
+          .doc(productID);
+
+      // Check if item already exists in favorites
+      final favoriteDoc = await favoriteRef.get();
+
+      if (!favoriteDoc.exists) {
+        await favoriteRef.set({
+          'productID': productID,
+          'addedAt': FieldValue.serverTimestamp(),
+        });
+        return true;
+      } else {
+        // Already in favorites
+        if (kDebugMode) {
+          print('Product already in favorites: $productID');
+        }
+        return true; // Still return true since it's in favorites
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error adding product to favorites: $e');
+      }
+      return false;
+    }
+  }
+
+  /// Get add to favorites success response
+  String getAddToFavoritesSuccessResponse(
+      Map<String, dynamic> product, bool isVietnamese) {
+    final productDisplayName = product['productName'] ?? 'Unknown Product';
+    final price = (product['sellingPrice'] ?? 0.0) as num;
+    final discount = (product['discount'] ?? 0.0) as num;
+    final finalPrice = price * (1 - discount.toDouble() / 100);
+
+    return isVietnamese
+        ? 'Đã thêm "$productDisplayName" vào danh sách yêu thích!\n\nGiá: ${Helper.toCurrencyFormat(finalPrice)}\n\nBạn có thể xem danh sách yêu thích trong ứng dụng.'
+        : 'Successfully added "$productDisplayName" to your favorites!\n\nPrice: ${Helper.toCurrencyFormat(finalPrice)}\n\nYou can view your favorites in the app.';
   }
 }

@@ -6,6 +6,16 @@ import 'package:flutter_profanity_words_checker/flutter_profanity_words_checker.
     as profanity;
 import 'package:google_generative_ai/google_generative_ai.dart';
 
+import 'custom_bad_words.dart';
+
+/// Sentiment of a comment
+enum CommentSentiment {
+  positive,
+  neutral,
+  negative,
+  mixed,
+}
+
 /// Represents the result of running a comment through the moderation pipeline.
 class CommentModerationResult {
   CommentModerationResult({
@@ -16,6 +26,9 @@ class CommentModerationResult {
     required this.shouldBlock,
     required this.reason,
     required this.source,
+    this.sentiment,
+    this.sentimentScore,
+    this.sentimentExplanation,
   });
 
   final String originalText;
@@ -26,8 +39,27 @@ class CommentModerationResult {
   final String reason;
   final String source;
 
+  // Sentiment analysis fields
+  final CommentSentiment? sentiment;
+  final double? sentimentScore; // -1.0 (very negative) to 1.0 (very positive)
+  final String? sentimentExplanation;
+
   bool get wasModified => originalText.trim() != sanitizedText.trim();
   bool get hasFlaggedTerms => flaggedTerms.isNotEmpty;
+  bool get hasSentimentAnalysis => sentiment != null;
+
+  /// Check if sentiment matches the given rating (1-5 stars)
+  bool isSentimentMismatch(int rating) {
+    if (sentiment == null) return false;
+
+    // High rating (4-5 stars) should have positive sentiment
+    if (rating >= 4 && sentiment == CommentSentiment.negative) return true;
+
+    // Low rating (1-2 stars) should have negative sentiment
+    if (rating <= 2 && sentiment == CommentSentiment.positive) return true;
+
+    return false;
+  }
 }
 
 class _DictionarySanitizationResult {
@@ -120,6 +152,25 @@ class CommentModerationService {
             ? 'dictionary_clean'
             : 'dictionary_violation');
 
+    // Extract sentiment analysis
+    CommentSentiment? sentiment;
+    double? sentimentScore;
+    String? sentimentExplanation;
+
+    if (aiInsights != null) {
+      final sentimentStr = aiInsights['sentiment'] as String?;
+      if (sentimentStr != null) {
+        sentiment = _parseSentiment(sentimentStr);
+      }
+
+      final scoreValue = aiInsights['sentiment_score'];
+      if (scoreValue is num) {
+        sentimentScore = scoreValue.toDouble().clamp(-1.0, 1.0);
+      }
+
+      sentimentExplanation = aiInsights['sentiment_explanation'] as String?;
+    }
+
     return CommentModerationResult(
       originalText: comment,
       sanitizedText: dictionaryResult.sanitizedText,
@@ -128,6 +179,9 @@ class CommentModerationService {
       shouldBlock: shouldBlock,
       reason: reason,
       source: aiInsights == null ? 'dictionary' : 'dictionary+gemini',
+      sentiment: sentiment,
+      sentimentScore: sentimentScore,
+      sentimentExplanation: sentimentExplanation,
     );
   }
 
@@ -155,6 +209,7 @@ class CommentModerationService {
       await _ensureDictionariesLoaded();
       final flagged = <String>{};
 
+      // Check package dictionaries
       for (final checker in [_englishChecker, _vietnameseChecker]) {
         try {
           flagged.addAll(checker.all(comment));
@@ -165,6 +220,10 @@ class CommentModerationService {
           }
         }
       }
+
+      // Check custom bad words
+      final customBadWordsFound = CustomBadWords.findBadWords(comment);
+      flagged.addAll(customBadWordsFound);
 
       var sanitizedText = comment;
       for (final word in flagged) {
@@ -217,21 +276,34 @@ class CommentModerationService {
   }
 
   String _buildAnalysisPrompt(String comment, String? userId) => '''
-You are a safety reviewer for an e-commerce community. ONLY inspect the text and never rewrite or censor it.
-- Detect harassment, hate, sexual content, threats, scams, or extreme negativity.
-- Consider both English and Vietnamese language variations.
-- You MUST respond with strictly valid JSON and nothing else.
+You are a safety and sentiment reviewer for an e-commerce product review system. ONLY inspect the text and never rewrite or censor it.
+
+Tasks:
+1. **Safety Check**: Detect harassment, hate, sexual content, threats, scams, or extreme negativity.
+2. **Sentiment Analysis**: Analyze the emotional tone and overall sentiment of the comment.
+3. Consider both English and Vietnamese language variations.
+
+You MUST respond with strictly valid JSON and nothing else.
 
 JSON schema:
 {
   "toxicity": <0.0-1.0>,
   "should_block": <true|false>,
-  "reason": "<short explanation>"
+  "reason": "<short explanation for blocking or not>",
+  "sentiment": "<positive|neutral|negative|mixed>",
+  "sentiment_score": <-1.0 to 1.0, where -1.0 is very negative, 0 is neutral, 1.0 is very positive>,
+  "sentiment_explanation": "<brief explanation of the sentiment>"
 }
+
+Guidelines for sentiment:
+- "positive": Comment expresses satisfaction, praise, or positive experience
+- "negative": Comment expresses dissatisfaction, criticism, or negative experience  
+- "neutral": Comment is factual without strong emotion either way
+- "mixed": Comment contains both positive and negative sentiments
 
 User info (optional): ${userId ?? 'anonymous'}
 Comment to review (read-only):
-\"\"\"$comment\"\"\"
+"""$comment"""
 ''';
 
   Map<String, dynamic>? _parseGeminiPayload(String? raw) {
@@ -269,5 +341,20 @@ Comment to review (read-only):
     if (count == 2) return 0.55;
     if (count == 3) return 0.75;
     return 0.9;
+  }
+
+  CommentSentiment _parseSentiment(String sentimentStr) {
+    final normalized = sentimentStr.toLowerCase().trim();
+    switch (normalized) {
+      case 'positive':
+        return CommentSentiment.positive;
+      case 'negative':
+        return CommentSentiment.negative;
+      case 'mixed':
+        return CommentSentiment.mixed;
+      case 'neutral':
+      default:
+        return CommentSentiment.neutral;
+    }
   }
 }

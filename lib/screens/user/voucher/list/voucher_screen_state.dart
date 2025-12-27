@@ -7,6 +7,8 @@ class VoucherScreenState extends Equatable {
   final List<Voucher> voucherList;
   final List<Voucher> ongoingList;
   final List<Voucher> upcomingList;
+  final List<Voucher> redeemableList;
+  final int points;
   final ProcessState processState;
   final DialogName dialogName;
   final String dialogMessage;
@@ -15,6 +17,8 @@ class VoucherScreenState extends Equatable {
     this.voucherList = const [],
     this.ongoingList = const [],
     this.upcomingList = const [],
+    this.redeemableList = const [],
+    this.points = 0,
     this.processState = ProcessState.idle,
     this.dialogName = DialogName.empty,
     this.dialogMessage = '',
@@ -25,6 +29,8 @@ class VoucherScreenState extends Equatable {
     voucherList,
     ongoingList,
     upcomingList,
+    redeemableList,
+    points,
     processState,
     dialogName,
     dialogMessage,
@@ -34,7 +40,8 @@ class VoucherScreenState extends Equatable {
     List<Voucher>? voucherList,
     List<Voucher>? ongoingList,
     List<Voucher>? upcomingList,
-    List<Voucher>? inactiveList,
+    List<Voucher>? redeemableList,
+    int? points,
     ProcessState? processState,
     DialogName? dialogName,
     String? dialogMessage,
@@ -43,6 +50,8 @@ class VoucherScreenState extends Equatable {
       voucherList: voucherList ?? this.voucherList,
       ongoingList: ongoingList ?? this.ongoingList,
       upcomingList: upcomingList ?? this.upcomingList,
+      redeemableList: redeemableList ?? this.redeemableList,
+      points: points ?? this.points,
       processState: processState ?? this.processState,
       dialogName: dialogName ?? this.dialogName,
       dialogMessage: dialogMessage ?? this.dialogMessage,

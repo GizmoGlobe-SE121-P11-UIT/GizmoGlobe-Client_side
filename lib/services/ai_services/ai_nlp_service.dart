@@ -19,7 +19,7 @@ class AINLPService {
       String userQuery, bool isVietnamese) async {
     try {
       final prompt = _createAnalysisPrompt(userQuery, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       if (kDebugMode) {
         print('NLP Analysis Response: $response');
@@ -39,7 +39,7 @@ class AINLPService {
       String productName, bool isVietnamese) async {
     try {
       final prompt = _createSynonymsPrompt(productName, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       return _parseSynonymsResponse(response);
     } catch (e) {
@@ -55,7 +55,7 @@ class AINLPService {
       String colloquialTerm, bool isVietnamese) async {
     try {
       final prompt = _createMappingPrompt(colloquialTerm, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       return _parseMappingResponse(response);
     } catch (e) {
@@ -72,7 +72,7 @@ class AINLPService {
     try {
       final prompt =
           _createFeatureExtractionPrompt(userDescription, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       return _parseFeatureResponse(response);
     } catch (e) {
@@ -89,7 +89,7 @@ class AINLPService {
       String text, bool isVietnamese) async {
     try {
       final prompt = _createProductNameExtractionPrompt(text, isVietnamese);
-      final response = await _callGeminiAPI(prompt);
+      final response = await callGeminiAPI(prompt);
 
       if (kDebugMode) {
         print('NLP Product Name Extraction Response: $response');
@@ -101,6 +101,28 @@ class AINLPService {
         print('Error in NLP product name extraction: $e');
       }
       return null;
+    }
+  }
+
+  /// Extract multiple product names from text using NLP
+  /// This is more flexible than regex and can handle various formats
+  Future<List<String>> extractProductNamesFromText(
+      String text, bool isVietnamese) async {
+    try {
+      final prompt =
+          _createMultipleProductNamesExtractionPrompt(text, isVietnamese);
+      final response = await callGeminiAPI(prompt);
+
+      if (kDebugMode) {
+        print('NLP Multiple Product Names Extraction Response: $response');
+      }
+
+      return _parseMultipleProductNamesResponse(response);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in NLP multiple product names extraction: $e');
+      }
+      return [];
     }
   }
 
@@ -259,7 +281,7 @@ Respond in JSON format:
 ''';
   }
 
-  Future<String> _callGeminiAPI(String prompt) async {
+  Future<String> callGeminiAPI(String prompt) async {
     final apiKey = dotenv.env['GEMINI_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
       throw Exception('GEMINI_API_KEY not found in .env file');
@@ -322,8 +344,10 @@ Respond in JSON format:
               final parts = content['parts'] as List;
               if (parts.isNotEmpty) {
                 if (useFallback && kDebugMode) {
-                  print(
-                      'NLP Service: Successfully used fallback model: $model');
+                  if (kDebugMode) {
+                    print(
+                        'NLP Service: Successfully used fallback model: $model');
+                  }
                 }
                 return parts[0]['text'] as String;
               }
@@ -538,6 +562,141 @@ Product name:
       }
       return null;
     }
+  }
+
+  String _createMultipleProductNamesExtractionPrompt(
+      String text, bool isVietnamese) {
+    return isVietnamese
+        ? '''
+Bạn là chuyên gia về phần cứng máy tính. Hãy trích xuất TẤT CẢ các tên sản phẩm và thương hiệu được đề cập trong đoạn văn bản sau.
+
+Văn bản: "$text"
+
+Hãy trả lời theo định dạng JSON sau:
+{
+  "product_names": ["tên sản phẩm 1", "tên sản phẩm 2", ...],
+  "brands": ["thương hiệu 1", "thương hiệu 2", ...]
+}
+
+Lưu ý:
+- Chỉ trích xuất các sản phẩm phần cứng máy tính thực sự được đề cập (CPU, GPU, RAM, SSD, HDD, PSU, Mainboard)
+- Trích xuất thương hiệu được đề cập rõ ràng (Intel, AMD, NVIDIA, Samsung, Kingston, Corsair, ASUS, MSI, Gigabyte)
+- Nếu không có sản phẩm nào, trả về mảng rỗng: {"product_names": [], "brands": []}
+- Tên sản phẩm phải chính xác và đầy đủ (ví dụ: "Intel Core i7-12700K" thay vì chỉ "i7")
+- Tối đa 3 sản phẩm và 3 thương hiệu
+
+Ví dụ:
+- "The Intel Core i7-12700K is a 12th Gen processor" -> {"product_names": ["Intel Core i7-12700K"], "brands": ["Intel"]}
+- "Bạn có thể tham khảo các mẫu CPU Intel sau: CPU Intel Core i7 12700K" -> {"product_names": ["CPU Intel Core i7 12700K"], "brands": ["Intel"]}
+- "I recommend RTX 4090 or RTX 4080" -> {"product_names": ["RTX 4090", "RTX 4080"], "brands": ["NVIDIA"]}
+- "This is a great CPU" -> {"product_names": [], "brands": []} (không có tên cụ thể)
+'''
+        : '''
+You are a computer hardware expert. Extract ALL product names and brands mentioned in the following text.
+
+Text: "$text"
+
+Respond in the following JSON format:
+{
+  "product_names": ["product name 1", "product name 2", ...],
+  "brands": ["brand 1", "brand 2", ...]
+}
+
+Notes:
+- Only extract actual computer hardware products mentioned (CPU, GPU, RAM, SSD, HDD, PSU, Mainboard)
+- Extract brands that are explicitly mentioned (Intel, AMD, NVIDIA, Samsung, Kingston, Corsair, ASUS, MSI, Gigabyte)
+- If no products are found, return empty array: {"product_names": [], "brands": []}
+- Product names must be accurate and complete (e.g., "Intel Core i7-12700K" instead of just "i7")
+- Maximum 3 products and 3 brands
+
+Examples:
+- "The Intel Core i7-12700K is a 12th Gen processor" -> {"product_names": ["Intel Core i7-12700K"], "brands": ["Intel"]}
+- "You can refer to the following Intel CPU models: CPU Intel Core i7 12700K" -> {"product_names": ["CPU Intel Core i7 12700K"], "brands": ["Intel"]}
+- "I recommend RTX 4090 or RTX 4080" -> {"product_names": ["RTX 4090", "RTX 4080"], "brands": ["NVIDIA"]}
+- "This is a great CPU" -> {"product_names": [], "brands": []} (no specific name)
+''';
+  }
+
+  List<String> _parseMultipleProductNamesResponse(String response) {
+    try {
+      // Extract JSON from response
+      final jsonMatch = RegExp(r'\{[\s\S]*\}').firstMatch(response);
+      if (jsonMatch != null) {
+        final jsonString = jsonMatch.group(0)!;
+        final data = jsonDecode(jsonString) as Map<String, dynamic>;
+        final productNames = data['product_names'] as List?;
+        if (productNames != null) {
+          return productNames
+              .cast<String>()
+              .where((name) => name.isNotEmpty && name.length > 2)
+              .take(3)
+              .toList();
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error parsing multiple product names response: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Extract product names and brands from text using NLP
+  /// Returns a map with 'product_names' and 'brands' lists
+  Future<Map<String, List<String>>> extractProductNamesAndBrands(
+      String text, bool isVietnamese) async {
+    try {
+      final prompt =
+          _createMultipleProductNamesExtractionPrompt(text, isVietnamese);
+      final response = await callGeminiAPI(prompt);
+
+      if (kDebugMode) {
+        print('NLP Product Names and Brands Extraction Response: $response');
+      }
+
+      return _parseProductNamesAndBrandsResponse(response);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in NLP product names and brands extraction: $e');
+      }
+      return {'product_names': [], 'brands': []};
+    }
+  }
+
+  Map<String, List<String>> _parseProductNamesAndBrandsResponse(
+      String response) {
+    try {
+      // Extract JSON from response
+      final jsonMatch = RegExp(r'\{[\s\S]*\}').firstMatch(response);
+      if (jsonMatch != null) {
+        final jsonString = jsonMatch.group(0)!;
+        final data = jsonDecode(jsonString) as Map<String, dynamic>;
+
+        final productNames = (data['product_names'] as List?)
+                ?.cast<String>()
+                .where((name) => name.isNotEmpty && name.length > 2)
+                .take(3)
+                .toList() ??
+            [];
+
+        final brands = (data['brands'] as List?)
+                ?.cast<String>()
+                .where((brand) => brand.isNotEmpty)
+                .take(3)
+                .toList() ??
+            [];
+
+        return {
+          'product_names': productNames,
+          'brands': brands,
+        };
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error parsing product names and brands response: $e');
+      }
+    }
+    return {'product_names': [], 'brands': []};
   }
 
   Map<String, dynamic> _getFallbackAnalysis(String userQuery) {

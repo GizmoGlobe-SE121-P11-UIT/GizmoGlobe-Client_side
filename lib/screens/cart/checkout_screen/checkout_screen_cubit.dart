@@ -72,7 +72,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         // Use the already-calculated discountedPrice from the product
         // discountedPrice is already in the correct unit (price after discount)
         // Don't round here - store exact values for accurate calculations
-        final sellingPrice = product.discountedPrice;
+        int sellingPrice = product.discountedPrice;
         final subtotal = sellingPrice * quantity;
 
         return SalesInvoiceDetail(
@@ -135,7 +135,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       // Use the already-calculated discountedPrice from the product
       // discountedPrice is already in the correct unit (price after discount)
       // Don't round here - store exact values for accurate calculations
-      final sellingPrice = product.discountedPrice;
+      int sellingPrice = product.discountedPrice;
       final subtotal = sellingPrice * quantity;
 
       return SalesInvoiceDetail(
@@ -593,8 +593,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
     double discount;
     if (voucher.isPercentage) {
-      final calculatedDiscount =
-          totalBeforeDiscount * (voucher.discountValue / 100);
+      double calculatedDiscount = (totalBeforeDiscount * (voucher.discountValue / 100));
       final percentageVoucher = voucher as PercentageInterface;
       discount =
           calculatedDiscount > percentageVoucher.maximumDiscountValue.toDouble()
@@ -605,8 +604,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
           ? totalBeforeDiscount
           : voucher.discountValue;
     }
-
-    // Don't round here - rounding will happen once at checkout
     return discount;
   }
 }

@@ -62,7 +62,7 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+              children: [
                 Text(
                   _getCategoryLabel(context, widget.category),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -76,38 +76,38 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
               ],
             ),
             const SizedBox(height: 24),
-          Expanded(
-            child: BlocBuilder<PartsPickerCubit, PartsPickerState>(
-              builder: (context, state) {
-                if (state.processState == ProcessState.loading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            Expanded(
+              child: BlocBuilder<PartsPickerCubit, PartsPickerState>(
+                builder: (context, state) {
+                  if (state.processState == ProcessState.loading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                if (state.products.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No products found',
-                      style: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.7),
+                  if (state.products.isEmpty) {
+                    return Center(
+                      child: Text(
+                        S.of(context).noProductsFound,
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
+                        ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }
 
                   return GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 0.75,
-                          ),
-                          itemCount: state.products.length,
-                          itemBuilder: (context, index) {
-                            final product = state.products[index];
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.75,
+                    ),
+                    itemCount: state.products.length,
+                    itemBuilder: (context, index) {
+                      final product = state.products[index];
                       final isSelected =
                           state.selectedProducts.contains(product);
                       return _SelectableProductCard(
@@ -170,14 +170,14 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                               child: const Text('Xác nhận'),
                             ),
                           ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
           ],
-          ),
+        ),
       ),
     );
   }

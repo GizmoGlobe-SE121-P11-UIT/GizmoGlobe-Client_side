@@ -1,20 +1,26 @@
+// dart
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/sales_invoice.dart';
 import 'package:gizmoglobe_client/widgets/order/invoice_details_widget.dart';
 import '../../enums/invoice_related/sales_status.dart';
 import '../../functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import '../../objects/invoice_related/rating.dart';
 
 class SalesInvoiceWidget extends StatelessWidget {
   final SalesInvoice salesInvoice;
   final VoidCallback onPressed;
   final VoidCallback? onTap;
+  final void Function(String productID)? onRate;
+  final List<Rating>? userRatings; // current user's ratings
 
   const SalesInvoiceWidget({
     super.key,
     required this.salesInvoice,
     required this.onPressed,
     this.onTap,
+    this.onRate,
+    this.userRatings,
   });
 
   @override
@@ -36,11 +42,66 @@ class SalesInvoiceWidget extends StatelessWidget {
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: salesInvoice.details
-                    .map(
-                      (detail) => InvoiceDetailsWidget(detail: detail),
-                    )
-                    .toList(),
+                children: salesInvoice.details.map((detail) {
+                  final productId = detail.product.productID ?? '';
+                  final alreadyRated =
+                      (userRatings ?? []).any((r) => r.productID == productId);
+                  final canRate =
+                      salesInvoice.salesStatus == SalesStatus.received &&
+                          onRate != null &&
+                          productId.isNotEmpty &&
+                          !alreadyRated;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InvoiceDetailsWidget(detail: detail),
+                        const SizedBox(height: 8),
+                        if (canRate)
+                          Row(
+                            children: [
+                              const Spacer(),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 140,
+                                      child: FilledButton(
+                                        onPressed: () => onRate!(productId),
+                                        child: const Text('Rate product'),
+                                      ),
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        'To get 200 points',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: colorScheme.onSurface
+                                                  .withValues(alpha: 0.9),
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
               ),
               const Divider(height: 32),
               Row(
@@ -65,7 +126,7 @@ class SalesInvoiceWidget extends StatelessWidget {
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
+                                        .withValues(alpha: 0.8),
                                   ),
                         ),
                       ],
@@ -98,7 +159,6 @@ class SalesInvoiceWidget extends StatelessWidget {
           text: localizedStatus,
           color: colorScheme.tertiary,
         );
-
       case SalesStatus.preparing:
         return _StatusChip(
           text: localizedStatus,
@@ -110,6 +170,7 @@ class SalesInvoiceWidget extends StatelessWidget {
           color: colorScheme.primary,
         );
       case SalesStatus.shipped:
+        final int points = salesInvoice.totalPrice.round();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -117,29 +178,47 @@ class SalesInvoiceWidget extends StatelessWidget {
               text: localizedStatus,
               color: colorScheme.primary,
             ),
-            const SizedBox(height: 4),
-            Text(
-              S.of(context).pleaseConfirmDelivery,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-            ),
             const SizedBox(height: 8),
-            FilledButton(
-              onPressed: onPressed,
-              child: Text(S.of(context).received),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 140,
+                  child: FilledButton(
+                    onPressed: onPressed,
+                    child: Text(S.of(context).received),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'To get $points point${points == 1 ? '' : 's'}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.9),
+                        ),
+                  ),
+                ),
+              ],
             ),
           ],
+        );
+      case SalesStatus.received:
+        return _StatusChip(
+          text: localizedStatus,
+          color: colorScheme.secondary,
         );
       case SalesStatus.completed:
         return _StatusChip(
           text: localizedStatus,
           color: colorScheme.secondary,
         );
-      default:
+      case SalesStatus.cancelled:
         return _StatusChip(
-          text: S.of(context).statusUnknown,
-          color: colorScheme.error,
+          text: localizedStatus,
+          color: colorScheme.secondary,
         );
     }
   }

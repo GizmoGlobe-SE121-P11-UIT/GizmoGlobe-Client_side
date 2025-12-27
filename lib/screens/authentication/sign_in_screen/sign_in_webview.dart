@@ -415,7 +415,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Loading...',
+                      S.of(context).loading,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.onPrimary,
                         fontWeight: FontWeight.bold,

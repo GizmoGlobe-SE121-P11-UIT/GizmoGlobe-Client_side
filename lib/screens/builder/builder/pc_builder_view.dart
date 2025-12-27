@@ -198,18 +198,18 @@ class _PCBuilderMobileView extends StatelessWidget {
           children: actions
               .map(
                 (action) => SizedBox(
-                      width: itemWidth,
-                      child: OutlinedButton(
-                        onPressed: action['onTap'] as VoidCallback,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        child: Icon(action['icon'] as IconData, size: 20),
+                  width: itemWidth,
+                  child: OutlinedButton(
+                    onPressed: action['onTap'] as VoidCallback,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
                       ),
                     ),
+                    child: Icon(action['icon'] as IconData, size: 20),
+                  ),
+                ),
               )
               .toList(),
         );
@@ -281,7 +281,7 @@ class _PCBuilderMobileView extends StatelessWidget {
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.7),
+                              .withValues(alpha: 0.7),
                         ),
                   ),
                   const SizedBox(height: 6),
@@ -292,9 +292,9 @@ class _PCBuilderMobileView extends StatelessWidget {
                             product.discountedPrice.toInt()),
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       if (quantity > 1) ...[
                         const SizedBox(width: 8),
@@ -483,7 +483,8 @@ class _PCBuilderMobileView extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.15),
+          color:
+              Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
         ),
       ),
       child: Row(
@@ -591,42 +592,42 @@ class _PCBuilderMobileView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      s.builderSessionsTitle,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(sheetContext).pop(),
-                    ),
-                  ],
-                ),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        s.builderSessionsTitle,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(sheetContext).pop(),
+                      ),
+                    ],
+                  ),
                 ),
                 Flexible(
                   child: FutureBuilder<List<BuilderSessionSummary>>(
-                  future: cubit.fetchBuilderSessions(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                    final sessions = snapshot.data ?? [];
-                    if (sessions.isEmpty) {
-                      return Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          s.builderSessionsEmpty,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      );
-                    }
+                    future: cubit.fetchBuilderSessions(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      final sessions = snapshot.data ?? [];
+                      if (sessions.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            s.builderSessionsEmpty,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        );
+                      }
                       return ListView.separated(
                         shrinkWrap: true,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -670,8 +671,8 @@ class _PCBuilderMobileView extends StatelessWidget {
                             ),
                           );
                         },
-                    );
-                  },
+                      );
+                    },
                   ),
                 ),
                 SizedBox(

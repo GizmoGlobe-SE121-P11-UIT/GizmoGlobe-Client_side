@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/components/general/web_header.dart';
@@ -9,11 +10,11 @@ import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/main.dart' show rootNavigatorKey;
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/objects/product_related/mainboard_related/mainboard.dart';
 import 'package:gizmoglobe_client/services/recommendation_service.dart';
-import 'package:gizmoglobe_client/services/platform_actions.dart'
-    as platform_actions;
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
+import 'package:gizmoglobe_client/widgets/order/rating_card.dart';
 import 'package:gizmoglobe_client/widgets/product/favorites/favorites_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
@@ -147,6 +148,21 @@ class _ProductDetailScreenWebViewState
     extends State<ProductDetailScreenWebView> {
   ProductDetailCubit get cubit => context.read<ProductDetailCubit>();
   final WebGuestService _webGuestService = WebGuestService();
+  final PageController _pageController = PageController();
+  int _currentImageIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // No need to manually update the hash - Navigator.pushNamed handles it
+  }
+
+  @override
+  void dispose() {
+    // Don't manipulate the hash on dispose - let the browser's back/forward handle it
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleBuyNow(ProductDetailState state,
       {required bool isWeb}) async {
@@ -179,35 +195,6 @@ class _ProductDetailScreenWebViewState
         ),
       );
     }
-  }
-
-  String? _previousHashPath;
-  String? _currentProductHash;
-
-  @override
-  void initState() {
-    super.initState();
-    // Append the product ID to the current URL hash so deep links reflect the product
-    final productId = widget.product.productID;
-    if (productId != null && productId.isNotEmpty) {
-      _previousHashPath = platform_actions.getHashPath();
-      _currentProductHash = '/products/$productId';
-      if (_previousHashPath != _currentProductHash) {
-        platform_actions.replaceHashUrl(_currentProductHash!);
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    // Restore previous hash (remove the productId suffix) when leaving detail page
-    if (_previousHashPath != null) {
-      platform_actions.replaceHashUrl(_previousHashPath!);
-    } else if (_currentProductHash != null) {
-      // Fallback to generic products route when no previous hash recorded
-      platform_actions.replaceHashUrl('/products');
-    }
-    super.dispose();
   }
 
   String _getCategoryLabel(BuildContext context, CategoryEnum category) {
@@ -488,82 +475,8 @@ class _ProductDetailScreenWebViewState
                                               flex: 4,
                                               child: Column(
                                                 children: [
-                                                  Card(
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                    ),
-                                                    child: Container(
-                                                      height: 600,
-                                                      width: double.infinity,
-                                                      decoration: BoxDecoration(
-                                                        color: Theme.of(context)
-                                                                    .brightness ==
-                                                                Brightness.dark
-                                                            ? Theme.of(context)
-                                                                .colorScheme
-                                                                .surface
-                                                                .withValues(
-                                                                    alpha: 0.1)
-                                                            : Theme.of(context)
-                                                                .colorScheme
-                                                                .surfaceContainerHighest,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(12),
-                                                        image: state.product
-                                                                        .imageUrl !=
-                                                                    null &&
-                                                                state
-                                                                    .product
-                                                                    .imageUrl!
-                                                                    .isNotEmpty
-                                                            ? DecorationImage(
-                                                                image: NetworkImage(
-                                                                    state
-                                                                        .product
-                                                                        .imageUrl!),
-                                                                fit: BoxFit
-                                                                    .contain,
-                                                              )
-                                                            : null,
-                                                      ),
-                                                      child: state.product
-                                                                      .imageUrl ==
-                                                                  null ||
-                                                              state
-                                                                  .product
-                                                                  .imageUrl!
-                                                                  .isEmpty
-                                                          ? Center(
-                                                              child: Icon(
-                                                                _getCategoryIcon(
-                                                                    widget
-                                                                        .product
-                                                                        .category),
-                                                                size: 150,
-                                                                color: Theme.of(context)
-                                                                            .brightness ==
-                                                                        Brightness
-                                                                            .dark
-                                                                    ? Theme.of(
-                                                                            context)
-                                                                        .colorScheme
-                                                                        .primary
-                                                                        .withValues(
-                                                                            alpha:
-                                                                                0.7)
-                                                                    : Theme.of(
-                                                                            context)
-                                                                        .colorScheme
-                                                                        .onSurfaceVariant,
-                                                              ),
-                                                            )
-                                                          : null,
-                                                    ),
-                                                  ),
+                                                  _buildImageCarouselDesktop(
+                                                      context, state),
                                                 ],
                                               ),
                                             ),
@@ -757,7 +670,7 @@ class _ProductDetailScreenWebViewState
                                                     ],
                                                   ),
                                                   const SizedBox(height: 32),
-                                                  ..._buildProductSpecificDetails(
+                                                  _buildProductSpecificDetails(
                                                       context,
                                                       state.product,
                                                       state.technicalSpecs),
@@ -1100,153 +1013,8 @@ class _ProductDetailScreenWebViewState
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Stack(
-                                              children: [
-                                                Card(
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                  ),
-                                                  child: Container(
-                                                    height: 400,
-                                                    width: double.infinity,
-                                                    decoration: BoxDecoration(
-                                                      color: Theme.of(context)
-                                                                  .brightness ==
-                                                              Brightness.dark
-                                                          ? Theme.of(context)
-                                                              .colorScheme
-                                                              .surface
-                                                              .withValues(
-                                                                  alpha: 0.1)
-                                                          : Theme.of(context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                      image: state.product
-                                                                      .imageUrl !=
-                                                                  null &&
-                                                              state
-                                                                  .product
-                                                                  .imageUrl!
-                                                                  .isNotEmpty
-                                                          ? DecorationImage(
-                                                              image: NetworkImage(
-                                                                  state.product
-                                                                      .imageUrl!),
-                                                              fit: BoxFit
-                                                                  .contain,
-                                                            )
-                                                          : null,
-                                                    ),
-                                                    child: state.product
-                                                                    .imageUrl ==
-                                                                null ||
-                                                            state
-                                                                .product
-                                                                .imageUrl!
-                                                                .isEmpty
-                                                        ? Center(
-                                                            child: Icon(
-                                                              _getCategoryIcon(
-                                                                  widget.product
-                                                                      .category),
-                                                              size: 120,
-                                                              color: Theme.of(context)
-                                                                          .brightness ==
-                                                                      Brightness
-                                                                          .dark
-                                                                  ? Theme.of(
-                                                                          context)
-                                                                      .colorScheme
-                                                                      .primary
-                                                                      .withValues(
-                                                                          alpha:
-                                                                              0.7)
-                                                                  : Theme.of(
-                                                                          context)
-                                                                      .colorScheme
-                                                                      .onSurfaceVariant,
-                                                            ),
-                                                          )
-                                                        : null,
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  right: 16,
-                                                  top: 16,
-                                                  child: FloatingActionButton(
-                                                    mini: true,
-                                                    backgroundColor:
-                                                        Theme.of(context)
-                                                            .colorScheme
-                                                            .surface,
-                                                    onPressed: () async {
-                                                      if (state.product
-                                                              .productID !=
-                                                          null) {
-                                                        final isGuest =
-                                                            await _webGuestService
-                                                                .isCurrentUserGuest();
-                                                        if (isGuest) {
-                                                          SnackbarService
-                                                              .showGuestRestriction(
-                                                            context,
-                                                            actionType:
-                                                                'favorites',
-                                                          );
-                                                          return;
-                                                        }
-                                                        try {
-                                                          final wasFavorite =
-                                                              state.isFavorite;
-                                                          await cubit
-                                                              .toggleFavorite();
-                                                          context
-                                                              .read<
-                                                                  FavoritesCubit>()
-                                                              .loadFavorites();
-                                                          // Show snackbar notification
-                                                          final newState =
-                                                              cubit.state;
-                                                          if (newState
-                                                                  .isFavorite !=
-                                                              wasFavorite) {
-                                                            SnackbarService
-                                                                .showFavoriteSuccess(
-                                                              context,
-                                                              newState.isFavorite
-                                                                  ? 'added'
-                                                                  : 'removed',
-                                                            );
-                                                          }
-                                                        } catch (e) {
-                                                          SnackbarService
-                                                              .showFavoriteError(
-                                                                  context);
-                                                        }
-                                                      }
-                                                    },
-                                                    child: Icon(
-                                                      state.isFavorite
-                                                          ? Icons.favorite
-                                                          : Icons
-                                                              .favorite_border,
-                                                      color: state.isFavorite
-                                                          ? Theme.of(context)
-                                                              .colorScheme
-                                                              .error
-                                                          : Theme.of(context)
-                                                              .colorScheme
-                                                              .onSurfaceVariant,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                            _buildImageCarouselMobile(
+                                                context, state),
                                             const SizedBox(height: 24),
                                             Text(
                                               widget.product.productName,
@@ -1339,7 +1107,7 @@ class _ProductDetailScreenWebViewState
                                               ],
                                             ),
                                             const SizedBox(height: 24),
-                                            ..._buildProductSpecificDetails(
+                                            _buildProductSpecificDetails(
                                                 context,
                                                 state.product,
                                                 state.technicalSpecs),
@@ -1687,28 +1455,68 @@ class _ProductDetailScreenWebViewState
     );
   }
 
-  List<Widget> _buildProductSpecificDetails(
+  Widget _buildProductSpecificDetails(
       BuildContext context, Product product, Map<String, String> specs) {
-    return specs.entries
-        .map((entry) => _buildSpecificationRow(
-            _getLocalizedSpecKey(context, entry.key), entry.value))
-        .toList();
+    final specsList = specs.entries.map((entry) {
+      String value = entry.value;
+      // Format RAM Spec with localization if it's a Mainboard
+      if (entry.key == 'RAM Spec' &&
+          product.category == CategoryEnum.mainboard) {
+        final mainboard = product as Mainboard;
+        value = mainboard.ramSpec.toLocalizedString(S.of(context));
+      }
+      return MapEntry(_getLocalizedSpecKey(context, entry.key), value);
+    }).toList();
+
+    // Split specs into 2 columns
+    final halfLength = (specsList.length / 2).ceil();
+    final leftColumn = specsList.sublist(0, halfLength);
+    final rightColumn = specsList.length > halfLength
+        ? specsList.sublist(halfLength)
+        : <MapEntry<String, String>>[];
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left column
+        Expanded(
+          child: Column(
+            children: leftColumn
+                .map((entry) => _buildSpecificationRow(entry.key, entry.value))
+                .toList(),
+          ),
+        ),
+        const SizedBox(width: 32),
+        // Right column
+        Expanded(
+          child: Column(
+            children: rightColumn
+                .map((entry) => _buildSpecificationRow(entry.key, entry.value))
+                .toList(),
+          ),
+        ),
+      ],
+    );
   }
 
   String _getLocalizedSpecKey(BuildContext context, String key) {
     switch (key.toLowerCase()) {
       case 'type':
         return S.of(context).driveType;
-      case 'capacity':
-        return "Drive Capacity";
       case 'bus':
-        return "RAM Bus";
+        return S.of(context).ramBus;
+      case 'ram bus':
+        return S.of(context).ramBus;
       case 'cl latency':
-        return "CL Latency";
+        return S.of(context).clLatency;
       case 'kit stick count':
-        return "Kit Stick Count";
+        return S.of(context).kitStickCount;
       case 'capacity per stick':
-        return "RAM Capacity";
+        return S.of(context).capacityPerStick;
+      case 'ram capacity':
+        return S.of(context).ramCapacity;
+      case 'ram type':
+        return S.of(context).ramType;
       case 'cores':
         return S.of(context).cpuCore;
       case 'threads':
@@ -1721,42 +1529,46 @@ class _ProductDetailScreenWebViewState
         return "TDP";
       case 'socket':
         return S.of(context).compatibility;
+      case 'series':
+        return S.of(context).series;
       case 'version':
-        return "GPU Version";
+        return S.of(context).gpuVersion;
       case 'memory':
-        return "GPU Memory";
+        return S.of(context).gpuMemory;
       case 'clock speed':
         return S.of(context).gpuClockSpeed;
       case 'i/o ports':
-        return "I/O Ports";
+        return S.of(context).ioPorts;
       case 'chipset':
-        return S.of(context).series;
+        return S.of(context).chipset;
       case 'form factor':
         return S.of(context).formFactor;
       case 'ram spec':
-        return "RAM Spec";
+        return S.of(context).ramSpec;
       case 'storage:':
-        return "Storage Slots";
+        return S.of(context).storageSlots;
       case 'pcie slots:':
-        return "PCIe Slots";
+        return S.of(context).pcieSlots;
       case 'drive type':
         return S.of(context).driveType;
       case 'generation':
-        return "Generation";
+        return S.of(context).driveGeneration;
       case 'interface':
-        return "Interface";
+        return S.of(context).driveInterface;
       case 'read speed':
-        return "Read Speed";
+        return S.of(context).readSpeed;
       case 'write speed':
-        return "Write Speed";
+        return S.of(context).writeSpeed;
+      case 'capacity':
+        return S.of(context).driveCapacity;
       case 'wattage':
         return S.of(context).psuWattage;
       case 'efficiency rating':
-        return "PSU Efficiency";
+        return S.of(context).psuEfficiency;
       case 'modularity':
-        return "Modularity";
+        return S.of(context).psuModular;
       case 'connectors':
-        return "Connectors";
+        return S.of(context).connectors;
       default:
         return key;
     }
@@ -1769,7 +1581,7 @@ class _ProductDetailScreenWebViewState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 140,
+            width: 200,
             child: Text(
               label,
               style: TextStyle(
@@ -1816,91 +1628,233 @@ class _ProductDetailScreenWebViewState
   }
 
   Widget _buildRatingAndCommentsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section Title
-        Text(
-          'Ratings & Reviews',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+    return BlocBuilder<ProductDetailCubit, ProductDetailState>(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.of(context).ratingsAndReviews,
+              style: TextStyle(
                 fontSize: 24,
-                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
-        ),
-        const SizedBox(height: 16),
-
-        // Rating Summary Card
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).dividerColor,
             ),
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 600;
-              if (isWide) {
-                return Row(
-                  children: [
-                    // Overall Rating
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            '0.0',
-                            style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
+            const SizedBox(height: 16),
+
+            // Rating Summary Card
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor,
+                ),
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 600;
+
+                  // Calculate star distribution
+                  Map<int, int> starCounts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+                  for (var rating in state.ratings) {
+                    if (rating.rating > 0 && rating.rating <= 5) {
+                      starCounts[rating.rating] =
+                          (starCounts[rating.rating] ?? 0) + 1;
+                    }
+                  }
+
+                  final total = state.totalRatingsCount;
+                  final avgRating = state.averageRating;
+                  final hasRatings = total > 0;
+
+                  if (isWide) {
+                    return Row(
+                      children: [
+                        // Overall Rating
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Text(
+                                hasRatings
+                                    ? avgRating.toStringAsFixed(1)
+                                    : '0.0',
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(5, (index) {
+                                  final starIndex = index + 1;
+                                  final isFilled = hasRatings &&
+                                      starIndex <= avgRating.round();
+                                  return Icon(
+                                    isFilled ? Icons.star : Icons.star_border,
+                                    color: isFilled
+                                        ? Colors.amber
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.3),
+                                    size: 24,
+                                  );
+                                }),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                hasRatings
+                                    ? S.of(context).reviews(total)
+                                    : S.of(context).noRatingsYet,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Divider
+                        Container(
+                          width: 1,
+                          height: 120,
+                          color: Theme.of(context).dividerColor,
+                        ),
+
+                        // Rating Breakdown
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(5, (index) {
+                                final starCount = 5 - index;
+                                final count = starCounts[starCount] ?? 0;
+                                final percentage =
+                                    total > 0 ? (count / total * 100) : 0.0;
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        '$starCount',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(
+                                        Icons.star,
+                                        size: 14,
+                                        color: Colors.amber,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Container(
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: FractionallySizedBox(
+                                            alignment: Alignment.centerLeft,
+                                            widthFactor: percentage / 100,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.amber,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      SizedBox(
+                                        width: 35,
+                                        child: Text(
+                                          '${percentage.toStringAsFixed(0)}%',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.6),
+                                          ),
+                                          textAlign: TextAlign.right,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
                             ),
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(5, (index) {
-                              return Icon(
-                                Icons.star_border,
+                        ),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              '0.0',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(5, (index) {
+                                return Icon(
+                                  Icons.star_border,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.3),
+                                  size: 24,
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              S.of(context).noRatingsYet,
+                              style: TextStyle(
+                                fontSize: 14,
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onSurface
-                                    .withValues(alpha: 0.3),
-                                size: 24,
-                              );
-                            }),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'No ratings yet',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
+                                    .withValues(alpha: 0.6),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Divider
-                    Container(
-                      width: 1,
-                      height: 80,
-                      color: Theme.of(context).dividerColor,
-                    ),
-
-                    // Rating Breakdown
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 24),
-                        child: Column(
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Divider(
+                          color: Theme.of(context).dividerColor,
+                        ),
+                        const SizedBox(height: 24),
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: List.generate(5, (index) {
                             final starCount = 5 - index;
@@ -1966,285 +1920,553 @@ class _ProductDetailScreenWebViewState
                             );
                           }),
                         ),
-                      ),
-                    ),
-                  ],
-                );
-              } else {
-                return Column(
-                  children: [
-                    Column(
-                      children: [
-                        Text(
-                          '0.0',
-                          style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(5, (index) {
-                            return Icon(
-                              Icons.star_border,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.3),
-                              size: 24,
-                            );
-                          }),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'No ratings yet',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.6),
-                          ),
-                        ),
                       ],
-                    ),
-                    const SizedBox(height: 24),
-                    Divider(
-                      color: Theme.of(context).dividerColor,
-                    ),
-                    const SizedBox(height: 24),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(5, (index) {
-                        final starCount = 5 - index;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
-                            children: [
-                              Text(
-                                '$starCount',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.star,
-                                size: 14,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Container(
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: 0.0,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '0%',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ),
-                  ],
-                );
-              }
-            },
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Comments List
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).dividerColor,
+                    );
+                  }
+                },
+              ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Sort/Filter bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+            const SizedBox(height: 24),
+
+            // Comments List
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'All Reviews',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.sort,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7),
-                    ),
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'recent',
-                        child: Text('Most Recent'),
+                  // Sort/Filter bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        S.of(context).allReviews,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                      PopupMenuItem(
-                        value: 'helpful',
-                        child: Text('Most Helpful'),
-                      ),
-                      PopupMenuItem(
-                        value: 'highest',
-                        child: Text('Highest Rated'),
-                      ),
-                      PopupMenuItem(
-                        value: 'lowest',
-                        child: Text('Lowest Rated'),
+                      PopupMenuButton<String>(
+                        icon: Icon(
+                          Icons.sort,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
+                        ),
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'recent',
+                            child: Text(S.of(context).mostRecent),
+                          ),
+                          PopupMenuItem(
+                            value: 'helpful',
+                            child: Text(S.of(context).mostHelpful),
+                          ),
+                          PopupMenuItem(
+                            value: 'highest',
+                            child: Text(S.of(context).highestRated),
+                          ),
+                          PopupMenuItem(
+                            value: 'lowest',
+                            child: Text(S.of(context).lowestRated),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 24),
+
+                  // Rating Cards or Empty State
+                  if (state.ratings.isEmpty)
+                    Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.reviews_outlined,
+                            size: 64,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.3),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            S.of(context).noRatingsYet,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Column(
+                      children: state.ratings
+                          .map((r) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: RatingCard(rating: r),
+                              ))
+                          .toList(),
+                    ),
+
+                  // Show more button
+                  if (state.hasMoreRatings)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            await context
+                                .read<ProductDetailCubit>()
+                                .loadMoreRatings();
+                          },
+                          child: Text(S.of(context).showMore),
+                        ),
+                      ),
+                    ),
                 ],
               ),
-
-              const SizedBox(height: 24),
-
-              // Empty State
-              Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.reviews_outlined,
-                      size: 64,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.3),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No reviews yet',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Be the first to share your experience!',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildRecommendationsSection(
       BuildContext context, Product currentProduct) {
-    final recs = RecommendationService()
-        .getCompatibleForProduct(currentProduct)
-        .where((p) => p.productID != currentProduct.productID)
-        .toList();
+    return FutureBuilder<List<Product>>(
+      future: RecommendationService().getSimilarProducts(
+        currentProduct,
+        topN: 8,
+        excludeOutOfStock: false,
+      ),
+      builder: (context, snapshot) {
+        // Get compatible products (cross-category) synchronously
+        final compatibleProducts = RecommendationService()
+            .getCompatibleForProduct(currentProduct, topN: 8)
+            .where((p) => p.productID != currentProduct.productID)
+            .toList();
 
-    if (recs.isEmpty) return const SizedBox();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Good with this product',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontSize: 24,
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
+        // Loading state for similar products
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Show compatible products while loading similar products
+          if (compatibleProducts.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 1200;
-          final crossAxisCount = isWide
-              ? 5
-              : constraints.maxWidth >= 900
-                  ? 4
-                  : 3;
-          const double spacing = 16.0;
+            );
+          }
+        }
 
-          return GridView.builder(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: recs.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              mainAxisSpacing: spacing,
-              crossAxisSpacing: spacing,
-              childAspectRatio: 0.75,
+        // Get similar products (same category, AI-powered)
+        final similarProducts =
+            (snapshot.hasData ? snapshot.data! : <Product>[])
+                .where((p) => p.productID != currentProduct.productID)
+                .toList();
+
+        // Combine both lists (similar first, then compatible)
+        final allRecommendations = <Product>[
+          ...similarProducts,
+          ...compatibleProducts,
+        ];
+
+        // Remove duplicates based on productID
+        final seenIds = <String>{};
+        final uniqueRecommendations = allRecommendations.where((product) {
+          if (product.productID == null) return false;
+          if (seenIds.contains(product.productID!)) return false;
+          seenIds.add(product.productID!);
+          return true;
+        }).toList();
+
+        if (uniqueRecommendations.isEmpty) return const SizedBox();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              S.of(context).goodWithThisProduct,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontSize: 24,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
-            itemBuilder: (context, index) {
-              final product = recs[index];
-              return GestureDetector(
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (ctx) =>
-                          ProductDetailScreenWebView.newInstance(product),
-                    ),
+            const SizedBox(height: 16),
+            LayoutBuilder(builder: (context, constraints) {
+              // Responsive grid: 7 cards for extra-wide, 6 for wide, 5 for medium, 4 for narrow
+              final crossAxisCount = constraints.maxWidth >= 1400
+                  ? 7
+                  : constraints.maxWidth >= 1200
+                      ? 6
+                      : constraints.maxWidth >= 900
+                          ? 5
+                          : 4;
+              const double spacing = 16.0;
+
+              return GridView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: uniqueRecommendations.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: spacing,
+                  crossAxisSpacing: spacing,
+                  childAspectRatio: 0.75,
+                ),
+                itemBuilder: (context, index) {
+                  final product = uniqueRecommendations[index];
+                  return GestureDetector(
+                    onTap: () async {
+                      final productId = product.productID;
+                      if (productId != null) {
+                        await Navigator.of(context)
+                            .pushNamed('/products/$productId');
+                      }
+                    },
+                    child: WebProductCard(product: product),
                   );
                 },
-                child: WebProductCard(product: product),
               );
+            }),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildImageCarouselDesktop(
+      BuildContext context, ProductDetailState state) {
+    final hasImages = state.productImages.isNotEmpty;
+
+    return Stack(
+      children: [
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Container(
+            height: 600,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.1)
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: state.isLoadingImages
+                ? const Center(child: CircularProgressIndicator())
+                : hasImages
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: state.productImages.length,
+                          onPageChanged: (index) {
+                            if (mounted) {
+                              setState(() {
+                                _currentImageIndex = index;
+                              });
+                            }
+                          },
+                          itemBuilder: (context, index) {
+                            final image = state.productImages[index];
+                            return Image.network(
+                              image.url,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Icon(
+                                    _getCategoryIcon(widget.product.category),
+                                    size: 150,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.7)
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Icon(
+                          _getCategoryIcon(widget.product.category),
+                          size: 150,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.7)
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+          ),
+        ),
+        // Left navigation arrow
+        if (hasImages &&
+            state.productImages.length > 1 &&
+            _currentImageIndex > 0)
+          Positioned(
+            left: 16,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 32,
+                ),
+                onPressed: () {
+                  _pageController.previousPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                style: IconButton.styleFrom(
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .surface
+                      .withValues(alpha: 0.9),
+                  padding: const EdgeInsets.all(12),
+                ),
+              ),
+            ),
+          ),
+        // Right navigation arrow
+        if (hasImages &&
+            state.productImages.length > 1 &&
+            _currentImageIndex < state.productImages.length - 1)
+          Positioned(
+            right: 16,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_forward_ios,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 32,
+                ),
+                onPressed: () {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                style: IconButton.styleFrom(
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .surface
+                      .withValues(alpha: 0.9),
+                  padding: const EdgeInsets.all(12),
+                ),
+              ),
+            ),
+          ),
+        // Page indicator dots
+        if (hasImages && state.productImages.length > 1)
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                state.productImages.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentImageIndex == index
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildImageCarouselMobile(
+      BuildContext context, ProductDetailState state) {
+    final hasImages = state.productImages.isNotEmpty;
+
+    return Stack(
+      children: [
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Container(
+            height: 400,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.1)
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: state.isLoadingImages
+                ? const Center(child: CircularProgressIndicator())
+                : hasImages
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: state.productImages.length,
+                          onPageChanged: (index) {
+                            if (mounted) {
+                              setState(() {
+                                _currentImageIndex = index;
+                              });
+                            }
+                          },
+                          itemBuilder: (context, index) {
+                            final image = state.productImages[index];
+                            return Image.network(
+                              image.url,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Icon(
+                                    _getCategoryIcon(widget.product.category),
+                                    size: 120,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.7)
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      )
+                    : Center(
+                        child: Icon(
+                          _getCategoryIcon(widget.product.category),
+                          size: 120,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.7)
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+          ),
+        ),
+        // Page indicator dots
+        if (hasImages && state.productImages.length > 1)
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                state.productImages.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentImageIndex == index
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        // Favorite button
+        Positioned(
+          right: 16,
+          top: 16,
+          child: FloatingActionButton(
+            mini: true,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            onPressed: () async {
+              if (state.product.productID != null) {
+                final isGuest = await _webGuestService.isCurrentUserGuest();
+                if (isGuest) {
+                  SnackbarService.showGuestRestriction(
+                    context,
+                    actionType: 'favorites',
+                  );
+                  return;
+                }
+                try {
+                  final wasFavorite = state.isFavorite;
+                  await cubit.toggleFavorite();
+                  context.read<FavoritesCubit>().loadFavorites();
+                  // Show snackbar notification
+                  final newState = cubit.state;
+                  if (newState.isFavorite != wasFavorite) {
+                    SnackbarService.showFavoriteSuccess(
+                      context,
+                      newState.isFavorite ? 'added' : 'removed',
+                    );
+                  }
+                } catch (e) {
+                  SnackbarService.showFavoriteError(context);
+                }
+              }
             },
-          );
-        }),
+            child: Icon(
+              state.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: state.isFavorite
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
       ],
     );
   }

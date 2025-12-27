@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/components/general/web_product_card.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
+import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
+import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
 
 class WebBestSellersSection extends StatelessWidget {
   final List<Product> products;
@@ -12,80 +14,101 @@ class WebBestSellersSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 80),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Responsive: show more cards on wider screens
+          final maxCards = constraints.maxWidth >= 1400
+              ? 7
+              : constraints.maxWidth >= 1200
+                  ? 6
+                  : constraints.maxWidth >= 900
+                      ? 5
+                      : 4;
+          final displayCount =
+              products.length > maxCards ? maxCards : products.length;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    S.of(context).bestSellers,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -1,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        S.of(context).bestSellers,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        S.of(context).topRatedProductsLovedByCustomers,
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    S.of(context).topRatedProductsLovedByCustomers,
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.6),
-                      fontSize: 16,
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ProductScreen.newInstance(
+                            initialSortOption: SortEnum.salesHighest,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        Text(
+                          S.of(context).seeAll,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 20,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/products');
-                },
-                child: Row(
-                  children: [
-                    Text(
-                      S.of(context).seeAll,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+              const SizedBox(height: 32),
+              SizedBox(
+                height: 280,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: displayCount,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      width: 200,
+                      margin: EdgeInsets.only(
+                        right: index < displayCount - 1 ? 20 : 0,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 20,
-                    ),
-                  ],
+                      child: WebProductCard(product: products[index]),
+                    );
+                  },
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 32),
-          SizedBox(
-            height: 280,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: 200,
-                  margin: EdgeInsets.only(
-                    right: index < products.length - 1 ? 20 : 0,
-                  ),
-                  child: WebProductCard(product: products[index]),
-                );
-              },
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

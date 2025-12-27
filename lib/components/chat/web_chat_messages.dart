@@ -26,6 +26,7 @@ class WebChatMessages extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return ListView.builder(
       shrinkWrap: false,
+      reverse: true,
       physics: const BouncingScrollPhysics(),
       controller: controller,
       padding: EdgeInsets.symmetric(
@@ -34,7 +35,9 @@ class WebChatMessages extends StatelessWidget {
       ),
       itemCount: messages.length,
       itemBuilder: (context, index) {
-        final message = messages[index];
+        // With reverse: true, index 0 is the last message, so we need to reverse the index
+        final reversedIndex = messages.length - 1 - index;
+        final message = messages[reversedIndex];
         final isUser = !message.isFromBot;
         final isAdminBot =
             !message.isAIMode && message.isFromBot; // admin reply
@@ -77,95 +80,107 @@ class WebChatMessages extends StatelessWidget {
                     : null,
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Add sender indicator for AI messages
-                  if (!isUser) ...[
-                    Row(
-                      children: [
-                        Icon(
-                          isAdminBot ? Icons.support_agent : Icons.smart_toy,
-                          size: 16,
-                          color: isAdminBot
-                              ? colorScheme.onSurface.withValues(alpha: 0.7)
-                              : colorScheme.onSecondaryContainer
-                                  .withValues(alpha: 0.7),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isAdminBot ? 'Admin' : 'AI Assistant',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+              child: SelectionArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Add sender indicator for AI messages
+                    if (!isUser) ...[
+                      Row(
+                        children: [
+                          Icon(
+                            isAdminBot ? Icons.support_agent : Icons.smart_toy,
+                            size: 16,
                             color: isAdminBot
-                                ? colorScheme.onSurface.withValues(alpha: 0.8)
+                                ? colorScheme.onSurface.withValues(alpha: 0.7)
                                 : colorScheme.onSecondaryContainer
-                                    .withValues(alpha: 0.8),
+                                    .withValues(alpha: 0.7),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            isAdminBot ? 'Admin' : 'AI Assistant',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isAdminBot
+                                  ? colorScheme.onSurface.withValues(alpha: 0.8)
+                                  : colorScheme.onSecondaryContainer
+                                      .withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    if (sanitizedContent.trim().isNotEmpty) ...[
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          textSelectionTheme: TextSelectionThemeData(
+                            selectionColor:
+                                colorScheme.primary.withValues(alpha: 0.3),
+                            selectionHandleColor: colorScheme.primary,
+                          ),
+                        ),
+                        child: SelectableText.rich(
+                          TextSpan(
+                            children: buildMessageSpans(
+                              sanitizedContent,
+                              isUser
+                                  ? colorScheme.onPrimary
+                                  : isAdminBot
+                                      ? colorScheme.onSurface
+                                      : colorScheme.onSecondaryContainer,
+                              Theme.of(context),
+                            ),
+                          ),
+                          scrollPhysics: const NeverScrollableScrollPhysics(),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    if (!isUser && productCards.isNotEmpty) ...[
+                      Column(
+                        children: productCards
+                            .map(
+                              (card) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: ProductMiniCard(cardData: card),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ],
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: isUser
+                          ? MainAxisAlignment.end
+                          : MainAxisAlignment.start,
+                      children: [
+                        if (isUser) ...[
+                          Icon(
+                            Icons.person,
+                            size: 12,
+                            color: colorScheme.onPrimary.withValues(alpha: 0.7),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        Text(
+                          DateFormat('HH:mm').format(message.timestamp),
+                          style: TextStyle(
+                            color: isUser
+                                ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                                : isAdminBot
+                                    ? colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.7)
+                                    : colorScheme.onSecondaryContainer
+                                        .withValues(alpha: 0.7),
+                            fontSize: 12,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
                   ],
-                  if (sanitizedContent.trim().isNotEmpty) ...[
-                    RichText(
-                      text: TextSpan(
-                        children: buildMessageSpans(
-                          sanitizedContent,
-                          isUser
-                              ? colorScheme.onPrimary
-                              : isAdminBot
-                                  ? colorScheme.onSurface
-                                  : colorScheme.onSecondaryContainer,
-                          Theme.of(context),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  if (!isUser && productCards.isNotEmpty) ...[
-                    Column(
-                      children: productCards
-                          .map(
-                            (card) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12.0),
-                              child: ProductMiniCard(cardData: card),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ],
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: isUser
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.start,
-                    children: [
-                      if (isUser) ...[
-                        Icon(
-                          Icons.person,
-                          size: 12,
-                          color: colorScheme.onPrimary.withValues(alpha: 0.7),
-                        ),
-                        const SizedBox(width: 4),
-                      ],
-                      Text(
-                        DateFormat('HH:mm').format(message.timestamp),
-                        style: TextStyle(
-                          color: isUser
-                              ? colorScheme.onPrimary.withValues(alpha: 0.7)
-                              : isAdminBot
-                                  ? colorScheme.onSurfaceVariant
-                                      .withValues(alpha: 0.7)
-                                  : colorScheme.onSecondaryContainer
-                                      .withValues(alpha: 0.7),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ),

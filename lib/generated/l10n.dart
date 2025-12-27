@@ -65,6 +65,7 @@ class S {
   String get pleaseConfirmDelivery =>
       Intl.message('Please confirm the delivery.',
           name: 'pleaseConfirmDelivery');
+  String get rate => Intl.message('Rate this order', name: 'rate');
   String get received => Intl.message('Received', name: 'received');
   String get orderCompleted =>
       Intl.message('Your order has been completed.', name: 'orderCompleted');
@@ -329,9 +330,29 @@ class S {
   String get modular => Intl.message('Modular', name: 'modular');
   String get efficiency => Intl.message('Efficiency', name: 'efficiency');
   String get psuWattage => Intl.message('PSU Wattage', name: 'psuWattage');
+  String get psuEfficiency =>
+      Intl.message('PSU Efficiency', name: 'psuEfficiency');
+  String get psuModular => Intl.message('PSU Modular', name: 'psuModular');
+  String get connectors => Intl.message('Connectors', name: 'connectors');
   String get series => Intl.message('Series', name: 'series');
+  String get gpuVersion => Intl.message('GPU Version', name: 'gpuVersion');
+  String get gpuMemory => Intl.message('GPU Memory', name: 'gpuMemory');
   String get gpuClockSpeed =>
       Intl.message('GPU Clock Speed', name: 'gpuClockSpeed');
+  String get ioPorts => Intl.message('I/O Ports', name: 'ioPorts');
+  String get driveGeneration =>
+      Intl.message('Generation', name: 'driveGeneration');
+  String get driveCapacity =>
+      Intl.message('Drive Capacity', name: 'driveCapacity');
+  String get driveInterface =>
+      Intl.message('Interface', name: 'driveInterface');
+  String get readSpeed => Intl.message('Read Speed', name: 'readSpeed');
+  String get writeSpeed => Intl.message('Write Speed', name: 'writeSpeed');
+  String get chipset => Intl.message('Chipset', name: 'chipset');
+  String get ramSpec => Intl.message('RAM Spec', name: 'ramSpec');
+  String get storageSlots =>
+      Intl.message('Storage Slots', name: 'storageSlots');
+  String get pcieSlots => Intl.message('PCIe Slots', name: 'pcieSlots');
   String get formFactor => Intl.message('Form Factor', name: 'formFactor');
   String get compatibility =>
       Intl.message('Compatibility', name: 'compatibility');
@@ -391,6 +412,15 @@ class S {
       Intl.message('Storage Specifications', name: 'storageSpecifications');
   String get busSpeed => Intl.message('Bus Speed', name: 'busSpeed');
   String get ramType => Intl.message('RAM Type', name: 'ramType');
+  String get ramBus => Intl.message('RAM Bus', name: 'ramBus');
+  String get clLatency => Intl.message('CL Latency', name: 'clLatency');
+  String get kitStickCount =>
+      Intl.message('Kit Stick Count', name: 'kitStickCount');
+  String get ramCapacity => Intl.message('Capacity', name: 'ramCapacity');
+  String get capacityPerStick =>
+      Intl.message('Capacity Per Stick', name: 'capacityPerStick');
+  String get gbEach => Intl.message('GB each', name: 'gbEach');
+  String get gbInTotal => Intl.message('GB in total', name: 'gbInTotal');
   String get cores => Intl.message('Cores', name: 'cores');
   String get threads => Intl.message('Threads', name: 'threads');
   String get clockSpeed => Intl.message('Clock Speed', name: 'clockSpeed');
@@ -766,6 +796,9 @@ class S {
       Intl.message('Your Favorites', name: 'yourFavorites');
   String get productsInYourWishlist =>
       Intl.message('Products in your wishlist', name: 'productsInYourWishlist');
+  String get productRecommendationsForYourBuild =>
+      Intl.message('Product recommendations for your build',
+          name: 'productRecommendationsForYourBuild');
 
   // Guest restrictions
   String get loginRequired =>
@@ -836,6 +869,27 @@ class S {
   String get downloadInvoice =>
       Intl.message('Download invoice', name: 'downloadInvoice');
 
+  String get cannotCancelTitle =>
+      Intl.message('Cannot cancel', name: 'cannotCancelTitle');
+  String get cannotCancelMessage =>
+      Intl.message('This order can no longer be cancelled.',
+          name: 'cannotCancelMessage');
+  String get cancelSuccessTitle =>
+      Intl.message('Order cancelled', name: 'cancelSuccessTitle');
+  String get cancelSuccessMessage =>
+      Intl.message('The order was cancelled successfully.',
+          name: 'cancelSuccessMessage');
+  String get cancelFailedTitle =>
+      Intl.message('Cancel failed', name: 'cancelFailedTitle');
+  String cancelFailedMessage(Object error) =>
+      Intl.message('Unable to cancel this order.',
+          name: 'cancelFailedMessage', args: [error]);
+
+  String get cancelled => Intl.message('Cancelled', name: 'cancelled');
+
+  String get noCancelledOrders =>
+      Intl.message('You have no cancelled orders.', name: 'noCancelledOrders');
+
   // PC Builder
   String get enableCompatibilityChecker =>
       Intl.message('Enable compatibility checker',
@@ -872,6 +926,73 @@ class S {
         name: 'builderSessionComponents',
         args: [count],
       );
+  String get loading => Intl.message('Loading...', name: 'loading');
+
+  // Ratings
+  String get ratingsAndReviews =>
+      Intl.message('Ratings & Reviews', name: 'ratingsAndReviews');
+  String reviews(int count) => Intl.message(
+        '$count reviews',
+        name: 'reviews',
+        args: [count],
+      );
+  String get noRatingsYet =>
+      Intl.message('No ratings yet', name: 'noRatingsYet');
+  String get showMore => Intl.message('Show more', name: 'showMore');
+
+  // Order Rating
+  String get rateProduct => Intl.message('Rate Product', name: 'rateProduct');
+  String get commentOptional =>
+      Intl.message('Comment (optional)', name: 'commentOptional');
+  String get addImages => Intl.message('Add images', name: 'addImages');
+  String get addVideo => Intl.message('Add video', name: 'addVideo');
+  String get submitRating => Intl.message('Submit', name: 'submitRating');
+  String get allReviews => Intl.message('All Reviews', name: 'allReviews');
+  String get mostRecent => Intl.message('Most Recent', name: 'mostRecent');
+  String get mostHelpful => Intl.message('Most Helpful', name: 'mostHelpful');
+  String get highestRated =>
+      Intl.message('Highest Rated', name: 'highestRated');
+  String get lowestRated => Intl.message('Lowest Rated', name: 'lowestRated');
+
+  // Sentiment Analysis
+  String get checkContent =>
+      Intl.message('Check Content', name: 'checkContent');
+  String get submitRatingButton =>
+      Intl.message('Submit Rating', name: 'submitRatingButton');
+  String get analyzingSentiment =>
+      Intl.message('Analyzing sentiment...', name: 'analyzingSentiment');
+  String get sentimentPositive =>
+      Intl.message('Positive', name: 'sentimentPositive');
+  String get sentimentNegative =>
+      Intl.message('Negative', name: 'sentimentNegative');
+  String get sentimentNeutral =>
+      Intl.message('Neutral', name: 'sentimentNeutral');
+  String get sentimentMixed => Intl.message('Mixed', name: 'sentimentMixed');
+
+  // Rating validation messages
+  String get ratingRequired =>
+      Intl.message('Rating Required', name: 'ratingRequired');
+  String get pleaseProvideRating =>
+      Intl.message('Please provide a rating.', name: 'pleaseProvideRating');
+  String get fileSizeLimit =>
+      Intl.message('File Size Limit', name: 'fileSizeLimit');
+  String get totalSizeMustBe10MB =>
+      Intl.message('Total size must be <= 10 MB.', name: 'totalSizeMustBe10MB');
+  String get inappropriateContent =>
+      Intl.message('Inappropriate Content', name: 'inappropriateContent');
+  String get commentContainsInappropriateLanguage => Intl.message(
+      'Your comment contains inappropriate language. Please revise and try again.',
+      name: 'commentContainsInappropriateLanguage');
+  String get ratingMismatch =>
+      Intl.message('Rating Mismatch', name: 'ratingMismatch');
+  String ratingMismatchMessage(String sentiment, int stars) => Intl.message(
+        'Your comment seems $sentiment, but you gave $stars star${stars > 1 ? 's' : ''}. Please make sure your rating matches your experience.',
+        name: 'ratingMismatchMessage',
+        args: [sentiment, stars],
+      );
+
+  String get goodWithThisProduct =>
+      Intl.message('Good with this product', name: 'goodWithThisProduct');
 
   // Footer
   String get footerTagline => Intl.message(

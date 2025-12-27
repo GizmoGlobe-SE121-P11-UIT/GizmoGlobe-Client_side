@@ -3,8 +3,10 @@ import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_state
 import '../../../../data/database/database.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../../data/firebase/firebase.dart';
 import '../../../../enums/processing/dialog_name_enum.dart';
 import '../../../../enums/processing/process_state_enum.dart';
+import '../../../../objects/voucher_related/voucher.dart';
 
 class VoucherScreenCubit extends Cubit<VoucherScreenState> {
   VoucherScreenCubit() : super(const VoucherScreenState());
@@ -14,22 +16,37 @@ class VoucherScreenCubit extends Cubit<VoucherScreenState> {
     emit(state.copyWith(processState: ProcessState.loading));
   }
 
-  Future<void> initialize() async {
+  void toSuccess() {
+    if (isClosed) return;
+    emit(state.copyWith(processState: ProcessState.success));
+  }
+
+  void toFailure(String message) {
+    if (isClosed) return;
+    emit(state.copyWith(
+      processState: ProcessState.failure,
+      dialogName: DialogName.failure,
+      dialogMessage: message,
+    ));
+  }
+
+  void setPoints(int points) {
+    emit(state.copyWith(points: points));
+  }
+
+  void reloadVoucher() {
     try {
-      // Use the Database class to update voucher lists
-      await Database().updateVoucherLists();
+      final userVouchers = Database().ownedVoucherList;
+      final ongoingVouchers = Database().ongoingVouchers;
+      final upcomingVouchers = Database().upcomingVouchers;
+      final redeemableVouchers = Database().redeemableVoucherList;
 
-      // Get the updated voucher lists from Database
-      final userVouchers = Database().getUserVouchers();
-      final ongoingVouchers = Database().getOngoingVouchers();
-      final upcomingVouchers = Database().getUpcomingVouchers();
-
-      // Update state with voucher lists from Database
       if (isClosed) return;
       emit(state.copyWith(
         voucherList: userVouchers,
         ongoingList: ongoingVouchers,
         upcomingList: upcomingVouchers,
+        redeemableList: redeemableVouchers,
         processState: ProcessState.success,
       ));
     } catch (e) {
@@ -42,6 +59,42 @@ class VoucherScreenCubit extends Cubit<VoucherScreenState> {
         dialogName: DialogName.failure,
         dialogMessage: e.toString(),
       ));
+    }
+  }
+
+  Future<void> initialize() async {
+    reloadVoucher();
+    setPoints(Database().loyalPoint);
+  }
+
+  Future<void> redeemVoucher(Voucher voucher) async {
+    try {
+      toLoading();
+      final customerId = Database().userID;
+      if (customerId.isEmpty) {
+        throw Exception('No logged in user');
+      }
+
+      await Firebase().redeemVoucher(customerId, voucher);
+
+      try {
+        final int? redeemPrice = voucher.redeemPrice;
+        if (redeemPrice != null && redeemPrice > 0) {
+          await Database().subtractLoyalPoint(redeemPrice);
+          setPoints(Database().loyalPoint);
+        }
+      } catch (e) {
+        if (kDebugMode) print('Failed to subtract loyal points after redeem: $e');
+      }
+
+      await initialize();
+      toSuccess();
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('Error redeeming voucher: $e');
+        print(st);
+      }
+      toFailure(e.toString());
     }
   }
 }

@@ -60,7 +60,18 @@ class AIUtils {
   /// Detect if message is about products
   bool isProductQuestion(String message) {
     final productKeywords = {
-      'cpu': ['cpu', 'processor', 'core i', 'ryzen', 'intel', 'amd'],
+      'cpu': [
+        'cpu',
+        'processor',
+        'core i',
+        'ryzen',
+        'intel',
+        'amd',
+        'i3',
+        'i5',
+        'i7',
+        'i9'
+      ],
       'gpu': ['gpu', 'graphics', 'card', 'vga', 'rtx', 'gtx', 'radeon'],
       'ram': ['ram', 'memory', 'ddr', 'dimm', 'kingston', 'corsair'],
       'psu': ['psu', 'power supply', 'nguồn'],
@@ -76,8 +87,18 @@ class AIUtils {
     };
 
     final lowercaseMessage = message.toLowerCase();
-    return productKeywords.values.any((keywords) => keywords
+
+    // Check for product keywords
+    final hasKeyword = productKeywords.values.any((keywords) => keywords
         .any((keyword) => lowercaseMessage.contains(keyword.toLowerCase())));
+
+    // Also check for product model patterns like "i7 12700k", "ryzen 5 5600", "rtx 4090"
+    final productModelPattern = RegExp(
+        r'\b(?:i[3579]|ryzen\s*[3579]|rtx|gtx)\s*\d+[a-z]*\b',
+        caseSensitive: false);
+    final hasModelPattern = productModelPattern.hasMatch(lowercaseMessage);
+
+    return hasKeyword || hasModelPattern;
   }
 
   /// Detect if message is about favorites
@@ -239,7 +260,7 @@ class AIUtils {
         voucherKeywords['vi']!.any((keyword) => lowerMessage.contains(keyword));
   }
 
-  /// Detect add to cart requests
+  /// Detect add to cart OR add to favorites requests
   bool isAddToCartRequest(String message) {
     final addToCartKeywords = {
       'en': [
@@ -250,6 +271,12 @@ class AIUtils {
         'add it to cart',
         'add to shopping cart',
         'add to basket',
+        'add to favorites',
+        'add to favourites',
+        'add to wishlist',
+        'save to favorites',
+        'save to wishlist',
+        'add to liked',
         'buy this',
         'purchase this',
         'order this',
@@ -268,11 +295,16 @@ class AIUtils {
         'thêm vào giỏ hàng',
         'thêm vào giỏ',
         'cho vào giỏ hàng',
+        'thêm vào yêu thích',
+        'thêm vào danh sách yêu thích',
+        'lưu vào yêu thích',
+        'cho vào yêu thích',
         'mua cái này',
         'đặt hàng cái này',
         'lấy cái này',
         'thêm',
         'giỏ hàng',
+        'yêu thích',
         'mua',
         'đặt hàng',
         'lấy',
@@ -304,14 +336,52 @@ class AIUtils {
       'gtx',
       'core'
     ];
-    final cartTerms = ['cart', 'giỏ', 'buy', 'mua', 'purchase', 'đặt'];
+    final actionTerms = [
+      'cart',
+      'giỏ',
+      'buy',
+      'mua',
+      'purchase',
+      'đặt',
+      'yêu thích',
+      'wishlist',
+      'favorites',
+      'favourite'
+    ];
 
     final hasProductTerm =
         productTerms.any((term) => lowerMessage.contains(term.toLowerCase()));
-    final hasCartTerm =
-        cartTerms.any((term) => lowerMessage.contains(term.toLowerCase()));
+    final hasActionTerm =
+        actionTerms.any((term) => lowerMessage.contains(term.toLowerCase()));
 
-    return hasKeyword || (hasProductTerm && hasCartTerm);
+    return hasKeyword || (hasProductTerm && hasActionTerm);
+  }
+
+  /// Detect if action is specifically for favorites (vs cart)
+  bool isFavoritesAction(String message) {
+    final favoritesKeywords = {
+      'en': [
+        'favorites',
+        'favourites',
+        'wishlist',
+        'liked',
+        'wish list',
+        'favorite',
+        'favourite',
+      ],
+      'vi': [
+        'yêu thích',
+        'danh sách yêu thích',
+        'ưa thích',
+        'wishlist',
+      ]
+    };
+
+    final lowerMessage = message.toLowerCase();
+    return favoritesKeywords['en']!
+            .any((keyword) => lowerMessage.contains(keyword)) ||
+        favoritesKeywords['vi']!
+            .any((keyword) => lowerMessage.contains(keyword));
   }
 
   /// Extract product name from add to cart request

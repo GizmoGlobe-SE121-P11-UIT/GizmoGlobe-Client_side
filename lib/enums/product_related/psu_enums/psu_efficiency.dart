@@ -15,7 +15,9 @@ enum PSUEfficiency {
   }
 
   static List<PSUEfficiency> getValues() {
-    return PSUEfficiency.values.where((e) => e != PSUEfficiency.unknown).toList();
+    return PSUEfficiency.values
+        .where((e) => e != PSUEfficiency.unknown)
+        .toList();
   }
 
   @override
@@ -27,7 +29,7 @@ enum PSUEfficiency {
 extension PSUEfficiencyExtension on PSUEfficiency {
   static PSUEfficiency fromName(String name) {
     return PSUEfficiency.values.firstWhere(
-      (e) => e.getName() == name,
+      (e) => e.getName().toLowerCase() == name.toLowerCase(),
       orElse: () => PSUEfficiency.unknown,
     );
   }
