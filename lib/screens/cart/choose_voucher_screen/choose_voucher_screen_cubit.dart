@@ -23,7 +23,7 @@ class ChooseVoucherScreenCubit extends Cubit<ChooseVoucherScreenState> {
     toLoading();
 
     await Database().updateVoucherLists();
-    final vouchers = Database().getOngoingVouchers().where((voucher) {
+    final vouchers = Database().ongoingVouchers.where((voucher) {
       if (voucher.minimumPurchase > totalAmount) return false;
       return true;
     }).toList();

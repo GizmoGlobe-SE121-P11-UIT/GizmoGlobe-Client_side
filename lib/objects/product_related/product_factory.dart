@@ -39,7 +39,7 @@ class ProductFactory {
 
     int price = toInt(properties['sellingPrice']);
     double discount = toDouble(properties['discount']);
-    double discountedPrice = price * (1 - discount / 100);
+    int discountedPrice = (price * (1 - discount / 100)).toInt();
 
     switch (category) {
       case CategoryEnum.ram:

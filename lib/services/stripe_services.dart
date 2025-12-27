@@ -271,10 +271,8 @@ class StripeServices {
       }
 
       // Fallback to sessionStorage
-      if (actualSessionId == null) {
-        actualSessionId =
-            StripeWebHelper.getSessionStorage('stripe_checkout_session_id');
-      }
+      actualSessionId ??=
+          StripeWebHelper.getSessionStorage('stripe_checkout_session_id');
 
       if (actualSessionId == null) return null;
 

@@ -242,38 +242,51 @@ class _ChatScreenState extends State<ChatScreen> {
                 ]
               : null,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (sanitizedContent.trim().isNotEmpty) ...[
-              SizedBox(
-                width: double.infinity,
-                child: Text.rich(
-                  TextSpan(
-                    children: _buildMessageSpans(
-                      message.content,
-                      isUser,
-                      theme,
+        child: SelectionArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (sanitizedContent.trim().isNotEmpty) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: Theme(
+                    data: theme.copyWith(
+                      textSelectionTheme: TextSelectionThemeData(
+                        selectionColor:
+                            theme.colorScheme.primary.withValues(alpha: 0.3),
+                        selectionHandleColor: theme.colorScheme.primary,
+                      ),
+                    ),
+                    child: SelectableText.rich(
+                      TextSpan(
+                        children: _buildMessageSpans(
+                          message.content,
+                          isUser,
+                          theme,
+                        ),
+                      ),
+                      textAlign: isAI ? TextAlign.justify : TextAlign.start,
+                      scrollPhysics: const NeverScrollableScrollPhysics(),
                     ),
                   ),
-                  textAlign: isAI ? TextAlign.justify : TextAlign.start,
                 ),
-              ),
-              if (!isUser && productCards.isNotEmpty) const SizedBox(height: 8),
+                if (!isUser && productCards.isNotEmpty)
+                  const SizedBox(height: 8),
+              ],
+              if (!isUser && productCards.isNotEmpty) ...[
+                Column(
+                  children: productCards
+                      .map(
+                        (card) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: ProductMiniCard(cardData: card),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
             ],
-            if (!isUser && productCards.isNotEmpty) ...[
-              Column(
-                children: productCards
-                    .map(
-                      (card) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: ProductMiniCard(cardData: card),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );

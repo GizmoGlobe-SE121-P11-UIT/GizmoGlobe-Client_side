@@ -14,7 +14,7 @@
 const path = require('path');
 const fs = require('fs');
 const admin = require('firebase-admin');
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 
 // Initialize Admin SDK if not already initialized (when running outside CF env)
 try {
@@ -46,18 +46,39 @@ const db = admin.firestore();
 const SOURCE_PATH = path.resolve(__dirname, '../../lib/data/Survey.xlsx');
 const TARGET_COL = db.collection('surveyResponses_raw');
 
-function readWorksheet(filePath) {
-  const workbook = XLSX.readFile(filePath);
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  // Convert to JSON, preserving headers
-  const json = XLSX.utils.sheet_to_json(sheet, { defval: null });
-  return json;
+async function readWorksheet(filePath) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(filePath);
+  
+  const worksheet = workbook.worksheets[0];
+  const rows = [];
+  
+  // Get headers from first row
+  const headers = [];
+  worksheet.getRow(1).eachCell((cell, colNumber) => {
+    headers[colNumber] = cell.value;
+  });
+  
+  // Convert rows to JSON objects
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return; // Skip header row
+    
+    const rowData = {};
+    row.eachCell((cell, colNumber) => {
+      const header = headers[colNumber];
+      if (header) {
+        rowData[header] = cell.value;
+      }
+    });
+    rows.push(rowData);
+  });
+  
+  return rows;
 }
 
 async function main() {
   console.log('Importing survey from:', SOURCE_PATH);
-  const rows = readWorksheet(SOURCE_PATH);
+  const rows = await readWorksheet(SOURCE_PATH);
   console.log(`Found ${rows.length} rows`);
 
   const batchSize = 400;

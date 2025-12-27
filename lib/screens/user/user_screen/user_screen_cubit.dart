@@ -26,6 +26,10 @@ class UserScreenCubit extends Cubit<UserScreenState> {
     return userDoc.exists && (userDoc.data()?['isGuest'] ?? false);
   }
 
+  Future<void> loadLoyalPoint() async {
+    emit(state.copyWith(loyalPoint: Database().loyalPoint));
+  }
+
   Future<void> getUser() async {
     try {
       final user = _auth.currentUser;

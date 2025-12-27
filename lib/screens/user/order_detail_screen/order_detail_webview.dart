@@ -82,6 +82,8 @@ class _OrderDetailContent extends StatelessWidget {
               onDownloadInvoice: () => context
                   .read<OrderDetailCubit>()
                   .downloadInvoicePdf(context, invoice),
+              onCancel: () =>
+                  context.read<OrderDetailCubit>().cancelInvoice(context),
             ),
           ),
         );

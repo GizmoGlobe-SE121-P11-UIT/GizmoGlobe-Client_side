@@ -132,6 +132,17 @@ class SalesInvoice {
       }
     }
 
+    final paymentMethodRaw = map['paymentMethod'];
+    final paymentMethod = PaymentMethod.values.firstWhere(
+      (e) =>
+          e.getName() == paymentMethodRaw ||
+          (paymentMethodRaw is String &&
+              (e.code.toLowerCase() == paymentMethodRaw.toLowerCase() ||
+                  e.enDescription.toLowerCase() ==
+                      paymentMethodRaw.toLowerCase())),
+      orElse: () => PaymentMethod.cod,
+    );
+
     final dateValue = map['date'];
     DateTime parsedDate;
     if (dateValue is Timestamp) {
@@ -154,10 +165,7 @@ class SalesInvoice {
         (e) => e.getName() == map['paymentStatus'],
         orElse: () => PaymentStatus.unpaid,
       ),
-      paymentMethod: PaymentMethod.values.firstWhere(
-        (e) => e.getName() == map['paymentMethod'],
-        orElse: () => PaymentMethod.cod,
-      ),
+      paymentMethod: paymentMethod,
       salesStatus: SalesStatus.values.firstWhere(
         (e) => e.getName() == map['salesStatus'],
         orElse: () => SalesStatus.pending,

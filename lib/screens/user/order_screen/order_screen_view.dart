@@ -7,6 +7,7 @@ import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_cubit.d
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_state.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_webview.dart';
 import 'package:gizmoglobe_client/screens/user/order_detail_screen/order_detail_view.dart';
+import 'package:gizmoglobe_client/screens/user/order_screen/rating_order/rate_order_view.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../generated/l10n.dart';
@@ -16,6 +17,9 @@ import '../../../objects/invoice_related/sales_invoice.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/order/sales_invoice_widget.dart';
 import '../../main/main_screen/main_screen_view.dart';
+
+import '../../../objects/invoice_related/rating.dart';
+import '../../../data/database/database.dart';
 
 class OrderScreen extends StatefulWidget {
   final OrderOption orderOption;
@@ -36,6 +40,8 @@ class _OrderScreenState extends State<OrderScreen>
   OrderScreenCubit get cubit => context.read<OrderScreenCubit>();
   late TabController tabController;
 
+  List<Rating> _userRatings = [];
+
   void _handleTabChange() {
     if (!tabController.indexIsChanging) {
       final selectedOption = OrderOption.values[tabController.index];
@@ -51,6 +57,8 @@ class _OrderScreenState extends State<OrderScreen>
         return S.of(context).toReceive;
       case OrderOption.completed:
         return S.of(context).completed;
+      case OrderOption.cancelled:
+        return S.of(context).cancelled;
     }
   }
 
@@ -65,6 +73,7 @@ class _OrderScreenState extends State<OrderScreen>
     tabController.addListener(_handleTabChange);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       cubit.initialize(widget.orderOption);
+      _loadUserRatings();
     });
   }
 
@@ -147,21 +156,28 @@ class _OrderScreenState extends State<OrderScreen>
                                 invoices: state.toShipList,
                                 emptyLabel: S.of(context).noOrdersToShip,
                                 cubit: cubit,
-                                enableConfirmDelivery: false,
+                                enableButton: false,
                               ),
                               _buildInvoiceList(
                                 context: context,
                                 invoices: state.toReceiveList,
                                 emptyLabel: S.of(context).noOrdersToReceive,
                                 cubit: cubit,
-                                enableConfirmDelivery: true,
+                                enableButton: true,
                               ),
                               _buildInvoiceList(
                                 context: context,
                                 invoices: state.completedList,
                                 emptyLabel: S.of(context).noCompletedOrders,
                                 cubit: cubit,
-                                enableConfirmDelivery: false,
+                                enableButton: true,
+                              ),
+                              _buildInvoiceList(
+                                context: context,
+                                invoices: state.cancelledList,
+                                emptyLabel: S.of(context).noCancelledOrders,
+                                cubit: cubit,
+                                enableButton: false,
                               ),
                             ],
                           ),
@@ -191,6 +207,7 @@ class _OrderScreenState extends State<OrderScreen>
       ),
       child: TabBar(
         controller: tabController,
+        tabAlignment: TabAlignment.start,
         labelColor: Theme.of(context).colorScheme.onPrimary,
         unselectedLabelColor:
             Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
@@ -209,7 +226,7 @@ class _OrderScreenState extends State<OrderScreen>
             WidgetStateProperty.resolveWith((_) => Colors.transparent),
         splashFactory: NoSplash.splashFactory,
         dividerColor: Colors.transparent,
-        isScrollable: false,
+        isScrollable: true,
         tabs: OrderOption.values
             .map(
               (option) => Padding(
@@ -230,7 +247,7 @@ class _OrderScreenState extends State<OrderScreen>
     required List<SalesInvoice> invoices,
     required String emptyLabel,
     required OrderScreenCubit cubit,
-    required bool enableConfirmDelivery,
+    required bool enableButton,
   }) {
     if (invoices.isEmpty) {
       return Center(
@@ -245,9 +262,10 @@ class _OrderScreenState extends State<OrderScreen>
       itemCount: invoices.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final salesInvoice = invoices[index];
+        SalesInvoice salesInvoice = invoices[index];
         return SalesInvoiceWidget(
           salesInvoice: salesInvoice,
+          userRatings: _userRatings,
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -257,8 +275,28 @@ class _OrderScreenState extends State<OrderScreen>
               ),
             );
           },
+          onRate: (String productId) async {
+            final invoiceId = salesInvoice.salesInvoiceID ?? '';
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => RateOrderView.newInstance(
+                  invoiceId: invoiceId,
+                  productId: productId,
+                ),
+              ),
+            );
+
+            if (!mounted) return;
+
+            await _loadUserRatings();
+            await cubit.completeInvoiceIfAllProductsRated(
+              salesInvoice,
+              _userRatings,
+            );
+            cubit.initialize(OrderOption.values[tabController.index]);
+          },
           onPressed: () async {
-            if (enableConfirmDelivery &&
+            if (enableButton &&
                 salesInvoice.salesStatus == SalesStatus.shipped) {
               await cubit.confirmDelivery(salesInvoice);
             }
@@ -266,5 +304,18 @@ class _OrderScreenState extends State<OrderScreen>
         );
       },
     );
+  }
+
+  Future<void> _loadUserRatings() async {
+    try {
+      final userId = Database().userID.isEmpty
+          ? (await Database().getCurrentUserID() ?? '')
+          : Database().userID;
+      await Database().getRating();
+      final ratings = userId.isEmpty ? <Rating>[] : Database().ratingList;
+      if (mounted) setState(() => _userRatings = ratings);
+    } catch (e) {
+      if (kDebugMode) print('Error loading user ratings: $e');
+    }
   }
 }

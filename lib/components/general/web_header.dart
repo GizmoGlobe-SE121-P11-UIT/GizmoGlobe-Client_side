@@ -474,24 +474,15 @@ class _WebHeaderState extends State<WebHeader> {
           _removeOverlay();
           if (kIsWeb) {
             // Capture overlay before awaiting to avoid deactivated context
-            final OverlayState? rootOverlay =
+            final OverlayState rootOverlay =
                 Overlay.of(context, rootOverlay: true);
             final result = await showSurveyModal(context);
             if (result == 'survey_success') {
-              if (rootOverlay != null) {
-                SnackbarService.showSuccessAboveOverlay(
-                  rootOverlay,
-                  title: S.of(context).success,
-                  message: S.of(context).surveySubmitted,
-                );
-              } else {
-                // Fallback to ScaffoldMessenger
-                SnackbarService.showSuccess(
-                  context,
-                  title: S.of(context).success,
-                  message: S.of(context).surveySubmitted,
-                );
-              }
+              SnackbarService.showSuccessAboveOverlay(
+                rootOverlay,
+                title: S.of(context).success,
+                message: S.of(context).surveySubmitted,
+              );
             }
           } else {
             Navigator.pushNamed(context, '/user'); // fallback mobile route
@@ -505,7 +496,11 @@ class _WebHeaderState extends State<WebHeader> {
         onTap: () {
           setState(() => _isUserMenuOpen = false);
           _removeOverlay();
-          Navigator.pushNamed(context, '/orders/completed');
+          if (kIsWeb) {
+            // Ensure hash-based navigation updates the URL and triggers routing
+            platform_actions.replaceHashUrl('/orders');
+          }
+          Navigator.pushNamed(context, '/orders');
         },
       ),
       _buildMenuItem(

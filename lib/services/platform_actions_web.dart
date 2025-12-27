@@ -47,7 +47,7 @@ void normalizeInitialUrlForHashStrategy() {
   final hash = loc.hash;
   if (path != '/' && (hash.isEmpty || !hash.startsWith('#/'))) {
     final query = loc.search;
-    final newUrl = '${loc.origin}/#${path}${query}';
+    final newUrl = '${loc.origin}/#$path$query';
     web.window.history.replaceState(null, '', newUrl);
   }
 }

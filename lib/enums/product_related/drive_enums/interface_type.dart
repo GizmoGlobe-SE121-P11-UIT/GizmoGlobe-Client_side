@@ -12,7 +12,9 @@ enum InterfaceType {
   }
 
   static List<InterfaceType> getValues() {
-    return InterfaceType.values.where((e) => e != InterfaceType.unknown).toList();
+    return InterfaceType.values
+        .where((e) => e != InterfaceType.unknown)
+        .toList();
   }
 
   @override
@@ -24,7 +26,7 @@ enum InterfaceType {
 extension InterfaceTypeExtension on InterfaceType {
   static InterfaceType fromName(String name) {
     return InterfaceType.values.firstWhere(
-      (e) => e.getName() == name,
+      (e) => e.getName().toLowerCase() == name.toLowerCase(),
       orElse: () => InterfaceType.unknown,
     );
   }

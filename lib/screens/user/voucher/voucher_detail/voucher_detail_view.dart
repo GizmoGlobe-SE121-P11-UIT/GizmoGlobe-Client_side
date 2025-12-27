@@ -5,8 +5,6 @@ import 'package:gizmoglobe_client/functions/converter.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/limited_interface.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_cubit.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_state.dart';
-import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
-import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:intl/intl.dart';
 import '../../../../functions/helper.dart';
 import 'voucher_detail_webview.dart';
@@ -16,16 +14,15 @@ import '../../../../generated/l10n.dart';
 import '../../../../objects/voucher_related/end_time_interface.dart';
 import '../../../../objects/voucher_related/percentage_interface.dart';
 import '../../../../objects/voucher_related/voucher.dart';
-import '../../../../widgets/general/multi_field_with_icon.dart';
 
 class VoucherDetailScreen extends StatefulWidget {
   final Voucher voucher;
   const VoucherDetailScreen({super.key, required this.voucher});
 
   static Widget newInstance(Voucher voucher) => BlocProvider(
-        create: (context) => VoucherDetailCubit(voucher),
-        child: VoucherDetailScreen(voucher: voucher),
-      );
+    create: (context) => VoucherDetailCubit(voucher),
+    child: VoucherDetailScreen(voucher: voucher),
+  );
 
   @override
   State<VoucherDetailScreen> createState() => _VoucherDetailScreen();
@@ -49,28 +46,27 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
       return const Scaffold(body: SizedBox.shrink());
     }
 
-    // For mobile, use the original layout
+    // For mobile, single-column plain text layout
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         leading: BlocBuilder<VoucherDetailCubit, VoucherDetailState>(
-          builder: (context, state) => GradientIconButton(
-            icon: Icons.chevron_left,
+          builder: (context, state) => IconButton(
+            icon: const Icon(Icons.chevron_left),
             onPressed: () => {
               if (widget.voucher != state.voucher)
                 {Navigator.pop(context, ProcessState.success)}
               else
                 {Navigator.pop(context, state.processState)}
             },
-            fillColor: Colors.transparent,
           ),
         ),
         title: Text(
           voucher.voucherName,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -79,66 +75,56 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTextField(context, S.of(context).voucher,
-                            voucher.voucherName),
-                        const SizedBox(height: 12),
-                        _buildTextField(
-                            context,
-                            S.of(context).startTime,
-                            DateFormat('dd/MM/yyyy hh:mm:ss')
-                                .format(voucher.startTime)),
-                        const SizedBox(height: 12),
-                        _buildTextField(context, S.of(context).minimumPurchase,
-                            Helper.toCurrencyFormat(voucher.minimumPurchase)),
-                        const SizedBox(height: 12),
-                        if (voucher.isLimited)
-                          _buildTextField(context, S.of(context).usage,
-                              '${(voucher as LimitedInterface).usageLeft} / ${(voucher as LimitedInterface).maximumUsage}'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTextField(
-                          context,
-                          S.of(context).discount,
-                          voucher.isPercentage
-                              ? '${Converter.formatDouble(voucher.discountValue)}% maximum ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
-                              : Helper.toCurrencyFormat(voucher.discountValue),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTextField(
-                          context,
-                          S.of(context).endTime,
-                          voucher.hasEndTime
-                              ? DateFormat('dd/MM/yyyy hh:mm:ss')
-                                  .format((voucher as EndTimeInterface).endTime)
-                              : S.of(context).noEndTime,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTextField(
-                            context,
-                            S.of(context).maxUsagePerPerson,
-                            '${voucher.maxUsagePerPerson}'),
-                      ],
-                    ),
-                  ),
-                ],
+              _plainField(context, S.of(context).voucher, voucher.voucherName),
+              const SizedBox(height: 12),
+              _plainField(
+                context,
+                S.of(context).startTime,
+                DateFormat('dd/MM/yyyy hh:mm:ss').format(voucher.startTime),
+              ),
+              const SizedBox(height: 12),
+              _plainField(
+                context,
+                S.of(context).minimumPurchase,
+                Helper.toCurrencyFormat(voucher.minimumPurchase),
+              ),
+              const SizedBox(height: 12),
+              if (voucher.isLimited)
+                _plainField(
+                  context,
+                  S.of(context).usage,
+                  '${(voucher as LimitedInterface).usageLeft} / ${(voucher as LimitedInterface).maximumUsage}',
+                ),
+              const SizedBox(height: 12),
+              _plainField(
+                context,
+                S.of(context).discount,
+                voucher.isPercentage
+                    ? '${Converter.formatDouble(voucher.discountValue)}% maximum ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
+                    : Helper.toCurrencyFormat(voucher.discountValue),
+              ),
+              const SizedBox(height: 12),
+              _plainField(
+                context,
+                S.of(context).endTime,
+                voucher.hasEndTime
+                    ? DateFormat('dd/MM/yyyy hh:mm:ss')
+                    .format((voucher as EndTimeInterface).endTime)
+                    : S.of(context).noEndTime,
+              ),
+              const SizedBox(height: 12),
+              _plainField(
+                context,
+                S.of(context).maxUsagePerPerson,
+                '${voucher.maxUsagePerPerson}',
               ),
               if (voucher.getDescription(context) != null) ...[
                 const SizedBox(height: 12),
-                _buildMultiTextField(context, S.of(context).description,
-                    voucher.getDescription(context)!),
+                _plainField(
+                  context,
+                  S.of(context).description,
+                  voucher.getDescription(context)!,
+                ),
               ],
             ],
           ),
@@ -147,8 +133,7 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
     );
   }
 
-  Widget _buildTextField(BuildContext context, String label, String value) {
-    final controller = TextEditingController(text: value);
+  Widget _plainField(BuildContext context, String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -161,36 +146,12 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        FieldWithIcon(
-          controller: controller,
-          readOnly: true,
-          hintText: value,
-          textColor: Theme.of(context).colorScheme.onSurface,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMultiTextField(
-      BuildContext context, String label, String value) {
-    final controller = TextEditingController(text: value);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
         Text(
-          label,
+          value,
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 16,
+            fontSize: 15,
           ),
-        ),
-        const SizedBox(height: 4),
-        MultiFieldWithIcon(
-          controller: controller,
-          readOnly: true,
-          hintText: value,
-          textColor: Theme.of(context).colorScheme.onSurface,
         ),
       ],
     );

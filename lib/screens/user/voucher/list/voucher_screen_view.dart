@@ -6,6 +6,7 @@ import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_cubit
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_state.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_view.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
+import 'package:gizmoglobe_client/widgets/voucher/redeemable_voucher_widget.dart';
 import 'voucher_screen_webview.dart';
 
 import '../../../../enums/processing/process_state_enum.dart';
@@ -42,8 +43,9 @@ class _VoucherScreenState extends State<VoucherScreen>
     Future.microtask(() async {
       await cubit.initialize();
     });
+    // Now three tabs: ongoing, upcoming, redeem
     tabController = TabController(
-      length: 2,
+      length: 3,
       vsync: this,
       initialIndex: 0,
     );
@@ -56,7 +58,7 @@ class _VoucherScreenState extends State<VoucherScreen>
       return VoucherScreenWebView.withCubit(cubit);
     }
 
-    // For mobile, use the original layout
+    // For mobile, use the three-tab layout: ongoing, upcoming, redeem
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -77,6 +79,7 @@ class _VoucherScreenState extends State<VoucherScreen>
             tabs: [
               Tab(text: S.of(context).ongoing),
               Tab(text: S.of(context).upcoming),
+              const Tab(text: 'Redeem'),
             ],
           ),
         ),
@@ -84,7 +87,6 @@ class _VoucherScreenState extends State<VoucherScreen>
           child: BlocConsumer<VoucherScreenCubit, VoucherScreenState>(
             listener: (context, state) {
               if (state.processState == ProcessState.success) {
-                // Only show dialog if there's a dialog message and name
                 if (state.dialogMessage.isNotEmpty) {
                   showDialog(
                     context: context,
@@ -95,8 +97,7 @@ class _VoucherScreenState extends State<VoucherScreen>
                         Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) =>
-                                    VoucherScreen.newInstance()));
+                                builder: (context) => VoucherScreen.newInstance()));
                       },
                     ),
                   );
@@ -104,14 +105,12 @@ class _VoucherScreenState extends State<VoucherScreen>
               }
             },
             builder: (context, state) {
-              // Show loading indicator while data is being fetched
               if (state.processState == ProcessState.loading) {
                 return const Center(
                   child: CircularProgressIndicator(),
                 );
               }
 
-              // Show error message if the initialization failed
               if (state.processState == ProcessState.failure) {
                 return Center(
                   child: Column(
@@ -142,13 +141,13 @@ class _VoucherScreenState extends State<VoucherScreen>
                 );
               }
 
-              // Show the content when data is loaded
+              // When loaded, show TabBarView with three children
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TabBarView(
                   controller: tabController,
                   children: [
-                    // Tab 1: Ongoing voucher list
+                    // Ongoing
                     state.ongoingList.isEmpty
                         ? Center(
                             child: Text(
@@ -162,13 +161,12 @@ class _VoucherScreenState extends State<VoucherScreen>
                               final voucher = state.ongoingList[index];
                               return VoucherWidget(
                                 voucher: voucher,
-                                onPressed: () =>
-                                    _onVoucherTap(context, voucher),
+                                onPressed: () => _onVoucherTap(context, voucher),
                               );
                             },
                           ),
 
-                    // Tab 2: Upcoming voucher list
+                    // Upcoming
                     state.upcomingList.isEmpty
                         ? Center(
                             child: Text(
@@ -182,11 +180,92 @@ class _VoucherScreenState extends State<VoucherScreen>
                               final voucher = state.upcomingList[index];
                               return VoucherWidget(
                                 voucher: voucher,
-                                onPressed: () =>
-                                    _onVoucherTap(context, voucher),
+                                onPressed: () => _onVoucherTap(context, voucher),
                               );
                             },
                           ),
+
+                    Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Loyal points',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${state.points}',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.auto_awesome,
+                                    color: Theme.of(context).colorScheme.onPrimary,
+                                    size: 16,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // redeem list or empty message
+                        Expanded(
+                          child: state.redeemableList.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'No voucher to redeem',
+                                    style: AppTextStyle.regularText,
+                                  ),
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  itemCount: state.redeemableList.length,
+                                  itemBuilder: (context, index) {
+                                    final v = state.redeemableList[index];
+                                    return RedeemableVoucherWidget(
+                                      voucher: v,
+                                      onPressed: () => _onVoucherTap(context, v),
+                                      onRedeem: () => cubit.redeemVoucher(v),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               );

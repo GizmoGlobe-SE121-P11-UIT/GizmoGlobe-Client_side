@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/objects/product_related/product_image.dart';
 import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_cubit.dart';
 import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_state.dart';
 import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_webview.dart';
@@ -81,7 +83,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
                           : Theme.of(context)
                               .colorScheme
                               .onPrimary
-                              .withOpacity(0.5),
+                              .withValues(alpha: 0.5),
                     ),
                   ),
                 );
@@ -103,7 +105,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7),
+                          .withValues(alpha: 0.7),
                     ),
               ),
             );
@@ -123,8 +125,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
                   itemCount: state.products.length,
                   itemBuilder: (context, index) {
                     final product = state.products[index];
-                    final isSelected =
-                        state.selectedProducts.contains(product);
+                    final isSelected = state.selectedProducts.contains(product);
                     return _MobileProductCard(
                       product: product,
                       isSelected: isSelected,
@@ -169,8 +170,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
     }
   }
 
-  Widget _buildSelectionBar(
-      BuildContext context, PartsPickerState state) {
+  Widget _buildSelectionBar(BuildContext context, PartsPickerState state) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -180,7 +180,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, -1),
             blurRadius: 6,
           ),
@@ -190,7 +190,7 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            '${S.of(context).itemsCount(state.selectedProducts.length)}',
+            S.of(context).itemsCount(state.selectedProducts.length),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -251,7 +251,7 @@ class _MobileProductCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -267,18 +267,63 @@ class _MobileProductCard extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
                     ),
-                    child: product.imageUrl != null &&
-                            product.imageUrl!.isNotEmpty
-                        ? Image.network(
-                            product.imageUrl!,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+                    child: product.productID != null
+                        ? FutureBuilder<ProductImage?>(
+                            future: Firebase()
+                                .getProductPrimaryImage(product.productID!),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                      ConnectionState.waiting ||
+                                  !snapshot.hasData ||
+                                  snapshot.data == null ||
+                                  snapshot.data!.url.isEmpty) {
+                                return Container(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest
+                                      .withValues(alpha: 0.4),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.memory,
+                                      size: 42,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.4),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return Image.network(
+                                snapshot.data!.url,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest
+                                        .withValues(alpha: 0.4),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.memory,
+                                        size: 42,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.4),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
                           )
                         : Container(
                             color: Theme.of(context)
                                 .colorScheme
-                                .surfaceVariant
-                                .withOpacity(0.4),
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.4),
                             child: Center(
                               child: Icon(
                                 Icons.memory,
@@ -286,7 +331,7 @@ class _MobileProductCard extends StatelessWidget {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onSurface
-                                    .withOpacity(0.4),
+                                    .withValues(alpha: 0.4),
                               ),
                             ),
                           ),
@@ -310,10 +355,11 @@ class _MobileProductCard extends StatelessWidget {
                       Text(
                         Helper.toCurrencyFormat(
                             product.discountedPrice.toInt()),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                     ],
                   ),
@@ -332,8 +378,8 @@ class _MobileProductCard extends StatelessWidget {
                         ? Theme.of(context).colorScheme.primary
                         : Theme.of(context)
                             .colorScheme
-                            .surfaceVariant
-                            .withOpacity(0.85),
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.85),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

@@ -265,53 +265,56 @@ class _WebHeroSectionState extends State<WebHeroSection>
                   ),
                 ),
               ),
-              const SizedBox(width: 60),
-              // Right Stats Cards
-              Expanded(
-                flex: 2,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0.3, 0),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _slideController,
-                      curve: Curves.easeOutCubic,
-                    )),
-                    child: Column(
-                      children: [
-                        _buildEnhancedStatCard(
-                          context,
-                          '100+',
-                          S.of(context).productsTab,
-                          S.of(context).latestPcComponents,
-                          Icons.inventory_2_outlined,
-                          0,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildEnhancedStatCard(
-                          context,
-                          '24/7',
-                          S.of(context).support,
-                          S.of(context).expertAssistance,
-                          Icons.support_agent_outlined,
-                          100,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildEnhancedStatCard(
-                          context,
-                          '2-Day',
-                          S.of(context).shippingLabel,
-                          S.of(context).fastAndReliable,
-                          Icons.local_shipping_outlined,
-                          200,
-                        ),
-                      ],
+              // Only show stats on larger screens (>=900px)
+              if (MediaQuery.of(context).size.width >= 900) ...[
+                const SizedBox(width: 60),
+                // Right Stats Cards
+                Expanded(
+                  flex: 2,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.3, 0),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
+                        parent: _slideController,
+                        curve: Curves.easeOutCubic,
+                      )),
+                      child: Column(
+                        children: [
+                          _buildEnhancedStatCard(
+                            context,
+                            '100+',
+                            S.of(context).productsTab,
+                            S.of(context).latestPcComponents,
+                            Icons.inventory_2_outlined,
+                            0,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildEnhancedStatCard(
+                            context,
+                            '24/7',
+                            S.of(context).support,
+                            S.of(context).expertAssistance,
+                            Icons.support_agent_outlined,
+                            100,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildEnhancedStatCard(
+                            context,
+                            '2-Day',
+                            S.of(context).shippingLabel,
+                            S.of(context).fastAndReliable,
+                            Icons.local_shipping_outlined,
+                            200,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ],

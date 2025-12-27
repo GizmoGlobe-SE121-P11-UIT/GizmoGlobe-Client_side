@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/voucher.dart';
+import '../../enums/voucher_related/voucher_display_type.dart';
 import '../../enums/voucher_related/voucher_status.dart';
 import '../../functions/helper.dart';
 import '../../widgets/general/app_text_style.dart';
@@ -17,10 +18,11 @@ class LimitedAmountVoucherWithoutEndTime extends Voucher
     required super.discountValue,
     required super.minimumPurchase,
     required super.maxUsagePerPerson,
-    required super.isVisible,
+    required super.displayType,
     required super.isEnabled,
     super.enDescription,
     super.viDescription,
+    super.redeemPrice,
     super.isPercentage = false,
     super.hasEndTime = false,
     super.isLimited = true,
@@ -47,7 +49,8 @@ class LimitedAmountVoucherWithoutEndTime extends Voucher
     double? discountValue,
     int? minimumPurchase,
     int? maxUsagePerPerson,
-    bool? isVisible,
+    VoucherDisplayType? displayType,
+    int? redeemPrice,
     bool? isEnabled,
     String? enDescription,
     String? viDescription,
@@ -61,8 +64,9 @@ class LimitedAmountVoucherWithoutEndTime extends Voucher
       discountValue: discountValue,
       minimumPurchase: minimumPurchase,
       maxUsagePerPerson: maxUsagePerPerson,
-      isVisible: isVisible,
+      displayType: displayType,
       isEnabled: isEnabled,
+      redeemPrice: redeemPrice,
       enDescription: enDescription,
       viDescription: viDescription,
     );

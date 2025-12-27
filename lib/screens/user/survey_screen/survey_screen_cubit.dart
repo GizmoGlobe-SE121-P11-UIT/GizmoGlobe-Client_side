@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gizmoglobe_client/data/database/database.dart';
 import '../../../services/survey_service.dart';
 import 'survey_screen_state.dart';
 import 'survey_data.dart';
@@ -147,6 +148,10 @@ class SurveyScreenCubit extends Cubit<SurveyScreenState> {
       };
 
       await _service.submitRaw(responseData);
+
+      // Update local database profile immediately so recommendations update
+      Database().userSurveyProfile = raw;
+
       emit(state.copyWith(submitting: false));
     } catch (e, st) {
       // ignore: avoid_print

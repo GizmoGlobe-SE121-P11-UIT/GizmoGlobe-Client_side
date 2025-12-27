@@ -33,7 +33,7 @@ class ProductArgument {
   String? productName;
   CategoryEnum? category;
   int? price;
-  double? discountedPrice;
+  int? discountedPrice;
   double? discount;
   DateTime? release;
   int? sales;
@@ -216,7 +216,7 @@ class ProductArgument {
       price: price ?? this.price,
       discount: discount ?? this.discount,
       discountedPrice: price != null && discount != null
-          ? price * (1 - discount / 100)
+          ? _getDiscountedPrice(price, discount)
           : discountedPrice,
       release: release ?? this.release,
       sales: sales ?? this.sales,
@@ -262,6 +262,10 @@ class ProductArgument {
     );
   }
 
+  int _getDiscountedPrice(int? price, double? discount) {
+    return (price! * (1 - discount! / 100)).toInt();
+  }
+
   Product buildProduct() {
     switch (category) {
       case CategoryEnum.ram:
@@ -271,7 +275,7 @@ class ProductArgument {
           category: category!,
           price: price!,
           discount: discount!,
-          discountedPrice: price! * (1 - discount! / 100),
+          discountedPrice: _getDiscountedPrice(price, discount),
           release: release!,
           stock: stock!,
           sales: sales!,
@@ -292,7 +296,7 @@ class ProductArgument {
           category: category!,
           price: price!,
           discount: discount!,
-          discountedPrice: price! * (1 - discount! / 100),
+          discountedPrice: _getDiscountedPrice(price, discount),
           release: release!,
           stock: stock!,
           sales: sales!,
@@ -315,7 +319,7 @@ class ProductArgument {
           category: category!,
           price: price!,
           discount: discount!,
-          discountedPrice: price! * (1 - discount! / 100),
+          discountedPrice: _getDiscountedPrice(price, discount),
           release: release!,
           stock: stock!,
           sales: sales!,
@@ -335,7 +339,7 @@ class ProductArgument {
           category: category!,
           price: price!,
           discount: discount!,
-          discountedPrice: price! * (1 - discount! / 100),
+          discountedPrice: _getDiscountedPrice(price, discount),
           release: release!,
           stock: stock!,
           sales: sales!,
@@ -357,7 +361,7 @@ class ProductArgument {
           category: category!,
           price: price!,
           discount: discount!,
-          discountedPrice: price! * (1 - discount! / 100),
+          discountedPrice: _getDiscountedPrice(price, discount),
           release: release!,
           stock: stock!,
           sales: sales!,
@@ -381,7 +385,7 @@ class ProductArgument {
           category: category!,
           price: price!,
           discount: discount!,
-          discountedPrice: price! * (1 - discount! / 100),
+          discountedPrice: _getDiscountedPrice(price, discount),
           release: release!,
           stock: stock!,
           sales: sales!,

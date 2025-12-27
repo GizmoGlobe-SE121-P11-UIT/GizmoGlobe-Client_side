@@ -10,13 +10,15 @@ abstract class Product {
   CategoryEnum category;
   int price;
   double discount;
-  double discountedPrice;
+  int discountedPrice;
   DateTime release;
   int sales;
   int stock;
   Manufacturer manufacturer;
   ProductStatusEnum status;
   String? imageUrl;
+  double? rating;
+  int? ratingCount;
 
   String? enDescription;
   String? viDescription;
@@ -46,5 +48,14 @@ abstract class Product {
     } else {
       return enDescription;
     }
+  }
+
+  void setRating(double rating) {
+    this.rating = rating;
+  }
+
+  void setAggregatedRating(double avgRating, int count) {
+    rating = avgRating;
+    ratingCount = count;
   }
 }

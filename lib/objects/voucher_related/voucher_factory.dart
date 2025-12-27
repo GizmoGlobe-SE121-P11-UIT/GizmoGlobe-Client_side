@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gizmoglobe_client/enums/voucher_related/voucher_display_type.dart';
 import 'package:gizmoglobe_client/objects/voucher_children/limited_percentage_voucher_with_end_time.dart';
 import 'package:gizmoglobe_client/objects/voucher_children/limited_percentage_voucher_without_end_time.dart';
 import 'package:gizmoglobe_client/objects/voucher_children/limited_amount_voucher_with_end_time.dart';
@@ -20,7 +21,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      isVisible: props['isVisible'],
+      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -31,6 +32,7 @@ class VoucherFactory {
       usageLeft: props['usageLeft'],
       maximumDiscountValue: props['maximumDiscountValue'],
       endTime: props['endTime'],
+      redeemPrice: props['redeemPrice']
     ),
 
     'limited_percentage_noend': (props) => LimitedPercentageVoucherWithoutEndTime(
@@ -40,7 +42,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      isVisible: props['isVisible'],
+      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -50,6 +52,7 @@ class VoucherFactory {
       maximumUsage: props['maximumUsage'],
       usageLeft: props['usageLeft'],
       maximumDiscountValue: props['maximumDiscountValue'],
+      redeemPrice: props['redeemPrice']
     ),
 
     'limited_amount_end': (props) => LimitedAmountVoucherWithEndTime(
@@ -59,7 +62,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      isVisible: props['isVisible'],
+      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -69,6 +72,7 @@ class VoucherFactory {
       maximumUsage: props['maximumUsage'],
       usageLeft: props['usageLeft'],
       endTime: props['endTime'],
+      redeemPrice: props['redeemPrice']
     ),
 
     'limited_amount_noend': (props) => LimitedAmountVoucherWithoutEndTime(
@@ -78,7 +82,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      isVisible: props['isVisible'],
+      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -87,6 +91,7 @@ class VoucherFactory {
       hasEndTime: false,
       maximumUsage: props['maximumUsage'],
       usageLeft: props['usageLeft'],
+      redeemPrice: props['redeemPrice']
     ),
 
     'unlimited_percentage_end': (props) => UnlimitedPercentageVoucherWithEndTime(
@@ -96,7 +101,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      isVisible: props['isVisible'],
+      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -105,6 +110,7 @@ class VoucherFactory {
       hasEndTime: true,
       maximumDiscountValue: props['maximumDiscountValue'],
       endTime: props['endTime'],
+      redeemPrice: props['redeemPrice']
     ),
 
     'unlimited_percentage_noend': (props) => UnlimitedPercentageVoucherWithoutEndTime(
@@ -114,7 +120,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      isVisible: props['isVisible'],
+      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -122,6 +128,7 @@ class VoucherFactory {
       isLimited: false,
       hasEndTime: false,
       maximumDiscountValue: props['maximumDiscountValue'],
+      redeemPrice: props['redeemPrice']
     ),
 
     'unlimited_amount_end': (props) => UnlimitedAmountVoucherWithEndTime(
@@ -131,7 +138,7 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      isVisible: props['isVisible'],
+      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
@@ -139,6 +146,7 @@ class VoucherFactory {
       isLimited: false,
       hasEndTime: true,
       endTime: props['endTime'],
+      redeemPrice: props['redeemPrice']
     ),
 
     'unlimited_amount_noend': (props) => UnlimitedAmountVoucherWithoutEndTime(
@@ -148,13 +156,14 @@ class VoucherFactory {
       discountValue: props['discountValue'],
       minimumPurchase: props['minimumPurchase'],
       maxUsagePerPerson: props['maxUsagePerPerson'],
-      isVisible: props['isVisible'],
+      displayType: VoucherDisplayTypeExtension.fromName(props['displayType']),
       isEnabled: props['isEnabled'],
       enDescription: props['enDescription'],
       viDescription: props['viDescription'],
       isPercentage: false,
       isLimited: false,
       hasEndTime: false,
+      redeemPrice: props['redeemPrice']
     ),
   };
 
@@ -193,6 +202,7 @@ class VoucherFactory {
       'maximumUsage',
       'usageLeft',
       'maxUsagePerPerson',
+      'redeemPrice'
     ];
 
     for (final key in intKeys) {
@@ -228,11 +238,12 @@ class VoucherFactory {
 
     // Defaults for numeric fields and ensure correct types
     if (copy['discountValue'] == null) copy['discountValue'] = 0.0;
-    if (copy['minimumPurchase'] == null) copy['minimumPurchase'] = 0; // int
+    if (copy['minimumPurchase'] == null) copy['minimumPurchase'] = 0;
     if (copy['maxUsagePerPerson'] == null) copy['maxUsagePerPerson'] = 1.0;
     if (copy['maximumUsage'] == null) copy['maximumUsage'] = 0.0;
     if (copy['usageLeft'] == null) copy['usageLeft'] = 0.0;
-    if (copy['maximumDiscountValue'] == null) copy['maximumDiscountValue'] = 0; // int
+    if (copy['maximumDiscountValue'] == null) copy['maximumDiscountValue'] = 0;
+    if (copy['redeemPrice'] == null) copy['redeemPrice'] = 0;
 
     copy['isVisible'] ??= true;
     copy['isEnabled'] ??= true;

@@ -28,7 +28,7 @@ enum GPUSeries {
 extension GPUSeriesExtension on GPUSeries {
   static GPUSeries fromName(String name) {
     return GPUSeries.values.firstWhere(
-      (e) => e.getName() == name,
+      (e) => e.getName().toLowerCase() == name.toLowerCase(),
       orElse: () => GPUSeries.unknown,
     );
   }
