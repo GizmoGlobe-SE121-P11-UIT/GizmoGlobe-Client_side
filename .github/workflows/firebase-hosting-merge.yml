@@ -23,7 +23,9 @@ jobs:
       - name: Build Flutter web
         run: flutter build web --release
       - name: Copy .env to build output
-        run: cp .env build/web/assets/.env
+        run: |
+          cp .env build/web/.env
+          cp .env build/web/assets/.env
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
