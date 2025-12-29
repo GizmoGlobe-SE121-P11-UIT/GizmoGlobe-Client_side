@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:intl/intl.dart';
 // import '../../../objects/chat_related/chat_message.dart';
+import '../../../enums/processing/process_state_enum.dart';
 import '../../../screens/chat/chat_screen/chat_screen_cubit.dart';
 import '../../../screens/chat/chat_screen/chat_screen_state.dart';
 // import '../../../components/general/web_footer.dart';
@@ -156,6 +157,39 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
         final theme = Theme.of(context);
         // final colorScheme = theme.colorScheme; // kept for future styling hooks
         final isMobile = MediaQuery.of(context).size.width < 600;
+
+        // Show loading indicator while initializing (idle or loading with no messages)
+        final isInitializing = (state.processState == ProcessState.idle ||
+                state.processState == ProcessState.loading) &&
+            state.messages.isEmpty;
+
+        if (isInitializing) {
+          return Scaffold(
+            body: Container(
+              width: double.infinity,
+              color: theme.colorScheme.surface,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      S.of(context).loading,
+                      style: TextStyle(
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
 
         // Scroll to bottom only when new messages arrive (not on every rebuild)
         WidgetsBinding.instance.addPostFrameCallback((_) {
