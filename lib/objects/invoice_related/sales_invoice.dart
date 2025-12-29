@@ -14,13 +14,13 @@ class SalesInvoice {
   Address? address;
   DateTime date;
   SalesStatus salesStatus;
-  double totalPrice;
+  int totalPrice;
   PaymentStatus paymentStatus;
   PaymentMethod paymentMethod;
   List<SalesInvoiceDetail> details;
 
   final Voucher? voucher;
-  final double voucherDiscount;
+  final int voucherDiscount;
 
   SalesInvoice({
     this.salesInvoiceID = '',
@@ -34,7 +34,7 @@ class SalesInvoice {
     this.paymentStatus = PaymentStatus.unpaid,
     this.paymentMethod = PaymentMethod.cod,
     this.voucher,
-    this.voucherDiscount = 0.0,
+    this.voucherDiscount = 0,
   });
 
   List<Object?> get props => [
@@ -59,12 +59,12 @@ class SalesInvoice {
     Address? address,
     DateTime? date,
     SalesStatus? salesStatus,
-    double? totalPrice,
+    int? totalPrice,
     List<SalesInvoiceDetail>? details,
     PaymentStatus? paymentStatus,
     PaymentMethod? paymentMethod,
     Voucher? voucher,
-    double? voucherDiscount,
+    int? voucherDiscount,
   }) {
     return SalesInvoice(
       salesInvoiceID: salesInvoiceID ?? this.salesInvoiceID,
@@ -170,7 +170,7 @@ class SalesInvoice {
         (e) => e.getName() == map['salesStatus'],
         orElse: () => SalesStatus.pending,
       ),
-      totalPrice: (map['totalPrice'] ?? 0).toDouble(),
+      totalPrice: (map['totalPrice'] ?? 0).toint(),
       details: [],
     );
   }
@@ -179,7 +179,7 @@ class SalesInvoice {
     return details.any((detail) => detail.product.discount > 0);
   }
 
-  double getTotalBasedPrice() {
+  int getTotalBasedPrice() {
     return details.fold(
         0, (previousValue, element) => previousValue + element.subtotal);
   }

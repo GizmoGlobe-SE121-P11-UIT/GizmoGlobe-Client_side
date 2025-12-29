@@ -14,7 +14,7 @@ import 'choose_voucher_screen_cubit.dart';
 import 'choose_voucher_screen_state.dart';
 
 class ChooseVoucherScreen extends StatefulWidget {
-  final double totalAmount;
+  final int totalAmount;
   final Voucher? currentVoucher;
 
   const ChooseVoucherScreen({
@@ -24,7 +24,7 @@ class ChooseVoucherScreen extends StatefulWidget {
   });
 
   static Widget newInstance({
-    required double totalAmount,
+    required int totalAmount,
     Voucher? currentVoucher,
   }) =>
       BlocProvider(

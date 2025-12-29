@@ -59,25 +59,25 @@ class UserProfile {
   }
 
   Map<String, double> getWeights() {
-    double wPerf = 0.25;
+    double wPerform = 0.25;
     double wPrice = 0.35;
     double wRecency = 0.20;
     double wPop = 0.20;
 
     if (usage.contains("Chơi game") || usage.contains("Thiết kế đồ họa / Kiến trúc / Multimedia") || priorities.contains("Hiệu năng (cấu hình)")) {
-      wPerf += 0.25;
+      wPerform += 0.25;
       wPrice -= 0.3;
       wRecency += 0.05;
     }
 
     if (priorities.contains("Giá cả")) {
       wPrice += 0.2;
-      wPerf -= 0.1;
+      wPerform -= 0.1;
       wRecency -= 0.1;
     }
 
     return {
-      'PERF': wPerf,
+      'PERF': wPerform,
       'PRICE': wPrice,
       'RECENCY': wRecency,
       'POP': wPop,

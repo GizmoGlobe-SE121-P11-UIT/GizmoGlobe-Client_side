@@ -11,7 +11,7 @@ import 'sepay_payment_screen_state.dart';
 
 class SePayPaymentScreen extends StatefulWidget {
   final String orderId;
-  final double amount;
+  final int amount;
   final String? customerName;
   final String? description;
 
@@ -25,7 +25,7 @@ class SePayPaymentScreen extends StatefulWidget {
 
   static Widget newInstance({
     required String orderId,
-    required double amount,
+    required int amount,
     String? customerName,
     String? description,
   }) =>

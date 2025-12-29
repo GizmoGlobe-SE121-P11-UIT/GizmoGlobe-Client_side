@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:gizmoglobe_client/enums/voucher_related/voucher_display_type.dart';
+import 'package:gizmoglobe_client/enums/voucher_related/distribution_type.dart';
 
 import '../../enums/voucher_related/voucher_status.dart';
 
@@ -7,10 +7,10 @@ abstract class Voucher {
   String? voucherID;
   String voucherName;
   DateTime startTime;
-  double discountValue;
+  int discountValue;
   int minimumPurchase;
   int maxUsagePerPerson;
-  VoucherDisplayType displayType;
+  DistributionType distributionType;
   bool isEnabled;
   String? enDescription;
   String? viDescription;
@@ -27,7 +27,7 @@ abstract class Voucher {
     required this.discountValue,
     required this.minimumPurchase,
     required this.maxUsagePerPerson,
-    required this.displayType,
+    required this.distributionType,
     required this.isEnabled,
     this.enDescription,
     this.viDescription,
@@ -40,13 +40,13 @@ abstract class Voucher {
   void updateVoucher({
     String? voucherID,
     String? voucherName,
-    double? discountValue,
+    int? discountValue,
     int? minimumPurchase,
     int? maxUsagePerPerson,
     DateTime? startTime,
     String? enDescription,
     String? viDescription,
-    VoucherDisplayType? displayType,
+    DistributionType? distributionType,
     int? redeemPrice,
     bool? isEnabled,
   }) {
@@ -56,7 +56,7 @@ abstract class Voucher {
     this.discountValue = discountValue ?? this.discountValue;
     this.minimumPurchase = minimumPurchase ?? this.minimumPurchase;
     this.maxUsagePerPerson = maxUsagePerPerson ?? this.maxUsagePerPerson;
-    this.displayType = displayType ?? this.displayType;
+    this.distributionType = distributionType ?? this.distributionType;
     this.isEnabled = isEnabled ?? this.isEnabled;
     this.enDescription = enDescription ?? this.enDescription;
     this.viDescription = viDescription ?? this.viDescription;

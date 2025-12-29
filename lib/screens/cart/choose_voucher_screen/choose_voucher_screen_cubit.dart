@@ -1,4 +1,3 @@
-// lib/screens/cart/choose_voucher_screen/choose_voucher_screen_cubit.dart
 import 'package:bloc/bloc.dart';
 import '../../../data/database/database.dart';
 import '../../../enums/processing/process_state_enum.dart';
@@ -9,7 +8,7 @@ import 'choose_voucher_screen_state.dart';
 class ChooseVoucherScreenCubit extends Cubit<ChooseVoucherScreenState> {
   ChooseVoucherScreenCubit() : super(const ChooseVoucherScreenState());
 
-  void initialize(double totalAmount) {
+  void initialize(int totalAmount) {
     toLoading();
     loadAvailableVouchers(totalAmount);
   }
@@ -19,7 +18,7 @@ class ChooseVoucherScreenCubit extends Cubit<ChooseVoucherScreenState> {
         state.copyWith(processState: ProcessState.loading, errorMessage: null));
   }
 
-  Future<void> loadAvailableVouchers(double totalAmount) async {
+  Future<void> loadAvailableVouchers(int totalAmount) async {
     toLoading();
 
     await Database().updateVoucherLists();
@@ -34,13 +33,13 @@ class ChooseVoucherScreenCubit extends Cubit<ChooseVoucherScreenState> {
     ));
   }
 
-  double calculateDiscount(Voucher voucher, double totalAmount) {
+  int calculateDiscount(Voucher voucher, int totalAmount) {
     if (voucher.isPercentage) {
-      final calculatedDiscount = totalAmount * (voucher.discountValue / 100);
+      final calculatedDiscount = (totalAmount * (voucher.discountValue / 100)).round();
 
       final percentageVoucher = voucher as PercentageInterface;
-      return calculatedDiscount > percentageVoucher.maximumDiscountValue.toDouble()
-          ? percentageVoucher.maximumDiscountValue.toDouble()
+      return calculatedDiscount > percentageVoucher.maximumDiscountValue
+          ? percentageVoucher.maximumDiscountValue
           : calculatedDiscount;
     } else {
       return voucher.discountValue > totalAmount

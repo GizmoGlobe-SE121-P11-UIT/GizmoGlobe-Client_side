@@ -179,7 +179,7 @@ class _VoucherDetailWebModalState extends State<VoucherDetailWebModal> {
                       context,
                       S.of(context).discount,
                       voucher.isPercentage
-                          ? '${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
+                          ? '${voucher.discountValue}% ${S.of(context).maximumDiscount} ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
                           : Helper.toCurrencyFormat(voucher.discountValue),
                     ),
                     const SizedBox(height: 16),
@@ -221,7 +221,7 @@ class _VoucherDetailWebModalState extends State<VoucherDetailWebModal> {
                 context,
                 S.of(context).discount,
                 voucher.isPercentage
-                    ? '${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
+                    ? '${voucher.discountValue}% ${S.of(context).maximumDiscount} ${Helper.toCurrencyFormat((voucher as PercentageInterface).maximumDiscountValue)}'
                     : Helper.toCurrencyFormat(voucher.discountValue),
               ),
               const SizedBox(height: 16),

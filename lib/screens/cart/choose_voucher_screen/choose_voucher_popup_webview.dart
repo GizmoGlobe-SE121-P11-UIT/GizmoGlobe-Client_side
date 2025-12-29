@@ -15,7 +15,7 @@ import 'choose_voucher_screen_state.dart';
 // Web-only helper to show the Choose Voucher screen as a modal dialog and return the selected Voucher
 Future<Voucher?> showChooseVoucherModal(
   BuildContext context, {
-  required double totalAmount,
+  required int totalAmount,
   Voucher? currentVoucher,
 }) {
   assert(kIsWeb, 'showChooseVoucherModal is intended for web usage');
@@ -65,7 +65,7 @@ Future<Voucher?> showChooseVoucherModal(
 }
 
 class _ChooseVoucherPopupWebView extends StatefulWidget {
-  final double totalAmount;
+  final int totalAmount;
   final Voucher? currentVoucher;
 
   const _ChooseVoucherPopupWebView({
@@ -74,7 +74,7 @@ class _ChooseVoucherPopupWebView extends StatefulWidget {
   });
 
   static Widget newInstance({
-    required double totalAmount,
+    required int totalAmount,
     Voucher? currentVoucher,
   }) =>
       BlocProvider(

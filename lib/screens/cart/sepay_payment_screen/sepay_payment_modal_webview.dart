@@ -15,7 +15,7 @@ import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 Future<bool?> showSePayPaymentModal(
   BuildContext context, {
   required String orderId,
-  required double amount,
+  required int amount,
   String? customerName,
   String? description,
 }) {
@@ -64,7 +64,7 @@ Future<bool?> showSePayPaymentModal(
 
 class _SePayPaymentModal extends StatefulWidget {
   final String orderId;
-  final double amount;
+  final int amount;
   final String? customerName;
   final String? description;
 
@@ -77,7 +77,7 @@ class _SePayPaymentModal extends StatefulWidget {
 
   static Widget newInstance({
     required String orderId,
-    required double amount,
+    required int amount,
     String? customerName,
     String? description,
   }) =>

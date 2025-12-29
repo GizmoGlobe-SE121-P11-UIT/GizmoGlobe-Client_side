@@ -304,7 +304,7 @@ class SePayServices {
   /// - expiresAt: VA expiration time
   Future<SePayVirtualAccount> createVirtualAccount({
     required String orderId,
-    required double amount,
+    required int amount,
     required String bankAccountId,
     String? customerName,
     String? description,
@@ -528,7 +528,7 @@ class SePayServices {
   String generateQRCodeUrl({
     required String accountNumber,
     required String bankCode,
-    required double amount,
+    required int amount,
     String? description,
     required String orderId,
   }) {
@@ -698,7 +698,7 @@ class SePayServices {
   Future<List<SePayTransaction>> getTransactionsList({
     String? referenceNumber,
     String? accountNumber,
-    double? amountIn,
+    int? amountIn,
     int limit = 100,
     String? sinceId,
   }) async {
@@ -811,7 +811,7 @@ class SePayServices {
   /// Returns transaction if payment found and matches amount, null otherwise
   Future<SePayTransaction?> checkPaymentByOrderId({
     required String orderId,
-    required double amount,
+    required int amount,
   }) async {
     try {
       // Convert to VND for comparison (DB uses thousands)
@@ -856,7 +856,7 @@ class SePayServices {
   /// Returns transaction when paid, or null if timeout
   Future<SePayTransaction?> pollPaymentStatus({
     required String orderId,
-    required double amount,
+    required int amount,
     int pollInterval = 5,
     int maxAttempts = 120,
   }) async {
@@ -923,7 +923,7 @@ class SePayServices {
   /// Returns Virtual Account details with QR code URL
   Future<SePayPaymentResult> createPayment({
     required String orderId,
-    required double amount,
+    required int amount,
     String? bankAccountId,
     String? customerName,
     String? description,

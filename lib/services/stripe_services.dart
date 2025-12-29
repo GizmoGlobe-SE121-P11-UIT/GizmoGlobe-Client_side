@@ -11,7 +11,7 @@ class StripeServices {
 
   static final StripeServices instance = StripeServices._();
 
-  Future<String?> makePayment(double amount,
+  Future<String?> makePayment(int amount,
       {Map<String, dynamic>? metadata}) async {
     try {
       if (kIsWeb) {
@@ -34,7 +34,7 @@ class StripeServices {
     }
   }
 
-  Future<String?> _makePaymentMobile(double amount) async {
+  Future<String?> _makePaymentMobile(int amount) async {
     String? paymentIntentClientSecret =
         await _createPaymentIntent(amount, "vnd");
     if (paymentIntentClientSecret == null) {
@@ -53,7 +53,7 @@ class StripeServices {
     return null;
   }
 
-  Future<String?> _makePaymentWeb(double amount) async {
+  Future<String?> _makePaymentWeb(int amount) async {
     try {
       // Create a Stripe Checkout Session
       final checkoutSessionId = await _createCheckoutSession(amount);
@@ -82,7 +82,7 @@ class StripeServices {
     }
   }
 
-  Future<String?> _createPaymentIntent(double amount, String currency) async {
+  Future<String?> _createPaymentIntent(int amount, String currency) async {
     try {
       final Dio dio = Dio();
       // For VND: database stores scaled values (e.g., 1000 = 1,000,000 VND)
@@ -144,7 +144,7 @@ class StripeServices {
     }
   }
 
-  Future<String?> _createCheckoutSession(double amount) async {
+  Future<String?> _createCheckoutSession(int amount) async {
     try {
       final Dio dio = Dio();
 
@@ -331,7 +331,7 @@ class StripeServices {
   /// VND is a zero-decimal currency, so we send the amount directly
   /// Use round() to avoid floating point precision issues
   /// Example: database has 5589.6, multiply by 1000 and round = 5,589,600 VND
-  String _calculateAmountVND(double amount) {
+  String _calculateAmountVND(int amount) {
     // Round to avoid floating point precision errors
     // e.g., 5589.6 * 1000 might result in 5589599.9999999 instead of 5589600.0
     int amountVND = (amount * 1000).round();

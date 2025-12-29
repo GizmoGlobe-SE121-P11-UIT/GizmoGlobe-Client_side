@@ -222,7 +222,7 @@ class VoucherWidget extends StatelessWidget {
   String _getDiscountText(BuildContext context) {
     if (voucher.isPercentage && voucher is PercentageInterface) {
       final percentage = voucher as PercentageInterface;
-      return '${S.of(context).discount} ${Converter.formatDouble(voucher.discountValue)}% ${S.of(context).maximumDiscount} ${Helper.toCurrencyFormat(percentage.maximumDiscountValue)}';
+      return '${S.of(context).discount} ${voucher.discountValue}% ${S.of(context).maximumDiscount} ${Helper.toCurrencyFormat(percentage.maximumDiscountValue)}';
     } else {
       return '${S.of(context).discount} ${Helper.toCurrencyFormat(voucher.discountValue)}';
     }
