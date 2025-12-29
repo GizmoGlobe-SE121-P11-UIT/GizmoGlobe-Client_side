@@ -10,8 +10,9 @@ import 'home_screen_state.dart';
 class HomeScreenCubit extends Cubit<HomeScreenState> {
   final FavoritesCubit favoritesCubit;
   late final StreamSubscription _favoritesSubscription;
+  late final StreamSubscription _authSubscription;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  late dynamic user;
+  User? _previousUser;
 
   HomeScreenCubit({required this.favoritesCubit})
       : super(const HomeScreenState()) {
@@ -23,13 +24,52 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
 
     _updateRecommendedProducts();
 
-    user = _auth.currentUser;
+    _previousUser = _auth.currentUser;
+
+    // Listen to auth state changes to refresh data when user signs in
+    _authSubscription = _auth.authStateChanges().listen((User? user) async {
+      // If user changed from null/guest to authenticated, refresh data
+      if (user != null && _previousUser == null) {
+        await _refreshDataAfterSignIn();
+      }
+      // If user changed from one user to another, refresh data
+      else if (user != null &&
+          _previousUser != null &&
+          user.uid != _previousUser!.uid) {
+        await _refreshDataAfterSignIn();
+      }
+      // If user signed out, clear user-specific data
+      else if (user == null && _previousUser != null) {
+        if (!isClosed) {
+          emit(state.copyWith(
+            favoriteProducts: [],
+            recommendedProducts: [],
+            cartItems: [],
+          ));
+        }
+      }
+      _previousUser = user;
+    });
   }
 
   @override
   Future<void> close() {
     _favoritesSubscription.cancel();
+    _authSubscription.cancel();
     return super.close();
+  }
+
+  Future<void> _refreshDataAfterSignIn() async {
+    if (isClosed) return;
+
+    // Reload cart items from Firebase
+    await loadCartItems();
+
+    // Update favorite products
+    await _updateFavoriteProducts();
+
+    // Update recommended products based on new cart items
+    _updateRecommendedProducts();
   }
 
   Future<void> initialize() async {
@@ -94,7 +134,10 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
       if (isClosed) return;
       await Database().getCartItems();
       if (!isClosed) {
-        emit(state.copyWith(cartItems: Database().cartItems));
+        final updatedCartItems = Database().cartItems;
+        emit(state.copyWith(cartItems: updatedCartItems));
+        // Update recommended products after cart items are loaded
+        _updateRecommendedProducts();
       }
     } catch (e) {
       if (isClosed) return;

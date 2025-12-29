@@ -11,6 +11,16 @@ class StripeServices {
 
   static final StripeServices instance = StripeServices._();
 
+  /// Get the Stripe proxy base URL
+  String _getProxyBaseUrl() {
+    return 'https://us-central1-se121p11-gizmoglobe.cloudfunctions.net/stripeProxy';
+  }
+
+  /// Check if using proxy (Cloud Function) - always use proxy on web
+  bool _isUsingProxy() {
+    return kIsWeb;
+  }
+
   Future<String?> makePayment(int amount,
       {Map<String, dynamic>? metadata}) async {
     try {
@@ -87,39 +97,103 @@ class StripeServices {
       final Dio dio = Dio();
       // For VND: database stores scaled values (e.g., 1000 = 1,000,000 VND)
       // Multiply by 1000 to convert to actual VND amount for Stripe
-      Map<String, dynamic> data = {
-        "amount": _calculateAmountVND(amount),
-        "currency": currency,
-      };
+      final amountVND = _calculateAmountVND(amount);
 
       if (kDebugMode) {
         print('Stripe: Creating PaymentIntent');
         print('  currency=$currency');
         print('  dbAmount=$amount (k VND)');
-        print('  amountForStripe=${data["amount"]} VND');
+        print('  amountForStripe=$amountVND VND');
+        print('  usingProxy=${_isUsingProxy()}');
       }
 
-      var response = await dio.post(
-        "https://api.stripe.com/v1/payment_intents",
-        data: data,
-        options: Options(
-          contentType: Headers.formUrlEncodedContentType,
-          headers: {
-            "Authorization": "Bearer ${dotenv.env['STRIPE_SECRET_KEY']}",
-            "Content-Type": 'application/x-www-form-urlencoded',
-          },
-          // Do not throw on 4xx; let us surface Stripe's error message
-          validateStatus: (status) => status != null && status < 500,
-        ),
-      );
+      Response response;
 
-      if (response.data != null) {
+      if (_isUsingProxy()) {
+        // Use Cloud Function proxy (for web to keep secret key secure)
+        response = await dio.post(
+          _getProxyBaseUrl(),
+          data: {
+            'action': 'createPaymentIntent',
+            'amount': int.parse(amountVND),
+            'currency': currency.toLowerCase(),
+          },
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+
+        if (response.statusCode == 200 && response.data is Map) {
+          final proxyResponse = response.data as Map<String, dynamic>;
+          if (proxyResponse['success'] == true &&
+              proxyResponse['paymentIntent'] != null) {
+            final paymentIntent =
+                proxyResponse['paymentIntent'] as Map<String, dynamic>;
+            if (kDebugMode) {
+              print('Stripe: PaymentIntent created via proxy');
+            }
+            return paymentIntent['clientSecret'] as String?;
+          } else {
+            final error =
+                proxyResponse['error'] ?? 'Failed to create payment intent';
+            throw Exception(error);
+          }
+        } else {
+          throw Exception(
+              'Proxy request failed with status ${response.statusCode}');
+        }
+      } else {
+        // Direct API call (for mobile)
+        // Check if Stripe secret key is available
+        final secretKey = dotenv.env['STRIPE_SECRET_KEY'];
+        if (secretKey == null || secretKey.isEmpty) {
+          throw Exception(
+              'Stripe secret key not configured. Please check your .env file.');
+        }
+
+        Map<String, dynamic> data = {
+          "amount": amountVND,
+          "currency": currency,
+        };
+
+        response = await dio.post(
+          "https://api.stripe.com/v1/payment_intents",
+          data: data,
+          options: Options(
+            contentType: Headers.formUrlEncodedContentType,
+            headers: {
+              "Authorization": "Bearer $secretKey",
+              "Content-Type": 'application/x-www-form-urlencoded',
+            },
+            // Do not throw on 4xx; let us surface Stripe's error message
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+      }
+
+      // Handle direct API response (mobile only)
+      if (!_isUsingProxy() && response.data != null) {
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (kDebugMode) {
             print('Stripe: PaymentIntent created');
           }
           return response.data['client_secret'];
         } else {
+          // Handle 401 Unauthorized specifically
+          if (response.statusCode == 401) {
+            final errorMessage =
+                'Stripe authentication failed. Please check your API key configuration.';
+            if (kDebugMode) {
+              print('Stripe: 401 Unauthorized - Invalid or missing API key');
+              print('  Check that STRIPE_SECRET_KEY is set in .env file');
+              print('  Ensure the key starts with "sk_test_" or "sk_live_"');
+            }
+            throw Exception(errorMessage);
+          }
+
           // Extract Stripe error for clarity
           final stripeError = response.data is Map
               ? (response.data['error'] ?? response.data)
@@ -139,6 +213,10 @@ class StripeServices {
       if (kDebugMode) {
         print('Stripe: Exception creating PaymentIntent: $e');
       }
+      // Re-throw if it's already an Exception with a message
+      if (e is Exception) {
+        rethrow;
+      }
       throw Exception(
           'Payment method creation failed'); //Khởi tạo phương thức thanh toán thất bại
     }
@@ -154,44 +232,115 @@ class StripeServices {
           '$baseUrl#/checkout-success?session_id={CHECKOUT_SESSION_ID}';
       final cancelUrl = '$baseUrl#/cart';
 
-      Map<String, dynamic> data = {
-        "payment_method_types[]": "card",
-        "line_items[0][price_data][currency]": "vnd",
-        "line_items[0][price_data][product_data][name]": "Order Payment",
-        "line_items[0][price_data][unit_amount]": _calculateAmountVND(amount),
-        "line_items[0][quantity]": "1",
-        "mode": "payment",
-        "success_url": successUrl,
-        "cancel_url": cancelUrl,
-      };
+      final unitAmount = _calculateAmountVND(amount);
 
       if (kDebugMode) {
         print('Stripe: Creating Checkout Session');
         print('  dbAmount=$amount (k VND)');
-        print(
-            '  unit_amount=${data["line_items[0][price_data][unit_amount]"]} VND');
+        print('  unit_amount=$unitAmount VND');
+        print('  usingProxy=${_isUsingProxy()}');
       }
 
-      var response = await dio.post(
-        "https://api.stripe.com/v1/checkout/sessions",
-        data: data,
-        options: Options(
-          contentType: Headers.formUrlEncodedContentType,
-          headers: {
-            "Authorization": "Bearer ${dotenv.env['STRIPE_SECRET_KEY']}",
-            "Content-Type": 'application/x-www-form-urlencoded',
-          },
-          validateStatus: (status) => status != null && status < 500,
-        ),
-      );
+      Response response;
 
-      if (response.data != null) {
+      if (_isUsingProxy()) {
+        // Use Cloud Function proxy (for web to keep secret key secure)
+        final lineItems = {
+          "line_items[0][price_data][currency]": "vnd",
+          "line_items[0][price_data][product_data][name]": "Order Payment",
+          "line_items[0][price_data][unit_amount]": unitAmount,
+          "line_items[0][quantity]": "1",
+        };
+
+        response = await dio.post(
+          _getProxyBaseUrl(),
+          data: {
+            'action': 'createCheckoutSession',
+            'successUrl': successUrl,
+            'cancelUrl': cancelUrl,
+            'lineItems': lineItems,
+          },
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+
+        if (response.statusCode == 200 && response.data is Map) {
+          final proxyResponse = response.data as Map<String, dynamic>;
+          if (proxyResponse['success'] == true &&
+              proxyResponse['session'] != null) {
+            final session = proxyResponse['session'] as Map<String, dynamic>;
+            if (kDebugMode) {
+              print(
+                  'Stripe: Checkout session created via proxy: ${session['id']}');
+            }
+            return session['id'] as String?;
+          } else {
+            final error =
+                proxyResponse['error'] ?? 'Failed to create checkout session';
+            throw Exception(error);
+          }
+        } else {
+          throw Exception(
+              'Proxy request failed with status ${response.statusCode}');
+        }
+      } else {
+        // Direct API call (for mobile)
+        // Check if Stripe secret key is available
+        final secretKey = dotenv.env['STRIPE_SECRET_KEY'];
+        if (secretKey == null || secretKey.isEmpty) {
+          throw Exception(
+              'Stripe secret key not configured. Please check your .env file.');
+        }
+
+        Map<String, dynamic> data = {
+          "payment_method_types[]": "card",
+          "line_items[0][price_data][currency]": "vnd",
+          "line_items[0][price_data][product_data][name]": "Order Payment",
+          "line_items[0][price_data][unit_amount]": unitAmount,
+          "line_items[0][quantity]": "1",
+          "mode": "payment",
+          "success_url": successUrl,
+          "cancel_url": cancelUrl,
+        };
+
+        response = await dio.post(
+          "https://api.stripe.com/v1/checkout/sessions",
+          data: data,
+          options: Options(
+            contentType: Headers.formUrlEncodedContentType,
+            headers: {
+              "Authorization": "Bearer $secretKey",
+              "Content-Type": 'application/x-www-form-urlencoded',
+            },
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+      }
+
+      // Handle direct API response (mobile only)
+      if (!_isUsingProxy() && response.data != null) {
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (kDebugMode) {
             print('Stripe: Checkout session created: ${response.data['id']}');
           }
           return response.data['id'];
         } else {
+          // Handle 401 Unauthorized specifically
+          if (response.statusCode == 401) {
+            final errorMessage =
+                'Stripe authentication failed. Please check your API key configuration.';
+            if (kDebugMode) {
+              print('Stripe: 401 Unauthorized - Invalid or missing API key');
+              print('  Check that STRIPE_SECRET_KEY is set in .env file');
+              print('  Ensure the key starts with "sk_test_" or "sk_live_"');
+            }
+            throw Exception(errorMessage);
+          }
+
           final stripeError = response.data is Map
               ? (response.data['error'] ?? response.data)
               : response.data;
@@ -210,6 +359,10 @@ class StripeServices {
       if (kDebugMode) {
         print('Error creating checkout session: $e');
       }
+      // Re-throw if it's already an Exception with a message
+      if (e is Exception) {
+        rethrow;
+      }
       throw Exception('Failed to create checkout session');
     }
   }
@@ -218,17 +371,70 @@ class StripeServices {
     try {
       final Dio dio = Dio();
 
-      var response = await dio.get(
-        "https://api.stripe.com/v1/checkout/sessions/$sessionId",
-        options: Options(
-          headers: {
-            "Authorization": "Bearer ${dotenv.env['STRIPE_SECRET_KEY']}",
-          },
-        ),
-      );
+      Response response;
 
-      if (response.data != null) {
-        return response.data['url'];
+      if (_isUsingProxy()) {
+        // Use Cloud Function proxy (for web)
+        response = await dio.post(
+          _getProxyBaseUrl(),
+          data: {
+            'action': 'getCheckoutSession',
+            'sessionId': sessionId,
+          },
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+
+        if (response.statusCode == 200 && response.data is Map) {
+          final proxyResponse = response.data as Map<String, dynamic>;
+          if (proxyResponse['success'] == true &&
+              proxyResponse['session'] != null) {
+            final session = proxyResponse['session'] as Map<String, dynamic>;
+            return session['url'] as String?;
+          } else {
+            final error =
+                proxyResponse['error'] ?? 'Failed to get checkout session';
+            throw Exception(error);
+          }
+        } else {
+          throw Exception(
+              'Proxy request failed with status ${response.statusCode}');
+        }
+      } else {
+        // Direct API call (for mobile)
+        // Check if Stripe secret key is available
+        final secretKey = dotenv.env['STRIPE_SECRET_KEY'];
+        if (secretKey == null || secretKey.isEmpty) {
+          throw Exception(
+              'Stripe secret key not configured. Please check your .env file.');
+        }
+
+        response = await dio.get(
+          "https://api.stripe.com/v1/checkout/sessions/$sessionId",
+          options: Options(
+            headers: {
+              "Authorization": "Bearer $secretKey",
+            },
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+
+        // Handle 401 Unauthorized
+        if (response.statusCode == 401) {
+          if (kDebugMode) {
+            print('Stripe: 401 Unauthorized when getting checkout session URL');
+          }
+          throw Exception(
+              'Stripe authentication failed. Please check your API key configuration.');
+        }
+
+        if (response.data != null) {
+          return response.data['url'];
+        }
       }
       return null;
     } catch (e) {
@@ -277,28 +483,86 @@ class StripeServices {
       if (actualSessionId == null) return null;
 
       final Dio dio = Dio();
-      var response = await dio.get(
-        "https://api.stripe.com/v1/checkout/sessions/$actualSessionId",
-        options: Options(
-          headers: {
-            "Authorization": "Bearer ${dotenv.env['STRIPE_SECRET_KEY']}",
+      Response response;
+
+      if (_isUsingProxy()) {
+        // Use Cloud Function proxy (for web)
+        response = await dio.post(
+          _getProxyBaseUrl(),
+          data: {
+            'action': 'getCheckoutSession',
+            'sessionId': actualSessionId,
           },
-        ),
-      );
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
 
-      if (response.data != null) {
-        final paymentStatus = response.data['payment_status'];
-        final paymentIntentId = response.data['payment_intent'];
+        if (response.statusCode == 200 && response.data is Map) {
+          final proxyResponse = response.data as Map<String, dynamic>;
+          if (proxyResponse['success'] == true &&
+              proxyResponse['session'] != null) {
+            final session = proxyResponse['session'] as Map<String, dynamic>;
+            final paymentStatus = session['payment_status'];
+            final paymentIntentId = session['payment_intent'];
 
-        // Clear session storage
-        StripeWebHelper.removeSessionStorage('stripe_checkout_session_id');
-        StripeWebHelper.removeSessionStorage('stripe_checkout_metadata');
+            // Clear session storage
+            StripeWebHelper.removeSessionStorage('stripe_checkout_session_id');
+            StripeWebHelper.removeSessionStorage('stripe_checkout_metadata');
 
-        if (paymentStatus == 'paid' && paymentIntentId != null) {
-          return paymentIntentId as String;
+            if (paymentStatus == 'paid' && paymentIntentId != null) {
+              return paymentIntentId as String;
+            }
+          }
         }
+        return null;
+      } else {
+        // Direct API call (for mobile)
+        // Check if Stripe secret key is available
+        final secretKey = dotenv.env['STRIPE_SECRET_KEY'];
+        if (secretKey == null || secretKey.isEmpty) {
+          if (kDebugMode) {
+            print(
+                'Stripe: Secret key not configured when checking payment status');
+          }
+          return null;
+        }
+
+        response = await dio.get(
+          "https://api.stripe.com/v1/checkout/sessions/$actualSessionId",
+          options: Options(
+            headers: {
+              "Authorization": "Bearer $secretKey",
+            },
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+
+        // Handle 401 Unauthorized
+        if (response.statusCode == 401) {
+          if (kDebugMode) {
+            print('Stripe: 401 Unauthorized when checking payment status');
+          }
+          return null; // Return null instead of throwing to avoid breaking the flow
+        }
+
+        if (response.data != null) {
+          final paymentStatus = response.data['payment_status'];
+          final paymentIntentId = response.data['payment_intent'];
+
+          // Clear session storage
+          StripeWebHelper.removeSessionStorage('stripe_checkout_session_id');
+          StripeWebHelper.removeSessionStorage('stripe_checkout_metadata');
+
+          if (paymentStatus == 'paid' && paymentIntentId != null) {
+            return paymentIntentId as String;
+          }
+        }
+        return null;
       }
-      return null;
     } catch (e) {
       if (kDebugMode) {
         print('Error checking payment status: $e');

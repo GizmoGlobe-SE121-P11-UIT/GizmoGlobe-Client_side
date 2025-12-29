@@ -2033,6 +2033,28 @@ exports.stripeProxy = onRequest(
           result = await stripeRequest("GET", `/v1/payment_intents/${paymentIntentId}`, null);
           return res.status(200).json({ success: true, paymentIntent: { id: result.id, status: result.status, amount: result.amount, currency: result.currency } });
 
+        case "createCheckoutSession":
+          const { successUrl, cancelUrl, lineItems } = req.body;
+          if (!successUrl || !cancelUrl || !lineItems) {
+            return res.status(400).json({ success: false, error: "Missing successUrl, cancelUrl, or lineItems" });
+          }
+          // Build form data for checkout session - lineItems is already a flat object with keys like "line_items[0][price_data][currency]"
+          const sessionData = {
+            "payment_method_types[]": "card",
+            "mode": "payment",
+            "success_url": successUrl,
+            "cancel_url": cancelUrl,
+            ...lineItems
+          };
+          result = await stripeRequest("POST", "/v1/checkout/sessions", sessionData);
+          return res.status(200).json({ success: true, session: { id: result.id, url: result.url } });
+
+        case "getCheckoutSession":
+          const { sessionId } = req.body;
+          if (!sessionId) return res.status(400).json({ success: false, error: "Missing sessionId" });
+          result = await stripeRequest("GET", `/v1/checkout/sessions/${sessionId}`, null);
+          return res.status(200).json({ success: true, session: result });
+
         default:
           return res.status(400).json({ success: false, error: `Unknown action: ${action}` });
       }
