@@ -615,36 +615,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
             Uri.base.query.contains('code') ||
             Uri.base.query.contains('state');
 
-        // Also check hash for auth params (Firebase might put them in hash)
-        final hashHasAuthParams = Uri.base.fragment.contains('apiKey') ||
-            Uri.base.fragment.contains('mode') ||
-            Uri.base.fragment.contains('code') ||
-            Uri.base.fragment.contains('state');
-
-        if (isAuthHandler || hasAuthParams || hashHasAuthParams) {
-          if (kDebugMode) {
-            print(
-                'Detected Firebase Auth handler path or auth params - processing redirect...');
-          }
-          if (kDebugMode) {
-            print(
-                'isAuthHandler: $isAuthHandler, hasAuthParams: $hasAuthParams, hashHasAuthParams: $hashHasAuthParams');
-          }
-        }
-
         // Call getRedirectResult() - this must be called before any other auth operations
         // and it processes the redirect URL parameters automatically
         final redirectResult = await FirebaseAuth.instance.getRedirectResult();
-        if (kDebugMode) {
-          print('getRedirectResult() completed');
-        }
-
-        if (kDebugMode) {
-          print(
-              'Redirect result - user: ${redirectResult.user != null ? redirectResult.user!.uid : "null"}, '
-              'credential: ${redirectResult.credential != null}, '
-              'additionalUserInfo: ${redirectResult.additionalUserInfo}');
-        }
 
         // Wait a moment for Firebase to process the redirect result
         // Sometimes Firebase needs a moment to set the user after redirect
@@ -652,10 +625,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
         // Check currentUser again after getRedirectResult and delay
         final afterRedirectUser = FirebaseAuth.instance.currentUser;
-        if (kDebugMode) {
-          print(
-              'CurrentUser after getRedirectResult (after delay): ${afterRedirectUser != null ? afterRedirectUser.uid : "null"}');
-        }
 
         // Check for errors in the redirect result
         if (redirectResult.user == null && redirectResult.credential == null) {
@@ -672,40 +641,19 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
         if (authenticatedUser != null) {
           // User successfully signed in via redirect
-          if (kDebugMode) {
-            print(
-                'Google sign-in redirect successful: ${authenticatedUser.uid}');
-            print('User email: ${authenticatedUser.email}');
-            print('User display name: ${authenticatedUser.displayName}');
-          }
-
           // Clear guest data after successful authentication
           await _webGuestService.clearGuestUser();
 
           // Setup user data in Firestore (similar to popup flow)
           await _setupUserDataFromRedirect(authenticatedUser);
         } else {
-          // Check if there was an error in the redirect
-          if (redirectResult.credential != null) {
-            if (kDebugMode) {
-              print('Redirect completed with credential but no user');
-            }
-          }
-
           // Listen to authStateChanges for a short time to catch async auth state changes
           // This is important because Firebase might set the user asynchronously after redirect
-          if (kDebugMode) {
-            print('Waiting for authStateChanges to detect user...');
-          }
           bool userDetected = false;
           final subscription =
               FirebaseAuth.instance.authStateChanges().listen((User? user) {
             if (user != null && !userDetected) {
               userDetected = true;
-              if (kDebugMode) {
-                print('User detected via authStateChanges: ${user.uid}');
-              }
-              // Handle user setup asynchronously
               _webGuestService.clearGuestUser().then((_) {
                 _setupUserDataFromRedirect(user);
               });
@@ -717,49 +665,26 @@ class _AuthWrapperState extends State<AuthWrapper> {
           await subscription.cancel();
 
           final finalUserCheck = FirebaseAuth.instance.currentUser;
-          if (kDebugMode) {
-            print(
-                'Final currentUser check: ${finalUserCheck != null ? finalUserCheck.uid : "null"}');
-          }
 
           if (finalUserCheck != null && !userDetected) {
-            if (kDebugMode) {
-              print('User authenticated after waiting: ${finalUserCheck.uid}');
-            }
             // User is authenticated, clear guest data and setup user data
             await _webGuestService.clearGuestUser();
             await _setupUserDataFromRedirect(finalUserCheck);
           } else if (finalUserCheck == null && !userDetected) {
             // No redirect result and no current user - check if we need to create a guest user
-            if (kDebugMode) {
-              print(
-                  'No redirect result and no authenticated user - creating guest user');
-            }
-            // For web, only create a guest user in local storage if nobody is currently logged in
-            // Note: Guest users are NOT created in Firebase Auth, only stored locally
             await _webGuestService.createOrGetGuestUser();
           }
         }
       } catch (e, stackTrace) {
-        if (kDebugMode) {
-          print('Error initializing web: $e'); // Always print
-          print('Stack trace: $stackTrace'); // Always print
-        }
-        // Even if redirect check fails, try to create guest if no user exists
         try {
           final currentUser = FirebaseAuth.instance.currentUser;
           if (currentUser != null) {
-            // User is authenticated, clear guest data and setup user data
             await _webGuestService.clearGuestUser();
             await _setupUserDataFromRedirect(currentUser);
           } else if (currentUser == null) {
             await _webGuestService.createOrGetGuestUser();
           }
-        } catch (guestError) {
-          if (kDebugMode) {
-            print('Error creating guest user: $guestError');
-          }
-        }
+        } catch (guestError) {}
       }
     }
 
@@ -812,15 +737,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       batch.set(userDocRef, userData, SetOptions(merge: true));
       batch.set(customerDocRef, customerData, SetOptions(merge: true));
       await batch.commit();
-
-      if (kDebugMode) {
-        print('User data setup completed for redirect sign-in');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error setting up user data from redirect: $e');
-      }
-    }
+    } catch (e) {}
   }
 
   @override

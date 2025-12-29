@@ -238,9 +238,6 @@ class Database {
       await fetchSalesInvoice();
       await getRating();
     } catch (e) {
-      if (kDebugMode) {
-        print('Fetching data error: $e');
-      }
       rethrow;
     }
   }
@@ -279,9 +276,7 @@ class Database {
 
       cartItems = updatedItems;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching cart items: $e');
-      }
+      rethrow;
     }
   }
 
@@ -289,9 +284,7 @@ class Database {
     try {
       await fetchDataFromFirestore();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error initializing connection to Firebase: $e');
-      }
+      rethrow;
     }
   }
 
@@ -306,11 +299,7 @@ class Database {
 
       final List? jsonList = jsonDecode(response) as List<dynamic>?;
       if (jsonList == null) {
-        if (kDebugMode) {
-          print('Error parsing JSON data');
-        }
         throw Exception('Error parsing JSON data');
-        // throw Exception('Lỗi khi phân tích dữ liệu JSON');
       }
 
       List<Province> provinceList =
@@ -330,18 +319,11 @@ class Database {
           .get();
 
       if (!productDoc.exists) {
-        if (kDebugMode) {
-          print('Product $productID not found');
-        }
         return null;
       }
 
       final dynamic raw = productDoc.data();
       if (raw is! Map<String, dynamic>) {
-        if (kDebugMode) {
-          print(
-              'Product $productID has unexpected data type: ${raw.runtimeType}');
-        }
         return null;
       }
 
@@ -365,10 +347,7 @@ class Database {
 
       return ProductFactory.createProduct(data);
     } catch (e, st) {
-      if (kDebugMode) {
-        print('Error getting product $productID: $e\n$st');
-      }
-      return null;
+      rethrow;
     }
   }
 
@@ -377,18 +356,10 @@ class Database {
       final productSnapshot =
           await FirebaseFirestore.instance.collection('products').get();
 
-      if (kDebugMode) {
-        print('Products: ${productSnapshot.docs.length}');
-      }
-
       final products = (await Future.wait(productSnapshot.docs.map((doc) async {
         try {
           final dynamic raw = doc.data();
           if (raw is! Map<String, dynamic>) {
-            if (kDebugMode) {
-              print(
-                  'Product ${doc.id} has unexpected data type: ${raw.runtimeType}');
-            }
             return null;
           }
 
@@ -413,10 +384,7 @@ class Database {
 
           return ProductFactory.createProduct(data);
         } catch (e, st) {
-          if (kDebugMode) {
-            print('Error processing product ${doc.id}: $e\n$st');
-          }
-          return null;
+          rethrow;
         }
       })))
           .whereType<Product>()
@@ -605,7 +573,8 @@ class Database {
         return;
       }
 
-      final ownedRecords = await Firebase().getOwnedVouchersByCustomerId(userID);
+      final ownedRecords =
+          await Firebase().getOwnedVouchersByCustomerId(userID);
 
       final Map<String, int> ownedUsesByVoucherId = {};
       for (final o in ownedRecords) {
@@ -656,11 +625,11 @@ class Database {
           final ranOut = (v as dynamic).voucherRanOut ?? false;
           if (ranOut) {
             final ownedUses = ownedUsesByVoucherId[vid] ?? 0;
-            final isRedeemableAndOwned = isVoucherRedeemable(v) && ownedUses > 0;
+            final isRedeemableAndOwned =
+                isVoucherRedeemable(v) && ownedUses > 0;
             if (!isRedeemableAndOwned) return false;
           }
-        } catch (_) {
-        }
+        } catch (_) {}
 
         return true;
       }).toList();
@@ -699,8 +668,7 @@ class Database {
 
       ongoingVouchers = ownedVoucherList.where((v) {
         try {
-          return (v as dynamic).voucherTimeStatus ==
-              VoucherTimeStatus.ongoing;
+          return (v as dynamic).voucherTimeStatus == VoucherTimeStatus.ongoing;
         } catch (_) {
           return false;
         }
@@ -709,8 +677,7 @@ class Database {
       upcomingVouchers = allVoucherList.where((v) {
         try {
           if (hasNoTotalUsage(v)) return false;
-          return (v as dynamic).voucherTimeStatus ==
-              VoucherTimeStatus.upcoming;
+          return (v as dynamic).voucherTimeStatus == VoucherTimeStatus.upcoming;
         } catch (_) {
           return false;
         }

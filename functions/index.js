@@ -9,6 +9,8 @@ admin.initializeApp();
 
 // Define secret parameter for SePay API token
 const sepayApiToken = defineSecret("SEPAY_API_TOKEN");
+const geminiApiKey = defineSecret("GEMINI_API_KEY");
+const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
 
 /**
  * SePay Webhook Handler
@@ -1840,6 +1842,202 @@ exports.exportToBigQueryTable = onRequest(
         success: false,
         error: error.message,
       });
+    }
+  }
+);
+
+// =============================================================================
+// GEMINI API PROXY
+// =============================================================================
+
+/**
+ * Gemini API Proxy
+ *
+ * Proxies Gemini AI API calls from the client to keep GEMINI_API_KEY secure.
+ * This function receives the prompt from client and returns AI response.
+ *
+ * URL: https://us-central1-se121p11-gizmoglobe.cloudfunctions.net/geminiProxy
+ */
+exports.geminiProxy = onRequest(
+  {
+    secrets: [geminiApiKey],
+    timeoutSeconds: 120,
+    memory: "512MiB",
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      return res.status(405).json({ success: false, error: "Use POST" });
+    }
+
+    try {
+      const apiKey = geminiApiKey.value();
+      if (!apiKey) {
+        return res.status(500).json({ success: false, error: "Gemini API key not configured" });
+      }
+
+      const { prompt } = req.body;
+      if (!prompt || prompt.trim() === "") {
+        return res.status(400).json({ success: false, error: "Missing prompt" });
+      }
+
+      const https = require("https");
+      const requestBody = {
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 1, topK: 40, topP: 0.95, maxOutputTokens: 8192 },
+      };
+      const postData = JSON.stringify(requestBody);
+
+      const options = {
+        hostname: "generativelanguage.googleapis.com",
+        port: 443,
+        path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(postData),
+        },
+      };
+
+      return new Promise((resolve) => {
+        const geminiReq = https.request(options, (geminiRes) => {
+          let responseData = "";
+          geminiRes.on("data", (chunk) => { responseData += chunk; });
+          geminiRes.on("end", () => {
+            try {
+              const jsonData = JSON.parse(responseData);
+              if (geminiRes.statusCode >= 400) {
+                res.status(200).json({ success: false, error: jsonData.error?.message || "Gemini API error" });
+                return resolve();
+              }
+              const text = jsonData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+              res.status(200).json({ success: true, response: text });
+              resolve();
+            } catch (e) {
+              res.status(500).json({ success: false, error: "Failed to parse Gemini response" });
+              resolve();
+            }
+          });
+        });
+        geminiReq.on("error", (error) => {
+          res.status(500).json({ success: false, error: error.message });
+          resolve();
+        });
+        geminiReq.write(postData);
+        geminiReq.end();
+      });
+    } catch (error) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+);
+
+// =============================================================================
+// STRIPE API PROXY
+// =============================================================================
+
+/**
+ * Stripe API Proxy
+ *
+ * Proxies Stripe API calls from the client to keep STRIPE_SECRET_KEY secure.
+ *
+ * URL: https://us-central1-se121p11-gizmoglobe.cloudfunctions.net/stripeProxy
+ */
+exports.stripeProxy = onRequest(
+  {
+    secrets: [stripeSecretKey],
+    timeoutSeconds: 60,
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      return res.status(405).json({ success: false, error: "Use POST" });
+    }
+
+    try {
+      const secretKey = stripeSecretKey.value();
+      if (!secretKey) {
+        return res.status(500).json({ success: false, error: "Stripe secret key not configured" });
+      }
+
+      const { action, amount, currency, paymentIntentId, paymentMethodId } = req.body;
+      if (!action) {
+        return res.status(400).json({ success: false, error: "Missing action" });
+      }
+
+      const https = require("https");
+      const stripeRequest = (method, path, data) => {
+        return new Promise((resolve, reject) => {
+          const postData = data ? Object.entries(data).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&") : "";
+          const options = {
+            hostname: "api.stripe.com",
+            port: 443,
+            path: path,
+            method: method,
+            headers: {
+              Authorization: `Bearer ${secretKey}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          };
+          if (method === "POST" && postData) options.headers["Content-Length"] = Buffer.byteLength(postData);
+
+          const stripeReq = https.request(options, (stripeRes) => {
+            let responseData = "";
+            stripeRes.on("data", (chunk) => { responseData += chunk; });
+            stripeRes.on("end", () => {
+              try {
+                const jsonData = JSON.parse(responseData);
+                if (stripeRes.statusCode >= 400) reject(jsonData.error || jsonData);
+                else resolve(jsonData);
+              } catch (e) { reject({ message: "Failed to parse Stripe response" }); }
+            });
+          });
+          stripeReq.on("error", reject);
+          if (method === "POST" && postData) stripeReq.write(postData);
+          stripeReq.end();
+        });
+      };
+
+      let result;
+      switch (action) {
+        case "createPaymentIntent":
+          if (!amount || !currency) return res.status(400).json({ success: false, error: "Missing amount or currency" });
+          result = await stripeRequest("POST", "/v1/payment_intents", { amount: String(amount), currency: currency.toLowerCase(), "payment_method_types[]": "card" });
+          return res.status(200).json({ success: true, paymentIntent: { id: result.id, clientSecret: result.client_secret, status: result.status, amount: result.amount, currency: result.currency } });
+
+        case "confirmPayment":
+          if (!paymentIntentId) return res.status(400).json({ success: false, error: "Missing paymentIntentId" });
+          const confirmData = {};
+          if (paymentMethodId) confirmData.payment_method = paymentMethodId;
+          result = await stripeRequest("POST", `/v1/payment_intents/${paymentIntentId}/confirm`, confirmData);
+          return res.status(200).json({ success: true, paymentIntent: { id: result.id, status: result.status } });
+
+        case "getPaymentIntent":
+          if (!paymentIntentId) return res.status(400).json({ success: false, error: "Missing paymentIntentId" });
+          result = await stripeRequest("GET", `/v1/payment_intents/${paymentIntentId}`, null);
+          return res.status(200).json({ success: true, paymentIntent: { id: result.id, status: result.status, amount: result.amount, currency: result.currency } });
+
+        default:
+          return res.status(400).json({ success: false, error: `Unknown action: ${action}` });
+      }
+    } catch (error) {
+      return res.status(500).json({ success: false, error: error.message || "Stripe API error" });
     }
   }
 );

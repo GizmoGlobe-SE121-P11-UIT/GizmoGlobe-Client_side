@@ -147,12 +147,7 @@ class _WebHeaderState extends State<WebHeader> {
 
         // Sign out from Firebase
         await FirebaseAuth.instance.signOut();
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error during logout cleanup: $e');
-        }
-        // Continue with reload even if cleanup fails
-      }
+      } catch (e) {}
 
       // Wait a brief moment to ensure signOut completes and localStorage is cleared
       // Then reload immediately to prevent StreamBuilder from creating a guest user
@@ -867,11 +862,7 @@ class _WebHeaderState extends State<WebHeader> {
             .collection('carts')
             .snapshots();
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error getting cart stream: $e');
-      }
-    }
+    } catch (e) {}
     // Return null stream for guests or errors
     return null;
   }
@@ -888,11 +879,7 @@ class _WebHeaderState extends State<WebHeader> {
         }
         return totalCount;
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error getting guest cart count: $e');
-      }
-    }
+    } catch (e) {}
     return 0;
   }
 

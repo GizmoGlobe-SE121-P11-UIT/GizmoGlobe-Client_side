@@ -32,10 +32,8 @@ class AIService {
   late final EnhancedQueryHandlers _enhancedHandlers;
 
   AIService() : _firestore = FirebaseFirestore.instance {
-    if (dotenv.env['GEMINI_API_KEY']?.isEmpty ?? true) {
-      if (kDebugMode) {
-        print('GEMINI_API_KEY is not configured in .env file');
-      }
+    // Only require GEMINI_API_KEY on mobile - web uses Cloud Function proxy
+    if (!kIsWeb && (dotenv.env['GEMINI_API_KEY']?.isEmpty ?? true)) {
       throw Exception('GEMINI_API_KEY is not configured in .env file');
     }
 
@@ -1566,6 +1564,12 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
   }
 
   Future<String> _callGeminiAPI(String prompt) async {
+    // On web, use Cloud Function proxy to keep API key secure
+    if (kIsWeb) {
+      return await _callGeminiViaProxy(prompt);
+    }
+
+    // On mobile, use direct API call
     final apiKey = dotenv.env['GEMINI_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
       throw Exception('GEMINI_API_KEY not found in .env file');
@@ -1703,6 +1707,43 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
 
     throw Exception(
         'Failed to get response from Gemini API after trying all models');
+  }
+
+  /// Call Gemini API via Cloud Function proxy (for web platform)
+  Future<String> _callGeminiViaProxy(String prompt) async {
+    const proxyUrl =
+        'https://us-central1-se121p11-gizmoglobe.cloudfunctions.net/geminiProxy';
+    const maxRetries = 3;
+    int retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        final response = await http.post(
+          Uri.parse(proxyUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'prompt': prompt}),
+        );
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          if (responseData['success'] == true) {
+            return responseData['response'] as String? ?? '';
+          } else {
+            throw Exception('Gemini Proxy error: ${responseData['error']}');
+          }
+        } else {
+          throw Exception('Gemini Proxy failed: ${response.statusCode}');
+        }
+      } catch (e) {
+        retryCount++;
+        if (retryCount < maxRetries) {
+          await Future.delayed(Duration(seconds: retryCount * 2));
+          continue;
+        }
+        rethrow;
+      }
+    }
+    throw Exception('Failed to get response from Gemini Proxy');
   }
 
   // Public methods for conversation management
