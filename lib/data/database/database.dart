@@ -418,7 +418,8 @@ class Database {
           .collection('users')
           .doc(user.uid)
           .get();
-      username = userDoc['username'];
+      final data = userDoc.data() as Map<String, dynamic>?;
+      username = data?['username'] ?? '';
     }
   }
 
@@ -442,9 +443,10 @@ class Database {
           .collection('users')
           .doc(user.uid)
           .get();
+      final data = userDoc.data() as Map<String, dynamic>?;
       userID = user.uid;
-      username = userDoc['username'];
-      email = userDoc['email'];
+      username = data?['username'] ?? '';
+      email = data?['email'] ?? '';
 
       userSurveyProfile = await Firebase().getUserSurveyProfile(userID);
     }
@@ -458,7 +460,8 @@ class Database {
           .collection('customers')
           .doc(user.uid)
           .get();
-      loyalPoint = userDoc['loyalPoint'] ?? 0;
+      final data = userDoc.data() as Map<String, dynamic>?;
+      loyalPoint = data?['loyalPoint'] ?? 0;
     }
   }
 
@@ -470,9 +473,10 @@ class Database {
           .collection('users')
           .doc(user.uid)
           .get();
+      final data = userDoc.data() as Map<String, dynamic>?;
       userID = user.uid;
-      username = userDoc['username'];
-      email = userDoc['email'];
+      username = data?['username'] ?? '';
+      email = data?['email'] ?? '';
     }
 
     await fetchAddress();

@@ -316,6 +316,7 @@ class MyApp extends StatelessWidget {
                     labelLarge: TextStyle(color: Color(0xFF638CC7)),
                   ),
                 ),
+                initialRoute: '/',
                 routes: {
                   '/': (context) => const AuthWrapper(),
                   '/home': (context) => const MainScreen(),
@@ -360,6 +361,15 @@ class MyApp extends StatelessWidget {
                   if (baseRouteName.contains('?')) {
                     baseRouteName = baseRouteName.split('?').first;
                   }
+
+                  // Handle '/home' route explicitly to ensure it works as initial route
+                  if (baseRouteName == '/home') {
+                    return MaterialPageRoute(
+                      builder: (context) => const MainScreen(),
+                      settings: RouteSettings(name: cleanRouteName),
+                    );
+                  }
+
                   if (baseRouteName == '/products') {
                     return PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>

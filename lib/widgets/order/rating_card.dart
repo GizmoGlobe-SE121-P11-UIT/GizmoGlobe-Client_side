@@ -60,7 +60,7 @@ class RatingCard extends StatelessWidget {
             if (r.comment != null && (r.comment as String).isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: Text(r.comment),
+                child: Text(r.comment as String),
               ),
             if ((r.videoUrl != null && (r.videoUrl as String).isNotEmpty) ||
                 (r.imagesUrl != null && (r.imagesUrl as List).isNotEmpty))

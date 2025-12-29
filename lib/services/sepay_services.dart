@@ -902,11 +902,10 @@ class SePayServices {
     // On mobile, use dotenv
     try {
       final accountNumber = dotenv.env['SEPAY_DEFAULT_ACCOUNT_NUMBER']?.trim();
-      final bankName =
-          dotenv.env['SEPAY_DEFAULT_BANK_NAME']?.trim() ?? 'Vietcombank';
-      final bankCode = dotenv.env['SEPAY_DEFAULT_BANK_CODE']?.trim() ?? 'VCB';
+      final bankName = dotenv.env['SEPAY_DEFAULT_BANK_NAME']?.trim() ?? 'ACB';
+      final bankCode = dotenv.env['SEPAY_DEFAULT_BANK_CODE']?.trim() ?? 'ACB';
       final accountName =
-          dotenv.env['SEPAY_DEFAULT_ACCOUNT_NAME']?.trim() ?? 'Default Account';
+          dotenv.env['SEPAY_DEFAULT_ACCOUNT_NAME']?.trim() ?? 'TO VINH TIEN';
 
       if (accountNumber != null && accountNumber.isNotEmpty) {
         return SePayBankAccount(

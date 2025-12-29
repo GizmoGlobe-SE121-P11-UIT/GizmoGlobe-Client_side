@@ -170,7 +170,7 @@ class SalesInvoice {
         (e) => e.getName() == map['salesStatus'],
         orElse: () => SalesStatus.pending,
       ),
-      totalPrice: (map['totalPrice'] ?? 0).toint(),
+      totalPrice: (map['totalPrice'] as num?)?.toInt() ?? 0,
       details: [],
     );
   }
