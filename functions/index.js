@@ -1967,7 +1967,13 @@ exports.stripeProxy = onRequest(
     }
 
     if (req.method !== "POST") {
-      return res.status(405).json({ success: false, error: "Use POST" });
+      console.log(`Stripe Proxy: Received ${req.method} instead of POST. URL: ${req.url}, Headers:`, req.headers);
+      return res.status(405).json({ 
+        success: false, 
+        error: "Use POST",
+        receivedMethod: req.method,
+        url: req.url
+      });
     }
 
     try {
@@ -1976,10 +1982,21 @@ exports.stripeProxy = onRequest(
         return res.status(500).json({ success: false, error: "Stripe secret key not configured" });
       }
 
+      // Log request for debugging
+      console.log("Stripe Proxy request:", {
+        method: req.method,
+        contentType: req.get("Content-Type"),
+        bodyKeys: req.body ? Object.keys(req.body) : "no body",
+        body: JSON.stringify(req.body).substring(0, 500)
+      });
+
       const { action, amount, currency, paymentIntentId, paymentMethodId } = req.body;
       if (!action) {
+        console.log("Stripe Proxy: Missing action. Body:", JSON.stringify(req.body));
         return res.status(400).json({ success: false, error: "Missing action" });
       }
+      
+      console.log(`Stripe Proxy: Action=${action}, Body keys:`, Object.keys(req.body));
 
       const https = require("https");
       const stripeRequest = (method, path, data) => {
@@ -2003,9 +2020,16 @@ exports.stripeProxy = onRequest(
             stripeRes.on("end", () => {
               try {
                 const jsonData = JSON.parse(responseData);
-                if (stripeRes.statusCode >= 400) reject(jsonData.error || jsonData);
-                else resolve(jsonData);
-              } catch (e) { reject({ message: "Failed to parse Stripe response" }); }
+                if (stripeRes.statusCode >= 400) {
+                  console.log(`Stripe API Error (${stripeRes.statusCode}):`, jsonData);
+                  reject(jsonData.error || jsonData);
+                } else {
+                  resolve(jsonData);
+                }
+              } catch (e) { 
+                console.error("Failed to parse Stripe response:", e, responseData);
+                reject({ message: "Failed to parse Stripe response", raw: responseData }); 
+              }
             });
           });
           stripeReq.on("error", reject);
@@ -2035,8 +2059,22 @@ exports.stripeProxy = onRequest(
 
         case "createCheckoutSession":
           const { successUrl, cancelUrl, lineItems } = req.body;
-          if (!successUrl || !cancelUrl || !lineItems) {
-            return res.status(400).json({ success: false, error: "Missing successUrl, cancelUrl, or lineItems" });
+          console.log("Stripe Proxy createCheckoutSession:", { 
+            hasSuccessUrl: !!successUrl, 
+            hasCancelUrl: !!cancelUrl, 
+            hasLineItems: !!lineItems,
+            lineItemsType: typeof lineItems,
+            lineItemsKeys: lineItems ? Object.keys(lineItems) : null
+          });
+          if (!successUrl || !cancelUrl) {
+            return res.status(400).json({ success: false, error: "Missing successUrl or cancelUrl" });
+          }
+          if (!lineItems || typeof lineItems !== 'object' || Object.keys(lineItems).length === 0) {
+            return res.status(400).json({ 
+              success: false, 
+              error: "Missing or invalid lineItems",
+              received: { lineItems, type: typeof lineItems, keys: lineItems ? Object.keys(lineItems) : null }
+            });
           }
           // Build form data for checkout session - lineItems is already a flat object with keys like "line_items[0][price_data][currency]"
           const sessionData = {
@@ -2046,8 +2084,18 @@ exports.stripeProxy = onRequest(
             "cancel_url": cancelUrl,
             ...lineItems
           };
-          result = await stripeRequest("POST", "/v1/checkout/sessions", sessionData);
-          return res.status(200).json({ success: true, session: { id: result.id, url: result.url } });
+          console.log("Stripe Proxy sessionData keys:", Object.keys(sessionData));
+          try {
+            result = await stripeRequest("POST", "/v1/checkout/sessions", sessionData);
+            return res.status(200).json({ success: true, session: { id: result.id, url: result.url } });
+          } catch (stripeError) {
+            console.error("Stripe API error in createCheckoutSession:", stripeError);
+            return res.status(200).json({ 
+              success: false, 
+              error: stripeError.message || "Stripe API error",
+              details: stripeError
+            });
+          }
 
         case "getCheckoutSession":
           const { sessionId } = req.body;
@@ -2059,7 +2107,12 @@ exports.stripeProxy = onRequest(
           return res.status(400).json({ success: false, error: `Unknown action: ${action}` });
       }
     } catch (error) {
-      return res.status(500).json({ success: false, error: error.message || "Stripe API error" });
+      console.error("Stripe Proxy error:", error);
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message || "Stripe API error",
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   }
 );

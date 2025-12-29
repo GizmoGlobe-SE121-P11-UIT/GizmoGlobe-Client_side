@@ -119,10 +119,12 @@ class StripeServices {
             'currency': currency.toLowerCase(),
           },
           options: Options(
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             validateStatus: (status) => status != null && status < 500,
+            followRedirects: false,
           ),
         );
 
@@ -261,13 +263,16 @@ class StripeServices {
             'lineItems': lineItems,
           },
           options: Options(
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             validateStatus: (status) => status != null && status < 500,
+            followRedirects: false,
           ),
         );
 
+        // Handle both 200 (success) and 400/500 (errors wrapped in 200 response)
         if (response.statusCode == 200 && response.data is Map) {
           final proxyResponse = response.data as Map<String, dynamic>;
           if (proxyResponse['success'] == true &&
@@ -279,13 +284,29 @@ class StripeServices {
             }
             return session['id'] as String?;
           } else {
+            // Proxy returned error (wrapped in 200 response)
             final error =
                 proxyResponse['error'] ?? 'Failed to create checkout session';
+            final details = proxyResponse['details'];
+            if (kDebugMode) {
+              print('Stripe Proxy Error: $error');
+              if (details != null) {
+                print('Error details: $details');
+              }
+              print('Full response: $proxyResponse');
+            }
             throw Exception(error);
           }
         } else {
-          throw Exception(
-              'Proxy request failed with status ${response.statusCode}');
+          // HTTP error (not 200)
+          final errorMessage = response.data is Map
+              ? (response.data['error'] ?? 'Proxy request failed')
+              : 'Proxy request failed with status ${response.statusCode}';
+          if (kDebugMode) {
+            print('Stripe Proxy HTTP Error: ${response.statusCode}');
+            print('Response data: ${response.data}');
+          }
+          throw Exception(errorMessage);
         }
       } else {
         // Direct API call (for mobile)
@@ -382,10 +403,12 @@ class StripeServices {
             'sessionId': sessionId,
           },
           options: Options(
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             validateStatus: (status) => status != null && status < 500,
+            followRedirects: false,
           ),
         );
 
@@ -494,10 +517,12 @@ class StripeServices {
             'sessionId': actualSessionId,
           },
           options: Options(
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             validateStatus: (status) => status != null && status < 500,
+            followRedirects: false,
           ),
         );
 
