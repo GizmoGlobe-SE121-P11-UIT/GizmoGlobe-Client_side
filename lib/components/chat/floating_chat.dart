@@ -25,6 +25,58 @@ class _FloatingChatState extends State<FloatingChat> {
   final WebGuestService _webGuestService = WebGuestService();
   bool _authModalOpen = false;
   ValueNotifier<bool>? _globalModalOpen;
+  bool _isHomeReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Wait for home screen to be ready before showing FAB
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkHomeReady();
+    });
+  }
+
+  void _checkHomeReady() {
+    final navigator = widget.navigatorKey.currentState;
+    if (navigator == null) {
+      // Navigator not ready yet, check again
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkHomeReady();
+      });
+      return;
+    }
+
+    final currentRoute = ModalRoute.of(navigator.context)?.settings.name;
+    // Exclude authentication routes
+    final isAuthRoute = currentRoute == '/sign-in' ||
+        currentRoute == '/sign-up' ||
+        currentRoute == '/forget-password';
+
+    // Check if we're on a main route (home, main, or root after initialization)
+    final isMainRoute = (currentRoute == '/' ||
+            currentRoute == '/home' ||
+            currentRoute == '/main' ||
+            currentRoute == null) &&
+        !isAuthRoute;
+
+    if (isMainRoute && mounted) {
+      // Add a small delay to ensure home screen is fully rendered
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() {
+            _isHomeReady = true;
+          });
+        }
+      });
+    } else if (isAuthRoute && _isHomeReady) {
+      // Hide FAB if we navigate to auth routes
+      if (mounted) {
+        setState(() {
+          _isHomeReady = false;
+        });
+      }
+    }
+  }
 
   void _toggle() async {
     if (_authModalOpen) return; // prevent re-entrancy while modal visible
@@ -61,6 +113,34 @@ class _FloatingChatState extends State<FloatingChat> {
       valueListenable: _globalModalOpen!,
       builder: (context, globalOpen, child) {
         final disableFab = _authModalOpen || globalOpen;
+        // Check current route to see if home is ready
+        final navigator = widget.navigatorKey.currentState;
+        final currentRoute = navigator != null
+            ? ModalRoute.of(navigator.context)?.settings.name
+            : null;
+        final isAuthRoute = currentRoute == '/sign-in' ||
+            currentRoute == '/sign-up' ||
+            currentRoute == '/forget-password';
+        final isMainRoute = (currentRoute == '/' ||
+                currentRoute == '/home' ||
+                currentRoute == '/main' ||
+                currentRoute == null) &&
+            !isAuthRoute;
+
+        // Update home ready state if we're on main route
+        if (isMainRoute && !_isHomeReady) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _checkHomeReady();
+          });
+        } else if (isAuthRoute && _isHomeReady) {
+          // Hide FAB if we navigate to auth routes
+          if (mounted) {
+            setState(() {
+              _isHomeReady = false;
+            });
+          }
+        }
+
         return Stack(
           children: [
             widget.child,
@@ -87,22 +167,24 @@ class _FloatingChatState extends State<FloatingChat> {
                   ),
                 ),
               ),
-            // FAB
-            Positioned(
-              right: 24,
-              bottom: 24,
-              child: IgnorePointer(
-                ignoring: disableFab,
-                child: AnimatedOpacity(
-                  opacity: disableFab ? 0.4 : 1.0,
-                  duration: const Duration(milliseconds: 150),
-                  child: FloatingActionButton(
-                    onPressed: _toggle,
-                    child: Icon(_isOpen ? Icons.close : Icons.chat_bubble_outline),
+            // FAB - only show when home is ready
+            if (_isHomeReady)
+              Positioned(
+                right: 24,
+                bottom: 24,
+                child: IgnorePointer(
+                  ignoring: disableFab,
+                  child: AnimatedOpacity(
+                    opacity: disableFab ? 0.4 : 1.0,
+                    duration: const Duration(milliseconds: 150),
+                    child: FloatingActionButton(
+                      onPressed: _toggle,
+                      child: Icon(
+                          _isOpen ? Icons.close : Icons.chat_bubble_outline),
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         );
       },

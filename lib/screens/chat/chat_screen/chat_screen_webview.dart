@@ -163,7 +163,10 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
                 state.processState == ProcessState.loading) &&
             state.messages.isEmpty;
 
-        if (isInitializing) {
+        // For embedded mode (floating web chat), keep the loading scaffold.
+        // For full-page /chat route, skip the loading screen so the main UI
+        // is immediately available on first app load.
+        if (isInitializing && widget.embedded) {
           return Scaffold(
             body: Container(
               width: double.infinity,
