@@ -17,15 +17,26 @@ jobs:
           channel: stable
           cache: true
       - name: Create .env from .env.web (public keys only)
-        run: cp .env.web .env
+        run: |
+          cp .env.web .env
+          echo "✓ Created .env from .env.web"
+          head -5 .env
       - name: Get Flutter dependencies
         run: flutter pub get
       - name: Build Flutter web
         run: flutter build web --release
-      - name: Copy .env to build output
+      - name: Verify and copy .env to build output
         run: |
+          echo "Checking if .env exists in build/web/assets/..."
+          ls -la build/web/assets/ | grep -E '\.env|AssetManifest' || echo "No .env found in assets"
+          echo "Copying .env to build output..."
           cp .env build/web/.env
           cp .env build/web/assets/.env
+          echo "✓ Verification:"
+          ls -la build/web/.env
+          ls -la build/web/assets/.env
+          echo "Content preview:"
+          head -3 build/web/.env
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
