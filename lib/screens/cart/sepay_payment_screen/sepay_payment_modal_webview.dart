@@ -221,7 +221,14 @@ class _SePayPaymentModalState extends State<_SePayPaymentModal> {
                             : S.of(context).sepayPaymentInitFailed,
                         dialogName: DialogName.failure,
                         buttonText: S.of(context).sepayClose,
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          try {
+                            Navigator.pop(context);
+                          } catch (e) {
+                            // Fallback for minification issues
+                            Navigator.of(context, rootNavigator: true).pop();
+                          }
+                        },
                       ),
                     );
                   }
