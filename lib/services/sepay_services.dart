@@ -73,13 +73,8 @@ class SePayServices {
   /// Get base URL for SePay API
   /// On web, uses Cloud Function proxy to bypass CORS
   String _getBaseUrl() {
-    // On web, use Cloud Function proxy to bypass CORS
+    // On web, use hardcoded Cloud Function proxy URL
     if (kIsWeb) {
-      final proxy = dotenv.env['SEPAY_PROXY_BASE_URL']?.trim();
-      if (proxy != null && proxy.isNotEmpty) {
-        return proxy;
-      }
-      // Default Cloud Function proxy URL (if not configured)
       return 'https://us-central1-se121p11-gizmoglobe.cloudfunctions.net/sepayApiProxy';
     }
     return dotenv.env['SEPAY_API_BASE_URL'] ?? 'https://my.sepay.vn/userapi';
@@ -95,8 +90,12 @@ class SePayServices {
   }
 
   /// Check if we should use .env directly (skip API call)
-  /// Set SEPAY_USE_ENV_ONLY=true in .env to use .env configuration directly
+  /// On web, always use hardcoded default account (no API call)
   bool _shouldUseEnvOnly() {
+    // On web, always use hardcoded default account
+    if (kIsWeb) {
+      return true;
+    }
     try {
       final useEnvOnly = dotenv.env['SEPAY_USE_ENV_ONLY']?.trim().toLowerCase();
       return useEnvOnly == 'true' || useEnvOnly == '1';
@@ -887,8 +886,20 @@ class SePayServices {
   }
 
   /// Get default bank account from environment variables (for dev/fallback)
-  /// Used when API call fails due to CORS or network issues
+  /// On web, uses hardcoded values to bypass .env loading issues
   SePayBankAccount? _getDefaultBankAccount() {
+    // On web, use hardcoded bank account
+    if (kIsWeb) {
+      return SePayBankAccount(
+        accountId: 'default',
+        accountNumber: '16177977',
+        bankName: 'ACB',
+        bankCode: 'ACB',
+        accountName: 'TO VINH TIEN',
+      );
+    }
+
+    // On mobile, use dotenv
     try {
       final accountNumber = dotenv.env['SEPAY_DEFAULT_ACCOUNT_NUMBER']?.trim();
       final bankName =
