@@ -60,13 +60,21 @@ class _FloatingChatState extends State<FloatingChat> {
         !isAuthRoute;
 
     if (isMainRoute && mounted) {
-      // Add a small delay to ensure home screen is fully rendered
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          setState(() {
-            _isHomeReady = true;
+      // Wait for multiple frames to ensure home screen web is fully rendered
+      // This ensures all widgets (BlocBuilder, FutureBuilder, etc.) have completed
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            // Final check after 3 frames + small delay to ensure rendering is complete
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (mounted) {
+                setState(() {
+                  _isHomeReady = true;
+                });
+              }
+            });
           });
-        }
+        });
       });
     } else if (isAuthRoute && _isHomeReady) {
       // Hide FAB if we navigate to auth routes
@@ -129,6 +137,7 @@ class _FloatingChatState extends State<FloatingChat> {
 
         // Update home ready state if we're on main route
         if (isMainRoute && !_isHomeReady) {
+          // Only check once per route change to avoid excessive checks
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _checkHomeReady();
           });
