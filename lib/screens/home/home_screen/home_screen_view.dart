@@ -13,9 +13,9 @@ import 'package:gizmoglobe_client/components/home/web_best_sellers_section.dart'
 import 'package:gizmoglobe_client/components/home/web_favorites_section.dart';
 import 'package:gizmoglobe_client/components/general/web_footer.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../product/product_screen/product_screen_view.dart';
-import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/components/general/web_product_card.dart';
 
@@ -52,28 +52,34 @@ class _HomeScreen extends State<HomeScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: BlocBuilder<HomeScreenCubit, HomeScreenState>(
           builder: (context, state) {
-            return FutureBuilder<bool>(
-              future: WebGuestService().isCurrentUserGuest(),
-              builder: (context, snapshot) {
-                final isGuest = snapshot.data ?? false;
+            // Use StreamBuilder to react to auth changes - show sections only for authenticated users
+            return StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, authSnapshot) {
+                final isAuthenticated = authSnapshot.data != null;
+                final screenWidth = MediaQuery.of(context).size.width;
+                final sectionSpacing = screenWidth >= 600 ? 80.0 : 40.0;
+
                 return SingleChildScrollView(
                   child: Column(
                     children: [
                       const WebHeader(),
                       const WebHeroSection(),
                       WebBestSellersSection(products: state.bestSellerProducts),
-                      if (!isGuest && state.favoriteProducts.isNotEmpty) ...[
-                        const SizedBox(height: 80),
+                      if (isAuthenticated &&
+                          state.favoriteProducts.isNotEmpty) ...[
+                        SizedBox(height: sectionSpacing),
                         WebFavoritesSection(products: state.favoriteProducts),
                       ],
-                      if (!isGuest && state.recommendedProducts.isNotEmpty) ...[
-                        const SizedBox(height: 80),
+                      if (isAuthenticated &&
+                          state.recommendedProducts.isNotEmpty) ...[
+                        SizedBox(height: sectionSpacing),
                         _buildWebRecommendationSection(
                           context,
                           state.recommendedProducts,
                         ),
                       ],
-                      const SizedBox(height: 80),
+                      SizedBox(height: sectionSpacing),
                       const WebFooter(),
                     ],
                   ),
@@ -259,8 +265,17 @@ class _HomeScreen extends State<HomeScreen> {
 
   Widget _buildWebRecommendationSection(
       BuildContext context, List<Product> products) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 80),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth >= 900
+            ? 80
+            : screenWidth >= 600
+                ? 40
+                : 20,
+      ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Responsive: show more cards on wider screens
@@ -270,7 +285,9 @@ class _HomeScreen extends State<HomeScreen> {
                   ? 6
                   : constraints.maxWidth >= 900
                       ? 5
-                      : 4;
+                      : constraints.maxWidth >= 600
+                          ? 3
+                          : 2; // Added mobile breakpoint
           final displayCount =
               products.length > maxCards ? maxCards : products.length;
 
@@ -280,30 +297,34 @@ class _HomeScreen extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        S.of(context).recommendedForYou,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          S.of(context).recommendedForYou,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: isMobile ? 24 : 32,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: isMobile ? -0.5 : -0.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        S.of(context).productRecommendationsForYourBuild,
-                        style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.6),
-                          fontSize: 16,
+                        const SizedBox(height: 8),
+                        Text(
+                          S.of(context).productRecommendationsForYourBuild,
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.6),
+                            fontSize: isMobile ? 14 : 16,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   TextButton(
                     onPressed: () {

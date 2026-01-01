@@ -181,9 +181,47 @@ class AIConversationService {
         'senderId': userId,
       };
 
-      await _firestore.collection('chats').doc(userId).update({
-        messageId: messageData,
-      });
+      // Get current document
+      final docRef = _firestore.collection('chats').doc(userId);
+      final docSnapshot = await docRef.get();
+
+      Map<String, dynamic> currentData =
+          docSnapshot.exists ? docSnapshot.data() as Map<String, dynamic> : {};
+
+      // Add new message
+      currentData[messageId] = messageData;
+
+      // Get all message IDs and sort by timestamp (oldest first)
+      final messageIds = currentData.keys
+          .where((key) =>
+              currentData[key] is Map && currentData[key]['messageId'] != null)
+          .toList();
+
+      // If we have more than max messages, remove oldest ones
+      // Use a lower limit for Firebase (50) to keep document size manageable
+      const maxFirebaseMessages = 50;
+      if (messageIds.length > maxFirebaseMessages) {
+        // Sort by messageId (which is timestamp in milliseconds)
+        messageIds.sort((a, b) {
+          final timestampA = int.tryParse(a) ?? 0;
+          final timestampB = int.tryParse(b) ?? 0;
+          return timestampA.compareTo(timestampB);
+        });
+
+        // Remove oldest messages
+        final messagesToRemove = messageIds.length - maxFirebaseMessages;
+        for (int i = 0; i < messagesToRemove; i++) {
+          currentData.remove(messageIds[i]);
+        }
+
+        if (kDebugMode) {
+          print(
+              'Removed $messagesToRemove old messages to keep document size under limit');
+        }
+      }
+
+      // Update document with limited messages
+      await docRef.set(currentData, SetOptions(merge: true));
 
       if (kDebugMode) {
         print(

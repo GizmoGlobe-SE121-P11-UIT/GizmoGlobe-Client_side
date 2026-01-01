@@ -74,35 +74,77 @@ class EnhancedQueryHandlers {
     Map<String, dynamic> entities,
     bool isVietnamese,
   ) async {
-    final categoryStr = entities['category'] as String?;
-    final category = _parseCategoryEnum(categoryStr);
+    try {
+      // Extract category if specified
+      final categoryEntity = entities['category'];
+      final categoryStr = categoryEntity is String
+          ? categoryEntity
+          : (categoryEntity is List && categoryEntity.isNotEmpty
+              ? categoryEntity.first.toString()
+              : null);
 
-    // Use recommendation service's getTrendingProducts
-    final trending = _recommendationService.getTrendingProducts(
-      topN: 10,
-      category: category,
-    );
+      // Build Firestore query
+      var query = _firestore
+          .collection('products')
+          .where('status', isEqualTo: 'active');
 
-    if (trending.isEmpty) {
+      // Filter by category if specified
+      if (categoryStr != null) {
+        query = query.where('category', isEqualTo: categoryStr.toLowerCase());
+      }
+
+      // Get all documents and sort by sales in memory
+      // (Firestore doesn't support orderBy on fields that might not exist)
+      final snapshot = await query.get();
+
+      if (snapshot.docs.isEmpty) {
+        return {
+          'success': false,
+          'message': isVietnamese
+              ? 'Không tìm thấy sản phẩm${categoryStr != null ? " $categoryStr" : ""}.'
+              : 'No products found${categoryStr != null ? " in $categoryStr category" : ""}.'
+        };
+      }
+
+      // Sort by sales field (descending - highest sales first)
+      final sortedDocs = snapshot.docs.toList()
+        ..sort((a, b) {
+          final salesA = (a.data()['sales'] as num?)?.toInt() ?? 0;
+          final salesB = (b.data()['sales'] as num?)?.toInt() ?? 0;
+          return salesB.compareTo(salesA); // Descending order
+        });
+
+      // Take top 5
+      final topDocs = sortedDocs.take(5).toList();
+
+      if (kDebugMode) {
+        print('Found ${topDocs.length} bestselling products');
+        for (var doc in topDocs) {
+          final data = doc.data();
+          final sales = data['sales'] ?? 0;
+          print('  - ${data['productName']}: ${sales} sales');
+        }
+      }
+
+      return {
+        'success': true,
+        'products': topDocs,
+        'context': isVietnamese
+            ? 'Top 5 sản phẩm bán chạy${categoryStr != null ? " - ${categoryStr.toUpperCase()}" : ""}'
+            : 'Top 5 bestselling products${categoryStr != null ? " - ${categoryStr.toUpperCase()}" : ""}',
+        'userMessage': userMessage,
+      };
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error handling bestseller query: $e');
+      }
       return {
         'success': false,
         'message': isVietnamese
-            ? 'Không tìm thấy sản phẩm bán chạy.'
-            : 'No bestselling products found.'
+            ? 'Có lỗi xảy ra khi tìm sản phẩm bán chạy.'
+            : 'An error occurred while finding bestselling products.'
       };
     }
-
-    // Convert to Firestore docs
-    final docs = await _convertProductsToFirestoreDocs(trending);
-
-    return {
-      'success': true,
-      'products': docs,
-      'context': isVietnamese
-          ? 'Top sản phẩm bán chạy${category != null ? " - ${category.toString().toUpperCase()}" : ""}'
-          : 'Top bestselling products${category != null ? " - ${category.toString().toUpperCase()}" : ""}',
-      'userMessage': userMessage,
-    };
   }
 
   /// Handle build suggestion queries

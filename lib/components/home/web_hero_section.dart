@@ -56,6 +56,10 @@ class _WebHeroSectionState extends State<WebHeroSection>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final isTablet = screenWidth >= 600 && screenWidth < 900;
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -68,7 +72,18 @@ class _WebHeroSectionState extends State<WebHeroSection>
           stops: const [0.0, 1.0],
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 80),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile
+            ? 20
+            : isTablet
+                ? 40
+                : 80,
+        vertical: isMobile
+            ? 40
+            : isTablet
+                ? 60
+                : 80,
+      ),
       child: Column(
         children: [
           // Main Hero Content
@@ -143,10 +158,14 @@ class _WebHeroSectionState extends State<WebHeroSection>
                                 ],
                               ).createShader(
                                   const Rect.fromLTWH(0, 0, 300, 100)),
-                            fontSize: 72,
+                            fontSize: isMobile
+                                ? 36
+                                : isTablet
+                                    ? 48
+                                    : 72,
                             fontWeight: FontWeight.bold,
                             height: 1.1,
-                            letterSpacing: -2,
+                            letterSpacing: isMobile ? -1 : -2,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -157,12 +176,14 @@ class _WebHeroSectionState extends State<WebHeroSection>
                                 .colorScheme
                                 .onSurface
                                 .withValues(alpha: 0.7),
-                            fontSize: 18,
+                            fontSize: isMobile ? 14 : 18,
                             height: 1.6,
                           ),
                         ),
                         const SizedBox(height: 32),
-                        Row(
+                        Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
                           children: [
                             Container(
                               decoration: BoxDecoration(
@@ -194,8 +215,10 @@ class _WebHeroSectionState extends State<WebHeroSection>
                                   backgroundColor: Colors.transparent,
                                   foregroundColor:
                                       Theme.of(context).colorScheme.onPrimary,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 40, vertical: 20),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isMobile ? 24 : 40,
+                                    vertical: isMobile ? 16 : 20,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -207,22 +230,21 @@ class _WebHeroSectionState extends State<WebHeroSection>
                                     Text(
                                       S.of(context).shopNow,
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: isMobile ? 14 : 16,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Icon(
                                       Icons.arrow_forward_rounded,
-                                      size: 18,
+                                      size: isMobile ? 16 : 18,
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 24),
                             Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: EdgeInsets.all(isMobile ? 10 : 12),
                               decoration: BoxDecoration(
                                 color: Theme.of(context)
                                     .colorScheme
@@ -241,7 +263,7 @@ class _WebHeroSectionState extends State<WebHeroSection>
                                 children: [
                                   Icon(
                                     Icons.local_shipping,
-                                    size: 20,
+                                    size: isMobile ? 18 : 20,
                                     color:
                                         Theme.of(context).colorScheme.primary,
                                   ),
@@ -251,7 +273,7 @@ class _WebHeroSectionState extends State<WebHeroSection>
                                     style: TextStyle(
                                       color:
                                           Theme.of(context).colorScheme.primary,
-                                      fontSize: 14,
+                                      fontSize: isMobile ? 12 : 14,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),

@@ -14,8 +14,21 @@ class CompatibilityHandler {
     Map<String, dynamic> entities,
     bool isVietnamese,
   ) async {
-    final socket = entities['socket'] as String?;
-    final category = entities['category'] as String?;
+    // Handle both String and List types from classifier
+    final socketEntity = entities['socket'];
+    final socket = socketEntity is String
+        ? socketEntity
+        : (socketEntity is List && socketEntity.isNotEmpty
+            ? socketEntity.first.toString()
+            : null);
+
+    final categoryEntity = entities['category'];
+    final category = categoryEntity is String
+        ? categoryEntity
+        : (categoryEntity is List && categoryEntity.isNotEmpty
+            ? categoryEntity.first.toString()
+            : null);
+
     final productNames = entities['product_names'] as List?;
 
     List<QueryDocumentSnapshot> compatibleDocs = [];
@@ -201,17 +214,27 @@ class CompatibilityHandler {
           .get();
 
       // Find matching product by name
+      if (kDebugMode) {
+        print('Searching for product: "$productName"');
+      }
+
       QueryDocumentSnapshot? matchedProduct;
       for (var doc in searchQuery.docs) {
         final data = doc.data();
         final name = data['productName']?.toString().toLowerCase() ?? '';
         if (name.contains(productName.toLowerCase())) {
           matchedProduct = doc;
+          if (kDebugMode) {
+            print('Found matching product: ${data['productName']}');
+          }
           break;
         }
       }
 
       if (matchedProduct == null) {
+        if (kDebugMode) {
+          print('No product found matching: "$productName"');
+        }
         return {
           'products': <QueryDocumentSnapshot>[],
           'context': isVietnamese

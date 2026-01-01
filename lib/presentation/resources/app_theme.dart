@@ -114,21 +114,33 @@ class AppTheme {
       elevation: 8,
     ),
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: charcoal, fontWeight: FontWeight.bold),
-      displayMedium: TextStyle(color: charcoal, fontWeight: FontWeight.bold),
-      displaySmall: TextStyle(color: charcoal, fontWeight: FontWeight.bold),
-      headlineLarge: TextStyle(color: charcoal, fontWeight: FontWeight.w600),
-      headlineMedium: TextStyle(color: charcoal, fontWeight: FontWeight.w600),
-      headlineSmall: TextStyle(color: charcoal, fontWeight: FontWeight.w600),
-      titleLarge: TextStyle(color: charcoal, fontWeight: FontWeight.w600),
-      titleMedium: TextStyle(color: charcoal, fontWeight: FontWeight.w500),
-      titleSmall: TextStyle(color: charcoal, fontWeight: FontWeight.w500),
-      bodyLarge: TextStyle(color: charcoal),
-      bodyMedium: TextStyle(color: charcoal),
-      bodySmall: TextStyle(color: darkGray),
-      labelLarge: TextStyle(color: primaryBlue, fontWeight: FontWeight.w500),
-      labelMedium: TextStyle(color: darkGray),
-      labelSmall: TextStyle(color: mediumGray),
+      displayLarge: TextStyle(
+          color: charcoal, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+      displayMedium: TextStyle(
+          color: charcoal, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+      displaySmall: TextStyle(
+          color: charcoal, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+      headlineLarge: TextStyle(
+          color: charcoal, fontWeight: FontWeight.w600, fontFamily: 'Roboto'),
+      headlineMedium: TextStyle(
+          color: charcoal, fontWeight: FontWeight.w600, fontFamily: 'Roboto'),
+      headlineSmall: TextStyle(
+          color: charcoal, fontWeight: FontWeight.w600, fontFamily: 'Roboto'),
+      titleLarge: TextStyle(
+          color: charcoal, fontWeight: FontWeight.w600, fontFamily: 'Roboto'),
+      titleMedium: TextStyle(
+          color: charcoal, fontWeight: FontWeight.w500, fontFamily: 'Roboto'),
+      titleSmall: TextStyle(
+          color: charcoal, fontWeight: FontWeight.w500, fontFamily: 'Roboto'),
+      bodyLarge: TextStyle(color: charcoal, fontFamily: 'Roboto'),
+      bodyMedium: TextStyle(color: charcoal, fontFamily: 'Roboto'),
+      bodySmall: TextStyle(color: darkGray, fontFamily: 'Roboto'),
+      labelLarge: TextStyle(
+          color: primaryBlue,
+          fontWeight: FontWeight.w500,
+          fontFamily: 'Roboto'),
+      labelMedium: TextStyle(color: darkGray, fontFamily: 'Roboto'),
+      labelSmall: TextStyle(color: mediumGray, fontFamily: 'Roboto'),
     ),
   );
 
@@ -246,25 +258,49 @@ class AppTheme {
       }),
     ),
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      displayMedium:
-          TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      displaySmall: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      headlineLarge:
-          TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-      headlineMedium:
-          TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-      headlineSmall:
-          TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-      titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-      titleMedium: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-      titleSmall: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-      bodyLarge: TextStyle(color: Colors.white),
-      bodyMedium: TextStyle(color: Colors.white),
-      bodySmall: TextStyle(color: Color(0xFFE0E0E0)),
-      labelLarge: TextStyle(color: lightBlue, fontWeight: FontWeight.w500),
-      labelMedium: TextStyle(color: Color(0xFFE0E0E0)),
-      labelSmall: TextStyle(color: Color(0xFF757575)),
+      displayLarge: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Roboto'),
+      displayMedium: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Roboto'),
+      displaySmall: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Roboto'),
+      headlineLarge: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Roboto'),
+      headlineMedium: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Roboto'),
+      headlineSmall: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Roboto'),
+      titleLarge: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Roboto'),
+      titleMedium: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+          fontFamily: 'Roboto'),
+      titleSmall: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+          fontFamily: 'Roboto'),
+      bodyLarge: TextStyle(color: Colors.white, fontFamily: 'Roboto'),
+      bodyMedium: TextStyle(color: Colors.white, fontFamily: 'Roboto'),
+      bodySmall: TextStyle(color: Color(0xFFE0E0E0), fontFamily: 'Roboto'),
+      labelLarge: TextStyle(
+          color: lightBlue, fontWeight: FontWeight.w500, fontFamily: 'Roboto'),
+      labelMedium: TextStyle(color: Color(0xFFE0E0E0), fontFamily: 'Roboto'),
+      labelSmall: TextStyle(color: Color(0xFF757575), fontFamily: 'Roboto'),
     ),
   );
 }

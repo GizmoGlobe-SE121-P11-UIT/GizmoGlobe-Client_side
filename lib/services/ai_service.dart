@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../functions/helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -155,7 +156,7 @@ class AIService {
       // Handle product questions
       if (isProductQuestion) {
         return await _handleProductQuestion(
-            processedMessage, userId, isVietnamese);
+            processedMessage, userId, isVietnamese, classification);
       }
 
       // Handle greetings or store questions
@@ -412,15 +413,26 @@ class AIService {
     String content = '';
     String sectionTitle = '';
 
+    // Declare variables at function scope
+    List<Map<String, dynamic>> favorites = [];
+    List<Map<String, dynamic>> cartItems = [];
+
     if (isFavoriteQuestion) {
-      final favorites = await _userDataService.getUserFavorites(userId);
+      favorites = await _userDataService.getUserFavorites(userId);
+      if (kDebugMode) {
+        print(
+            'getUserFavorites returned ${favorites.length} products for user: $userId');
+      }
       content = _userDataService.formatFavoritesList(favorites, isVietnamese);
+      if (kDebugMode) {
+        print('Favorites content: $content');
+      }
       sectionTitle =
           isVietnamese ? 'DANH SÁCH SẢN PHẨM YÊU THÍCH' : 'FAVORITE PRODUCTS';
     }
 
     if (isCartQuestion) {
-      final cartItems = await _userDataService.getUserCart(userId);
+      cartItems = await _userDataService.getUserCart(userId);
 
       // If asking about quantity specifically, provide a focused response
       if (isCartQuantityQuestion) {
@@ -441,11 +453,69 @@ class AIService {
         basePrompt, sectionTitle, content, userMessage, isVietnamese);
     final response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
 
-    // Extract and attach product cards if products are mentioned
+    // Prepare product cards from favorites/cart
+    List<Map<String, dynamic>>? productCards;
+    if (isFavoriteQuestion && favorites.isNotEmpty) {
+      productCards = favorites.map((product) {
+        final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
+        final discount = (product['discount'] as num?)?.toDouble() ?? 0;
+        final discountedPrice =
+            (product['discountedPrice'] as num?)?.toDouble() ??
+                price * (1 - discount / 100);
+
+        return {
+          'id': product['productID'],
+          'name': product['productName'] ?? '',
+          'price': discountedPrice,
+          'originalPrice': price,
+          'discount': discount,
+          'stock': product['stock'] ?? 0,
+          'imageUrl': product['imageUrl'],
+          'category': product['category'] ?? '',
+        };
+      }).toList();
+    } else if (isCartQuestion && cartItems.isNotEmpty) {
+      productCards = cartItems
+          .map((item) {
+            final product = item['product'] as Map<String, dynamic>?;
+            if (product == null) return null;
+
+            final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
+            final discount = (product['discount'] as num?)?.toDouble() ?? 0;
+            final discountedPrice =
+                (product['discountedPrice'] as num?)?.toDouble() ??
+                    price * (1 - discount / 100);
+
+            return {
+              'id': product['productID'],
+              'name': product['productName'] ?? '',
+              'price': discountedPrice,
+              'originalPrice': price,
+              'discount': discount,
+              'stock': product['stock'] ?? 0,
+              'imageUrl': product['imageUrl'],
+              'category': product['category'] ?? '',
+            };
+          })
+          .whereType<Map<String, dynamic>>()
+          .toList();
+    }
+
+    // Attach product cards (all favorites/cart products)
+    if (kDebugMode) {
+      print('ProductCards prepared: ${productCards?.length ?? 0} cards');
+      if (productCards != null) {
+        for (var card in productCards) {
+          print('  - Card: ${card['name']}');
+        }
+      }
+    }
+
     final responseWithProducts = await _attachProductCardsToResponse(
       response,
       userMessage,
       isVietnamese,
+      existingCards: productCards,
     );
 
     _conversationService.updateHistory(
@@ -454,7 +524,8 @@ class AIService {
   }
 
   Future<String> _handleProductQuestion(
-      String processedMessage, String? userId, bool isVietnamese) async {
+      String processedMessage, String? userId, bool isVietnamese,
+      [QuestionClassification? classification]) async {
     final isConnected = await _productService.checkFirebaseConnection();
     if (!isConnected) {
       final response = isVietnamese
@@ -481,6 +552,27 @@ class AIService {
     final synonyms = (nlpAnalysis['synonyms'] as List?)?.cast<String>() ?? [];
     final confidence = nlpAnalysis['confidence'] as double? ?? 0.0;
 
+    // Extract budget from classification if available
+    double? budgetMillionVND;
+    if (classification != null &&
+        classification.entities.containsKey('budget')) {
+      budgetMillionVND =
+          (classification.entities['budget'] as num?)?.toDouble();
+      if (kDebugMode) {
+        print(
+            'Budget extracted from classification: $budgetMillionVND million VND');
+      }
+    }
+
+    // Extract max TDP from classification if available (for CPU power filtering)
+    int? maxTDP;
+    if (classification != null &&
+        classification.entities.containsKey('max_tdp')) {
+      maxTDP = (classification.entities['max_tdp'] as num?)?.toInt();
+      if (kDebugMode) {
+        print('Max TDP extracted from classification: $maxTDP W');
+      }
+    }
     if (kDebugMode) {
       print(
           'NLP Results - Product: $productName, Category: $category, Synonyms: $synonyms, Confidence: $confidence');
@@ -529,6 +621,145 @@ class AIService {
       return response;
     }
 
+    // Filter by budget if specified
+    bool isBudgetFiltered = false;
+    String? budgetMessage;
+    List<QueryDocumentSnapshot> docsToUse = productsSnapshot.docs;
+
+    if (budgetMillionVND != null) {
+      final budgetInVND = budgetMillionVND * 1000000;
+      final originalDocsCount = docsToUse.length;
+
+      // Filter products by budget
+      // NOTE: Database stores prices in thousands (VND/1000), so multiply by 1000 for comparison
+      final budgetFilteredDocs = docsToUse.where((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final sellingPrice = (data['sellingPrice'] as num?)?.toDouble() ?? 0;
+        final discount = (data['discount'] as num?)?.toDouble() ?? 0;
+        final discountedPrice = (data['discountedPrice'] as num?)?.toDouble() ??
+            sellingPrice * (1 - discount / 100);
+        // Multiply by 1000 since prices are stored in thousands
+        final actualPriceInVND = discountedPrice * 1000;
+        return actualPriceInVND <= budgetInVND;
+      }).toList();
+
+      if (budgetFilteredDocs.isEmpty) {
+        // No products within budget - prepare fallback message and get cheapest products
+        if (kDebugMode) {
+          print(
+              'No products found within budget of $budgetMillionVND million VND. '
+              'Suggesting cheapest alternatives.');
+        }
+
+        // Sort all products by price (cheapest first)
+        // NOTE: Prices are stored in thousands (VND/1000), so multiply by 1000
+        final allDocs = List<QueryDocumentSnapshot>.from(docsToUse);
+        allDocs.sort((a, b) {
+          final dataA = a.data() as Map<String, dynamic>;
+          final dataB = b.data() as Map<String, dynamic>;
+          final priceA = ((dataA['discountedPrice'] as num?)?.toDouble() ??
+                  ((dataA['sellingPrice'] as num?)?.toDouble() ?? 0) *
+                      (1 -
+                          ((dataA['discount'] as num?)?.toDouble() ?? 0) /
+                              100)) *
+              1000;
+          final priceB = ((dataB['discountedPrice'] as num?)?.toDouble() ??
+                  ((dataB['sellingPrice'] as num?)?.toDouble() ?? 0) *
+                      (1 -
+                          ((dataB['discount'] as num?)?.toDouble() ?? 0) /
+                              100)) *
+              1000;
+          return priceA.compareTo(priceB);
+        });
+
+        // Get cheapest product price for message
+        if (allDocs.isNotEmpty) {
+          final cheapestData = allDocs.first.data() as Map<String, dynamic>;
+          final cheapestPriceInThousands =
+              (cheapestData['discountedPrice'] as num?)?.toDouble() ??
+                  ((cheapestData['sellingPrice'] as num?)?.toDouble() ?? 0) *
+                      (1 -
+                          ((cheapestData['discount'] as num?)?.toDouble() ??
+                                  0) /
+                              100);
+          // Multiply by 1000 to get actual VND, then divide by 1M to get millions
+          final cheapestPriceMillions =
+              (cheapestPriceInThousands * 1000) / 1000000;
+
+          budgetMessage = isVietnamese
+              ? 'Rất tiếc, shop hiện không có sản phẩm nào dưới ${budgetMillionVND.toStringAsFixed(1)} triệu đồng. '
+                  'Dưới đây là một số sản phẩm giá tốt nhất mà chúng tôi có (từ ${cheapestPriceMillions.toStringAsFixed(1)} triệu đồng):'
+              : 'Sorry, we don\'t have any products under ${budgetMillionVND.toStringAsFixed(1)} million VND. '
+                  'Here are some of our best-priced products (starting from ${cheapestPriceMillions.toStringAsFixed(1)} million VND):';
+        }
+
+        // Use cheapest products as fallback
+        docsToUse = allDocs;
+        isBudgetFiltered = false;
+      } else {
+        // Products found within budget
+        docsToUse = budgetFilteredDocs;
+        isBudgetFiltered = true;
+
+        if (kDebugMode) {
+          print(
+              'Filtered products by budget: found ${budgetFilteredDocs.length} '
+              'out of $originalDocsCount products under $budgetMillionVND million VND');
+        }
+      }
+    }
+
+    // Filter by TDP if specified (for CPUs)
+    if (maxTDP != null && category.toLowerCase() == 'cpu') {
+      if (kDebugMode) {
+        print('Filtering CPUs by max TDP: $maxTDP W');
+      }
+
+      final tdpFilteredDocs = docsToUse.where((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        // TDP is stored as an integer in Watts
+        final productTDP = (data['tdp'] as num?)?.toInt() ?? 999999;
+        return productTDP <= (maxTDP ?? 999999);
+      }).toList();
+
+      if (tdpFilteredDocs.isEmpty) {
+        // No CPUs within TDP limit - prepare message
+        if (kDebugMode) {
+          print(
+              'No CPUs found with TDP <= $maxTDP W. Showing lowest TDP alternatives.');
+        }
+
+        // Sort by TDP (lowest first)
+        final allDocs = List<QueryDocumentSnapshot>.from(docsToUse);
+        allDocs.sort((a, b) {
+          final dataA = a.data() as Map<String, dynamic>;
+          final dataB = b.data() as Map<String, dynamic>;
+          final tdpA = (dataA['tdp'] as num?)?.toInt() ?? 999999;
+          final tdpB = (dataB['tdp'] as num?)?.toInt() ?? 999999;
+          return tdpA.compareTo(tdpB);
+        });
+
+        if (allDocs.isNotEmpty) {
+          final lowestTDP =
+              (allDocs.first.data() as Map<String, dynamic>)['tdp'] as int? ??
+                  0;
+          budgetMessage = (budgetMessage != null ? '$budgetMessage\n\n' : '') +
+              (isVietnamese
+                  ? 'Ngoài ra, không có CPU nào với TDP dưới $maxTDP W. CPU tiết kiệm điện nhất hiện có TDP từ $lowestTDP W.'
+                  : 'Additionally, no CPUs found with TDP under $maxTDP W. Most power-efficient CPUs available have TDP starting from $lowestTDP W.');
+        }
+
+        docsToUse = allDocs;
+      } else {
+        // CPUs found within TDP limit
+        docsToUse = tdpFilteredDocs;
+
+        if (kDebugMode) {
+          print('Found ${tdpFilteredDocs.length} CPUs with TDP <= $maxTDP W');
+        }
+      }
+    }
+
     final productCardFilters = _buildProductCardFilters(
       brand: brand,
       productName: productName,
@@ -537,10 +768,15 @@ class AIService {
     final disableCardFallback = brand.trim().isNotEmpty;
 
     // Detect sorting requirements from user query
-    final sortType = _detectSortType(processedMessage, isVietnamese);
+    var sortType = _detectSortType(processedMessage, isVietnamese);
+
+    // If budget was applied but no sort specified, sort by price (lowest first)
+    if (isBudgetFiltered && sortType == _ProductSortType.none) {
+      sortType = _ProductSortType.priceLowest;
+    }
 
     final cardSelection = _prepareProductCardSelection(
-      productsSnapshot.docs,
+      docsToUse,
       isVietnamese: isVietnamese,
       keywordFilters: productCardFilters,
       disableFallbackOnEmptyMatch: disableCardFallback,
@@ -553,7 +789,12 @@ class AIService {
             processedMessage, cardSelection.docs, isVietnamese)
         : _promptService.createPromptWithoutProducts(
             processedMessage, isVietnamese);
-    final response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
+    var response = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
+
+    // Prepend budget message if no products matched budget
+    if (budgetMessage != null) {
+      response = '$budgetMessage\n\n$response';
+    }
 
     final formattedResponse = _formatProductSuggestionResponse(
       response,
@@ -562,12 +803,12 @@ class AIService {
     );
 
     // Ensure product cards are attached
-    // DON'T pass existingCards - let extraction work from AI response
-    // This ensures only products actually mentioned by the AI are shown
+    // Pass existing cards so products are always clickable
     final responseWithProducts = await _attachProductCardsToResponse(
       formattedResponse,
       processedMessage,
       isVietnamese,
+      existingCards: cardSelection.cards,
     );
 
     if (userId != null) {
@@ -580,7 +821,7 @@ class AIService {
 
   /// Extract product mentions from any response and attach ProductMiniCard widgets
   /// This ensures products are always navigable, not just in product questions
-  /// Maximum 3 cards per response, only for products actually mentioned in the response
+  /// Attach product cards to response, respecting the requested count
   Future<String> _attachProductCardsToResponse(
     String response,
     String originalMessage,
@@ -588,11 +829,10 @@ class AIService {
     List<Map<String, dynamic>>? existingCards,
     bool skipExtraction = false, // Skip extracting products from response text
   }) async {
-    // If cards already exist, limit to max 3
+    // If cards already exist, use them all (caller already limited to requested count)
     if (existingCards != null && existingCards.isNotEmpty) {
-      final limitedCards = existingCards.take(3).toList();
       final productCardsAttachment =
-          '[PRODUCT_CARDS]${jsonEncode(limitedCards)}[/PRODUCT_CARDS]';
+          '[PRODUCT_CARDS]${jsonEncode(existingCards)}[/PRODUCT_CARDS]';
       return '$response\n\n$productCardsAttachment';
     }
 
@@ -1169,10 +1409,16 @@ TRẢ LỜI:
 
     final aiResponse = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
 
+    // Use _prepareProductCardSelection to properly format card data with correct prices
+    final cardSelection = _prepareProductCardSelection(
+      docs,
+      isVietnamese: isVietnamese,
+      limit: 5,
+    );
+
     return await _attachProductCardsToResponse(
         aiResponse, userMessage, isVietnamese,
-        existingCards:
-            docs.take(5).map((d) => d.data() as Map<String, dynamic>).toList());
+        existingCards: cardSelection.cards);
   }
 
   /// Handle product specification questions
@@ -1464,6 +1710,16 @@ ANSWER (1 SENTENCE):
     // Create a simpler prompt for bestseller/promotion queries
     String promptInstructions = '';
     if (queryType == 'promotion') {
+      // Simple product list for promotion queries
+      final productList = products.take(requestedCount).map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final price = (data['sellingPrice'] as num?)?.toDouble() ?? 0;
+        final discount = (data['discount'] as num?)?.toDouble() ?? 0;
+        final discountedPrice = (data['discountedPrice'] as num?)?.toDouble() ??
+            price * (1 - discount / 100);
+        return '- ${data['productName']}: ${Helper.toCurrencyFormat(discountedPrice * 1000)} (Giảm $discount%)';
+      }).join('\n');
+
       promptInstructions = '''
 ${result['context']}
 
@@ -1471,14 +1727,27 @@ YÊU CẦU: $userMessage
 
 ⚠️ QUY TẮC:
 - CHỈ liệt kê danh sách NGẮN GỌN
-- Format: "- [Tên sản phẩm]: [Giá] (Giảm [discount]%)"
-- KHÔNG phân tích, KHÔNG so sánh, KHÔNG giải thích
-- Product cards sẽ tự hiển thị chi tiết
+- KHÔNG phân tích, KHÔNG so sánh, KHÔNG giải thích chi tiết
+- Product cards sẽ tự hiển thị thông tin đầy đủ
+
+📋 DANH SÁCH SẢN PHẨM:
+$productList
 
 NHIỆM VỤ:
-Liệt kê $requestedCount sản phẩm khuyến mãi từ danh sách dưới đây:
+Giới thiệu ngắn gọn (1-2 câu) về các sản phẩm khuyến mãi từ danh sách trên.
 ''';
     } else if (queryType == 'bestseller') {
+      // Simple product list for bestseller queries
+      final productList = products.take(requestedCount).map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final price = (data['sellingPrice'] as num?)?.toDouble() ?? 0;
+        final discount = (data['discount'] as num?)?.toDouble() ?? 0;
+        final discountedPrice = (data['discountedPrice'] as num?)?.toDouble() ??
+            price * (1 - discount / 100);
+        final sales = (data['sales'] as num?)?.toInt() ?? 0;
+        return '- ${data['productName']}: ${Helper.toCurrencyFormat(discountedPrice * 1000)} ($sales lượt bán)';
+      }).join('\n');
+
       promptInstructions = '''
 ${result['context']}
 
@@ -1486,12 +1755,14 @@ YÊU CẦU: $userMessage
 
 ⚠️ QUY TẮC:
 - CHỈ liệt kê danh sách NGẮN GỌN
-- Format: "- [Tên sản phẩm]: [Giá] ([sales] lượt bán)"
-- KHÔNG phân tích, KHÔNG so sánh, KHÔNG giải thích
-- Product cards sẽ tự hiển thị chi tiết
+- KHÔNG phân tích, KHÔNG so sánh, KHÔNG giải thích chi tiết
+- Product cards sẽ tự hiển thị thông tin đầy đủ
+
+📋 DANH SÁCH SẢN PHẨM:
+$productList
 
 NHIỆM VỤ:
-Liệt kê top $requestedCount sản phẩm bán chạy từ danh sách dưới đây:
+Giới thiệu ngắn gọn (1-2 câu) về top $requestedCount sản phẩm bán chạy từ danh sách trên.
 ''';
     } else {
       // Build suggestion - MUST list all 6 components
@@ -1526,8 +1797,10 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
 ''';
     }
 
-    final prompt = _promptService.createPromptWithProducts(
-        promptInstructions, products, isVietnamese);
+    final prompt = (queryType == 'build')
+        ? _promptService.createPromptWithProducts(
+            promptInstructions, products, isVietnamese)
+        : promptInstructions; // For bestseller/promotion, use simple format without detailed specs
 
     final aiResponse = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
 
@@ -1624,7 +1897,9 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
           }
 
           if (response.statusCode == 200) {
-            final responseData = jsonDecode(response.body);
+            // Decode response body as UTF-8 to fix Vietnamese character encoding
+            final utf8Body = utf8.decode(response.bodyBytes);
+            final responseData = jsonDecode(utf8Body);
             final candidates = responseData['candidates'] as List;
             if (candidates.isNotEmpty) {
               final content = candidates[0]['content'];

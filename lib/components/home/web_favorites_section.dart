@@ -12,38 +12,51 @@ class WebFavoritesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 80),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth >= 900
+            ? 80
+            : screenWidth >= 600
+                ? 40
+                : 20,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    S.of(context).yourFavorites,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -1,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      S.of(context).yourFavorites,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: isMobile ? 24 : 36,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: isMobile ? -0.5 : -1,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    S.of(context).productsInYourWishlist,
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.6),
-                      fontSize: 16,
+                    const SizedBox(height: 8),
+                    Text(
+                      S.of(context).productsInYourWishlist,
+                      style: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
+                        fontSize: isMobile ? 14 : 16,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               TextButton(
                 onPressed: () {

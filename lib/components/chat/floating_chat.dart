@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gizmoglobe_client/screens/chat/chat_screen/chat_screen_webview.dart';
 import 'package:gizmoglobe_client/services/web_guest_service.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_webview.dart';
@@ -176,23 +177,40 @@ class _FloatingChatState extends State<FloatingChat> {
                   ),
                 ),
               ),
-            // FAB - only show when home is ready
+            // FAB - only show when home is ready and user is authenticated
             if (_isHomeReady)
-              Positioned(
-                right: 24,
-                bottom: 24,
-                child: IgnorePointer(
-                  ignoring: disableFab,
-                  child: AnimatedOpacity(
-                    opacity: disableFab ? 0.4 : 1.0,
-                    duration: const Duration(milliseconds: 150),
-                    child: FloatingActionButton(
-                      onPressed: _toggle,
-                      child: Icon(
-                          _isOpen ? Icons.close : Icons.chat_bubble_outline),
+              StreamBuilder<User?>(
+                stream: FirebaseAuth.instance.authStateChanges(),
+                builder: (context, authSnapshot) {
+                  // Only show FAB when auth state is active AND user is authenticated
+                  // Hide in all other cases: waiting, no user, or guest
+                  final isAuthenticated =
+                      authSnapshot.connectionState == ConnectionState.active &&
+                          authSnapshot.data != null;
+
+                  if (!isAuthenticated) {
+                    return const SizedBox.shrink();
+                  }
+
+                  // User is authenticated via Firebase - show FAB
+                  return Positioned(
+                    right: 24,
+                    bottom: 24,
+                    child: IgnorePointer(
+                      ignoring: disableFab,
+                      child: AnimatedOpacity(
+                        opacity: disableFab ? 0.4 : 1.0,
+                        duration: const Duration(milliseconds: 150),
+                        child: FloatingActionButton(
+                          onPressed: _toggle,
+                          child: Icon(_isOpen
+                              ? Icons.close
+                              : Icons.chat_bubble_outline),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
           ],
         );

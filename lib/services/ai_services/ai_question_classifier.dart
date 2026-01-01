@@ -44,10 +44,20 @@ LOẠI CÂU HỎI:
    Ví dụ: "Sản phẩm nào giảm giá >30%?", "Có khuyến mãi gì không?", "Deal tốt nhất hôm nay?"
    
 3. BESTSELLER - Sản phẩm bán chạy
-   Ví dụ: "GPU nào bán chạy nhất?", "CPU phổ biến nhất?", "Sản phẩm nào nhiều người mua?"
+   ⚠️ KEYWORDS: "bán chạy", "top", "phổ biến", "nhiều người mua", "bestseller"
+   Ví dụ: "GPU nào bán chạy nhất?", "CPU phổ biến nhất?", "Sản phẩm nào nhiều người mua?", "top 5 sản phẩm bán chạy", "top 5 CPU bán chạy nhất", "5 GPU bán chạy nhất"
    
 4. BUILD_SUGGESTION - Gợi ý cấu hình hoàn chỉnh
-   Ví dụ: "Build PC gaming 20 triệu", "Cấu hình cho đồ họa 3D?", "Gợi ý PC văn phòng 10 triệu"
+   ⚠️ KEYWORDS: "build", "cấu hình", "xây dựng PC", "gợi ý máy", "lắp ráp"
+   ⚠️ PHẢI có yêu cầu VỀ NHIỀU LINH KIỆN hoặc "PC/máy hoàn chỉnh"
+   Ví dụ ĐÚNG:
+   - "Build PC gaming 20 triệu" ✓ (build PC hoàn chỉnh)
+   - "Cấu hình cho đồ họa 3D?" ✓ (cấu hình = nhiều linh kiện)
+   - "Gợi ý PC văn phòng 10 triệu" ✓ (PC hoàn chỉnh)
+   Ví dụ SAI (đây là PRODUCT_SEARCH):
+   - "Tìm CPU dưới 10 triệu" ✗ (chỉ tìm 1 linh kiện)
+   - "CPU tiết kiệm điện" ✗ (chỉ CPU, không phải PC)
+   - "RAM 16GB giá rẻ" ✗ (chỉ RAM)
    
 5. TERMINOLOGY - Giải thích thuật ngữ
    Ví dụ: "Chipset là gì?", "TDP nghĩa là sao?", "Khác biệt DDR4 vs DDR5?"
@@ -55,8 +65,15 @@ LOẠI CÂU HỎI:
 6. COMPARISON - So sánh sản phẩm
    Ví dụ: "RTX 4070 vs RTX 4060?", "i5 hay i7 tốt hơn?", "So sánh 2 CPU này"
    
-7. PRODUCT_SEARCH - Tìm kiếm/mua sản phẩm (KHÔNG hỏi thông số kỹ thuật)
-   Ví dụ: "Tìm CPU Intel", "Có RAM 16GB không?", "Tìm i7 12700", "i7 12700 giá bao nhiêu?"
+7. PRODUCT_SEARCH - Tìm kiếm/mua sản phẩm ĐƠN LẺ (KHÔNG hỏi thông số kỹ thuật)
+   ⚠️ KEYWORDS: "tìm", "có", "mua", "giá", "trong khoảng"
+   ⚠️ CHỈ tìm MỘT LOẠI linh kiện, KHÔNG build PC
+   Ví dụ ĐÚNG:
+   - "Tìm CPU Intel" ✓ (chỉ tìm CPU)
+   - "Có RAM 16GB không?" ✓ (chỉ tìm RAM)
+   - "Tìm i7 12700" ✓ (chỉ tìm CPU cụ thể)
+   - "CPU dưới 10 triệu, tiết kiệm điện" ✓ (chỉ tìm CPU)
+   - "i7 12700 giá bao nhiêu?" ✓ (hỏi giá 1 sản phẩm)
    ⚠️ Chú ý: "Tìm i7 12700" là PRODUCT_SEARCH (muốn TÌM sản phẩm)
    
 8. STOCK_PRICE - Kiểm tra giá, tồn kho
@@ -77,7 +94,12 @@ LOẠI CÂU HỎI:
    - "i7 12700 giá bao nhiêu?" → đây là STOCK_PRICE ✗
    
 10. CART_FAVORITES - Giỏ hàng, yêu thích
-    Ví dụ: "Trong giỏ hàng tôi có gì?", "Danh sách yêu thích?", "Sản phẩm đã lưu?"
+    ⚠️ ENTITIES: Extract "section" = "favorites" or "cart"
+    Ví dụ: 
+    - "Trong giỏ hàng tôi có gì?" → section: "cart"
+    - "Danh sách yêu thích?" → section: "favorites"
+    - "Sản phẩm đã lưu?" → section: "favorites"
+    - "tìm các sản phẩm yêu thích của tôi" → section: "favorites"
    
 11. GENERAL - Câu hỏi chung
      Ví dụ: "Cảm ơn", "Xin chào", "Bạn giúp gì được tôi?"
@@ -96,7 +118,8 @@ Phân tích và trả lời ĐÚNG định dạng JSON (KHÔNG thêm ```json, KH
     "product_names": ["<tên sản phẩm 1>", "<tên sản phẩm 2>"],
     "brands": ["<Intel|AMD|NVIDIA|...>"],
     "purpose": "<gaming|office|design|rendering... nếu có>",
-    "spec_field": "<socket|capacity|vram|cores|wattage|tdp|clockSpeed|threads... nếu có>"
+    "spec_field": "<socket|capacity|vram|cores|wattage|tdp|clockSpeed|threads... nếu có>",
+    "max_tdp": <số Watts TDP tối đa nếu có, ví dụ "dưới 35W" -> 35>
   }
 }
 '''
@@ -114,7 +137,16 @@ QUESTION TYPES:
    Examples: "Best-selling GPU?", "Most popular CPU?", "What do people buy most?"
    
 4. BUILD_SUGGESTION - Complete build recommendations
-   Examples: "Gaming PC 20 million VND", "3D graphics build?", "Office PC 10 million?"
+   ⚠️ KEYWORDS: "build", "configuration", "setup", "complete PC"
+   ⚠️ MUST request MULTIPLE COMPONENTS or "complete PC/system"
+   Examples CORRECT:
+   - "Gaming PC 20 million VND" ✓ (complete PC build)
+   - "3D graphics build?" ✓ (configuration = multiple parts)
+   - "Office PC 10 million?" ✓ (complete PC)
+   Examples WRONG (these are PRODUCT_SEARCH):
+   - "Find CPU under 10 million" ✗ (searching for 1 component only)
+   - "Power efficient CPU" ✗ (CPU only, not PC)
+   - "Cheap 16GB RAM" ✗ (RAM only)
    
 5. TERMINOLOGY - Explain technical terms
    Examples: "What is chipset?", "What does TDP mean?", "DDR4 vs DDR5 difference?"
@@ -122,8 +154,15 @@ QUESTION TYPES:
 6. COMPARISON - Compare products
    Examples: "RTX 4070 vs RTX 4060?", "i5 or i7 better?", "Compare these 2 CPUs"
    
-7. PRODUCT_SEARCH - General product search by criteria
-    Examples: "Find Intel CPU", "Do you have 16GB RAM?", "Cheap GPU", "CPU around 5 million VND"
+7. PRODUCT_SEARCH - Search for SINGLE product (NOT asking about specs)
+   ⚠️ KEYWORDS: "find", "search", "do you have", "price", "within range"
+   ⚠️ Searching for ONE type of component only, NOT building PC
+   Examples CORRECT:
+   - "Find Intel CPU" ✓ (searching for CPU only)
+   - "Do you have 16GB RAM?" ✓ (searching for RAM only)
+   - "Cheap GPU" ✓ (searching for GPU only)
+   - "CPU under 10 million, power efficient" ✓ (searching for CPU only)
+   - "CPU around 5 million VND" ✓ (price query for single product)
     
 8. STOCK_PRICE - Check price, stock
     Examples: "How much is RTX 4070?", "In stock?", "How many i7 12700K available?"
@@ -152,7 +191,8 @@ Analyze and respond in EXACT JSON format (NO ```json, NO explanation):
     "product_names": ["<product name 1>", "<product name 2>"],
     "brands": ["<Intel|AMD|NVIDIA|...>"],
     "purpose": "<gaming|office|design|rendering... if any>",
-    "spec_field": "<socket|capacity|vram|cores|wattage... if any>"
+    "spec_field": "<socket|capacity|vram|cores|wattage... if any>",
+    "max_tdp": <maximum TDP in Watts if any, e.g. "under 35W" -> 35>
   }
 }
 ''';
