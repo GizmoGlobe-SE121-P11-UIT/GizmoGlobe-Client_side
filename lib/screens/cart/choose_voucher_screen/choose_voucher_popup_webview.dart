@@ -50,11 +50,9 @@ Future<Voucher?> showChooseVoucherModal(
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: SingleChildScrollView(
-                child: _ChooseVoucherPopupWebView.newInstance(
-                  totalAmount: totalAmount,
-                  currentVoucher: currentVoucher,
-                ),
+              child: _ChooseVoucherPopupWebView.newInstance(
+                totalAmount: totalAmount,
+                currentVoucher: currentVoucher,
               ),
             ),
           ),
@@ -122,10 +120,7 @@ class _ChooseVoucherPopupWebViewState
         children: [
           Icon(
             Icons.card_giftcard,
-            color: Theme.of(context)
-                .colorScheme
-                .primary
-                .withValues(alpha: 0.9),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
           ),
           const SizedBox(width: 8),
           GradientText(text: S.of(context).chooseVoucher, fontSize: 24),
@@ -136,10 +131,8 @@ class _ChooseVoucherPopupWebViewState
             },
             icon: Icon(
               Icons.check,
-              color: Theme.of(context)
-                  .colorScheme
-                  .primary
-                  .withValues(alpha: 0.6),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
             ),
             style: IconButton.styleFrom(
               backgroundColor:
@@ -203,114 +196,117 @@ class _ChooseVoucherPopupWebViewState
           children: [
             // Header
             _buildHeader(context),
-            // Content - Size to content, scroll when needed
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: state.availableVouchers.map((voucher) {
-                  // Check against temporary selection instead of current voucher
-                  final isSelected =
-                      _temporarySelectedVoucher?.voucherID == voucher.voucherID;
-                  final discount =
-                      cubit.calculateDiscount(voucher, widget.totalAmount);
+            // Content - Scrollable
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: state.availableVouchers.map((voucher) {
+                    // Check against temporary selection instead of current voucher
+                    final isSelected = _temporarySelectedVoucher?.voucherID ==
+                        voucher.voucherID;
+                    final discount =
+                        cubit.calculateDiscount(voucher, widget.totalAmount);
 
-                  return GestureDetector(
-                    onTap: () {
-                      // Update temporary selection instead of closing dialog
-                      setState(() {
-                        // Toggle selection: if already selected, deselect; otherwise select
-                        if (_temporarySelectedVoucher?.voucherID ==
-                            voucher.voucherID) {
-                          _temporarySelectedVoucher = null;
-                        } else {
-                          _temporarySelectedVoucher = voucher;
-                        }
-                      });
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withValues(alpha: 0.1)
-                            : Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        border: isSelected
-                            ? Border.all(
-                                color: Theme.of(context).colorScheme.primary)
-                            : null,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.card_giftcard,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  voucher.voucherName,
-                                  style: AppTextStyle.boldText,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "${S.of(context).minimumPurchaseAmount}: ${Helper.toCurrencyFormat(voucher.minimumPurchase)}",
-                                  style: AppTextStyle.regularText.copyWith(
-                                    fontSize: 13,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.7),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  "- ${Helper.toCurrencyFormat(discount)}",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color:
-                                        Theme.of(context).colorScheme.tertiary,
-                                  ),
-                                ),
-                              ],
+                    return GestureDetector(
+                      onTap: () {
+                        // Update temporary selection instead of closing dialog
+                        setState(() {
+                          // Toggle selection: if already selected, deselect; otherwise select
+                          if (_temporarySelectedVoucher?.voucherID ==
+                              voucher.voucherID) {
+                            _temporarySelectedVoucher = null;
+                          } else {
+                            _temporarySelectedVoucher = voucher;
+                          }
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.1)
+                              : Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(8),
+                          border: isSelected
+                              ? Border.all(
+                                  color: Theme.of(context).colorScheme.primary)
+                              : null,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              // Always use modal on web since this popup is web-only
-                              // Using modal prevents layout issues with nested routes
-                              showVoucherDetailModal(context, voucher);
-                            },
-                            child: Icon(
-                              Icons.info_outline,
+                          ],
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.card_giftcard,
                               color: Theme.of(context).colorScheme.primary,
-                              size: 20,
+                              size: 24,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    voucher.voucherName,
+                                    style: AppTextStyle.boldText,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "${S.of(context).minimumPurchaseAmount}: ${Helper.toCurrencyFormat(voucher.minimumPurchase)}",
+                                    style: AppTextStyle.regularText.copyWith(
+                                      fontSize: 13,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "- ${Helper.toCurrencyFormat(discount)}",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .tertiary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                // Always use modal on web since this popup is web-only
+                                // Using modal prevents layout issues with nested routes
+                                showVoucherDetailModal(context, voucher);
+                              },
+                              child: Icon(
+                                Icons.info_outline,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 20,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ],

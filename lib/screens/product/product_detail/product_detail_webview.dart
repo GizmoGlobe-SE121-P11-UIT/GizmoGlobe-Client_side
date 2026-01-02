@@ -432,15 +432,17 @@ class _ProductDetailScreenWebViewState
                                     .withValues(alpha: 0.4),
                               )),
                           const SizedBox(width: 8),
-                          Text(
-                            widget.product.productName,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                          Expanded(
+                            child: Text(
+                              widget.product.productName,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -1232,7 +1234,10 @@ class _ProductDetailScreenWebViewState
                                                           ),
                                                           const SizedBox(
                                                               height: 4),
-                                                          Row(
+                                                          Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
                                                             children: [
                                                               if (widget.product
                                                                       .discount >
@@ -1266,7 +1271,7 @@ class _ProductDetailScreenWebViewState
                                                                       .discount >
                                                                   0)
                                                                 const SizedBox(
-                                                                    width: 8),
+                                                                    height: 4),
                                                               Text(
                                                                 Helper.toCurrencyFormat(widget
                                                                         .product
@@ -1457,6 +1462,9 @@ class _ProductDetailScreenWebViewState
 
   Widget _buildProductSpecificDetails(
       BuildContext context, Product product, Map<String, String> specs) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     final specsList = specs.entries.map((entry) {
       String value = entry.value;
       // Format RAM Spec with localization if it's a Mainboard
@@ -1468,7 +1476,17 @@ class _ProductDetailScreenWebViewState
       return MapEntry(_getLocalizedSpecKey(context, entry.key), value);
     }).toList();
 
-    // Split specs into 2 columns
+    // On mobile, display specs in a single column
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: specsList
+            .map((entry) => _buildSpecificationRow(entry.key, entry.value))
+            .toList(),
+      );
+    }
+
+    // Split specs into 2 columns for desktop
     final halfLength = (specsList.length / 2).ceil();
     final leftColumn = specsList.sublist(0, halfLength);
     final rightColumn = specsList.length > halfLength
@@ -2115,15 +2133,20 @@ class _ProductDetailScreenWebViewState
             ),
             const SizedBox(height: 16),
             LayoutBuilder(builder: (context, constraints) {
-              // Responsive grid: 7 cards for extra-wide, 6 for wide, 5 for medium, 4 for narrow
+              // Responsive grid: 2 for mobile, 3-7 for larger screens
               final crossAxisCount = constraints.maxWidth >= 1400
                   ? 7
                   : constraints.maxWidth >= 1200
                       ? 6
                       : constraints.maxWidth >= 900
                           ? 5
-                          : 4;
-              const double spacing = 16.0;
+                          : constraints.maxWidth >= 600
+                              ? 3
+                              : 2;
+              final isMobile = constraints.maxWidth < 600;
+              final double spacing = isMobile ? 8.0 : 16.0;
+              // Use taller aspect ratio on mobile
+              final double aspectRatio = isMobile ? 0.58 : 0.75;
 
               return GridView.builder(
                 padding: EdgeInsets.zero,
@@ -2134,7 +2157,7 @@ class _ProductDetailScreenWebViewState
                   crossAxisCount: crossAxisCount,
                   mainAxisSpacing: spacing,
                   crossAxisSpacing: spacing,
-                  childAspectRatio: 0.75,
+                  childAspectRatio: aspectRatio,
                 ),
                 itemBuilder: (context, index) {
                   final product = uniqueRecommendations[index];

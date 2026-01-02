@@ -59,6 +59,7 @@ class CheckoutScreenWebView extends StatefulWidget {
 class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
   CheckoutScreenCubit get cubit => context.read<CheckoutScreenCubit>();
   bool _hasNavigatedToSePay = false;
+  bool _hasShownSuccessDialog = false;
 
   @override
   void initState() {
@@ -234,7 +235,9 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                         }
                       }
                     });
-                  } else if (state.processState == ProcessState.success) {
+                  } else if (state.processState == ProcessState.success &&
+                      !_hasShownSuccessDialog) {
+                    _hasShownSuccessDialog = true;
                     showDialog(
                       context: context,
                       barrierDismissible: false,

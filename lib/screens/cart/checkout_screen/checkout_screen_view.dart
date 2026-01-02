@@ -54,6 +54,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreen extends State<CheckoutScreen> {
   CheckoutScreenCubit get cubit => context.read<CheckoutScreenCubit>();
   bool _hasNavigatedToSePay = false;
+  bool _hasShownSuccessDialog = false;
 
   @override
   void initState() {
@@ -118,12 +119,14 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                 }
               });
             });
-          } else if (state.processState == ProcessState.success) {
+          } else if (state.processState == ProcessState.success &&
+              !_hasShownSuccessDialog) {
             // Only show success if we have a valid invoice with address
             // This prevents showing success when address validation fails
             if (state.salesInvoice != null &&
                 state.salesInvoice!.address != null &&
                 state.salesInvoice!.address != Address.nullAddress) {
+              _hasShownSuccessDialog = true;
               if (context.mounted) {
                 showDialog(
                   context: context,

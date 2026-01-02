@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/enums/product_related/category_enum.dart';
+import 'package:gizmoglobe_client/services/web_guest_service.dart';
 
 class WebSidebar extends StatefulWidget {
   final bool isOpen;
@@ -20,6 +21,7 @@ class _WebSidebarState extends State<WebSidebar>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _widthAnimation;
+  final WebGuestService _webGuestService = WebGuestService();
 
   @override
   void initState() {
@@ -196,13 +198,23 @@ class _WebSidebarState extends State<WebSidebar>
                                 context, CategoryEnum.empty),
                             isAll: true,
                           ),
-                          _buildNavItem(
-                            context,
-                            icon: Icons.build,
-                            label: 'Build PC',
-                            onTap: () {
-                              widget.onToggle();
-                              Navigator.pushNamed(context, '/builder');
+                          // Build PC - only show for authenticated users
+                          FutureBuilder<bool>(
+                            future: _webGuestService.isCurrentUserGuest(),
+                            builder: (context, snapshot) {
+                              final isGuest = snapshot.data ?? true;
+                              if (isGuest) {
+                                return const SizedBox.shrink();
+                              }
+                              return _buildNavItem(
+                                context,
+                                icon: Icons.build,
+                                label: 'Build PC',
+                                onTap: () {
+                                  widget.onToggle();
+                                  Navigator.pushNamed(context, '/builder');
+                                },
+                              );
                             },
                           ),
                           ...CategoryEnum.getValues().map((category) {

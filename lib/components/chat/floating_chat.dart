@@ -177,8 +177,8 @@ class _FloatingChatState extends State<FloatingChat> {
                   ),
                 ),
               ),
-            // FAB - only show when home is ready and user is authenticated
-            if (_isHomeReady)
+            // FAB - only show when home is ready, user is authenticated, AND no modals are open
+            if (_isHomeReady && !disableFab)
               StreamBuilder<User?>(
                 stream: FirebaseAuth.instance.authStateChanges(),
                 builder: (context, authSnapshot) {
@@ -196,18 +196,10 @@ class _FloatingChatState extends State<FloatingChat> {
                   return Positioned(
                     right: 24,
                     bottom: 24,
-                    child: IgnorePointer(
-                      ignoring: disableFab,
-                      child: AnimatedOpacity(
-                        opacity: disableFab ? 0.4 : 1.0,
-                        duration: const Duration(milliseconds: 150),
-                        child: FloatingActionButton(
-                          onPressed: _toggle,
-                          child: Icon(_isOpen
-                              ? Icons.close
-                              : Icons.chat_bubble_outline),
-                        ),
-                      ),
+                    child: FloatingActionButton(
+                      onPressed: _toggle,
+                      child: Icon(
+                          _isOpen ? Icons.close : Icons.chat_bubble_outline),
                     ),
                   );
                 },

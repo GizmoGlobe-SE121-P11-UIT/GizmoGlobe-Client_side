@@ -5,6 +5,7 @@ import 'package:gizmoglobe_client/objects/voucher_related/limited_interface.dart
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_cubit.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 import 'package:intl/intl.dart';
+import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
 
 import '../../../../functions/helper.dart';
 import '../../../../generated/l10n.dart';
@@ -13,11 +14,12 @@ import '../../../../objects/voucher_related/percentage_interface.dart';
 import '../../../../objects/voucher_related/voucher.dart';
 
 Future<void> showVoucherDetailModal(BuildContext context, Voucher voucher) {
+  ModalOverlayService.setOpen(true);
   return showDialog(
     context: context,
     barrierDismissible: true,
     builder: (context) => VoucherDetailWebModal.newInstance(voucher),
-  );
+  ).whenComplete(() => ModalOverlayService.setOpen(false));
 }
 
 class VoucherDetailWebModal extends StatefulWidget {

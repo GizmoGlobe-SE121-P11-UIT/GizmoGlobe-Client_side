@@ -51,12 +51,17 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Dialog(
-      insetPadding: const EdgeInsets.all(40),
+      insetPadding: EdgeInsets.all(isMobile ? 16 : 40),
       child: Container(
-        width: kIsWeb ? 1200 : double.infinity,
-        height: kIsWeb ? 800 : MediaQuery.of(context).size.height * 0.8,
-        padding: const EdgeInsets.all(24),
+        width: kIsWeb ? (isMobile ? double.infinity : 1200) : double.infinity,
+        height: kIsWeb
+            ? (isMobile ? MediaQuery.of(context).size.height * 0.85 : 800)
+            : MediaQuery.of(context).size.height * 0.8,
+        padding: EdgeInsets.all(isMobile ? 12 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -67,6 +72,7 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                   _getCategoryLabel(context, widget.category),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        fontSize: isMobile ? 18 : null,
                       ),
                 ),
                 IconButton(
@@ -75,7 +81,7 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: isMobile ? 12 : 24),
             Expanded(
               child: BlocBuilder<PartsPickerCubit, PartsPickerState>(
                 builder: (context, state) {
@@ -97,13 +103,22 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                     );
                   }
 
+                  // Responsive columns like product screen
+                  final crossAxisCount = screenWidth >= 1200
+                      ? 5
+                      : screenWidth >= 900
+                          ? 4
+                          : screenWidth >= 600
+                              ? 3
+                              : 2;
+
                   return GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.75,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: isMobile ? 8 : 16,
+                      mainAxisSpacing: isMobile ? 8 : 16,
+                      // Taller cards on mobile
+                      childAspectRatio: isMobile ? 0.62 : 0.75,
                     ),
                     itemCount: state.products.length,
                     itemBuilder: (context, index) {
@@ -227,89 +242,97 @@ class _SelectableProductCardState extends State<_SelectableProductCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Stack(
-          children: [
-            WebProductCard(
-              product: widget.product,
-              showFavoriteIcon: false,
-              showCartButton: false,
-            ),
-            // Hover overlay
-            if (_isHovered && !widget.isSelected)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.add,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Chọn',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+      child: Stack(
+        children: [
+          // Product card (without tap interception)
+          WebProductCard(
+            product: widget.product,
+            showFavoriteIcon: false,
+            showCartButton: false,
+          ),
+          // Hover overlay
+          if (_isHovered && !widget.isSelected)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-            // Selected indicator
-            if (widget.isSelected)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
+                child: Center(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
-                      width: 3,
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.add,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Chọn',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            // Selected checkmark
-            if (widget.isSelected)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
+            ),
+          // Selected indicator
+          if (widget.isSelected)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
                     color: Theme.of(context).colorScheme.primary,
-                    shape: BoxShape.circle,
+                    width: 3,
                   ),
-                  child: Icon(
-                    Icons.check,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    size: 20,
-                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-          ],
-        ),
+            ),
+          // Selected checkmark
+          if (widget.isSelected)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  size: 20,
+                ),
+              ),
+            ),
+          // Transparent tap overlay on top to capture all taps
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onTap,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

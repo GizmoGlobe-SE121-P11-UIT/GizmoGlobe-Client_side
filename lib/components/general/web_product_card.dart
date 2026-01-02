@@ -82,6 +82,9 @@ class _WebProductCardState extends State<WebProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return BlocBuilder<FavoritesCubit, Set<String>>(
       builder: (context, favorites) {
         final isFavorite = widget.product.productID != null &&
@@ -95,117 +98,78 @@ class _WebProductCardState extends State<WebProductCard> {
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () async {
-                final productId = widget.product.productID;
-                if (kIsWeb && productId != null) {
-                  // On web, use pushNamed for proper URL/history integration
-                  await Navigator.of(context).pushNamed('/products/$productId');
-                } else {
-                  // On mobile, use traditional navigation
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ProductDetailScreen.newInstance(widget.product),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: double.infinity,
+              ),
+              child: InkWell(
+                onTap: () async {
+                  final productId = widget.product.productID;
+                  if (kIsWeb && productId != null) {
+                    // On web, use pushNamed for proper URL/history integration
+                    await Navigator.of(context)
+                        .pushNamed('/products/$productId');
+                  } else {
+                    // On mobile, use traditional navigation
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ProductDetailScreen.newInstance(widget.product),
+                      ),
+                    );
+                  }
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 100),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isHovered
+                          ? Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.5)
+                          : Theme.of(context).dividerColor,
+                      width: isHovered ? 2 : 1,
                     ),
-                  );
-                }
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 100),
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isHovered
-                        ? Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.5)
-                        : Theme.of(context).dividerColor,
-                    width: isHovered ? 2 : 1,
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Product Image
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest
-                                .withValues(alpha: 0.5),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(12),
-                              topRight: Radius.circular(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Product Image
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest
+                                  .withValues(alpha: 0.5),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                topRight: Radius.circular(12),
+                              ),
                             ),
-                          ),
-                          child: Stack(
-                            children: [
-                              Center(
-                                child: _imageFuture != null
-                                    ? FutureBuilder<ProductImage?>(
-                                        future: _imageFuture,
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState ==
-                                                  ConnectionState.waiting ||
-                                              !snapshot.hasData ||
-                                              snapshot.data == null ||
-                                              snapshot.data!.url.isEmpty) {
-                                            return Center(
-                                              child: Icon(
-                                                _getCategoryIcon(
-                                                    widget.product.category),
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                                size: 96,
-                                              ),
-                                            );
-                                          }
-                                          return ClipRRect(
-                                            borderRadius:
-                                                const BorderRadius.only(
-                                              topLeft: Radius.circular(12),
-                                              topRight: Radius.circular(12),
-                                            ),
-                                            child: CachedNetworkImage(
-                                              key: ValueKey(
-                                                  'product_image_${widget.product.productID}'),
-                                              imageUrl: snapshot.data!.url,
-                                              fit: BoxFit.cover,
-                                              width: double.infinity,
-                                              height: double.infinity,
-                                              placeholder: (context, url) =>
-                                                  Container(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .surfaceContainerHighest
-                                                    .withValues(alpha: 0.3),
-                                                child: Center(
-                                                  child: Icon(
-                                                    _getCategoryIcon(widget
-                                                        .product.category),
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .primary
-                                                        .withValues(alpha: 0.3),
-                                                    size: 48,
-                                                  ),
-                                                ),
-                                              ),
-                                              errorWidget:
-                                                  (context, url, error) =>
-                                                      Center(
+                            child: Stack(
+                              children: [
+                                Center(
+                                  child: _imageFuture != null
+                                      ? FutureBuilder<ProductImage?>(
+                                          future: _imageFuture,
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                    ConnectionState.waiting ||
+                                                !snapshot.hasData ||
+                                                snapshot.data == null ||
+                                                snapshot.data!.url.isEmpty) {
+                                              return Center(
                                                 child: Icon(
                                                   _getCategoryIcon(
                                                       widget.product.category),
@@ -214,253 +178,308 @@ class _WebProductCardState extends State<WebProductCard> {
                                                       .primary,
                                                   size: 96,
                                                 ),
+                                              );
+                                            }
+                                            return ClipRRect(
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                topLeft: Radius.circular(12),
+                                                topRight: Radius.circular(12),
                                               ),
-                                            ),
-                                          );
-                                        },
-                                      )
-                                    : Center(
-                                        child: Icon(
-                                          _getCategoryIcon(
-                                              widget.product.category),
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          size: 96,
-                                        ),
-                                      ),
-                              ),
-                              // Discount badge
-                              if (widget.product.discount > 0)
-                                Positioned(
-                                  top: 8,
-                                  left: 8,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Theme.of(context).colorScheme.error,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      '-${widget.product.discount.toStringAsFixed(0)}%',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onError,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (widget.showFavoriteIcon)
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () async {
-                                      if (widget.product.productID != null) {
-                                        // Check if user is guest
-                                        final isGuest = await _webGuestService
-                                            .isCurrentUserGuest();
-                                        if (isGuest) {
-                                          SnackbarService.showGuestRestriction(
-                                            context,
-                                            actionType: 'favorites',
-                                          );
-                                          return;
-                                        }
-
-                                        try {
-                                          final favoritesCubit =
-                                              context.read<FavoritesCubit>();
-                                          final wasFavorite =
-                                              favoritesCubit.state.contains(
-                                                  widget.product.productID!);
-                                          await favoritesCubit.toggleFavorite(
-                                            widget.product.productID!,
-                                          );
-                                          // Show success notification
-                                          final isNowFavorite =
-                                              favoritesCubit.state.contains(
-                                                  widget.product.productID!);
-                                          if (wasFavorite != isNowFavorite) {
-                                            SnackbarService.showFavoriteSuccess(
-                                              context,
-                                              isNowFavorite
-                                                  ? 'added'
-                                                  : 'removed',
+                                              child: CachedNetworkImage(
+                                                key: ValueKey(
+                                                    'product_image_${widget.product.productID}'),
+                                                imageUrl: snapshot.data!.url,
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                                height: double.infinity,
+                                                placeholder: (context, url) =>
+                                                    Container(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .surfaceContainerHighest
+                                                      .withValues(alpha: 0.3),
+                                                  child: Center(
+                                                    child: Icon(
+                                                      _getCategoryIcon(widget
+                                                          .product.category),
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .primary
+                                                          .withValues(
+                                                              alpha: 0.3),
+                                                      size: 48,
+                                                    ),
+                                                  ),
+                                                ),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        Center(
+                                                  child: Icon(
+                                                    _getCategoryIcon(widget
+                                                        .product.category),
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                    size: 96,
+                                                  ),
+                                                ),
+                                              ),
                                             );
-                                          }
-                                        } catch (e) {
-                                          SnackbarService.showFavoriteError(
-                                              context);
-                                        }
-                                      }
-                                    },
-                                    child: Container(
-                                      width: 28,
-                                      height: 28,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surface
-                                            .withValues(alpha: 0.9),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Icon(
-                                        isFavorite
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color: isFavorite
-                                            ? Theme.of(context)
+                                          },
+                                        )
+                                      : Center(
+                                          child: Icon(
+                                            _getCategoryIcon(
+                                                widget.product.category),
+                                            color: Theme.of(context)
                                                 .colorScheme
-                                                .error
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .onSurface,
-                                        size: 14,
-                                      ),
-                                    ),
-                                  ),
+                                                .primary,
+                                            size: 96,
+                                          ),
+                                        ),
                                 ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Product Info
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.product.productName,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          _buildRatingSection(context),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (widget.product.discount > 0) ...[
-                                      Text(
-                                        Helper.toCurrencyFormat(
-                                            widget.product.price),
+                                // Discount badge
+                                if (widget.product.discount > 0)
+                                  Positioned(
+                                    top: 8,
+                                    left: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Theme.of(context).colorScheme.error,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        '-${widget.product.discount.toStringAsFixed(0)}%',
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.5),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          decoration:
-                                              TextDecoration.lineThrough,
+                                              .onError,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                    ],
-                                    Text(
-                                      Helper.toCurrencyFormat(
-                                          widget.product.discountedPrice),
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              if (widget.showCartButton)
-                                MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  onEnter: (_) =>
-                                      setState(() => _isAddHovered = true),
-                                  onExit: (_) =>
-                                      setState(() => _isAddHovered = false),
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () async {
-                                      if (widget.product.productID != null) {
-                                        // Check if user is guest
-                                        final isGuest = await _webGuestService
-                                            .isCurrentUserGuest();
-                                        if (isGuest) {
-                                          SnackbarService.showGuestRestriction(
-                                            context,
-                                            actionType: 'cart',
-                                          );
-                                          return;
-                                        }
-
-                                        _addToCart(context);
-                                      }
-                                    },
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 100),
-                                      width: 28,
-                                      height: 28,
-                                      decoration: BoxDecoration(
-                                        color: _isAddHovered
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withValues(alpha: 0.85)
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                        borderRadius: BorderRadius.circular(6),
-                                        boxShadow: _isAddHovered
-                                            ? [
-                                                BoxShadow(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                      .withValues(alpha: 0.35),
-                                                  blurRadius: 8,
-                                                  offset: const Offset(0, 2),
-                                                ),
-                                              ]
-                                            : null,
-                                      ),
-                                      child: Icon(
-                                        Icons.shopping_cart_outlined,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onPrimary,
-                                        size: 14,
                                       ),
                                     ),
                                   ),
-                                ),
-                            ],
+                                if (widget.showFavoriteIcon)
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () async {
+                                        if (widget.product.productID != null) {
+                                          // Check if user is guest
+                                          final isGuest = await _webGuestService
+                                              .isCurrentUserGuest();
+                                          if (isGuest) {
+                                            SnackbarService
+                                                .showGuestRestriction(
+                                              context,
+                                              actionType: 'favorites',
+                                            );
+                                            return;
+                                          }
+
+                                          try {
+                                            final favoritesCubit =
+                                                context.read<FavoritesCubit>();
+                                            final wasFavorite =
+                                                favoritesCubit.state.contains(
+                                                    widget.product.productID!);
+                                            await favoritesCubit.toggleFavorite(
+                                              widget.product.productID!,
+                                            );
+                                            // Show success notification
+                                            final isNowFavorite =
+                                                favoritesCubit.state.contains(
+                                                    widget.product.productID!);
+                                            if (wasFavorite != isNowFavorite) {
+                                              SnackbarService
+                                                  .showFavoriteSuccess(
+                                                context,
+                                                isNowFavorite
+                                                    ? 'added'
+                                                    : 'removed',
+                                              );
+                                            }
+                                          } catch (e) {
+                                            SnackbarService.showFavoriteError(
+                                                context);
+                                          }
+                                        }
+                                      },
+                                      child: Container(
+                                        width: 28,
+                                        height: 28,
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surface
+                                              .withValues(alpha: 0.9),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                        ),
+                                        child: Icon(
+                                          isFavorite
+                                              ? Icons.favorite
+                                              : Icons.favorite_border,
+                                          color: isFavorite
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .error
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
+                                          size: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                      // Product Info
+                      Padding(
+                        padding: EdgeInsets.all(isMobile ? 8 : 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.product.productName,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontSize: isMobile ? 12 : 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            SizedBox(height: isMobile ? 4 : 6),
+                            _buildRatingSection(context),
+                            SizedBox(height: isMobile ? 4 : 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (widget.product.discount > 0) ...[
+                                        Text(
+                                          Helper.toCurrencyFormat(
+                                              widget.product.price),
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.5),
+                                            fontSize: isMobile ? 10 : 12,
+                                            fontWeight: FontWeight.w500,
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                      ],
+                                      Text(
+                                        Helper.toCurrencyFormat(
+                                            widget.product.discountedPrice),
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          fontSize: isMobile ? 13 : 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                if (widget.showCartButton)
+                                  MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    onEnter: (_) =>
+                                        setState(() => _isAddHovered = true),
+                                    onExit: (_) =>
+                                        setState(() => _isAddHovered = false),
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () async {
+                                        if (widget.product.productID != null) {
+                                          // Check if user is guest
+                                          final isGuest = await _webGuestService
+                                              .isCurrentUserGuest();
+                                          if (isGuest) {
+                                            SnackbarService
+                                                .showGuestRestriction(
+                                              context,
+                                              actionType: 'cart',
+                                            );
+                                            return;
+                                          }
+
+                                          _addToCart(context);
+                                        }
+                                      },
+                                      child: AnimatedContainer(
+                                        duration:
+                                            const Duration(milliseconds: 100),
+                                        width: 28,
+                                        height: 28,
+                                        decoration: BoxDecoration(
+                                          color: _isAddHovered
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withValues(alpha: 0.85)
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                          boxShadow: _isAddHovered
+                                              ? [
+                                                  BoxShadow(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                        .withValues(
+                                                            alpha: 0.35),
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: Icon(
+                                          Icons.shopping_cart_outlined,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary,
+                                          size: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

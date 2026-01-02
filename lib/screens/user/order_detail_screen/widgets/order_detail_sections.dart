@@ -32,107 +32,117 @@ class OrderDetailBody extends StatelessWidget {
     final canCancel = invoice.salesStatus == SalesStatus.pending ||
         invoice.salesStatus == SalesStatus.preparing;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      S.of(context).orders,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '#${invoice.salesInvoiceID ?? ''}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: colorScheme.onSurface.withValues(alpha: 0.6),
-                          ),
-                    ),
-                  ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Sticky Header
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    S.of(context).orders,
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '#${invoice.salesInvoiceID ?? ''}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            if (onDownloadInvoice != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: IconButton(
+                  tooltip: S.of(context).downloadInvoice,
+                  onPressed: () => onDownloadInvoice?.call(),
+                  icon: const Icon(Icons.download),
                 ),
               ),
-              if (onDownloadInvoice != null)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: IconButton(
-                    tooltip: S.of(context).downloadInvoice,
-                    onPressed: () => onDownloadInvoice?.call(),
-                    icon: const Icon(Icons.download),
+            if (showCloseButton)
+              IconButton(
+                onPressed: onClose ??
+                    () {
+                      Navigator.of(context).maybePop();
+                    },
+                icon: const Icon(Icons.close),
+              ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        // Scrollable Content
+        Flexible(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                OrderStatusChip(invoice: invoice),
+                const SizedBox(height: 24),
+                OrderDetailSectionTitle(text: S.of(context).orderSummary),
+                const SizedBox(height: 12),
+                ...invoice.details.map(
+                  (detail) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: InvoiceDetailsWidget(detail: detail),
                   ),
                 ),
-              if (showCloseButton)
-                IconButton(
-                  onPressed: onClose ??
-                      () {
-                        Navigator.of(context).maybePop();
-                      },
-                  icon: const Icon(Icons.close),
+                const SizedBox(height: 8),
+                OrderDetailInfoRow(
+                  label: S.of(context).total,
+                  value: Helper.toCurrencyFormat(invoice.totalPrice),
+                  emphasis: true,
                 ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          OrderStatusChip(invoice: invoice),
-          const SizedBox(height: 24),
-          OrderDetailSectionTitle(text: S.of(context).orderSummary),
-          const SizedBox(height: 12),
-          ...invoice.details.map(
-            (detail) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: InvoiceDetailsWidget(detail: detail),
+                const SizedBox(height: 24),
+                OrderDetailSectionTitle(text: S.of(context).shippingAddress),
+                const SizedBox(height: 12),
+                OrderDetailShippingAddress(address: invoice.address),
+                const SizedBox(height: 24),
+                OrderDetailSectionTitle(text: S.of(context).paymentMethod),
+                const SizedBox(height: 12),
+                OrderDetailInfoRow(
+                  label: S.of(context).paymentMethod,
+                  value: invoice.paymentMethod
+                      .getLocalizedDescription(isVietnameseLocale),
+                ),
+                OrderDetailInfoRow(
+                  label: S.of(context).paymentStatus,
+                  value: invoice.paymentStatus
+                      .getLocalizedDescription(isVietnameseLocale),
+                ),
+                OrderDetailInfoRow(
+                  label: S.of(context).orderStatus,
+                  value: invoice.salesStatus
+                      .getLocalizedDescription(isVietnameseLocale),
+                ),
+                const SizedBox(height: 16),
+                if (onCancel != null && canCancel)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: FilledButton.tonal(
+                      style: FilledButton.styleFrom(
+                        foregroundColor: colorScheme.onErrorContainer,
+                        backgroundColor: colorScheme.errorContainer,
+                      ),
+                      onPressed: onCancel,
+                      child: Text(S.of(context).cancel),
+                    ),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          OrderDetailInfoRow(
-            label: S.of(context).total,
-            value: Helper.toCurrencyFormat(invoice.totalPrice),
-            emphasis: true,
-          ),
-          const SizedBox(height: 24),
-          OrderDetailSectionTitle(text: S.of(context).shippingAddress),
-          const SizedBox(height: 12),
-          OrderDetailShippingAddress(address: invoice.address),
-          const SizedBox(height: 24),
-          OrderDetailSectionTitle(text: S.of(context).paymentMethod),
-          const SizedBox(height: 12),
-          OrderDetailInfoRow(
-            label: S.of(context).paymentMethod,
-            value: invoice.paymentMethod
-                .getLocalizedDescription(isVietnameseLocale),
-          ),
-          OrderDetailInfoRow(
-            label: S.of(context).paymentStatus,
-            value: invoice.paymentStatus
-                .getLocalizedDescription(isVietnameseLocale),
-          ),
-          OrderDetailInfoRow(
-            label: S.of(context).orderStatus,
-            value:
-                invoice.salesStatus.getLocalizedDescription(isVietnameseLocale),
-          ),
-          const SizedBox(height: 16),
-          if (onCancel != null && canCancel)
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton.tonal(
-                style: FilledButton.styleFrom(
-                  foregroundColor: colorScheme.onErrorContainer,
-                  backgroundColor: colorScheme.errorContainer,
-                ),
-                onPressed: onCancel,
-                child: Text(S.of(context).cancel),
-              ),
-            ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

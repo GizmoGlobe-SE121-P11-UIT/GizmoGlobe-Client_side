@@ -6,6 +6,7 @@ import 'package:gizmoglobe_client/screens/user/order_detail_screen/order_detail_
 import 'package:gizmoglobe_client/screens/user/order_detail_screen/order_detail_state.dart';
 import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
 import 'package:gizmoglobe_client/screens/user/order_detail_screen/widgets/order_detail_sections.dart';
+import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
 
 class OrderDetailWebView extends StatelessWidget {
   final SalesInvoice salesInvoice;
@@ -16,6 +17,7 @@ class OrderDetailWebView extends StatelessWidget {
     BuildContext context, {
     required SalesInvoice salesInvoice,
   }) {
+    ModalOverlayService.setOpen(true);
     return showDialog(
       context: context,
       barrierDismissible: true,
@@ -25,7 +27,7 @@ class OrderDetailWebView extends StatelessWidget {
         backgroundColor: Colors.transparent,
         child: OrderDetailWebView(salesInvoice: salesInvoice),
       ),
-    );
+    ).whenComplete(() => ModalOverlayService.setOpen(false));
   }
 
   @override

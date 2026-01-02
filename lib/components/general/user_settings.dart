@@ -3,15 +3,17 @@ import 'package:provider/provider.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/providers/theme_provider.dart';
 import 'package:gizmoglobe_client/providers/language_provider.dart';
+import 'package:gizmoglobe_client/services/modal_overlay_service.dart';
 
 class UserSettingsModal extends StatefulWidget {
   const UserSettingsModal({super.key});
 
   static void show(BuildContext context) {
+    ModalOverlayService.setOpen(true);
     showDialog(
       context: context,
       builder: (context) => const UserSettingsModal(),
-    );
+    ).whenComplete(() => ModalOverlayService.setOpen(false));
   }
 
   @override
@@ -43,13 +45,27 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 600;
+
+    // Responsive sizing
+    final modalWidth = isMobile ? screenWidth - 32 : 400.0;
+    final horizontalPadding = isMobile ? 16.0 : 40.0;
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: isMobile ? 40 : 60,
+      ),
       child: Container(
-        width: 400,
+        constraints: BoxConstraints(
+          maxWidth: modalWidth,
+          maxHeight: screenHeight * 0.85,
+        ),
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(24),
@@ -106,17 +122,22 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
                 ],
               ),
             ),
-            // Content with compact settings
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
-              child: Column(
-                children: [
-                  _buildLanguageSettingsCompact(context),
-                  const SizedBox(height: 20),
-                  _buildThemeSettingsCompact(context),
-                  const SizedBox(height: 24),
-                  _buildSaveButton(context),
-                ],
+            // Content with compact settings - make scrollable
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: isMobile ? 16 : 24,
+                ),
+                child: Column(
+                  children: [
+                    _buildLanguageSettingsCompact(context),
+                    const SizedBox(height: 20),
+                    _buildThemeSettingsCompact(context),
+                    const SizedBox(height: 24),
+                    _buildSaveButton(context),
+                  ],
+                ),
               ),
             ),
           ],
@@ -126,6 +147,9 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
   }
 
   Widget _buildLanguageSettingsCompact(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -135,34 +159,41 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.language,
-              color: Theme.of(context).colorScheme.primary,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
+      child: isMobile
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  S.of(context).language,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.language,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        S.of(context).language,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 8),
                 Text(
                   S.of(context).changeLanguageDescription,
                   style: TextStyle(
@@ -173,45 +204,118 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
                         .withValues(alpha: 0.6),
                   ),
                 ),
+                const SizedBox(height: 12),
+                Consumer<LanguageProvider>(
+                  builder: (context, languageProvider, child) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: DropdownButton<String>(
+                        value: _selectedLanguage,
+                        isExpanded: true,
+                        underline: const SizedBox(),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'en',
+                            child: Text('🇺🇸 ${S.of(context).languageEn}'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'vi',
+                            child: Text('🇻🇳 ${S.of(context).languageVi}'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _selectedLanguage = value);
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.language,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        S.of(context).language,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        S.of(context).changeLanguageDescription,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Consumer<LanguageProvider>(
+                  builder: (context, languageProvider, child) {
+                    return DropdownButton<String>(
+                      value: _selectedLanguage,
+                      underline: const SizedBox(),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'en',
+                          child: Text(
+                            '🇺🇸 ${S.of(context).languageEn}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'vi',
+                          child: Text(
+                            '🇻🇳 ${S.of(context).languageVi}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _selectedLanguage = value);
+                        }
+                      },
+                    );
+                  },
+                ),
               ],
             ),
-          ),
-          const SizedBox(width: 12),
-          Consumer<LanguageProvider>(
-            builder: (context, languageProvider, child) {
-              return DropdownButton<String>(
-                value: _selectedLanguage,
-                underline: const SizedBox(),
-                items: [
-                  DropdownMenuItem(
-                    value: 'en',
-                    child: Text(
-                      '🇺🇸 ${S.of(context).languageEn}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'vi',
-                    child: Text(
-                      '🇻🇳 ${S.of(context).languageVi}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedLanguage = value);
-                  }
-                },
-              );
-            },
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildThemeSettingsCompact(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -221,34 +325,41 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.dark_mode_outlined,
-              color: Theme.of(context).colorScheme.primary,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
+      child: isMobile
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  S.of(context).changeTheme,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.dark_mode_outlined,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        S.of(context).changeTheme,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 8),
                 Text(
                   S.of(context).changeThemeDescription,
                   style: TextStyle(
@@ -259,51 +370,131 @@ class _UserSettingsModalState extends State<UserSettingsModal> {
                         .withValues(alpha: 0.6),
                   ),
                 ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: DropdownButton<ThemeMode>(
+                    value: _selectedTheme,
+                    isExpanded: true,
+                    underline: const SizedBox(),
+                    items: [
+                      DropdownMenuItem(
+                        value: ThemeMode.light,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.light_mode_outlined, size: 16),
+                            const SizedBox(width: 8),
+                            Text(S.of(context).lightMode),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.dark,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.dark_mode_outlined, size: 16),
+                            const SizedBox(width: 8),
+                            Text(S.of(context).darkMode),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _selectedTheme = value);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.dark_mode_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        S.of(context).changeTheme,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        S.of(context).changeThemeDescription,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                DropdownButton<ThemeMode>(
+                  value: _selectedTheme,
+                  underline: const SizedBox(),
+                  items: [
+                    DropdownMenuItem(
+                      value: ThemeMode.light,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.light_mode_outlined, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            S.of(context).lightMode,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.dark,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.dark_mode_outlined, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            S.of(context).darkMode,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedTheme = value);
+                    }
+                  },
+                ),
               ],
             ),
-          ),
-          const SizedBox(width: 12),
-          DropdownButton<ThemeMode>(
-            value: _selectedTheme,
-            underline: const SizedBox(),
-            items: [
-              DropdownMenuItem(
-                value: ThemeMode.light,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.light_mode_outlined, size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      S.of(context).lightMode,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              DropdownMenuItem(
-                value: ThemeMode.dark,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.dark_mode_outlined, size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      S.of(context).darkMode,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => _selectedTheme = value);
-              }
-            },
-          ),
-        ],
-      ),
     );
   }
 

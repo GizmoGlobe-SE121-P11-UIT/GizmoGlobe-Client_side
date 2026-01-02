@@ -499,106 +499,115 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
                     },
                   ),
                   // Categories + Sort row (restored below search)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: IgnorePointer(
-                            ignoring: _isTabLoading,
-                            child: TabBar(
-                              controller: tabController,
-                              isScrollable: false,
-                              tabAlignment: TabAlignment.fill,
-                              labelPadding: EdgeInsets.zero,
-                              dividerColor: Colors.transparent,
-                              labelColor:
-                                  Theme.of(context).colorScheme.onPrimary,
-                              unselectedLabelColor: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.9),
-                              indicator: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(8),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isMobile = constraints.maxWidth < 600;
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: IgnorePointer(
+                                ignoring: _isTabLoading,
+                                child: TabBar(
+                                  controller: tabController,
+                                  isScrollable: isMobile,
+                                  tabAlignment: isMobile
+                                      ? TabAlignment.start
+                                      : TabAlignment.fill,
+                                  labelPadding: EdgeInsets.zero,
+                                  dividerColor: Colors.transparent,
+                                  labelColor:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                  unselectedLabelColor: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.9),
+                                  indicator: BoxDecoration(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  indicatorSize: TabBarIndicatorSize.tab,
+                                  onTap: kIsWeb
+                                      ? (int value) {
+                                          if (_isTabLoading) return;
+                                          final int previous =
+                                              tabController.index;
+                                          setState(() {
+                                            _isTabLoading = true;
+                                          });
+                                          _updateUrlForTab(value);
+                                          // Keep visual selection at previous until swap completes
+                                          tabController.index = previous;
+                                          _tabSwitchTimer?.cancel();
+                                          _tabSwitchTimer = Timer(
+                                              const Duration(seconds: 1), () {
+                                            if (!mounted) return;
+                                            setState(() {
+                                              _shownTabIndex = value;
+                                              _isTabLoading = false;
+                                              tabController.index = value;
+                                            });
+                                          });
+                                        }
+                                      : null,
+                                  tabs: [
+                                    _buildChipTab(S.of(context).all),
+                                    _buildChipTab(S.of(context).ram),
+                                    _buildChipTab(S.of(context).cpu),
+                                    _buildChipTab(S.of(context).psu),
+                                    _buildChipTab(S.of(context).gpu),
+                                    _buildChipTab(S.of(context).drive),
+                                    _buildChipTab(S.of(context).mainboard),
+                                  ],
+                                ),
                               ),
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              onTap: kIsWeb
-                                  ? (int value) {
-                                      if (_isTabLoading) return;
-                                      final int previous = tabController.index;
-                                      setState(() {
-                                        _isTabLoading = true;
-                                      });
-                                      _updateUrlForTab(value);
-                                      // Keep visual selection at previous until swap completes
-                                      tabController.index = previous;
-                                      _tabSwitchTimer?.cancel();
-                                      _tabSwitchTimer =
-                                          Timer(const Duration(seconds: 1), () {
-                                        if (!mounted) return;
-                                        setState(() {
-                                          _shownTabIndex = value;
-                                          _isTabLoading = false;
-                                          tabController.index = value;
-                                        });
-                                      });
-                                    }
-                                  : null,
-                              tabs: [
-                                _buildChipTab(S.of(context).all),
-                                _buildChipTab(S.of(context).ram),
-                                _buildChipTab(S.of(context).cpu),
-                                _buildChipTab(S.of(context).psu),
-                                _buildChipTab(S.of(context).gpu),
-                                _buildChipTab(S.of(context).drive),
-                                _buildChipTab(S.of(context).mainboard),
-                              ],
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        _SortDropdown(
-                          selected: context
-                              .watch<ProductScreenCubit>()
-                              .state
-                              .selectedSortOption,
-                          onChanged: (value) {
-                            context
-                                .read<ProductScreenCubit>()
-                                .updateSortOption(value);
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.filter_list_alt),
-                          tooltip: 'Filter',
-                          onPressed: () async {
-                            // Get the TabCubit for the currently shown tab
-                            final tabCubit = _tabCubitCache[_shownTabIndex];
-                            if (tabCubit == null) return;
+                            const SizedBox(width: 12),
+                            _SortDropdown(
+                              selected: context
+                                  .watch<ProductScreenCubit>()
+                                  .state
+                                  .selectedSortOption,
+                              onChanged: (value) {
+                                context
+                                    .read<ProductScreenCubit>()
+                                    .updateSortOption(value);
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.filter_list_alt),
+                              tooltip: 'Filter',
+                              onPressed: () async {
+                                // Get the TabCubit for the currently shown tab
+                                final tabCubit = _tabCubitCache[_shownTabIndex];
+                                if (tabCubit == null) return;
 
-                            final state = tabCubit.state;
-                            final FilterArgument arguments =
-                                state.filterArgument;
-                            final result = await filter_web.showFilterModal(
-                              context,
-                              arguments: arguments,
-                              selectedTabIndex: _shownTabIndex,
-                              manufacturerList: Database().manufacturerList,
-                            );
-                            if (result is FilterArgument) {
-                              tabCubit.updateFilter(filter: result);
-                              tabCubit.applyFilters();
-                            }
-                          },
+                                final state = tabCubit.state;
+                                final FilterArgument arguments =
+                                    state.filterArgument;
+                                final result = await filter_web.showFilterModal(
+                                  context,
+                                  arguments: arguments,
+                                  selectedTabIndex: _shownTabIndex,
+                                  manufacturerList: Database().manufacturerList,
+                                );
+                                if (result is FilterArgument) {
+                                  tabCubit.updateFilter(filter: result);
+                                  tabCubit.applyFilters();
+                                }
+                              },
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                   Expanded(
                     child: BlocBuilder<ProductScreenCubit, ProductScreenState>(
@@ -807,9 +816,13 @@ class _SortDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return PopupMenuButton<SortEnum>(
       initialValue: selected,
       onSelected: onChanged,
+      tooltip: isMobile ? 'Sắp xếp: ${_label(context, selected)}' : null,
       itemBuilder: (context) => SortEnum.values
           .map((v) => PopupMenuItem<SortEnum>(
                 value: v,
@@ -817,30 +830,38 @@ class _SortDropdown extends StatelessWidget {
               ))
           .toList(),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 8 : 12,
+          vertical: 10,
+        ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Sắp xếp: ${_label(context, selected)}',
-              style: TextStyle(
+        child: isMobile
+            ? Icon(
+                Icons.sort,
                 color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Sắp xếp: ${_label(context, selected)}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                  )
+                ],
               ),
-            ),
-            const SizedBox(width: 6),
-            Icon(
-              Icons.keyboard_arrow_down,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.7),
-            )
-          ],
-        ),
       ),
     );
   }
@@ -1002,13 +1023,15 @@ class _WebProductTabState extends State<WebProductTab>
                       );
                     }
 
-                    // Use a denser grid on wide screens
+                    // Use a responsive grid based on screen width
                     final width = MediaQuery.of(context).size.width;
                     final crossAxisCount = width >= 1200
                         ? 5
                         : width >= 900
                             ? 4
-                            : 3;
+                            : width >= 600
+                                ? 3
+                                : 2; // 2 columns on mobile for better readability
 
                     // Calculate total items including loading indicator
                     final int totalItemCount = kIsWeb
@@ -1022,7 +1045,8 @@ class _WebProductTabState extends State<WebProductTab>
                         crossAxisCount: crossAxisCount,
                         mainAxisSpacing: 12,
                         crossAxisSpacing: 12,
-                        childAspectRatio: 0.75,
+                        // Make cards taller on mobile (smaller ratio = taller)
+                        childAspectRatio: width < 600 ? 0.62 : 0.75,
                       ),
                       itemCount: totalItemCount,
                       itemBuilder: (context, index) {

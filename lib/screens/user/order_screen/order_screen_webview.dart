@@ -161,6 +161,14 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Responsive horizontal padding
+    final horizontalPadding = screenWidth < 600
+        ? 16.0
+        : screenWidth < 900
+            ? 24.0
+            : 32.0;
+
     return Scaffold(
       body: Container(
         color: Theme.of(context)
@@ -175,8 +183,8 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1200),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 24),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding, vertical: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -209,6 +217,9 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
   }
 
   Widget _buildTabNavigation(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     final tabBackground =
         Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
               alpha: 0.8,
@@ -226,9 +237,11 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
             Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
         labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
+              fontSize: isMobile ? 13 : null,
             ),
         unselectedLabelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w500,
+              fontSize: isMobile ? 13 : null,
             ),
         indicator: BoxDecoration(
           color: indicatorColor,
@@ -239,18 +252,22 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
         overlayColor:
             WidgetStateProperty.resolveWith((_) => Colors.transparent),
         splashFactory: NoSplash.splashFactory,
-        isScrollable: false,
+        isScrollable: isMobile,
+        tabAlignment: isMobile ? TabAlignment.start : TabAlignment.fill,
         tabs: OrderOption.values
             .map(
               (option) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: isMobile ? 8 : 0,
+                ),
                 child: Text(
                   _getTabTitle(context, option),
                   textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: isMobile ? 13 : null,
+                      ),
                 ),
               ),
             )

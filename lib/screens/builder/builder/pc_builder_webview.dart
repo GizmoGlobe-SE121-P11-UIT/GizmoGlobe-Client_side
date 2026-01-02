@@ -42,11 +42,22 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
           Expanded(
             child: BlocBuilder<PCBuilderCubit, PCBuilderState>(
               builder: (context, state) {
+                final screenWidth = MediaQuery.of(context).size.width;
+                final isMobile = screenWidth < 600;
+                final horizontalPadding = isMobile
+                    ? 16.0
+                    : screenWidth < 900
+                        ? 40.0
+                        : 80.0;
+
                 return SingleChildScrollView(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 80,
-                      vertical: 24,
+                    padding: EdgeInsets.only(
+                      left: horizontalPadding,
+                      right: horizontalPadding,
+                      top: 24,
+                      // Add bottom padding on mobile to avoid FAB blocking buttons
+                      bottom: isMobile ? 80 : 24,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,38 +143,75 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     ];
 
     final s = S.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Linh kiện tương thích',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+        // Header - stack vertically on mobile
+        isMobile
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Linh kiện tương thích',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                   ),
-            ),
-            Row(
-              children: [
-                Checkbox(
-                  value: state.enableCompatibilityChecker,
-                  onChanged: (value) {
-                    cubit.toggleCompatibilityChecker(value ?? false);
-                  },
-                ),
-                Text(
-                  s.enableCompatibilityChecker,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface,
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: state.enableCompatibilityChecker,
+                        onChanged: (value) {
+                          cubit.toggleCompatibilityChecker(value ?? false);
+                        },
+                      ),
+                      Flexible(
+                        child: Text(
+                          s.enableCompatibilityChecker,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
+                ],
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Linh kiện tương thích',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                  ),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: state.enableCompatibilityChecker,
+                        onChanged: (value) {
+                          cubit.toggleCompatibilityChecker(value ?? false);
+                        },
+                      ),
+                      Text(
+                        s.enableCompatibilityChecker,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
         const SizedBox(height: 16),
         ...components.map((component) {
           final componentKey = component['key'] as String;
@@ -242,9 +290,12 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     required PCBuilderCubit cubit,
     required PCBuilderState state,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
@@ -259,7 +310,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: isMobile ? 14 : 16,
               fontWeight: FontWeight.w500,
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -273,124 +324,116 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                 : 1;
             return Padding(
               padding: EdgeInsets.only(top: index == 0 ? 12 : 16),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.productName,
-                          style: TextStyle(
-                            fontSize: 14,
+                  // Product info
+                  Text(
+                    product.productName,
+                    style: TextStyle(
+                      fontSize: isMobile ? 12 : 14,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    Helper.toCurrencyFormat(product.discountedPrice.toInt()),
+                    style: TextStyle(
+                      fontSize: isMobile ? 13 : 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Controls row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // Quantity controls
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
                             color: Theme.of(context)
                                 .colorScheme
                                 .onSurface
-                                .withValues(alpha: 0.7),
+                                .withValues(alpha: 0.2),
                           ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              Helper.toCurrencyFormat(
-                                  product.discountedPrice.toInt()),
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
+                            IconButton(
+                              icon:
+                                  Icon(Icons.remove, size: isMobile ? 16 : 20),
+                              onPressed: quantity > 1
+                                  ? () => cubit.updateQuantityInList(
+                                      componentKey, index, quantity - 1)
+                                  : null,
+                              padding: EdgeInsets.all(isMobile ? 4 : 8),
+                              constraints: BoxConstraints(
+                                minWidth: isMobile ? 32 : 40,
+                                minHeight: isMobile ? 32 : 40,
+                              ),
+                              style: IconButton.styleFrom(
+                                foregroundColor: quantity > 1
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.3),
                               ),
                             ),
-                            if (quantity > 1) ...[
-                              const SizedBox(width: 8),
-                              Text(
-                                'x$quantity',
+                            Container(
+                              constraints:
+                                  BoxConstraints(minWidth: isMobile ? 28 : 40),
+                              alignment: Alignment.center,
+                              child: Text(
+                                quantity.toString(),
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.7),
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: isMobile ? 14 : 16,
                                 ),
                               ),
-                            ],
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.add, size: isMobile ? 16 : 20),
+                              onPressed: () => cubit.updateQuantityInList(
+                                  componentKey, index, quantity + 1),
+                              padding: EdgeInsets.all(isMobile ? 4 : 8),
+                              constraints: BoxConstraints(
+                                minWidth: isMobile ? 32 : 40,
+                                minHeight: isMobile ? 32 : 40,
+                              ),
+                              style: IconButton.styleFrom(
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                  // Quantity controls
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.2),
                       ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove, size: 20),
-                          onPressed: quantity > 1
-                              ? () => cubit.updateQuantityInList(
-                                  componentKey, index, quantity - 1)
-                              : null,
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(
-                            minWidth: 40,
-                            minHeight: 40,
-                          ),
-                          style: IconButton.styleFrom(
-                            foregroundColor: quantity > 1
-                                ? Theme.of(context).colorScheme.onSurface
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.3),
-                          ),
+                      SizedBox(width: isMobile ? 4 : 8),
+                      // Remove button
+                      IconButton(
+                        icon: Icon(Icons.close, size: isMobile ? 20 : 24),
+                        onPressed: () {
+                          cubit.removeComponentFromList(componentKey, index);
+                        },
+                        color: Theme.of(context).colorScheme.error,
+                        padding: EdgeInsets.all(isMobile ? 4 : 8),
+                        constraints: BoxConstraints(
+                          minWidth: isMobile ? 32 : 48,
+                          minHeight: isMobile ? 32 : 48,
                         ),
-                        Container(
-                          constraints: const BoxConstraints(minWidth: 40),
-                          alignment: Alignment.center,
-                          child: Text(
-                            quantity.toString(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.add, size: 20),
-                          onPressed: () => cubit.updateQuantityInList(
-                              componentKey, index, quantity + 1),
-                          padding: const EdgeInsets.all(8),
-                          constraints: const BoxConstraints(
-                            minWidth: 40,
-                            minHeight: 40,
-                          ),
-                          style: IconButton.styleFrom(
-                            foregroundColor:
-                                Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Remove button
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      cubit.removeComponentFromList(componentKey, index);
-                    },
-                    color: Theme.of(context).colorScheme.error,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -402,64 +445,32 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (products.isNotEmpty)
-                  // "THÊM" button: match width of quantity controls + remove button
-                  SizedBox(
-                    width: 40 +
-                        40 +
-                        40 +
-                        8 +
-                        48, // Quantity controls width + spacing + remove button width
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        _showPartsPickerDialog(
-                          context,
-                          category: category,
-                          allowMultipleSelection: true,
-                          onProductsSelected: (selectedProducts) {
-                            // For RAM and drive, add all selected products
-                            for (final product in selectedProducts) {
-                              cubit.selectComponent(componentKey, product);
-                            }
-                          },
-                        );
+                ElevatedButton.icon(
+                  onPressed: () {
+                    _showPartsPickerDialog(
+                      context,
+                      category: category,
+                      allowMultipleSelection: true,
+                      onProductsSelected: (selectedProducts) {
+                        for (final product in selectedProducts) {
+                          cubit.selectComponent(componentKey, product);
+                        }
                       },
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('THÊM'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                      ),
-                    ),
-                  )
-                else
-                  // "CHỌN" button: single line button (no width constraint)
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      _showPartsPickerDialog(
-                        context,
-                        category: category,
-                        allowMultipleSelection: true,
-                        onProductsSelected: (selectedProducts) {
-                          // For RAM and drive, add all selected products
-                          for (final product in selectedProducts) {
-                            cubit.selectComponent(componentKey, product);
-                          }
-                        },
-                      );
-                    },
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text('CHỌN ${label.toUpperCase()}'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                    );
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(products.isNotEmpty
+                      ? 'THÊM'
+                      : (isMobile ? 'CHỌN' : 'CHỌN ${label.toUpperCase()}')),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 12 : 16,
+                      vertical: isMobile ? 8 : 12,
                     ),
                   ),
+                ),
               ],
             ),
           ),
@@ -480,9 +491,116 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     bool showAddButton = false,
   }) {
     final isMultiSelect = componentKey == 'ram' || componentKey == 'drive';
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
+    // Build quantity controls widget
+    Widget buildQuantityControls() {
+      if (onQuantityChanged == null) return const SizedBox.shrink();
+      return Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.remove, size: isMobile ? 16 : 20),
+              onPressed:
+                  quantity > 1 ? () => onQuantityChanged(quantity - 1) : null,
+              padding: EdgeInsets.all(isMobile ? 4 : 8),
+              constraints: BoxConstraints(
+                minWidth: isMobile ? 32 : 40,
+                minHeight: isMobile ? 32 : 40,
+              ),
+              style: IconButton.styleFrom(
+                foregroundColor: quantity > 1
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.3),
+              ),
+            ),
+            Container(
+              constraints: BoxConstraints(minWidth: isMobile ? 28 : 40),
+              alignment: Alignment.center,
+              child: Text(
+                quantity.toString(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: isMobile ? 14 : 16,
+                ),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.add, size: isMobile ? 16 : 20),
+              onPressed: () => onQuantityChanged(quantity + 1),
+              padding: EdgeInsets.all(isMobile ? 4 : 8),
+              constraints: BoxConstraints(
+                minWidth: isMobile ? 32 : 40,
+                minHeight: isMobile ? 32 : 40,
+              ),
+              style: IconButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Build remove button widget
+    Widget buildRemoveButton() {
+      if (onRemove == null) return const SizedBox.shrink();
+      return IconButton(
+        icon: Icon(Icons.close, size: isMobile ? 20 : 24),
+        onPressed: onRemove,
+        color: Theme.of(context).colorScheme.error,
+        padding: EdgeInsets.all(isMobile ? 4 : 8),
+        constraints: BoxConstraints(
+          minWidth: isMobile ? 32 : 48,
+          minHeight: isMobile ? 32 : 48,
+        ),
+      );
+    }
+
+    // Build add/select button widget
+    Widget buildSelectButton() {
+      if (product != null) return const SizedBox.shrink();
+      if (!(showAddButton ||
+          isMultiSelect ||
+          (!isMultiSelect && product == null))) {
+        return const SizedBox.shrink();
+      }
+      return ElevatedButton.icon(
+        onPressed: onSelect,
+        icon: const Icon(Icons.add, size: 18),
+        label: Text(showAddButton
+            ? 'THÊM'
+            : (label.isNotEmpty
+                ? (isMobile ? 'CHỌN' : 'CHỌN ${label.toUpperCase()}')
+                : 'CHỌN')),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 12 : 16,
+            vertical: isMobile ? 8 : 12,
+          ),
+        ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
@@ -490,155 +608,57 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
           color: Theme.of(context).dividerColor,
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                if (product != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    product.productName,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        Helper.toCurrencyFormat(
-                            product.discountedPrice.toInt()),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      if (quantity > 1) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          'x$quantity',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ],
+          // Product info
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isMobile ? 14 : 16,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           if (product != null) ...[
-            // Quantity controls
-            if (onQuantityChanged != null)
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.2),
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove, size: 20),
-                      onPressed: quantity > 1
-                          ? () => onQuantityChanged(quantity - 1)
-                          : null,
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(
-                        minWidth: 40,
-                        minHeight: 40,
-                      ),
-                      style: IconButton.styleFrom(
-                        foregroundColor: quantity > 1
-                            ? Theme.of(context).colorScheme.onSurface
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.3),
-                      ),
-                    ),
-                    Container(
-                      constraints: const BoxConstraints(minWidth: 40),
-                      alignment: Alignment.center,
-                      child: Text(
-                        quantity.toString(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add, size: 20),
-                      onPressed: () => onQuantityChanged(quantity + 1),
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(
-                        minWidth: 40,
-                        minHeight: 40,
-                      ),
-                      style: IconButton.styleFrom(
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 4),
+            Text(
+              product.productName,
+              style: TextStyle(
+                fontSize: isMobile ? 12 : 14,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7),
               ),
-            if (onRemove != null) ...[
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: onRemove,
-                color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              Helper.toCurrencyFormat(product.discountedPrice.toInt()),
+              style: TextStyle(
+                fontSize: isMobile ? 13 : 14,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
               ),
-            ],
+            ),
+            const SizedBox(height: 12),
+            // Controls row - always horizontal but with smaller sizes on mobile
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                buildQuantityControls(),
+                if (onRemove != null) ...[
+                  SizedBox(width: isMobile ? 4 : 8),
+                  buildRemoveButton(),
+                ],
+              ],
+            ),
           ] else ...[
-            // Show add button: always for RAM/drive (multi-select), only when no product for others
-            if (showAddButton ||
-                isMultiSelect ||
-                (!isMultiSelect && product == null))
-              ElevatedButton.icon(
-                onPressed: onSelect,
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(showAddButton
-                    ? 'THÊM'
-                    : (label.isNotEmpty
-                        ? 'CHỌN ${label.toUpperCase()}'
-                        : 'CHỌN')),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: buildSelectButton(),
+            ),
           ],
         ],
       ),
@@ -647,66 +667,136 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
 
   Widget _buildActionButtons(BuildContext context, PCBuilderState state) {
     final s = S.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
+    if (isMobile) {
+      // On mobile, use full-width equal buttons stacked vertically
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Action buttons - full width
+          _buildActionButton(
+            context,
+            icon: Icons.picture_as_pdf,
+            label: 'TẢI PDF',
+            onPressed: () => cubit.downloadConfigurationPdf(),
+            fullWidth: true,
+          ),
+          const SizedBox(height: 12),
+          _buildActionButton(
+            context,
+            icon: Icons.shopping_cart,
+            label: s.addToCart.toUpperCase(),
+            onPressed: () => cubit.buyNow(),
+            isPrimary: true,
+            fullWidth: true,
+          ),
+          const SizedBox(height: 16),
+          // Icon buttons - wrap in center
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildIconButton(
+                context,
+                icon: Icons.add,
+                tooltip: s.builderAddTooltip,
+                onPressed: () => cubit.addConfiguration(),
+              ),
+              _buildIconButton(
+                context,
+                icon: Icons.delete,
+                tooltip: s.builderDeleteTooltip,
+                onPressed: () => _showDeleteConfirmation(context),
+              ),
+              _buildIconButton(
+                context,
+                icon: Icons.refresh,
+                tooltip: s.builderResetTooltip,
+                onPressed: () => _showResetConfirmation(context),
+              ),
+              _buildIconButton(
+                context,
+                icon: Icons.file_upload,
+                tooltip: s.builderUploadTooltip,
+                onPressed: () => cubit.uploadConfiguration(),
+              ),
+              _buildIconButton(
+                context,
+                icon: Icons.file_download,
+                tooltip: s.builderDownloadTooltip,
+                onPressed: () => _showSessionPickerDialog(context),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    final actionButtons = Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        _buildActionButton(
+          context,
+          icon: Icons.picture_as_pdf,
+          label: 'TẢI FILE PDF CẤU HÌNH',
+          onPressed: () => cubit.downloadConfigurationPdf(),
+        ),
+        _buildActionButton(
+          context,
+          icon: Icons.shopping_cart,
+          label: s.addToCart.toUpperCase(),
+          onPressed: () => cubit.buyNow(),
+          isPrimary: true,
+        ),
+      ],
+    );
+
+    final iconButtons = Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _buildIconButton(
+          context,
+          icon: Icons.add,
+          tooltip: s.builderAddTooltip,
+          onPressed: () => cubit.addConfiguration(),
+        ),
+        _buildIconButton(
+          context,
+          icon: Icons.delete,
+          tooltip: s.builderDeleteTooltip,
+          onPressed: () => _showDeleteConfirmation(context),
+        ),
+        _buildIconButton(
+          context,
+          icon: Icons.refresh,
+          tooltip: s.builderResetTooltip,
+          onPressed: () => _showResetConfirmation(context),
+        ),
+        _buildIconButton(
+          context,
+          icon: Icons.file_upload,
+          tooltip: s.builderUploadTooltip,
+          onPressed: () => cubit.uploadConfiguration(),
+        ),
+        _buildIconButton(
+          context,
+          icon: Icons.file_download,
+          tooltip: s.builderDownloadTooltip,
+          onPressed: () => _showSessionPickerDialog(context),
+        ),
+      ],
+    );
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            _buildActionButton(
-              context,
-              icon: Icons.picture_as_pdf,
-              label: 'TẢI FILE PDF CẤU HÌNH',
-              onPressed: () => cubit.downloadConfigurationPdf(),
-            ),
-            _buildActionButton(
-              context,
-              icon: Icons.shopping_cart,
-              label: s.addToCart.toUpperCase(),
-              onPressed: () => cubit.buyNow(),
-              isPrimary: true,
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            _buildIconButton(
-              context,
-              icon: Icons.add,
-              tooltip: s.builderAddTooltip,
-              onPressed: () => cubit.addConfiguration(),
-            ),
-            const SizedBox(width: 8),
-            _buildIconButton(
-              context,
-              icon: Icons.delete,
-              tooltip: s.builderDeleteTooltip,
-              onPressed: () => _showDeleteConfirmation(context),
-            ),
-            const SizedBox(width: 8),
-            _buildIconButton(
-              context,
-              icon: Icons.refresh,
-              tooltip: s.builderResetTooltip,
-              onPressed: () => _showResetConfirmation(context),
-            ),
-            const SizedBox(width: 8),
-            _buildIconButton(
-              context,
-              icon: Icons.file_upload,
-              tooltip: s.builderUploadTooltip,
-              onPressed: () => cubit.uploadConfiguration(),
-            ),
-            const SizedBox(width: 8),
-            _buildIconButton(
-              context,
-              icon: Icons.file_download,
-              tooltip: s.builderDownloadTooltip,
-              onPressed: () => _showSessionPickerDialog(context),
-            ),
-          ],
-        ),
+        actionButtons,
+        iconButtons,
       ],
     );
   }
@@ -717,8 +807,9 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     required String label,
     required VoidCallback onPressed,
     bool isPrimary = false,
+    bool fullWidth = false,
   }) {
-    return ElevatedButton.icon(
+    final button = ElevatedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 18),
       label: Text(label),
@@ -732,6 +823,14 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
     );
+
+    if (fullWidth) {
+      return SizedBox(
+        width: double.infinity,
+        child: button,
+      );
+    }
+    return button;
   }
 
   Widget _buildIconButton(
@@ -790,25 +889,35 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
 
   void _showSessionPickerDialog(BuildContext context) {
     final s = S.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     showDialog(
       context: context,
       builder: (dialogContext) {
         return Dialog(
-          insetPadding: const EdgeInsets.all(40),
+          insetPadding: EdgeInsets.all(isMobile ? 16 : 40),
           child: Container(
-            width: 520,
-            padding: const EdgeInsets.all(24),
+            width: isMobile ? double.infinity : 520,
+            constraints: BoxConstraints(
+              maxWidth: isMobile ? screenWidth - 32 : 520,
+            ),
+            padding: EdgeInsets.all(isMobile ? 16 : 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      s.builderSessionsTitle,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                    Expanded(
+                      child: Text(
+                        s.builderSessionsTitle,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: isMobile ? 18 : null,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -845,7 +954,8 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                     }
 
                     return ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 400),
+                      constraints:
+                          BoxConstraints(maxHeight: isMobile ? 350 : 400),
                       child: ListView.separated(
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
@@ -854,17 +964,30 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                               ? '${s.builderSessionUpdatedLabel}: ${DateFormat('dd/MM/yyyy HH:mm').format(session.updatedAt!)}'
                               : s.builderSessionUpdatedLabel;
 
+                          // Truncate session ID for display
+                          final displayId = session.id.length > 12
+                              ? '${session.id.substring(0, 12)}...'
+                              : session.id;
+
                           return ListTile(
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 8 : 16,
+                              vertical: isMobile ? 4 : 8,
+                            ),
                             onTap: () async {
                               Navigator.of(dialogContext).pop();
                               await cubit.loadBuilderSession(session.id);
                             },
                             title: Text(
-                              session.id,
+                              displayId,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: isMobile ? 14 : null,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             subtitle: Text(
                               updatedText,
@@ -875,6 +998,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onSurfaceVariant,
+                                    fontSize: isMobile ? 11 : null,
                                   ),
                             ),
                             trailing: Column(
@@ -889,6 +1013,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                                       .titleMedium
                                       ?.copyWith(
                                         fontWeight: FontWeight.bold,
+                                        fontSize: isMobile ? 13 : null,
                                       ),
                                 ),
                                 const SizedBox(height: 4),
@@ -903,6 +1028,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                                         color: Theme.of(context)
                                             .colorScheme
                                             .onSurfaceVariant,
+                                        fontSize: isMobile ? 10 : null,
                                       ),
                                 ),
                               ],

@@ -48,10 +48,8 @@ Future<Address?> showChooseAddressModal(
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: SingleChildScrollView(
-                child: _ChooseAddressPopupWebView.newInstance(
-                  address: currentAddress,
-                ),
+              child: _ChooseAddressPopupWebView.newInstance(
+                address: currentAddress,
               ),
             ),
           ),
@@ -166,7 +164,7 @@ class _ChooseAddressPopupWebViewState
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
+            // Header - Sticky
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
@@ -212,83 +210,86 @@ class _ChooseAddressPopupWebViewState
                 ],
               ),
             ),
-            // Content - Size to content, scroll when needed
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ...state.addressList.map((address) {
-                    final isSelected =
-                        _selectedAddress?.addressID == address.addressID;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedAddress = address;
-                        });
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withValues(alpha: 0.1)
-                              : Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(8),
-                          border: isSelected
-                              ? Border.all(
-                                  color: Theme.of(context).colorScheme.primary)
-                              : null,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+            // Content - Scrollable
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ...state.addressList.map((address) {
+                      final isSelected =
+                          _selectedAddress?.addressID == address.addressID;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedAddress = address;
+                          });
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.1)
+                                : Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: isSelected
+                                ? Border.all(
+                                    color:
+                                        Theme.of(context).colorScheme.primary)
+                                : null,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                address.firstLine(),
+                                style: AppTextStyle.boldText,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                address.secondLine(),
+                                style: AppTextStyle.regularText,
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              address.firstLine(),
-                              style: AppTextStyle.boldText,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              address.secondLine(),
-                              style: AppTextStyle.regularText,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                  Center(
-                    child: InvisibleGradientButton(
-                      text: S.of(context).addAddress,
-                      prefixIcon: Icons.add,
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  AddAddressScreen.newInstance()),
-                        );
+                      );
+                    }),
+                    Center(
+                      child: InvisibleGradientButton(
+                        text: S.of(context).addAddress,
+                        prefixIcon: Icons.add,
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    AddAddressScreen.newInstance()),
+                          );
 
-                        if (result != null && result is Address) {
-                          cubit.addAddress(result);
-                        }
-                      },
+                          if (result != null && result is Address) {
+                            cubit.addAddress(result);
+                          }
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

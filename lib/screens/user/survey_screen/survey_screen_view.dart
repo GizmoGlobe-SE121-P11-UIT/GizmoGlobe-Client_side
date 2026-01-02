@@ -203,43 +203,52 @@ class _QuestionCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 question['text'] as String,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
-              ...options.map((opt) {
-                Map<String, dynamic> m;
-                if (opt is Map) {
-                  m = Map<String, dynamic>.from(opt);
-                } else {
-                  m = <String, dynamic>{};
-                }
-                final String? id = m['id'] as String?;
-                final String label = (m['label'] as String?) ?? '';
-                if (type == 'multiChoice') {
-                  return CheckboxListTile(
-                    value: selectedOptionIds.contains(id),
-                    onChanged: (checked) {
-                      if (id != null && id.isNotEmpty) {
-                        onToggleMulti?.call(id);
+              // Wrap options in a flexible scrollable container
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: options.map((opt) {
+                      Map<String, dynamic> m;
+                      if (opt is Map) {
+                        m = Map<String, dynamic>.from(opt);
+                      } else {
+                        m = <String, dynamic>{};
                       }
-                    },
-                    title: Text(label),
-                  );
-                }
-                return RadioListTile<String>(
-                  value: id ?? '',
-                  groupValue: selectedOptionId,
-                  onChanged: (v) {
-                    if (v != null && (id ?? '').isNotEmpty) {
-                      onSelectSingle?.call(v);
-                    }
-                  },
-                  title: Text(label),
-                );
-              }),
+                      final String? id = m['id'] as String?;
+                      final String label = (m['label'] as String?) ?? '';
+                      if (type == 'multiChoice') {
+                        return CheckboxListTile(
+                          value: selectedOptionIds.contains(id),
+                          onChanged: (checked) {
+                            if (id != null && id.isNotEmpty) {
+                              onToggleMulti?.call(id);
+                            }
+                          },
+                          title: Text(label),
+                        );
+                      }
+                      return RadioListTile<String>(
+                        value: id ?? '',
+                        groupValue: selectedOptionId,
+                        onChanged: (v) {
+                          if (v != null && (id ?? '').isNotEmpty) {
+                            onSelectSingle?.call(v);
+                          }
+                        },
+                        title: Text(label),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
