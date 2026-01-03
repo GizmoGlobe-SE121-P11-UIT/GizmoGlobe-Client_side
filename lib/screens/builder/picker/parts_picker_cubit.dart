@@ -101,7 +101,7 @@ class PartsPickerCubit extends Cubit<PartsPickerState> {
   void updateSearchText(String? searchText) {
     List<Product> displayProducts = [];
     for (final product in state.products) {
-      if (searchText == null || searchText.isEmpty || product.productName.toLowerCase().contains(searchText)) {
+      if (searchText == null || searchText.isEmpty || product.productName.toLowerCase().contains(searchText.toLowerCase())) {
         displayProducts.add(product);
       }
     }
