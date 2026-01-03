@@ -9,16 +9,20 @@ import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_cubit.dart';
 import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_state.dart';
 
+import 'package:gizmoglobe_client/services/recommendation/find_compatible.dart';
+
 class PartsPickerWebView extends StatefulWidget {
   final CategoryEnum category;
   final Function(List<Product>) onProductsSelected;
   final bool allowMultipleSelection;
+  final List<Product>? compatibleProducts;
 
   const PartsPickerWebView({
     super.key,
     required this.category,
     required this.onProductsSelected,
     this.allowMultipleSelection = false,
+    this.compatibleProducts,
   });
 
   static Widget withCubit(
@@ -26,6 +30,7 @@ class PartsPickerWebView extends StatefulWidget {
     required CategoryEnum category,
     required Function(List<Product>) onProductsSelected,
     bool allowMultipleSelection = false,
+    List<Product>? compatibleProducts,
   }) =>
       BlocProvider.value(
         value: cubit,
@@ -33,6 +38,7 @@ class PartsPickerWebView extends StatefulWidget {
           category: category,
           onProductsSelected: onProductsSelected,
           allowMultipleSelection: allowMultipleSelection,
+          compatibleProducts: compatibleProducts,
         ),
       );
 
@@ -89,7 +95,18 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (state.products.isEmpty) {
+                  var displayProducts = state.displayProducts;
+
+                  if (widget.compatibleProducts != null &&
+                      widget.compatibleProducts!.isNotEmpty) {
+                    displayProducts = displayProducts.where((product) {
+                      return widget.compatibleProducts!.every(
+                          (compatibleProduct) => areProductsCompatible(
+                              product, compatibleProduct));
+                    }).toList();
+                  }
+
+                  if (displayProducts.isEmpty) {
                     return Center(
                       child: Text(
                         S.of(context).noProductsFound,

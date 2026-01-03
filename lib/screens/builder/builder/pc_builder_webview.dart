@@ -117,13 +117,18 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
 
   Widget _buildComponentList(BuildContext context, PCBuilderState state) {
     final config = state.activeConfiguration;
+    final isCompatibilityMode = state.enableCompatibilityChecker;
+    final mainboard = config['mainboard'] as Product?;
+    final cpu = config['cpu'] as Product?;
+    final gpu = config['gpu'] as Product?;
+
     final components = [
-      {'key': 'cpu', 'label': 'CPU', 'category': CategoryEnum.cpu},
       {
         'key': 'mainboard',
         'label': 'Mainboard - Bo mạch chủ',
         'category': CategoryEnum.mainboard
       },
+      {'key': 'cpu', 'label': 'CPU', 'category': CategoryEnum.cpu},
       {'key': 'ram', 'label': 'RAM', 'category': CategoryEnum.ram},
       {
         'key': 'drive',
@@ -218,6 +223,28 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
           final isMultiSelect =
               componentKey == 'ram' || componentKey == 'drive';
 
+          // Compatibility Logic
+          bool isEnabled = true;
+          List<Product>? compatibleProducts;
+
+          if (isCompatibilityMode) {
+            if (componentKey == 'mainboard') {
+              isEnabled = true;
+            } else if (componentKey == 'psu') {
+              // PSU requires CPU and GPU
+              isEnabled = cpu != null && gpu != null;
+              if (isEnabled) {
+                compatibleProducts = [cpu, gpu];
+              }
+            } else {
+              // CPU, RAM, Drive, GPU require Mainboard
+              isEnabled = mainboard != null;
+              if (isEnabled) {
+                compatibleProducts = [mainboard];
+              }
+            }
+          }
+
           if (isMultiSelect) {
             final products = config[componentKey] as List<Product>? ?? [];
             return _buildMultiComponentSection(
@@ -228,6 +255,8 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
               category: component['category'] as CategoryEnum,
               cubit: cubit,
               state: state,
+              isEnabled: isEnabled,
+              compatibleProducts: compatibleProducts,
             );
           } else {
             final product = config[componentKey] as Product?;
@@ -239,14 +268,16 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
               quantity: product?.productID != null
                   ? (state.quantities[product!.productID!] ?? 1)
                   : 1,
+              isEnabled: isEnabled,
               onSelect: () {
                 _showPartsPickerDialog(
                   context,
                   category: component['category'] as CategoryEnum,
                   allowMultipleSelection: false,
+                  compatibleProducts: compatibleProducts,
                   onProductsSelected: (selectedProducts) {
                     if (selectedProducts.isNotEmpty) {
-                      cubit.selectComponent(
+                      cubit.selectComponentWithCompatibilityCheck(
                           componentKey, selectedProducts.first);
                     }
                   },
@@ -254,7 +285,8 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
               },
               onRemove: product != null
                   ? () {
-                      cubit.selectComponent(componentKey, null);
+                      cubit.selectComponentWithCompatibilityCheck(
+                          componentKey, null);
                     }
                   : null,
               onQuantityChanged: product != null
@@ -289,192 +321,206 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     required CategoryEnum category,
     required PCBuilderCubit cubit,
     required PCBuilderState state,
+    bool isEnabled = true,
+    List<Product>? compatibleProducts,
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(isMobile ? 12 : 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Label at the top
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isMobile ? 14 : 16,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+    return Opacity(
+      opacity: isEnabled ? 1.0 : 0.5,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.all(isMobile ? 12 : 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).dividerColor,
           ),
-          // List of products inside the same container
-          ...products.asMap().entries.map((entry) {
-            final index = entry.key;
-            final product = entry.value;
-            final quantity = product.productID != null
-                ? (state.quantities[product.productID!] ?? 1)
-                : 1;
-            return Padding(
-              padding: EdgeInsets.only(top: index == 0 ? 12 : 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product info
-                  Text(
-                    product.productName,
-                    style: TextStyle(
-                      fontSize: isMobile ? 12 : 14,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Label at the top
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: isMobile ? 14 : 16,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            // List of products inside the same container
+            ...products.asMap().entries.map((entry) {
+              final index = entry.key;
+              final product = entry.value;
+              final quantity = product.productID != null
+                  ? (state.quantities[product.productID!] ?? 1)
+                  : 1;
+              return Padding(
+                padding: EdgeInsets.only(top: index == 0 ? 12 : 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product info
+                    Text(
+                      product.productName,
+                      style: TextStyle(
+                        fontSize: isMobile ? 12 : 14,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.7),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    Helper.toCurrencyFormat(product.discountedPrice.toInt()),
-                    style: TextStyle(
-                      fontSize: isMobile ? 13 : 14,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                    const SizedBox(height: 4),
+                    Text(
+                      Helper.toCurrencyFormat(product.discountedPrice.toInt()),
+                      style: TextStyle(
+                        fontSize: isMobile ? 13 : 14,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Controls row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      // Quantity controls
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.2),
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon:
-                                  Icon(Icons.remove, size: isMobile ? 16 : 20),
-                              onPressed: quantity > 1
-                                  ? () => cubit.updateQuantityInList(
-                                      componentKey, index, quantity - 1)
-                                  : null,
-                              padding: EdgeInsets.all(isMobile ? 4 : 8),
-                              constraints: BoxConstraints(
-                                minWidth: isMobile ? 32 : 40,
-                                minHeight: isMobile ? 32 : 40,
-                              ),
-                              style: IconButton.styleFrom(
-                                foregroundColor: quantity > 1
-                                    ? Theme.of(context).colorScheme.onSurface
-                                    : Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.3),
-                              ),
+                    const SizedBox(height: 8),
+                    // Controls row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // Quantity controls
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.2),
                             ),
-                            Container(
-                              constraints:
-                                  BoxConstraints(minWidth: isMobile ? 28 : 40),
-                              alignment: Alignment.center,
-                              child: Text(
-                                quantity.toString(),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: isMobile ? 14 : 16,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove,
+                                    size: isMobile ? 16 : 20),
+                                onPressed: quantity > 1 && isEnabled
+                                    ? () => cubit.updateQuantityInList(
+                                        componentKey, index, quantity - 1)
+                                    : null,
+                                padding: EdgeInsets.all(isMobile ? 4 : 8),
+                                constraints: BoxConstraints(
+                                  minWidth: isMobile ? 32 : 40,
+                                  minHeight: isMobile ? 32 : 40,
+                                ),
+                                style: IconButton.styleFrom(
+                                  foregroundColor: quantity > 1
+                                      ? Theme.of(context).colorScheme.onSurface
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.3),
                                 ),
                               ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.add, size: isMobile ? 16 : 20),
-                              onPressed: () => cubit.updateQuantityInList(
-                                  componentKey, index, quantity + 1),
-                              padding: EdgeInsets.all(isMobile ? 4 : 8),
-                              constraints: BoxConstraints(
-                                minWidth: isMobile ? 32 : 40,
-                                minHeight: isMobile ? 32 : 40,
+                              Container(
+                                constraints: BoxConstraints(
+                                    minWidth: isMobile ? 28 : 40),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  quantity.toString(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: isMobile ? 14 : 16,
+                                  ),
+                                ),
                               ),
-                              style: IconButton.styleFrom(
-                                foregroundColor:
-                                    Theme.of(context).colorScheme.onSurface,
+                              IconButton(
+                                icon: Icon(Icons.add, size: isMobile ? 16 : 20),
+                                onPressed: isEnabled
+                                    ? () => cubit.updateQuantityInList(
+                                        componentKey, index, quantity + 1)
+                                    : null,
+                                padding: EdgeInsets.all(isMobile ? 4 : 8),
+                                constraints: BoxConstraints(
+                                  minWidth: isMobile ? 32 : 40,
+                                  minHeight: isMobile ? 32 : 40,
+                                ),
+                                style: IconButton.styleFrom(
+                                  foregroundColor:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      SizedBox(width: isMobile ? 4 : 8),
-                      // Remove button
-                      IconButton(
-                        icon: Icon(Icons.close, size: isMobile ? 20 : 24),
-                        onPressed: () {
-                          cubit.removeComponentFromList(componentKey, index);
-                        },
-                        color: Theme.of(context).colorScheme.error,
-                        padding: EdgeInsets.all(isMobile ? 4 : 8),
-                        constraints: BoxConstraints(
-                          minWidth: isMobile ? 32 : 48,
-                          minHeight: isMobile ? 32 : 48,
+                        SizedBox(width: isMobile ? 4 : 8),
+                        // Remove button
+                        IconButton(
+                          icon: Icon(Icons.close, size: isMobile ? 20 : 24),
+                          onPressed: isEnabled
+                              ? () {
+                                  cubit.removeComponentFromList(
+                                      componentKey, index);
+                                }
+                              : null,
+                          color: Theme.of(context).colorScheme.error,
+                          padding: EdgeInsets.all(isMobile ? 4 : 8),
+                          constraints: BoxConstraints(
+                            minWidth: isMobile ? 32 : 48,
+                            minHeight: isMobile ? 32 : 48,
+                          ),
                         ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+            // Add button at the bottom inside the same container
+            Padding(
+              padding: EdgeInsets.only(top: products.isEmpty ? 0 : 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: isEnabled
+                        ? () {
+                            _showPartsPickerDialog(
+                              context,
+                              category: category,
+                              allowMultipleSelection: true,
+                              compatibleProducts: compatibleProducts,
+                              onProductsSelected: (selectedProducts) {
+                                for (final product in selectedProducts) {
+                                  cubit.selectComponentWithCompatibilityCheck(
+                                      componentKey, product);
+                                }
+                              },
+                            );
+                          }
+                        : null,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(products.isNotEmpty
+                        ? 'THÊM'
+                        : (isMobile ? 'CHỌN' : 'CHỌN ${label.toUpperCase()}')),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 12 : 16,
+                        vertical: isMobile ? 8 : 12,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            );
-          }),
-          // Add button at the bottom inside the same container
-          Padding(
-            padding: EdgeInsets.only(top: products.isEmpty ? 0 : 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    _showPartsPickerDialog(
-                      context,
-                      category: category,
-                      allowMultipleSelection: true,
-                      onProductsSelected: (selectedProducts) {
-                        for (final product in selectedProducts) {
-                          cubit.selectComponent(componentKey, product);
-                        }
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.add, size: 18),
-                  label: Text(products.isNotEmpty
-                      ? 'THÊM'
-                      : (isMobile ? 'CHỌN' : 'CHỌN ${label.toUpperCase()}')),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isMobile ? 12 : 16,
-                      vertical: isMobile ? 8 : 12,
-                    ),
-                  ),
-                ),
-              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -489,6 +535,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     VoidCallback? onRemove,
     Function(int)? onQuantityChanged,
     bool showAddButton = false,
+    bool isEnabled = true,
   }) {
     final isMultiSelect = componentKey == 'ram' || componentKey == 'drive';
     final screenWidth = MediaQuery.of(context).size.width;
@@ -510,8 +557,9 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
           children: [
             IconButton(
               icon: Icon(Icons.remove, size: isMobile ? 16 : 20),
-              onPressed:
-                  quantity > 1 ? () => onQuantityChanged(quantity - 1) : null,
+              onPressed: quantity > 1 && isEnabled
+                  ? () => onQuantityChanged(quantity - 1)
+                  : null,
               padding: EdgeInsets.all(isMobile ? 4 : 8),
               constraints: BoxConstraints(
                 minWidth: isMobile ? 32 : 40,
@@ -541,7 +589,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
             ),
             IconButton(
               icon: Icon(Icons.add, size: isMobile ? 16 : 20),
-              onPressed: () => onQuantityChanged(quantity + 1),
+              onPressed: isEnabled ? () => onQuantityChanged(quantity + 1) : null,
               padding: EdgeInsets.all(isMobile ? 4 : 8),
               constraints: BoxConstraints(
                 minWidth: isMobile ? 32 : 40,
@@ -561,7 +609,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
       if (onRemove == null) return const SizedBox.shrink();
       return IconButton(
         icon: Icon(Icons.close, size: isMobile ? 20 : 24),
-        onPressed: onRemove,
+        onPressed: isEnabled ? onRemove : null,
         color: Theme.of(context).colorScheme.error,
         padding: EdgeInsets.all(isMobile ? 4 : 8),
         constraints: BoxConstraints(
@@ -580,7 +628,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
         return const SizedBox.shrink();
       }
       return ElevatedButton.icon(
-        onPressed: onSelect,
+        onPressed: isEnabled ? onSelect : null,
         icon: const Icon(Icons.add, size: 18),
         label: Text(showAddButton
             ? 'THÊM'
@@ -598,69 +646,72 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(isMobile ? 12 : 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product info
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isMobile ? 14 : 16,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+    return Opacity(
+      opacity: isEnabled ? 1.0 : 0.5,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.all(isMobile ? 12 : 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).dividerColor,
           ),
-          if (product != null) ...[
-            const SizedBox(height: 4),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product info
             Text(
-              product.productName,
+              label,
               style: TextStyle(
-                fontSize: isMobile ? 12 : 14,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.7),
+                fontSize: isMobile ? 14 : 16,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              Helper.toCurrencyFormat(product.discountedPrice.toInt()),
-              style: TextStyle(
-                fontSize: isMobile ? 13 : 14,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
+            if (product != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                product.productName,
+                style: TextStyle(
+                  fontSize: isMobile ? 12 : 14,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            // Controls row - always horizontal but with smaller sizes on mobile
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                buildQuantityControls(),
-                if (onRemove != null) ...[
-                  SizedBox(width: isMobile ? 4 : 8),
-                  buildRemoveButton(),
+              const SizedBox(height: 4),
+              Text(
+                Helper.toCurrencyFormat(product.discountedPrice.toInt()),
+                style: TextStyle(
+                  fontSize: isMobile ? 13 : 14,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Controls row - always horizontal but with smaller sizes on mobile
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  buildQuantityControls(),
+                  if (onRemove != null) ...[
+                    SizedBox(width: isMobile ? 4 : 8),
+                    buildRemoveButton(),
+                  ],
                 ],
-              ],
-            ),
-          ] else ...[
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: buildSelectButton(),
-            ),
+              ),
+            ] else ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: buildSelectButton(),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -1056,6 +1107,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     required CategoryEnum category,
     required Function(List<Product>) onProductsSelected,
     bool allowMultipleSelection = false,
+    List<Product>? compatibleProducts,
   }) {
     final cubit = PartsPickerCubit(category);
 
@@ -1067,6 +1119,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
           category: category,
           onProductsSelected: onProductsSelected,
           allowMultipleSelection: allowMultipleSelection,
+          compatibleProducts: compatibleProducts,
         ),
       ),
     );
