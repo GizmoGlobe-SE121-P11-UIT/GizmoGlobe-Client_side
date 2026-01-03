@@ -8,6 +8,7 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_cubit.dart';
 import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_state.dart';
+import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 
 import 'package:gizmoglobe_client/services/recommendation/find_compatible.dart';
 
@@ -26,12 +27,12 @@ class PartsPickerWebView extends StatefulWidget {
   });
 
   static Widget withCubit(
-    PartsPickerCubit cubit, {
-    required CategoryEnum category,
-    required Function(List<Product>) onProductsSelected,
-    bool allowMultipleSelection = false,
-    List<Product>? compatibleProducts,
-  }) =>
+      PartsPickerCubit cubit, {
+        required CategoryEnum category,
+        required Function(List<Product>) onProductsSelected,
+        bool allowMultipleSelection = false,
+        List<Product>? compatibleProducts,
+      }) =>
       BlocProvider.value(
         value: cubit,
         child: PartsPickerWebView(
@@ -48,11 +49,22 @@ class PartsPickerWebView extends StatefulWidget {
 
 class _PartsPickerWebViewState extends State<PartsPickerWebView> {
   PartsPickerCubit get cubit => context.read<PartsPickerCubit>();
+  late TextEditingController searchController;
+  late FocusNode searchFocusNode;
 
   @override
   void initState() {
     super.initState();
+    searchController = TextEditingController();
+    searchFocusNode = FocusNode();
     cubit.loadProducts();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    searchFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -77,15 +89,36 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                 Text(
                   _getCategoryLabel(context, widget.category),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: isMobile ? 18 : null,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    fontSize: isMobile ? 18 : null,
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
+            ),
+            SizedBox(height: isMobile ? 12 : 24),
+            FieldWithIcon(
+              height: 40,
+              controller: searchController,
+              focusNode: searchFocusNode,
+              hintText: S.of(context).findYourItem,
+              fillColor: Theme.of(context).colorScheme.surface,
+              prefixIcon: Icon(
+                Icons.search,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6),
+              ),
+              onChanged: (value) {
+                cubit.updateSearchText(searchController.text);
+              },
+              onSubmitted: (value) {
+                searchFocusNode.unfocus();
+              },
             ),
             SizedBox(height: isMobile ? 12 : 24),
             Expanded(
@@ -101,7 +134,7 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                       widget.compatibleProducts!.isNotEmpty) {
                     displayProducts = displayProducts.where((product) {
                       return widget.compatibleProducts!.every(
-                          (compatibleProduct) => areProductsCompatible(
+                              (compatibleProduct) => areProductsCompatible(
                               product, compatibleProduct));
                     }).toList();
                   }
@@ -124,10 +157,10 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                   final crossAxisCount = screenWidth >= 1200
                       ? 5
                       : screenWidth >= 900
-                          ? 4
-                          : screenWidth >= 600
-                              ? 3
-                              : 2;
+                      ? 4
+                      : screenWidth >= 600
+                      ? 3
+                      : 2;
 
                   return GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -137,11 +170,11 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                       // Taller cards on mobile
                       childAspectRatio: isMobile ? 0.62 : 0.75,
                     ),
-                    itemCount: state.products.length,
+                    itemCount: displayProducts.length,
                     itemBuilder: (context, index) {
-                      final product = state.products[index];
+                      final product = displayProducts[index];
                       final isSelected =
-                          state.selectedProducts.contains(product);
+                      state.selectedProducts.contains(product);
                       return _SelectableProductCard(
                         product: product,
                         isSelected: isSelected,
@@ -194,10 +227,10 @@ class _PartsPickerWebViewState extends State<PartsPickerWebView> {
                             ElevatedButton(
                               onPressed: state.selectedProducts.isNotEmpty
                                   ? () {
-                                      widget.onProductsSelected(
-                                          state.selectedProducts);
-                                      Navigator.of(context).pop();
-                                    }
+                                widget.onProductsSelected(
+                                    state.selectedProducts);
+                                Navigator.of(context).pop();
+                              }
                                   : null,
                               child: const Text('Xác nhận'),
                             ),
@@ -281,7 +314,7 @@ class _SelectableProductCardState extends State<_SelectableProductCard> {
                 child: Center(
                   child: Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(20),
