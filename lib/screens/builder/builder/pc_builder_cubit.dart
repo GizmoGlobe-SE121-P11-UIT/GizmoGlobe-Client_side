@@ -241,10 +241,40 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
     }
   }
 
+  void selectComponentWithCompatibilityCheck(String key, Product? product) {
+    selectComponent(key, product);
+
+    if (state.enableCompatibilityChecker) {
+      if (key == 'mainboard') {
+        selectComponent('cpu', null);
+        selectComponent('gpu', null);
+        selectComponent('ram', null);
+        selectComponent('drive', null);
+        selectComponent('psu', null);
+      } else if (key == 'cpu' || key == 'gpu') {
+        selectComponent('psu', null);
+      }
+    }
+  }
+
   void toggleCompatibilityChecker(bool value) {
     emit(state.copyWith(enableCompatibilityChecker: value));
-    _saveBuilderToFirebase();
+
+    // When toggling ON, validate current state immediately
+    if (value) {
+      final config = state.activeConfiguration;
+      if (config['mainboard'] == null) {
+        selectComponent('cpu', null);
+        selectComponent('gpu', null);
+        selectComponent('ram', null);
+        selectComponent('drive', null);
+        selectComponent('psu', null);
+      } else if (config['cpu'] == null || config['gpu'] == null) {
+        selectComponent('psu', null);
+      }
+    }
   }
+
 
   void _updateEstimatedCost() {
     final config = state.activeConfiguration;

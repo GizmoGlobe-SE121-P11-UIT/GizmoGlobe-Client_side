@@ -64,8 +64,16 @@ class PartsPickerCubit extends Cubit<PartsPickerState> {
           products = [];
       }
 
+      List<Product> displayProducts = [];
+      for (final product in products) {
+        if (state.searchText.isEmpty || product.productName.toLowerCase().contains(state.searchText.toLowerCase())) {
+          displayProducts.add(product);
+        }
+      }
+
       emit(state.copyWith(
         products: products,
+        displayProducts: displayProducts,
         processState: ProcessState.success,
       ));
     } catch (e) {
@@ -88,5 +96,15 @@ class PartsPickerCubit extends Cubit<PartsPickerState> {
 
   void clearSelection() {
     emit(state.copyWith(selectedProducts: []));
+  }
+
+  void updateSearchText(String? searchText) {
+    List<Product> displayProducts = [];
+    for (final product in state.products) {
+      if (searchText == null || searchText.isEmpty || product.productName.toLowerCase().contains(searchText)) {
+        displayProducts.add(product);
+      }
+    }
+    emit(state.copyWith(searchText: searchText, displayProducts: displayProducts));
   }
 }

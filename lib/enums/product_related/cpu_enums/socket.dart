@@ -4,13 +4,15 @@ enum Socket {
   lga1200('LGA 1200'),
   lga1151('LGA 1151'),
   lga1150('LGA 1150'),
+  lga1851('LGA 1851'),
   am4('AM4'),
   am5('AM5'),
   tr4('TR4'),
-  sTRX4('sTRX4'),
-  sWRX8('sWRX8'),
-  sp3('SP3'),
-  sp5('SP5');
+  // sTRX4('sTRX4'),
+  // sWRX8('sWRX8'),
+  // sp3('SP3'),
+  // sp5('SP5'),
+  ;
 
   final String description;
 

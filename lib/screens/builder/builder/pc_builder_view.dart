@@ -58,13 +58,18 @@ class _PCBuilderMobileView extends StatelessWidget {
         bloc: cubit,
         builder: (context, state) {
           final config = state.activeConfiguration;
+          final isCompatibilityMode = state.enableCompatibilityChecker;
+          final mainboard = config['mainboard'] as Product?;
+          final cpu = config['cpu'] as Product?;
+          final gpu = config['gpu'] as Product?;
+
           final components = [
-            {'key': 'cpu', 'label': 'CPU', 'category': CategoryEnum.cpu},
             {
               'key': 'mainboard',
               'label': 'Mainboard - Bo mạch chủ',
               'category': CategoryEnum.mainboard
             },
+            {'key': 'cpu', 'label': 'CPU', 'category': CategoryEnum.cpu},
             {'key': 'ram', 'label': 'RAM', 'category': CategoryEnum.ram},
             {
               'key': 'drive',
@@ -104,6 +109,29 @@ class _PCBuilderMobileView extends StatelessWidget {
                   final componentKey = component['key'] as String;
                   final isMultiSelect =
                       componentKey == 'ram' || componentKey == 'drive';
+
+                  // Compatibility Logic
+                  bool isEnabled = true;
+                  List<Product>? compatibleProducts;
+
+                  if (isCompatibilityMode) {
+                    if (componentKey == 'mainboard') {
+                      isEnabled = true;
+                    } else if (componentKey == 'psu') {
+                      // PSU requires CPU and GPU
+                      isEnabled = cpu != null && gpu != null;
+                      if (isEnabled) {
+                        compatibleProducts = [cpu!, gpu!];
+                      }
+                    } else {
+                      // CPU, RAM, Drive, GPU require Mainboard
+                      isEnabled = mainboard != null;
+                      if (isEnabled) {
+                        compatibleProducts = [mainboard!];
+                      }
+                    }
+                  }
+
                   if (isMultiSelect) {
                     final products =
                         config[componentKey] as List<Product>? ?? [];
@@ -114,6 +142,8 @@ class _PCBuilderMobileView extends StatelessWidget {
                       products: products,
                       category: component['category'] as CategoryEnum,
                       state: state,
+                      isEnabled: isEnabled,
+                      compatibleProducts: compatibleProducts,
                     );
                   } else {
                     final product = config[componentKey] as Product?;
@@ -128,6 +158,8 @@ class _PCBuilderMobileView extends StatelessWidget {
                       quantity: quantity,
                       category: component['category'] as CategoryEnum,
                       state: state,
+                      isEnabled: isEnabled,
+                      compatibleProducts: compatibleProducts,
                     );
                   }
                 }),
@@ -137,9 +169,9 @@ class _PCBuilderMobileView extends StatelessWidget {
                   child: Text(
                     '${s.totalCost}: ${Helper.toCurrencyFormat(state.estimatedCost)}',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -170,7 +202,9 @@ class _PCBuilderMobileView extends StatelessWidget {
           ),
           Switch(
             value: state.enableCompatibilityChecker,
-            onChanged: (value) => cubit.toggleCompatibilityChecker(value),
+            onChanged: (value) {
+              cubit.toggleCompatibilityChecker(value);
+            },
           ),
         ],
       ),
@@ -198,19 +232,19 @@ class _PCBuilderMobileView extends StatelessWidget {
           children: actions
               .map(
                 (action) => SizedBox(
-                  width: itemWidth,
-                  child: OutlinedButton(
-                    onPressed: action['onTap'] as VoidCallback,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    child: Icon(action['icon'] as IconData, size: 20),
+              width: itemWidth,
+              child: OutlinedButton(
+                onPressed: action['onTap'] as VoidCallback,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
                   ),
                 ),
-              )
+                child: Icon(action['icon'] as IconData, size: 20),
+              ),
+            ),
+          )
               .toList(),
         );
       },
@@ -249,242 +283,326 @@ class _PCBuilderMobileView extends StatelessWidget {
   }
 
   Widget _buildComponentCard(
-    BuildContext context, {
-    required String label,
-    required String componentKey,
-    required CategoryEnum category,
-    required PCBuilderState state,
-    Product? product,
-    required int quantity,
-  }) {
+      BuildContext context, {
+        required String label,
+        required String componentKey,
+        required CategoryEnum category,
+        required PCBuilderState state,
+        Product? product,
+        required int quantity,
+        bool isEnabled = true,
+        List<Product>? compatibleProducts,
+      }) {
     final isMultiSelect = componentKey == 'ram' || componentKey == 'drive';
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            if (product != null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.productName,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.7),
-                        ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Text(
-                        Helper.toCurrencyFormat(
-                            product.discountedPrice.toInt()),
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-                      if (quantity > 1) ...[
-                        const SizedBox(width: 8),
+    return Opacity(
+      opacity: isEnabled ? 1.0 : 0.5,
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              if (product != null)
+                InkWell(
+                  onTap: isEnabled
+                      ? () => _openPartsPicker(
+                    context,
+                    category: category,
+                    allowMultipleSelection: isMultiSelect,
+                    compatibleProducts: compatibleProducts,
+                    onProductsSelected: (selectedProducts) {
+                      if (isMultiSelect) {
+                        for (final product in selectedProducts) {
+                          cubit.selectComponentWithCompatibilityCheck(
+                              componentKey, product);
+                        }
+                      } else if (selectedProducts.isNotEmpty) {
+                        cubit.selectComponentWithCompatibilityCheck(
+                            componentKey, selectedProducts.first);
+                      }
+                    },
+                  )
+                      : null,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          'x$quantity',
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          product.productName,
+                          style:
+                          Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.7),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Text(
+                              Helper.toCurrencyFormat(
+                                  product.discountedPrice.toInt()),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                color:
+                                Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (quantity > 1) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                'x$quantity',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ],
                         ),
                       ],
-                    ],
-                  ),
-                ],
-              )
-            else
-              const SizedBox.shrink(),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                if (product != null)
-                  _buildQuantityControls(
-                    context,
-                    quantity: quantity,
-                    onDecrement: quantity > 1
-                        ? () => cubit.updateQuantity(
-                            componentKey, product, quantity - 1)
-                        : null,
-                    onIncrement: () => cubit.updateQuantity(
-                        componentKey, product, quantity + 1),
-                  ),
-                const SizedBox(width: 12),
-                if (product != null)
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    color: Theme.of(context).colorScheme.error,
-                    onPressed: () => cubit.selectComponent(componentKey, null),
-                  ),
-                if (product == null || isMultiSelect)
-                  Expanded(
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _openPartsPicker(
-                          context,
-                          category: category,
-                          allowMultipleSelection: isMultiSelect,
-                          onProductsSelected: (selectedProducts) {
-                            if (isMultiSelect) {
-                              for (final product in selectedProducts) {
-                                cubit.selectComponent(componentKey, product);
-                              }
-                            } else if (selectedProducts.isNotEmpty) {
-                              cubit.selectComponent(
-                                  componentKey, selectedProducts.first);
-                            }
-                          },
-                        ),
-                        icon: const Icon(Icons.add),
-                        label: Text(product == null
-                            ? 'CHỌN ${label.toUpperCase()}'
-                            : 'THÊM'),
-                      ),
                     ),
                   ),
-              ],
-            ),
-          ],
+                )
+              else
+                const SizedBox.shrink(),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  if (product != null)
+                    _buildQuantityControls(
+                      context,
+                      quantity: quantity,
+                      onDecrement: quantity > 1 && isEnabled
+                          ? () => cubit.updateQuantity(
+                          componentKey, product, quantity - 1)
+                          : null,
+                      onIncrement: isEnabled
+                          ? () => cubit.updateQuantity(
+                          componentKey, product, quantity + 1)
+                          : null,
+                    ),
+                  const SizedBox(width: 12),
+                  if (product != null)
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      color: Theme.of(context).colorScheme.error,
+                      onPressed: isEnabled
+                          ? () => cubit.selectComponentWithCompatibilityCheck(
+                          componentKey, null)
+                          : null,
+                    ),
+                  if (product == null || isMultiSelect)
+                    Expanded(
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: isEnabled
+                              ? () => _openPartsPicker(
+                            context,
+                            category: category,
+                            allowMultipleSelection: isMultiSelect,
+                            compatibleProducts: compatibleProducts,
+                            onProductsSelected: (selectedProducts) {
+                              if (isMultiSelect) {
+                                for (final product
+                                in selectedProducts) {
+                                  cubit.selectComponentWithCompatibilityCheck(
+                                      componentKey, product);
+                                }
+                              } else if (selectedProducts.isNotEmpty) {
+                                cubit.selectComponentWithCompatibilityCheck(
+                                    componentKey, selectedProducts.first);
+                              }
+                            },
+                          )
+                              : null,
+                          icon: const Icon(Icons.add),
+                          label: Text(product == null
+                              ? 'CHỌN ${label.toUpperCase()}'
+                              : 'THÊM'),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildMultiComponentCard(
-    BuildContext context, {
-    required String label,
-    required String componentKey,
-    required List<Product> products,
-    required CategoryEnum category,
-    required PCBuilderState state,
-  }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            ...products.asMap().entries.map((entry) {
-              final index = entry.key;
-              final product = entry.value;
-              final quantity = product.productID != null
-                  ? (state.quantities[product.productID!] ?? 1)
-                  : 1;
-              return Padding(
-                padding: EdgeInsets.only(top: index == 0 ? 12 : 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            product.productName,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Text(
-                                Helper.toCurrencyFormat(
-                                    product.discountedPrice.toInt()),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              if (quantity > 1) ...[
-                                const SizedBox(width: 8),
-                                Text('x$quantity'),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    _buildQuantityControls(
-                      context,
-                      quantity: quantity,
-                      onDecrement: quantity > 1
-                          ? () => cubit.updateQuantityInList(
-                              componentKey, index, quantity - 1)
-                          : null,
-                      onIncrement: () => cubit.updateQuantityInList(
-                          componentKey, index, quantity + 1),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      color: Theme.of(context).colorScheme.error,
-                      onPressed: () =>
-                          cubit.removeComponentFromList(componentKey, index),
-                    ),
-                  ],
-                ),
-              );
-            }),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _openPartsPicker(
-                  context,
-                  category: category,
-                  allowMultipleSelection: true,
-                  onProductsSelected: (selectedProducts) {
-                    for (final product in selectedProducts) {
-                      cubit.selectComponent(componentKey, product);
-                    }
-                  },
-                ),
-                icon: const Icon(Icons.add),
-                label: Text(
-                    products.isEmpty ? 'CHỌN ${label.toUpperCase()}' : 'THÊM'),
+      BuildContext context, {
+        required String label,
+        required String componentKey,
+        required List<Product> products,
+        required CategoryEnum category,
+        required PCBuilderState state,
+        bool isEnabled = true,
+        List<Product>? compatibleProducts,
+      }) {
+    return Opacity(
+      opacity: isEnabled ? 1.0 : 0.5,
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            ),
-          ],
+              ...products.asMap().entries.map((entry) {
+                final index = entry.key;
+                final product = entry.value;
+                final quantity = product.productID != null
+                    ? (state.quantities[product.productID!] ?? 1)
+                    : 1;
+                return Padding(
+                  padding: EdgeInsets.only(top: index == 0 ? 12 : 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: isEnabled
+                              ? () => _openPartsPicker(
+                            context,
+                            category: category,
+                            allowMultipleSelection: true,
+                            compatibleProducts: compatibleProducts,
+                            onProductsSelected: (selectedProducts) {
+                              for (final product in selectedProducts) {
+                                cubit.selectComponentWithCompatibilityCheck(
+                                    componentKey, product);
+                              }
+                            },
+                          )
+                              : null,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.productName,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Text(
+                                      Helper.toCurrencyFormat(
+                                          product.discountedPrice.toInt()),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (quantity > 1) ...[
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'x$quantity',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      _buildQuantityControls(
+                        context,
+                        quantity: quantity,
+                        onDecrement: quantity > 1 && isEnabled
+                            ? () => cubit.updateQuantityInList(
+                            componentKey, index, quantity - 1)
+                            : null,
+                        onIncrement: isEnabled
+                            ? () => cubit.updateQuantityInList(
+                            componentKey, index, quantity + 1)
+                            : null,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        color: Theme.of(context).colorScheme.error,
+                        onPressed: isEnabled
+                            ? () => cubit.removeComponentFromList(
+                            componentKey, index)
+                            : null,
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: isEnabled
+                      ? () => _openPartsPicker(
+                    context,
+                    category: category,
+                    allowMultipleSelection: true,
+                    compatibleProducts: compatibleProducts,
+                    onProductsSelected: (selectedProducts) {
+                      for (final product in selectedProducts) {
+                        cubit.selectComponentWithCompatibilityCheck(
+                            componentKey, product);
+                      }
+                    },
+                  )
+                      : null,
+                  icon: const Icon(Icons.add),
+                  label: Text(products.isEmpty
+                      ? 'CHỌN ${label.toUpperCase()}'
+                      : 'THÊM'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildQuantityControls(
-    BuildContext context, {
-    required int quantity,
-    VoidCallback? onDecrement,
-    required VoidCallback onIncrement,
-  }) {
+      BuildContext context, {
+        required int quantity,
+        VoidCallback? onDecrement,
+        required VoidCallback? onIncrement,
+      }) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color:
-              Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
+          Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
         ),
       ),
       child: Row(
@@ -508,17 +626,19 @@ class _PCBuilderMobileView extends StatelessWidget {
   }
 
   void _openPartsPicker(
-    BuildContext context, {
-    required CategoryEnum category,
-    required bool allowMultipleSelection,
-    required Function(List<Product>) onProductsSelected,
-  }) {
+      BuildContext context, {
+        required CategoryEnum category,
+        required bool allowMultipleSelection,
+        required Function(List<Product>) onProductsSelected,
+        List<Product>? compatibleProducts,
+      }) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PartsPickerScreen.newInstance(
           category: category,
           onProductsSelected: onProductsSelected,
           allowMultipleSelection: allowMultipleSelection,
+          compatibleProducts: compatibleProducts,
         ),
       ),
     );
@@ -597,8 +717,8 @@ class _PCBuilderMobileView extends StatelessWidget {
                       Text(
                         s.builderSessionsTitle,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close),

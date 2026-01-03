@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gizmoglobe_client/screens/builder/builder/pc_builder_view.dart';
 import 'package:gizmoglobe_client/screens/main/main_screen/main_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/product/product_screen/product_screen_view.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
@@ -23,6 +24,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget Function()> widgetList = [
     () => HomeScreen.newInstance(),
     () => ProductScreen.newInstance(),
+    () => PCBuilderScreen.newInstance(),
     () => Container(),
     () => UserScreen.newInstance(),
   ];
@@ -49,7 +51,7 @@ class _MainScreenState extends State<MainScreen> {
               child: BottomNavigationBar(
                 type: BottomNavigationBarType.fixed,
                 onTap: (value) {
-                  if (value == 2) {
+                  if (value == 3) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -80,6 +82,13 @@ class _MainScreenState extends State<MainScreen> {
                       isSelected: index == 1,
                     ),
                     label: S.of(context).productsTab,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: SelectableGradientIcon(
+                      icon: Icons.build,
+                      isSelected: index == 2,
+                    ),
+                    label: 'Builder',
                   ),
                   BottomNavigationBarItem(
                     icon: SelectableGradientIcon(
