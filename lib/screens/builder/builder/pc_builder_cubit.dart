@@ -156,15 +156,31 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
     // For RAM and drive, support multiple products (list)
     // For other components, single product
     if (componentKey == 'ram' || componentKey == 'drive') {
-      final currentList = updatedConfigs[state.activeConfigurationIndex]
-              [componentKey] as List<Product>? ??
-          <Product>[];
+      final currentList = List<Product>.from(
+          updatedConfigs[state.activeConfigurationIndex][componentKey]
+                  as List<Product>? ??
+              <Product>[]);
+
       if (product != null) {
-        // Add product to the list with default quantity 1
-        updatedConfigs[state.activeConfigurationIndex]
-            [componentKey] = [...currentList, product];
-        if (product.productID != null) {
-          updatedQuantities[product.productID!] = 1;
+        final productId = product.productID;
+        if (productId != null) {
+          final exists = currentList.any((p) => p.productID == productId);
+          if (exists) {
+            // Product exists, increment quantity
+            final currentQty = updatedQuantities[productId] ?? 0;
+            updatedQuantities[productId] = currentQty + 1;
+          } else {
+            // Product does not exist, add to list
+            currentList.add(product);
+            updatedQuantities[productId] = 1;
+            updatedConfigs[state.activeConfigurationIndex][componentKey] =
+                currentList;
+          }
+        } else {
+          // Fallback for products without ID
+          currentList.add(product);
+          updatedConfigs[state.activeConfigurationIndex][componentKey] =
+              currentList;
         }
       } else {
         // Clear the list and quantities
@@ -173,8 +189,8 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
         for (final productId in productsToRemove) {
           updatedQuantities.remove(productId);
         }
-        updatedConfigs[state.activeConfigurationIndex]
-            [componentKey] = <Product>[];
+        updatedConfigs[state.activeConfigurationIndex][componentKey] =
+            <Product>[];
       }
     } else {
       // Single product for other components
@@ -251,15 +267,7 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
     selectComponent(key, product);
 
     if (state.enableCompatibilityChecker) {
-      if (key == 'mainboard') {
-        selectComponent('cpu', null);
-        selectComponent('gpu', null);
-        selectComponent('ram', null);
-        selectComponent('drive', null);
-        selectComponent('psu', null);
-      } else if (key == 'cpu' || key == 'gpu') {
-        selectComponent('psu', null);
-      }
+      _validateConfigurationCompatibility();
     }
   }
 
