@@ -8,6 +8,12 @@ import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
+import 'package:gizmoglobe_client/objects/product_related/cpu_related/cpu.dart';
+import 'package:gizmoglobe_client/objects/product_related/drive_related/drive.dart';
+import 'package:gizmoglobe_client/objects/product_related/gpu_related/gpu.dart';
+import 'package:gizmoglobe_client/objects/product_related/mainboard_related/mainboard.dart';
+import 'package:gizmoglobe_client/objects/product_related/psu_related/psu.dart';
+import 'package:gizmoglobe_client/objects/product_related/ram_related/ram.dart';
 import 'package:gizmoglobe_client/screens/builder/builder/pc_builder_state.dart';
 import 'package:gizmoglobe_client/services/platform_actions.dart'
     as platform_actions;
@@ -260,19 +266,174 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
   void toggleCompatibilityChecker(bool value) {
     emit(state.copyWith(enableCompatibilityChecker: value));
 
-    // When toggling ON, validate current state immediately
     if (value) {
-      final config = state.activeConfiguration;
-      if (config['mainboard'] == null) {
-        selectComponent('cpu', null);
-        selectComponent('gpu', null);
-        selectComponent('ram', null);
-        selectComponent('drive', null);
-        selectComponent('psu', null);
-      } else if (config['cpu'] == null || config['gpu'] == null) {
-        selectComponent('psu', null);
+      _validateConfigurationCompatibility();
+    }
+  }
+
+  void _validateConfigurationCompatibility() {
+    final currentConfig = state.activeConfiguration;
+    // Create a deep copy of the configuration map to modify
+    final Map<String, dynamic> newConfig =
+        Map<String, dynamic>.from(currentConfig);
+    final Map<String, int> newQuantities =
+        Map<String, int>.from(state.quantities);
+    bool hasChanges = false;
+
+    final mainboard = newConfig['mainboard'] as Mainboard?;
+    final cpu = newConfig['cpu'] as CPU?;
+    // final gpu = newConfig['gpu'] as GPU?; // GPU is not checked against mainboard specifically in this logic, but we need it for PSU check later
+    final ramList = (newConfig['ram'] as List<dynamic>?)
+            ?.whereType<RAM>()
+            .toList() ??
+        <RAM>[];
+    final driveList = (newConfig['drive'] as List<dynamic>?)
+            ?.whereType<Drive>()
+            .toList() ??
+        <Drive>[];
+    final psu = newConfig['psu'] as PSU?;
+
+    // 1. Check Mainboard dependency
+    if (mainboard == null) {
+      // If no mainboard, remove everything else
+      if (newConfig['cpu'] != null) {
+        _removeProductQuantities(newConfig['cpu'], newQuantities);
+        newConfig['cpu'] = null;
+        hasChanges = true;
+      }
+      if (newConfig['gpu'] != null) {
+        _removeProductQuantities(newConfig['gpu'], newQuantities);
+        newConfig['gpu'] = null;
+        hasChanges = true;
+      }
+      if (ramList.isNotEmpty) {
+        for (var p in ramList) {
+          _removeProductQuantities(p, newQuantities);
+        }
+        newConfig['ram'] = <Product>[];
+        hasChanges = true;
+      }
+      if (driveList.isNotEmpty) {
+        for (var p in driveList) {
+          _removeProductQuantities(p, newQuantities);
+        }
+        newConfig['drive'] = <Product>[];
+        hasChanges = true;
+      }
+      if (newConfig['psu'] != null) {
+        _removeProductQuantities(newConfig['psu'], newQuantities);
+        newConfig['psu'] = null;
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
+        _applyConfigurationUpdate(newConfig, newQuantities);
+      }
+      return;
+    }
+
+    // Check CPU compatibility
+    if (cpu != null) {
+      if (cpu.socket != mainboard.socket) {
+        _removeProductQuantities(cpu, newQuantities);
+        newConfig['cpu'] = null;
+        hasChanges = true;
       }
     }
+
+    // Check RAM compatibility
+    if (ramList.isNotEmpty) {
+      final validRams = <RAM>[];
+      bool listChanged = false;
+      for (final ram in ramList) {
+        if (ram.type == mainboard.ramSpec.type) {
+          validRams.add(ram);
+        } else {
+          _removeProductQuantities(ram, newQuantities);
+          listChanged = true;
+        }
+      }
+      if (listChanged) {
+        newConfig['ram'] = validRams;
+        hasChanges = true;
+      }
+    }
+
+    // Check Drive compatibility
+    if (driveList.isNotEmpty) {
+      final validDrives = <Drive>[];
+      bool listChanged = false;
+      for (final drive in driveList) {
+        bool isCompatible = true;
+        // Check if M.2
+        if (drive.formFactor.name.toLowerCase().startsWith('m2')) {
+          if (mainboard.storageSlot.m2Slots <= 0) isCompatible = false;
+        } else {
+          // Assume SATA if not M.2
+          if (mainboard.storageSlot.sataPorts <= 0) isCompatible = false;
+        }
+
+        if (isCompatible) {
+          validDrives.add(drive);
+        } else {
+          _removeProductQuantities(drive, newQuantities);
+          listChanged = true;
+        }
+      }
+      if (listChanged) {
+        newConfig['drive'] = validDrives;
+        hasChanges = true;
+      }
+    }
+
+    // 2. Check PSU dependency
+    // Note: We use the potentially modified 'cpu' from newConfig (if it was removed above, it is null)
+    final currentCpu = newConfig['cpu'] as CPU?;
+    final currentGpu = newConfig['gpu']
+        as GPU?; // GPU is not removed by compatibility check unless mainboard is null
+
+    if (currentCpu == null || currentGpu == null) {
+      if (psu != null) {
+        _removeProductQuantities(psu, newQuantities);
+        newConfig['psu'] = null;
+        hasChanges = true;
+      }
+    } else {
+      // Check PSU Wattage
+      if (psu != null) {
+        final totalTdp = currentCpu.tdp + currentGpu.tdp;
+        // Simple heuristic: Total TDP + 100W buffer
+        if (psu.maxWattage < totalTdp + 100) {
+          _removeProductQuantities(psu, newQuantities);
+          newConfig['psu'] = null;
+          hasChanges = true;
+        }
+      }
+    }
+
+    if (hasChanges) {
+      _applyConfigurationUpdate(newConfig, newQuantities);
+    }
+  }
+
+  void _removeProductQuantities(dynamic product, Map<String, int> quantities) {
+    if (product is Product && product.productID != null) {
+      quantities.remove(product.productID);
+    }
+  }
+
+  void _applyConfigurationUpdate(
+      Map<String, dynamic> newConfig, Map<String, int> newQuantities) {
+    final updatedConfigs =
+        List<Map<String, dynamic>>.from(state.configurations);
+    updatedConfigs[state.activeConfigurationIndex] = newConfig;
+
+    emit(state.copyWith(
+      configurations: updatedConfigs,
+      quantities: newQuantities,
+    ));
+    _updateEstimatedCost();
+    _saveBuilderToFirebase();
   }
 
 
