@@ -346,7 +346,7 @@ class Database {
       data.putIfAbsent('productID', () => productDoc.id);
 
       return ProductFactory.createProduct(data);
-    } catch (e, st) {
+    } catch (e) {
       rethrow;
     }
   }
@@ -383,7 +383,7 @@ class Database {
           data.putIfAbsent('productID', () => doc.id);
 
           return ProductFactory.createProduct(data);
-        } catch (e, st) {
+        } catch (e) {
           rethrow;
         }
       })))
@@ -842,8 +842,9 @@ class Database {
         product.setRating(rounded);
       }
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         print('Error updating product average for $productId: $e');
+      }
     }
   }
 
