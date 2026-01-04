@@ -26,3 +26,12 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  errors:
+    use_build_context_synchronously: ignore
+  exclude:
+    - ios/**
+    - android/**
+    - build/**
+    - .dart_tool/**
