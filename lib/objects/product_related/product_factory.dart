@@ -38,7 +38,7 @@ class ProductFactory {
         CategoryEnumExtension.fromName(properties['category'].toString());
 
     int price = toInt(properties['sellingPrice']);
-    double discount = toDouble(properties['discount']);
+    int discount = toInt(properties['discount']);
     int discountedPrice = (price * (1 - discount / 100)).toInt();
 
     switch (category) {
