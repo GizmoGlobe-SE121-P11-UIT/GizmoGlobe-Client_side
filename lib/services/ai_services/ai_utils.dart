@@ -697,6 +697,7 @@ class AIUtils {
       'bao gồm'
     ];
 
+    // ignore: unused_local_variable
     for (final word in actionWords) {
       cleanedQuestion = cleanedQuestion.replaceAll(
           RegExp(r'\b$word\b', caseSensitive: false), '');

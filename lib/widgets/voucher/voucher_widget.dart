@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import '../../data/database/database.dart';
-import '../../functions/converter.dart';
 import '../../objects/voucher_related/end_time_interface.dart';
 import '../../objects/voucher_related/limited_interface.dart';
 import '../../objects/voucher_related/percentage_interface.dart';

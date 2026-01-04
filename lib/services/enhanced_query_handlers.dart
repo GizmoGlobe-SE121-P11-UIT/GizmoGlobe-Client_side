@@ -1,14 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import '../objects/product_related/product.dart';
-import '../enums/product_related/category_enum.dart';
-import 'recommendation_service.dart';
 
 /// Enhanced Query Handlers for Phase 2
 ///
 /// Handles promotion, bestseller, and build suggestion queries
 class EnhancedQueryHandlers {
-  final RecommendationService _recommendationService = RecommendationService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Handle promotion queries (e.g., "Products with >30% discount?")
@@ -122,7 +118,7 @@ class EnhancedQueryHandlers {
         for (var doc in topDocs) {
           final data = doc.data();
           final sales = data['sales'] ?? 0;
-          print('  - ${data['productName']}: ${sales} sales');
+          print('  - ${data['productName']}: $sales sales');
         }
       }
 
@@ -630,68 +626,6 @@ class EnhancedQueryHandlers {
       'drive': (totalBudget * 0.15).round(),
       'psu': (totalBudget * 0.10).round(),
     };
-  }
-
-  /// Convert Product objects to Firestore documents
-  Future<List<QueryDocumentSnapshot>> _convertProductsToFirestoreDocs(
-      List<Product> products) async {
-    if (products.isEmpty) return [];
-
-    try {
-      // Get all product IDs
-      final productIds = products
-          .where((p) => p.productID != null)
-          .map((p) => p.productID!)
-          .toList();
-
-      if (productIds.isEmpty) return [];
-
-      // Firestore whereIn limit is 10, so batch the queries
-      final List<QueryDocumentSnapshot> allDocs = [];
-
-      for (int i = 0; i < productIds.length; i += 10) {
-        final batch = productIds.skip(i).take(10).toList();
-
-        final snapshot = await _firestore
-            .collection('products')
-            .where(FieldPath.documentId, whereIn: batch)
-            .get();
-
-        allDocs.addAll(snapshot.docs);
-      }
-
-      return allDocs;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching product docs: $e');
-      }
-      return [];
-    }
-  }
-
-  /// Parse category string to CategoryEnum
-  CategoryEnum? _parseCategoryEnum(String? category) {
-    if (category == null) return null;
-
-    switch (category.toLowerCase()) {
-      case 'cpu':
-        return CategoryEnum.cpu;
-      case 'gpu':
-        return CategoryEnum.gpu;
-      case 'ram':
-        return CategoryEnum.ram;
-      case 'mainboard':
-      case 'motherboard':
-        return CategoryEnum.mainboard;
-      case 'psu':
-        return CategoryEnum.psu;
-      case 'drive':
-      case 'ssd':
-      case 'hdd':
-        return CategoryEnum.drive;
-      default:
-        return null;
-    }
   }
 
   /// Get products by category without price limit (sorted by price ascending)

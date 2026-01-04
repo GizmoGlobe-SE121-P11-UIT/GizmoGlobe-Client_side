@@ -57,6 +57,7 @@ class AIConversationService {
     }
   }
 
+  // ignore: unintended_html_in_doc_comment
   /// Normalize history to ensure all maps are regular Map<String, dynamic>, not IdentityMaps
   List<Map<String, dynamic>> _normalizeHistory(
       List<Map<String, dynamic>> history) {

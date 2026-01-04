@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/functions/converter.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/limited_interface.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_cubit.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gizmoglobe_client/functions/converter.dart';
 import 'package:gizmoglobe_client/objects/voucher_related/limited_interface.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_cubit.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_state.dart';
@@ -20,9 +19,9 @@ class VoucherDetailScreen extends StatefulWidget {
   const VoucherDetailScreen({super.key, required this.voucher});
 
   static Widget newInstance(Voucher voucher) => BlocProvider(
-    create: (context) => VoucherDetailCubit(voucher),
-    child: VoucherDetailScreen(voucher: voucher),
-  );
+        create: (context) => VoucherDetailCubit(voucher),
+        child: VoucherDetailScreen(voucher: voucher),
+      );
 
   @override
   State<VoucherDetailScreen> createState() => _VoucherDetailScreen();
@@ -64,9 +63,9 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
         title: Text(
           voucher.voucherName,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
         ),
       ),
       body: SingleChildScrollView(
@@ -109,7 +108,7 @@ class _VoucherDetailScreen extends State<VoucherDetailScreen> {
                 S.of(context).endTime,
                 voucher.hasEndTime
                     ? DateFormat('dd/MM/yyyy hh:mm:ss')
-                    .format((voucher as EndTimeInterface).endTime)
+                        .format((voucher as EndTimeInterface).endTime)
                     : S.of(context).noEndTime,
               ),
               const SizedBox(height: 12),

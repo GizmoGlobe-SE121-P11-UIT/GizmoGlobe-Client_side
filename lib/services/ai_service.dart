@@ -437,7 +437,9 @@ class AIService {
       // If asking about quantity specifically, provide a focused response
       if (isCartQuantityQuestion) {
         final totalItems = cartItems.fold<int>(
-            0, (sum, item) => sum + (item['quantity'] as int? ?? 0));
+            // ignore: avoid_types_as_parameter_names
+            0,
+            (sum, item) => sum + (item['quantity'] as int? ?? 0));
         final totalProducts = cartItems.length;
 
         return isVietnamese

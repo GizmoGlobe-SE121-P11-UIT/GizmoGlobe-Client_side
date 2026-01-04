@@ -189,8 +189,8 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
         for (final productId in productsToRemove) {
           updatedQuantities.remove(productId);
         }
-        updatedConfigs[state.activeConfigurationIndex][componentKey] =
-            <Product>[];
+        updatedConfigs[state.activeConfigurationIndex]
+            [componentKey] = <Product>[];
       }
     } else {
       // Single product for other components
@@ -291,14 +291,12 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
     final mainboard = newConfig['mainboard'] as Mainboard?;
     final cpu = newConfig['cpu'] as CPU?;
     // final gpu = newConfig['gpu'] as GPU?; // GPU is not checked against mainboard specifically in this logic, but we need it for PSU check later
-    final ramList = (newConfig['ram'] as List<dynamic>?)
-            ?.whereType<RAM>()
-            .toList() ??
-        <RAM>[];
-    final driveList = (newConfig['drive'] as List<dynamic>?)
-            ?.whereType<Drive>()
-            .toList() ??
-        <Drive>[];
+    final ramList =
+        (newConfig['ram'] as List<dynamic>?)?.whereType<RAM>().toList() ??
+            <RAM>[];
+    final driveList =
+        (newConfig['drive'] as List<dynamic>?)?.whereType<Drive>().toList() ??
+            <Drive>[];
     final psu = newConfig['psu'] as PSU?;
 
     // 1. Check Mainboard dependency
@@ -444,7 +442,6 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
     _saveBuilderToFirebase();
   }
 
-
   void _updateEstimatedCost() {
     final config = state.activeConfiguration;
     int total = 0;
@@ -544,13 +541,6 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
     return entries;
   }
 
-  void compareConfigurations() {
-    // TODO: Implement comparison feature
-    if (kDebugMode) {
-      print('Compare configurations');
-    }
-  }
-
   Future<void> downloadConfigurationPdf() async {
     final components = _collectActiveComponents();
     if (components.isEmpty) {
@@ -566,6 +556,7 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
     final timestamp = DateFormat('dd MMM yyyy, HH:mm').format(DateTime.now());
     final estimatedTotal = components.fold<double>(
       0,
+      // ignore: avoid_types_as_parameter_names
       (sum, entry) => sum + entry.product.discountedPrice * entry.quantity,
     );
 
@@ -596,7 +587,7 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
                   'Session ID: ${state.configurationId.isEmpty ? '-' : state.configurationId}'),
               pw.Text('Generated: $timestamp'),
               pw.SizedBox(height: 20),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: const [
                   'Category',
                   'Product',

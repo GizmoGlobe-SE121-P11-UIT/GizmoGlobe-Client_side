@@ -88,7 +88,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
 
   @override
   Widget build(BuildContext context) {
-    String _localizedMessage(SignInState state, BuildContext ctx) {
+    String localizedMessage(SignInState state, BuildContext ctx) {
       final locale = Localizations.localeOf(ctx);
       if (locale.languageCode.toLowerCase().startsWith('vi')) {
         return state.message.toVietnameseString();
@@ -237,7 +237,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                               title: state.dialogName == DialogName.failure
                                   ? S.of(context).failure
                                   : S.of(context).error,
-                              message: _localizedMessage(state, context),
+                              message: localizedMessage(state, context),
                             );
                             return;
                           }
@@ -251,7 +251,7 @@ class _SignInWebModalState extends State<SignInWebModal> {
                             SnackbarService.showSuccessAboveOverlay(
                               overlayState,
                               title: S.of(context).success,
-                              message: _localizedMessage(state, context),
+                              message: localizedMessage(state, context),
                             );
                             // Close modal and navigate on next frame using root navigator
                             Navigator.of(context, rootNavigator: true).pop();

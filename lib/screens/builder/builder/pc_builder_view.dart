@@ -121,13 +121,13 @@ class _PCBuilderMobileView extends StatelessWidget {
                       // PSU requires CPU and GPU
                       isEnabled = cpu != null && gpu != null;
                       if (isEnabled) {
-                        compatibleProducts = [cpu!, gpu!];
+                        compatibleProducts = [cpu, gpu];
                       }
                     } else {
                       // CPU, RAM, Drive, GPU require Mainboard
                       isEnabled = mainboard != null;
                       if (isEnabled) {
-                        compatibleProducts = [mainboard!];
+                        compatibleProducts = [mainboard];
                       }
                     }
                   }
@@ -169,9 +169,9 @@ class _PCBuilderMobileView extends StatelessWidget {
                   child: Text(
                     '${s.totalCost}: ${Helper.toCurrencyFormat(state.estimatedCost)}',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -232,19 +232,19 @@ class _PCBuilderMobileView extends StatelessWidget {
           children: actions
               .map(
                 (action) => SizedBox(
-              width: itemWidth,
-              child: OutlinedButton(
-                onPressed: action['onTap'] as VoidCallback,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+                  width: itemWidth,
+                  child: OutlinedButton(
+                    onPressed: action['onTap'] as VoidCallback,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                    child: Icon(action['icon'] as IconData, size: 20),
                   ),
                 ),
-                child: Icon(action['icon'] as IconData, size: 20),
-              ),
-            ),
-          )
+              )
               .toList(),
         );
       },
@@ -283,16 +283,16 @@ class _PCBuilderMobileView extends StatelessWidget {
   }
 
   Widget _buildComponentCard(
-      BuildContext context, {
-        required String label,
-        required String componentKey,
-        required CategoryEnum category,
-        required PCBuilderState state,
-        Product? product,
-        required int quantity,
-        bool isEnabled = true,
-        List<Product>? compatibleProducts,
-      }) {
+    BuildContext context, {
+    required String label,
+    required String componentKey,
+    required CategoryEnum category,
+    required PCBuilderState state,
+    Product? product,
+    required int quantity,
+    bool isEnabled = true,
+    List<Product>? compatibleProducts,
+  }) {
     final isMultiSelect = componentKey == 'ram' || componentKey == 'drive';
     return Opacity(
       opacity: isEnabled ? 1.0 : 0.5,
@@ -313,22 +313,22 @@ class _PCBuilderMobileView extends StatelessWidget {
                 InkWell(
                   onTap: isEnabled
                       ? () => _openPartsPicker(
-                    context,
-                    category: category,
-                    allowMultipleSelection: isMultiSelect,
-                    compatibleProducts: compatibleProducts,
-                    onProductsSelected: (selectedProducts) {
-                      if (isMultiSelect) {
-                        for (final product in selectedProducts) {
-                          cubit.selectComponentWithCompatibilityCheck(
-                              componentKey, product);
-                        }
-                      } else if (selectedProducts.isNotEmpty) {
-                        cubit.selectComponentWithCompatibilityCheck(
-                            componentKey, selectedProducts.first);
-                      }
-                    },
-                  )
+                            context,
+                            category: category,
+                            allowMultipleSelection: isMultiSelect,
+                            compatibleProducts: compatibleProducts,
+                            onProductsSelected: (selectedProducts) {
+                              if (isMultiSelect) {
+                                for (final product in selectedProducts) {
+                                  cubit.selectComponentWithCompatibilityCheck(
+                                      componentKey, product);
+                                }
+                              } else if (selectedProducts.isNotEmpty) {
+                                cubit.selectComponentWithCompatibilityCheck(
+                                    componentKey, selectedProducts.first);
+                              }
+                            },
+                          )
                       : null,
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
@@ -339,12 +339,12 @@ class _PCBuilderMobileView extends StatelessWidget {
                         Text(
                           product.productName,
                           style:
-                          Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.7),
-                          ),
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.7),
+                                  ),
                         ),
                         const SizedBox(height: 6),
                         Row(
@@ -356,10 +356,10 @@ class _PCBuilderMobileView extends StatelessWidget {
                                   .textTheme
                                   .titleMedium
                                   ?.copyWith(
-                                color:
-                                Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             if (quantity > 1) ...[
                               const SizedBox(width: 8),
@@ -385,11 +385,11 @@ class _PCBuilderMobileView extends StatelessWidget {
                       quantity: quantity,
                       onDecrement: quantity > 1 && isEnabled
                           ? () => cubit.updateQuantity(
-                          componentKey, product, quantity - 1)
+                              componentKey, product, quantity - 1)
                           : null,
                       onIncrement: isEnabled
                           ? () => cubit.updateQuantity(
-                          componentKey, product, quantity + 1)
+                              componentKey, product, quantity + 1)
                           : null,
                     ),
                   const SizedBox(width: 12),
@@ -399,7 +399,7 @@ class _PCBuilderMobileView extends StatelessWidget {
                       color: Theme.of(context).colorScheme.error,
                       onPressed: isEnabled
                           ? () => cubit.selectComponentWithCompatibilityCheck(
-                          componentKey, null)
+                              componentKey, null)
                           : null,
                     ),
                   if (product == null || isMultiSelect)
@@ -409,23 +409,26 @@ class _PCBuilderMobileView extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: isEnabled
                               ? () => _openPartsPicker(
-                            context,
-                            category: category,
-                            allowMultipleSelection: isMultiSelect,
-                            compatibleProducts: compatibleProducts,
-                            onProductsSelected: (selectedProducts) {
-                              if (isMultiSelect) {
-                                for (final product
-                                in selectedProducts) {
-                                  cubit.selectComponentWithCompatibilityCheck(
-                                      componentKey, product);
-                                }
-                              } else if (selectedProducts.isNotEmpty) {
-                                cubit.selectComponentWithCompatibilityCheck(
-                                    componentKey, selectedProducts.first);
-                              }
-                            },
-                          )
+                                    context,
+                                    category: category,
+                                    allowMultipleSelection: isMultiSelect,
+                                    compatibleProducts: compatibleProducts,
+                                    onProductsSelected: (selectedProducts) {
+                                      if (isMultiSelect) {
+                                        for (final product
+                                            in selectedProducts) {
+                                          cubit
+                                              .selectComponentWithCompatibilityCheck(
+                                                  componentKey, product);
+                                        }
+                                      } else if (selectedProducts.isNotEmpty) {
+                                        cubit
+                                            .selectComponentWithCompatibilityCheck(
+                                                componentKey,
+                                                selectedProducts.first);
+                                      }
+                                    },
+                                  )
                               : null,
                           icon: const Icon(Icons.add),
                           label: Text(product == null
@@ -444,15 +447,15 @@ class _PCBuilderMobileView extends StatelessWidget {
   }
 
   Widget _buildMultiComponentCard(
-      BuildContext context, {
-        required String label,
-        required String componentKey,
-        required List<Product> products,
-        required CategoryEnum category,
-        required PCBuilderState state,
-        bool isEnabled = true,
-        List<Product>? compatibleProducts,
-      }) {
+    BuildContext context, {
+    required String label,
+    required String componentKey,
+    required List<Product> products,
+    required CategoryEnum category,
+    required PCBuilderState state,
+    bool isEnabled = true,
+    List<Product>? compatibleProducts,
+  }) {
     return Opacity(
       opacity: isEnabled ? 1.0 : 0.5,
       child: Card(
@@ -482,17 +485,18 @@ class _PCBuilderMobileView extends StatelessWidget {
                         child: InkWell(
                           onTap: isEnabled
                               ? () => _openPartsPicker(
-                            context,
-                            category: category,
-                            allowMultipleSelection: true,
-                            compatibleProducts: compatibleProducts,
-                            onProductsSelected: (selectedProducts) {
-                              for (final product in selectedProducts) {
-                                cubit.selectComponentWithCompatibilityCheck(
-                                    componentKey, product);
-                              }
-                            },
-                          )
+                                    context,
+                                    category: category,
+                                    allowMultipleSelection: true,
+                                    compatibleProducts: compatibleProducts,
+                                    onProductsSelected: (selectedProducts) {
+                                      for (final product in selectedProducts) {
+                                        cubit
+                                            .selectComponentWithCompatibilityCheck(
+                                                componentKey, product);
+                                      }
+                                    },
+                                  )
                               : null,
                           borderRadius: BorderRadius.circular(8),
                           child: Padding(
@@ -514,11 +518,11 @@ class _PCBuilderMobileView extends StatelessWidget {
                                           .textTheme
                                           .titleMedium
                                           ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                     if (quantity > 1) ...[
                                       const SizedBox(width: 8),
@@ -541,11 +545,11 @@ class _PCBuilderMobileView extends StatelessWidget {
                         quantity: quantity,
                         onDecrement: quantity > 1 && isEnabled
                             ? () => cubit.updateQuantityInList(
-                            componentKey, index, quantity - 1)
+                                componentKey, index, quantity - 1)
                             : null,
                         onIncrement: isEnabled
                             ? () => cubit.updateQuantityInList(
-                            componentKey, index, quantity + 1)
+                                componentKey, index, quantity + 1)
                             : null,
                       ),
                       IconButton(
@@ -553,7 +557,7 @@ class _PCBuilderMobileView extends StatelessWidget {
                         color: Theme.of(context).colorScheme.error,
                         onPressed: isEnabled
                             ? () => cubit.removeComponentFromList(
-                            componentKey, index)
+                                componentKey, index)
                             : null,
                       ),
                     ],
@@ -566,17 +570,17 @@ class _PCBuilderMobileView extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: isEnabled
                       ? () => _openPartsPicker(
-                    context,
-                    category: category,
-                    allowMultipleSelection: true,
-                    compatibleProducts: compatibleProducts,
-                    onProductsSelected: (selectedProducts) {
-                      for (final product in selectedProducts) {
-                        cubit.selectComponentWithCompatibilityCheck(
-                            componentKey, product);
-                      }
-                    },
-                  )
+                            context,
+                            category: category,
+                            allowMultipleSelection: true,
+                            compatibleProducts: compatibleProducts,
+                            onProductsSelected: (selectedProducts) {
+                              for (final product in selectedProducts) {
+                                cubit.selectComponentWithCompatibilityCheck(
+                                    componentKey, product);
+                              }
+                            },
+                          )
                       : null,
                   icon: const Icon(Icons.add),
                   label: Text(products.isEmpty
@@ -592,17 +596,17 @@ class _PCBuilderMobileView extends StatelessWidget {
   }
 
   Widget _buildQuantityControls(
-      BuildContext context, {
-        required int quantity,
-        VoidCallback? onDecrement,
-        required VoidCallback? onIncrement,
-      }) {
+    BuildContext context, {
+    required int quantity,
+    VoidCallback? onDecrement,
+    required VoidCallback? onIncrement,
+  }) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color:
-          Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
+              Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
         ),
       ),
       child: Row(
@@ -626,12 +630,12 @@ class _PCBuilderMobileView extends StatelessWidget {
   }
 
   void _openPartsPicker(
-      BuildContext context, {
-        required CategoryEnum category,
-        required bool allowMultipleSelection,
-        required Function(List<Product>) onProductsSelected,
-        List<Product>? compatibleProducts,
-      }) {
+    BuildContext context, {
+    required CategoryEnum category,
+    required bool allowMultipleSelection,
+    required Function(List<Product>) onProductsSelected,
+    List<Product>? compatibleProducts,
+  }) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PartsPickerScreen.newInstance(
@@ -717,8 +721,8 @@ class _PCBuilderMobileView extends StatelessWidget {
                       Text(
                         s.builderSessionsTitle,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/enums/voucher_related/distribution_type.dart';
-import '../../functions/converter.dart';
 import '../../objects/voucher_related/end_time_interface.dart';
 import '../../objects/voucher_related/limited_interface.dart';
 import '../../objects/voucher_related/percentage_interface.dart';
@@ -26,7 +25,8 @@ class RedeemableVoucherWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final int? redeemPrice = voucher.redeemPrice;
-    final bool canRedeem = redeemPrice == null || Database().loyalPoint >= redeemPrice;
+    final bool canRedeem =
+        redeemPrice == null || Database().loyalPoint >= redeemPrice;
     return Container(
       margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
       child: Material(
@@ -126,15 +126,18 @@ class RedeemableVoucherWidget extends StatelessWidget {
                               const SizedBox(width: 16),
                               _buildUsageInfo(context),
                             ],
-                            if (voucher.distributionType == DistributionType.rewards &&
+                            if (voucher.distributionType ==
+                                    DistributionType.rewards &&
                                 (voucher.redeemPrice != null)) ...[
                               const SizedBox(width: 12),
                               ElevatedButton(
-                                onPressed: canRedeem ? (onRedeem ?? onPressed) : null,
+                                onPressed:
+                                    canRedeem ? (onRedeem ?? onPressed) : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: colorScheme.surface,
                                   foregroundColor: colorScheme.onSurface,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -145,7 +148,8 @@ class RedeemableVoucherWidget extends StatelessWidget {
                                   children: [
                                     Text(
                                       'Redeem: ${voucher.redeemPrice}',
-                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                      style:
+                                          theme.textTheme.bodyMedium?.copyWith(
                                         color: colorScheme.onSurface,
                                         fontWeight: FontWeight.bold,
                                       ),
