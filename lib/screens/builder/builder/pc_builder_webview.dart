@@ -526,20 +526,21 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
   }
 
   Widget _buildComponentRow(
-    BuildContext context, {
-    required String label,
-    Product? product,
-    required String componentKey,
-    required int quantity,
-    required VoidCallback onSelect,
-    VoidCallback? onRemove,
-    Function(int)? onQuantityChanged,
-    bool showAddButton = false,
-    bool isEnabled = true,
-  }) {
+      BuildContext context, {
+        required String label,
+        Product? product,
+        required String componentKey,
+        required int quantity,
+        required VoidCallback onSelect,
+        VoidCallback? onRemove,
+        Function(int)? onQuantityChanged,
+        bool showAddButton = false,
+        bool isEnabled = true,
+      }) {
     final isMultiSelect = componentKey == 'ram' || componentKey == 'drive';
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
+    final canChange = ['mainboard', 'cpu', 'gpu', 'psu'].contains(componentKey);
 
     // Build quantity controls widget
     Widget buildQuantityControls() {
@@ -548,7 +549,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
         decoration: BoxDecoration(
           border: Border.all(
             color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+            Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -569,9 +570,9 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                 foregroundColor: quantity > 1
                     ? Theme.of(context).colorScheme.onSurface
                     : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.3),
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.3),
               ),
             ),
             Container(
@@ -619,6 +620,34 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
       );
     }
 
+    // Build change button widget
+    Widget buildChangeButton() {
+      return ElevatedButton(
+        onPressed: isEnabled ? onSelect : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+          Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          foregroundColor: Theme.of(context).colorScheme.primary,
+          elevation: 0,
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 12 : 16,
+            vertical: 0,
+          ),
+          minimumSize: Size(0, isMobile ? 32 : 40),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text(
+          'ĐỔI${label.isNotEmpty ? ' ${label.toUpperCase()}' : ''}',
+          style: TextStyle(
+            fontSize: isMobile ? 12 : 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
+
     // Build add/select button widget
     Widget buildSelectButton() {
       if (product != null) return const SizedBox.shrink();
@@ -633,8 +662,8 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
         label: Text(showAddButton
             ? 'THÊM'
             : (label.isNotEmpty
-                ? (isMobile ? 'CHỌN' : 'CHỌN ${label.toUpperCase()}')
-                : 'CHỌN')),
+            ? (isMobile ? 'CHỌN' : 'CHỌN ${label.toUpperCase()}')
+            : 'CHỌN')),
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -697,6 +726,10 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   buildQuantityControls(),
+                  if (canChange) ...[
+                    SizedBox(width: isMobile ? 4 : 8),
+                    buildChangeButton(),
+                  ],
                   if (onRemove != null) ...[
                     SizedBox(width: isMobile ? 4 : 8),
                     buildRemoveButton(),

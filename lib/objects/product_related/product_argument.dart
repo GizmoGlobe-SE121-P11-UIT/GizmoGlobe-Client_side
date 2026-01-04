@@ -34,7 +34,7 @@ class ProductArgument {
   CategoryEnum? category;
   int? price;
   int? discountedPrice;
-  double? discount;
+  int? discount;
   DateTime? release;
   int? sales;
   int? stock;
@@ -158,7 +158,7 @@ class ProductArgument {
     Manufacturer? manufacturer,
     CategoryEnum? category,
     int? price,
-    double? discount,
+    int? discount,
     DateTime? release,
     int? sales,
     int? stock,
@@ -262,7 +262,7 @@ class ProductArgument {
     );
   }
 
-  int _getDiscountedPrice(int? price, double? discount) {
+  int _getDiscountedPrice(int? price, int? discount) {
     return (price! * (1 - discount! / 100)).toInt();
   }
 
