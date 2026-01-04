@@ -9,7 +9,7 @@ abstract class Product {
   String productName;
   CategoryEnum category;
   int price;
-  double discount;
+  int discount;
   int discountedPrice;
   DateTime release;
   int sales;
