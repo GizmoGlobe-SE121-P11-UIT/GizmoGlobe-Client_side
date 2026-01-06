@@ -1,6 +1,6 @@
 {
-    "name": "gizmoglobe_client",
-    "short_name": "gizmoglobe_client",
+    "name": "GizmoGlobe",
+    "short_name": "GizmoGlobe",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
