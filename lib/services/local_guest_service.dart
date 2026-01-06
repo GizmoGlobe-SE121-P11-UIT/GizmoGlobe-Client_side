@@ -24,9 +24,6 @@ class LocalGuestService {
         return guestUserId != null && guestUserId.isNotEmpty;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error checking guest user: $e');
-      }
       return false;
     }
   }
@@ -41,9 +38,6 @@ class LocalGuestService {
         return prefs.getString(_guestUserIdKey);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting stored guest user ID: $e');
-      }
       return null;
     }
   }
@@ -64,9 +58,6 @@ class LocalGuestService {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting stored guest user data: $e');
-      }
       return null;
     }
   }
@@ -87,9 +78,6 @@ class LocalGuestService {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting stored guest customer data: $e');
-      }
       return null;
     }
   }
@@ -112,9 +100,6 @@ class LocalGuestService {
         // Try to get existing guest data
         final userData = await getStoredGuestUserData();
         if (userData != null) {
-          if (kDebugMode) {
-            print('Retrieved existing guest user: $storedUserId');
-          }
           return userData;
         }
       }
@@ -127,15 +112,8 @@ class LocalGuestService {
       await _storeGuestData(
           guestUserId, guestData['userData'], guestData['customerData']);
 
-      if (kDebugMode) {
-        print('Created new guest user: $guestUserId');
-      }
-
       return guestData['userData'];
     } catch (e) {
-      if (kDebugMode) {
-        print('Error creating/retrieving guest user: $e');
-      }
       return null;
     }
   }
@@ -198,9 +176,6 @@ class LocalGuestService {
         await prefs.setString(_guestCustomerDataKey, customerDataJson);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error storing guest data: $e');
-      }
       throw Exception('Failed to store guest data: $e');
     }
   }
@@ -217,9 +192,7 @@ class LocalGuestService {
         await prefs.setString(_guestCartKey, cartJson);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error storing guest cart: $e');
-      }
+      // Error storing guest cart
     }
   }
 
@@ -241,9 +214,6 @@ class LocalGuestService {
       }
       return [];
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting guest cart: $e');
-      }
       return [];
     }
   }
@@ -260,9 +230,7 @@ class LocalGuestService {
         await prefs.setString(_guestFavoritesKey, favoritesJson);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error storing guest favorites: $e');
-      }
+      // Error storing guest favorites
     }
   }
 
@@ -284,9 +252,6 @@ class LocalGuestService {
       }
       return [];
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting guest favorites: $e');
-      }
       return [];
     }
   }
@@ -297,9 +262,6 @@ class LocalGuestService {
       final userData = await getStoredGuestUserData();
       return userData != null && (userData['isGuest'] ?? false);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error checking if user is guest: $e');
-      }
       return false;
     }
   }
@@ -323,14 +285,8 @@ class LocalGuestService {
         await prefs.remove(_guestCartKey);
         await prefs.remove(_guestFavoritesKey);
       }
-
-      if (kDebugMode) {
-        print('Guest user data cleared successfully');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error clearing guest user data: $e');
-      }
+      // Error clearing guest user data
     }
   }
 
@@ -353,9 +309,7 @@ class LocalGuestService {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating guest user data: $e');
-      }
+      // Error updating guest user data
     }
   }
 
@@ -378,9 +332,7 @@ class LocalGuestService {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating guest customer data: $e');
-      }
+      // Error updating guest customer data
     }
   }
 }

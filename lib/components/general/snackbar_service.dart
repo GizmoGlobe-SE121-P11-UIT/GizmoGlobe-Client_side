@@ -57,10 +57,40 @@ class SnackbarService {
                 color: Colors.transparent,
                 shadowColor:
                     Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
-                child: AwesomeSnackbarContent(
-                  title: title,
-                  message: message,
-                  contentType: contentType,
+                child: GestureDetector(
+                  onTap: () {
+                    overlayEntry?.remove();
+                  },
+                  child: Stack(
+                    children: [
+                      AwesomeSnackbarContent(
+                        title: title,
+                        message: message,
+                        contentType: contentType,
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () {
+                            overlayEntry?.remove();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -71,8 +101,8 @@ class SnackbarService {
         // This ensures the snackbar appears above all other overlays including dialogs
         overlay.insert(overlayEntry!);
 
-        // Auto-remove after 3 seconds
-        Future.delayed(const Duration(seconds: 3), () {
+        // Auto-remove after 5 seconds (extended from 3 to give users more time to read)
+        Future.delayed(const Duration(seconds: 5), () {
           overlayEntry?.remove();
         });
       });

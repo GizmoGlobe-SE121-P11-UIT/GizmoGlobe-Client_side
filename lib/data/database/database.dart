@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/rating.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -404,9 +403,6 @@ class Database {
 
       return products;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting products: $e');
-      }
       rethrow;
     }
   }
@@ -516,9 +512,6 @@ class Database {
 
       return bestSellers;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error creating best seller products: $e');
-      }
       rethrow;
     }
   }
@@ -551,16 +544,8 @@ class Database {
           .where((product) => favoriteProductIDs.contains(product.productID))
           .toList();
 
-      if (kDebugMode) {
-        print(
-            'Found ${favoriteProducts.length} favorite products from local data');
-      }
-
       return favoriteProducts;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching favorite products: $e');
-      }
       rethrow;
     }
   }
@@ -694,9 +679,7 @@ class Database {
         ownedVoucherUses[id] = o.numberOfUses;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating voucher lists: $e');
-      }
+      // Error updating voucher lists - silently continue
     }
   }
 
@@ -705,9 +688,6 @@ class Database {
     try {
       salesInvoiceList = await Firebase().getSalesInvoices();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching sales invoices: $e');
-      }
       await _loadSalesInvoicesFromCache();
     }
 
@@ -732,13 +712,9 @@ class Database {
           .timeout(const Duration(seconds: 2));
       _authStateInitialized = true;
     } on TimeoutException {
-      if (kDebugMode) {
-        print('Auth state initialization timed out');
-      }
+      // Auth state initialization timed out
     } catch (e) {
-      if (kDebugMode) {
-        print('Error waiting for auth state: $e');
-      }
+      // Error waiting for auth state
     }
   }
 
@@ -758,9 +734,7 @@ class Database {
       );
       await prefs.setString(_salesInvoiceCacheKey, encoded);
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to cache sales invoices: $e');
-      }
+      // Failed to cache sales invoices - silently continue
     }
   }
 
@@ -815,9 +789,6 @@ class Database {
         product.setRating(rounded);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error calculating product ratings: $e');
-      }
       rethrow;
     }
   }
@@ -842,9 +813,7 @@ class Database {
         product.setRating(rounded);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating product average for $productId: $e');
-      }
+      // Error updating product average - silently continue
     }
   }
 
@@ -858,7 +827,7 @@ class Database {
         await updateProductAverage(pid);
       }
     } catch (e) {
-      if (kDebugMode) print('Error updating all product averages: $e');
+      rethrow;
     }
   }
 
@@ -882,9 +851,6 @@ class Database {
         return invoice.copyWith(details: detailList);
       }).toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to load cached sales invoices: $e');
-      }
       salesInvoiceList = [];
     }
   }

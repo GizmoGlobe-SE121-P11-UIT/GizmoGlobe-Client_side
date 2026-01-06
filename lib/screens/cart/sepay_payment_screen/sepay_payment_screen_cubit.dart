@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import 'package:gizmoglobe_client/services/sepay_payment_listener.dart';
@@ -222,10 +221,6 @@ class SePayPaymentScreenCubit extends Cubit<SePayPaymentScreenState> {
             } catch (e) {
               errorMessage ??=
                   'Some items could not be restored to your cart. Please review your cart.';
-              if (kDebugMode) {
-                print(
-                    'Error restoring product $productID x$quantity to cart: $e');
-              }
             }
           }
         }
@@ -234,18 +229,12 @@ class SePayPaymentScreenCubit extends Cubit<SePayPaymentScreenState> {
       try {
         await _firebase.cancelSalesInvoice(_orderId!);
       } catch (e) {
-        if (kDebugMode) {
-          print('Warning: cancelSalesInvoice failed: $e');
-        }
         errorMessage ??= 'Unable to cancel pending invoice properly.';
       }
 
       try {
         await _firebase.deleteSalesInvoice(_orderId!);
       } catch (e) {
-        if (kDebugMode) {
-          print('Warning: deleteSalesInvoice failed: $e');
-        }
         errorMessage ??= 'Unable to remove pending invoice.';
       }
 

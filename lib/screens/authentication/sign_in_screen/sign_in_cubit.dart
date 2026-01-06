@@ -69,9 +69,7 @@ class SignInCubit extends Cubit<SignInState> {
         try {
           await Database().refreshUserScopedData();
         } catch (e) {
-          if (kDebugMode) {
-            print('Error refreshing user data after email sign-in: $e');
-          }
+          // Error refreshing user data after email sign-in
         }
         if (isClosed) return;
         emit(state.copyWith(
@@ -81,6 +79,34 @@ class SignInCubit extends Cubit<SignInState> {
           isEmailLoading: false,
         ));
       }
+    } on FirebaseAuthException catch (e) {
+      NotifyMessage errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = NotifyMessage.userNotFound;
+          break;
+        case 'wrong-password':
+          errorMessage = NotifyMessage.wrongPassword;
+          break;
+        case 'invalid-email':
+          errorMessage = NotifyMessage.invalidEmail;
+          break;
+        case 'user-disabled':
+          errorMessage = NotifyMessage.msg2;
+          break;
+        case 'invalid-credential':
+          errorMessage = NotifyMessage.wrongPassword;
+          break;
+        default:
+          errorMessage = NotifyMessage.msg2;
+      }
+      if (isClosed) return;
+      emit(state.copyWith(
+        processState: ProcessState.failure,
+        dialogName: DialogName.failure,
+        message: errorMessage,
+        isEmailLoading: false,
+      ));
     } catch (error) {
       if (isClosed) return;
       emit(state.copyWith(
@@ -120,20 +146,11 @@ class SignInCubit extends Cubit<SignInState> {
             // Clear guest data before redirect (user will be redirected away)
             await _localGuestService.clearGuestUser();
 
-            if (kDebugMode) {
-              print(
-                  'Popup unavailable (${e.code}). Falling back to redirect...');
-              print('Current URL before redirect: ${Uri.base}');
-            }
-
             await _auth.signInWithRedirect(googleProvider);
             return; // Will navigate away
           }
 
           if (popupClosed || popupCancelled) {
-            if (kDebugMode) {
-              print('Google Sign-In popup closed/cancelled by user.');
-            }
             if (!isClosed) {
               emit(state.copyWith(processState: ProcessState.idle));
             }
@@ -151,9 +168,6 @@ class SignInCubit extends Cubit<SignInState> {
           return;
         } catch (error) {
           // Handle other types of errors
-          if (kDebugMode) {
-            print('Google Sign-In error: $error');
-          }
 
           if (!isClosed) {
             emit(state.copyWith(
@@ -179,19 +193,11 @@ class SignInCubit extends Cubit<SignInState> {
 
         final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
         if (googleUser == null) {
-          if (kDebugMode) {
-            print('Google Sign-In cancelled by user');
-          }
           if (!isClosed) {
             emit(state.copyWith(
                 processState: ProcessState.idle, isGoogleLoading: false));
           }
           return;
-        }
-
-        if (kDebugMode) {
-          print('Google Sign-In successful, getting authentication...');
-          print('User email: ${googleUser.email}');
         }
 
         final GoogleSignInAuthentication googleAuth =
@@ -213,9 +219,7 @@ class SignInCubit extends Cubit<SignInState> {
         try {
           await Database().refreshUserScopedData();
         } catch (e) {
-          if (kDebugMode) {
-            print('Error refreshing user data after Google sign-in: $e');
-          }
+          // Error refreshing user data after Google sign-in
         }
         if (!isClosed) {
           emit(state.copyWith(
@@ -226,11 +230,7 @@ class SignInCubit extends Cubit<SignInState> {
           ));
         }
       }
-    } on FirebaseAuthException catch (e) {
-      if (kDebugMode) {
-        print(
-            'FirebaseAuthException during Google Sign-In: code=${e.code}, message=${e.message}');
-      }
+    } on FirebaseAuthException {
       if (!isClosed) {
         emit(state.copyWith(
           processState: ProcessState.failure,
@@ -239,11 +239,7 @@ class SignInCubit extends Cubit<SignInState> {
           isGoogleLoading: false,
         ));
       }
-    } catch (error, stackTrace) {
-      if (kDebugMode) {
-        print('Google Sign-In error: $error');
-        print('Stack trace: $stackTrace');
-      }
+    } catch (error) {
       if (!isClosed) {
         emit(state.copyWith(
           processState: ProcessState.failure,
@@ -270,11 +266,6 @@ class SignInCubit extends Cubit<SignInState> {
       final guestUserData = await _localGuestService.createOrGetGuestUser();
 
       if (guestUserData != null) {
-        if (kDebugMode) {
-          print(
-              'Guest user signed in successfully: ${guestUserData['userid']}');
-        }
-
         if (isClosed) return;
         emit(state.copyWith(
           processState: ProcessState.success,
@@ -287,9 +278,6 @@ class SignInCubit extends Cubit<SignInState> {
         throw Exception('Failed to create guest user data');
       }
     } catch (error) {
-      if (kDebugMode) {
-        print('Error signing in as guest: $error');
-      }
       if (isClosed) return;
       emit(state.copyWith(
         processState: ProcessState.failure,
@@ -346,9 +334,6 @@ class SignInCubit extends Cubit<SignInState> {
       batch.set(customerDocRef, customerData, SetOptions(merge: true));
       await batch.commit();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error setting up user data: $e');
-      }
       throw Exception('Failed to set up user data: $e');
     }
   }

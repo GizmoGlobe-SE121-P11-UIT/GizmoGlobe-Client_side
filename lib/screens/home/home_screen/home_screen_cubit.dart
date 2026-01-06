@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/services/recommendation/recommendation_service.dart';
@@ -99,9 +98,7 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating favorite products: $e');
-      }
+      // Error updating favorite products
       // print('Lỗi khi cập nhật danh sách sản phẩm yêu thích: $e');
     }
   }

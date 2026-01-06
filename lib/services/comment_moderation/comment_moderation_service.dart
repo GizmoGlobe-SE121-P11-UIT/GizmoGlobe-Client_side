@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_profanity_words_checker/flutter_profanity_words_checker.dart'
     as profanity;
@@ -88,16 +87,8 @@ class CommentModerationService {
                   return GenerativeModel(
                       model: 'gemini-2.5-flash', apiKey: key);
                 } catch (e) {
-                  if (kDebugMode) {
-                    debugPrint(
-                        'CommentModerationService: Failed to initialize Gemini model: $e');
-                  }
                   return null;
                 }
-              }
-              if (kDebugMode) {
-                debugPrint(
-                    'CommentModerationService: GEMINI_API_KEY not found. Gemini analysis will be disabled.');
               }
               return null;
             })(),
@@ -134,11 +125,8 @@ class CommentModerationService {
 
     try {
       aiInsights = await _analyzeWithGemini(trimmed, userId);
-    } catch (e, stack) {
-      if (kDebugMode) {
-        debugPrint(
-            'CommentModerationService: Gemini analysis failed: $e\n$stack');
-      }
+    } catch (e) {
+      // Gemini analysis failed
     }
 
     final geminiToxicity = aiInsights?['toxicity'];
@@ -194,10 +182,6 @@ class CommentModerationService {
       ]);
       _dictionariesLoaded = true;
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint(
-            'CommentModerationService: Failed to load profanity dictionaries: $e');
-      }
       // Mark as loaded anyway to prevent repeated attempts
       _dictionariesLoaded = true;
     }
@@ -214,10 +198,7 @@ class CommentModerationService {
         try {
           flagged.addAll(checker.all(comment));
         } catch (e) {
-          if (kDebugMode) {
-            debugPrint(
-                'CommentModerationService: Error checking profanity: $e');
-          }
+          // Error checking profanity
         }
       }
 
@@ -233,10 +214,7 @@ class CommentModerationService {
               RegExp(r'\b' + RegExp.escape(word) + r'\b', caseSensitive: false);
           sanitizedText = sanitizedText.replaceAll(pattern, '***');
         } catch (e) {
-          if (kDebugMode) {
-            debugPrint(
-                'CommentModerationService: Error sanitizing word "$word": $e');
-          }
+          // Error sanitizing word
         }
       }
 
@@ -245,10 +223,6 @@ class CommentModerationService {
         flaggedTerms: flagged.toList(),
       );
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint(
-            'CommentModerationService: Dictionary sanitization failed: $e');
-      }
       // Return original text if dictionary filtering fails
       return _DictionarySanitizationResult(
         sanitizedText: comment,
@@ -268,9 +242,6 @@ class CommentModerationService {
       final response = await model.generateContent([Content.text(prompt)]);
       return _parseGeminiPayload(response.text);
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('CommentModerationService: Gemini API call failed: $e');
-      }
       return null;
     }
   }
@@ -327,9 +298,7 @@ Comment to review (read-only):
           return jsonDecode(candidate) as Map<String, dynamic>;
         }
       } catch (e) {
-        if (kDebugMode) {
-          debugPrint('CommentModerationService: Failed to parse JSON: $e');
-        }
+        // Failed to parse JSON
       }
     }
     return null;

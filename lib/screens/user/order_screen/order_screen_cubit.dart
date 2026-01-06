@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/data/firebase/firebase.dart';
 import 'package:gizmoglobe_client/enums/processing/order_option_enum.dart';
@@ -75,9 +74,7 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
         final int pointsToAdd = salesInvoice.totalPrice.round();
         await Database().addLoyalPoint(pointsToAdd);
       } catch (e) {
-        if (kDebugMode) {
-          print('Error adding loyal points: $e');
-        }
+        // Error adding loyal points
       }
 
       emit(state.copyWith(processState: ProcessState.success));
@@ -88,16 +85,15 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
   }
 
   Future<void> completeInvoiceIfAllProductsRated(
-      SalesInvoice invoice,
-      List<Rating> currentUserRatings,
-      ) async {
+    SalesInvoice invoice,
+    List<Rating> currentUserRatings,
+  ) async {
     final invoiceId = invoice.salesInvoiceID ?? '';
     if (invoiceId.isEmpty) return;
 
     try {
       final invoiceProductIds = <String>{
-        for (final detail in (invoice.details))
-          detail.product.productID!
+        for (final detail in (invoice.details)) detail.product.productID!
       }..removeWhere((id) => id.isEmpty);
 
       if (invoiceProductIds.isEmpty) return;
@@ -107,22 +103,24 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
           : Database().userID;
       if (uid.isEmpty) return;
 
-      final ratingSnapshot = await Firebase().firestore
+      final ratingSnapshot = await Firebase()
+          .firestore
           .collection('order_ratings')
           .where('userID', isEqualTo: uid)
           .get();
 
       final ratedProductIds = ratingSnapshot.docs
           .map((d) {
-        final data = d.data();
-        return (data['productID'] as String?) ?? '';
-      })
+            final data = d.data();
+            return (data['productID'] as String?) ?? '';
+          })
           .where((id) => id.isNotEmpty)
           .toSet();
 
       if (invoiceProductIds.isNotEmpty &&
           invoiceProductIds.difference(ratedProductIds).isEmpty) {
-        await Firebase().firestore
+        await Firebase()
+            .firestore
             .collection('sales_invoices')
             .doc(invoiceId)
             .update({'salesStatus': SalesStatus.completed.getName()});
@@ -130,10 +128,8 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
         await Database().fetchSalesInvoice();
         await initialize(OrderOption.completed);
       }
-    } catch (e, st) {
-      if (kDebugMode) {
-        print('Error completing invoice after rating: $e\n$st');
-      }
+    } catch (e) {
+      // Error completing invoice after rating
     }
   }
 }

@@ -93,9 +93,7 @@ class _CheckoutSuccessWebViewState extends State<CheckoutSuccessWebView> {
               }
             }
           } catch (cancelError) {
-            if (kDebugMode) {
-              print('Error cancelling invoice after payment failure: $cancelError');
-            }
+            // Error cancelling invoice after payment failure
           }
 
           if (mounted) {
@@ -118,9 +116,7 @@ class _CheckoutSuccessWebViewState extends State<CheckoutSuccessWebView> {
             }
           }
         } catch (cancelError) {
-          if (kDebugMode) {
-            print('Error cancelling invoice after payment cancellation: $cancelError');
-          }
+          // Error cancelling invoice after payment cancellation
         }
 
         setState(() {
@@ -141,9 +137,7 @@ class _CheckoutSuccessWebViewState extends State<CheckoutSuccessWebView> {
           }
         }
       } catch (cancelError) {
-        if (kDebugMode) {
-          print('Error cancelling invoice after verification error: $cancelError');
-        }
+        // Error cancelling invoice after verification error
       }
 
       if (mounted) {

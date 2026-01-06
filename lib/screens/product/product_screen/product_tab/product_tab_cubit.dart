@@ -67,9 +67,7 @@ abstract class TabCubit extends Cubit<TabState> {
           productList: Database().productList,
           filteredProductList: Database().productList));
     } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
+      // Error fetching products
     }
   }
 
@@ -248,9 +246,6 @@ abstract class TabCubit extends Cubit<TabState> {
       emit(state.copyWith(processState: ProcessState.success));
       applyFilters();
     } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
       emit(state.copyWith(processState: ProcessState.failure));
     }
   }

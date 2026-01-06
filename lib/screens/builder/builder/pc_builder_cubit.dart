@@ -544,9 +544,6 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
   Future<void> downloadConfigurationPdf() async {
     final components = _collectActiveComponents();
     if (components.isEmpty) {
-      if (kDebugMode) {
-        print('No components selected, skipping PDF generation.');
-      }
       return;
     }
 
@@ -662,17 +659,11 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
   Future<void> buyNow() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      if (kDebugMode) {
-        print('User must be logged in to add components to cart.');
-      }
       return;
     }
 
     final components = _collectActiveComponents();
     if (components.isEmpty) {
-      if (kDebugMode) {
-        print('No components selected, skipping add to cart.');
-      }
       return;
     }
 
@@ -682,9 +673,7 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
       try {
         await _firebaseService.addToCart(user.uid, productId, entry.quantity);
       } catch (e) {
-        if (kDebugMode) {
-          print('Failed to add ${entry.product.productName} to cart: $e');
-        }
+        // Failed to add product to cart
       }
     }
   }
@@ -755,9 +744,7 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
           .doc(configId)
           .delete();
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to delete builder session: $e');
-      }
+      // Failed to delete builder session
     }
 
     final loadedExisting = await _loadLatestBuilderFromFirebase();
@@ -815,9 +802,6 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
         );
       }).toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to fetch builder sessions: $e');
-      }
       return [];
     }
   }
@@ -850,9 +834,6 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
       final latestDocId = snapshot.docs.first.id;
       return _loadBuilderFromFirebase(latestDocId);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading latest builder from Firebase: $e');
-      }
       return false;
     }
   }
@@ -996,15 +977,8 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
 
       _syncBrowserUrl(configId, activeIndex);
 
-      if (kDebugMode) {
-        print(
-            'Builder loaded from Firebase: customers/${user.uid}/builders/$configId');
-      }
       return true;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading builder from Firebase: $e');
-      }
       return false;
     }
   }
@@ -1066,15 +1040,8 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
           .collection('builders')
           .doc(configId)
           .set(builderData, SetOptions(merge: true));
-
-      if (kDebugMode) {
-        print(
-            'Builder saved to Firebase: customers/$userId/builders/$configId');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error saving builder to Firebase: $e');
-      }
+      // Error saving builder to Firebase
     }
   }
 

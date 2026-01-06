@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
@@ -37,9 +36,6 @@ class AIUserDataService {
               })
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting user favorites: $e');
-      }
       return [];
     }
   }
@@ -47,30 +43,18 @@ class AIUserDataService {
   /// Get user cart
   Future<List<Map<String, dynamic>>> getUserCart(String userId) async {
     try {
-      if (kDebugMode) {
-        print('Fetching cart for user: $userId');
-      }
       final cartSnapshot = await FirebaseFirestore.instance
           .collection('customers')
           .doc(userId)
           .collection('carts')
           .get();
 
-      if (kDebugMode) {
-        print('Cart snapshot size: ${cartSnapshot.docs.length}');
-      }
       if (cartSnapshot.docs.isEmpty) {
-        if (kDebugMode) {
-          print('No cart items found');
-        }
         return [];
       }
 
       final cartItems = cartSnapshot.docs.map((doc) {
         final data = doc.data();
-        if (kDebugMode) {
-          print('Cart item data: $data');
-        }
         return {
           'productID': data['productID'],
           'quantity': data['quantity'],
@@ -78,15 +62,9 @@ class AIUserDataService {
         };
       }).toList();
 
-      if (kDebugMode) {
-        print('Processing ${cartItems.length} cart items');
-      }
       final products = await Future.wait(
         cartItems.map((item) async {
           final productID = item['productID'];
-          if (kDebugMode) {
-            print('Fetching product details for ID: $productID');
-          }
 
           // Try both collections
           var productDoc = await FirebaseFirestore.instance
@@ -95,10 +73,6 @@ class AIUserDataService {
               .get();
 
           if (!productDoc.exists) {
-            if (kDebugMode) {
-              print(
-                  'Product not found in products collection, trying items collection');
-            }
             productDoc = await FirebaseFirestore.instance
                 .collection('items')
                 .doc(productID)
@@ -107,31 +81,19 @@ class AIUserDataService {
 
           if (productDoc.exists) {
             final productData = productDoc.data()!;
-            if (kDebugMode) {
-              print('Found product data: $productData');
-            }
             return {
               ...productData,
               'quantity': item['quantity'],
               'cartDocId': item['docId'],
             };
           }
-          if (kDebugMode) {
-            print('Product not found in any collection: $productID');
-          }
           return null;
         }),
       );
 
       final validProducts = products.whereType<Map<String, dynamic>>().toList();
-      if (kDebugMode) {
-        print('Returning ${validProducts.length} valid products');
-      }
       return validProducts;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting user cart: $e');
-      }
       return [];
     }
   }
@@ -139,17 +101,11 @@ class AIUserDataService {
   /// Get user invoices
   Future<List<Map<String, dynamic>>> getUserInvoices(String userId) async {
     try {
-      if (kDebugMode) {
-        print('Fetching invoices for user: $userId');
-      }
       final invoiceSnapshot = await FirebaseFirestore.instance
           .collection('sales_invoices')
           .where('customerID', isEqualTo: userId)
           .get();
 
-      if (kDebugMode) {
-        print('Invoice snapshot size: ${invoiceSnapshot.docs.length}');
-      }
       if (invoiceSnapshot.docs.isEmpty) {
         return [];
       }
@@ -165,9 +121,6 @@ class AIUserDataService {
 
       return invoices;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting user invoices: $e');
-      }
       return [];
     }
   }
@@ -175,30 +128,18 @@ class AIUserDataService {
   /// Get available vouchers
   Future<List<Map<String, dynamic>>> getVouchers() async {
     try {
-      if (kDebugMode) {
-        print('Fetching available vouchers');
-      }
       final voucherSnapshot = await FirebaseFirestore.instance
           .collection('vouchers')
           .where('isEnabled', isEqualTo: true)
           .where('isVisible', isEqualTo: true)
           .get();
 
-      if (kDebugMode) {
-        print('Voucher snapshot size: ${voucherSnapshot.docs.length}');
-      }
       if (voucherSnapshot.docs.isEmpty) {
-        if (kDebugMode) {
-          print('No vouchers found');
-        }
         return [];
       }
 
       final vouchers = voucherSnapshot.docs.map((doc) {
         final data = doc.data();
-        if (kDebugMode) {
-          print('Voucher data: $data');
-        }
         return {
           ...data,
           'docId': doc.id,
@@ -207,9 +148,6 @@ class AIUserDataService {
 
       return vouchers;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting vouchers: $e');
-      }
       return [];
     }
   }
@@ -252,15 +190,15 @@ class AIUserDataService {
 
     final buffer = StringBuffer();
     final totalItems = cartItems.fold<int>(
-        0, (sum, item) => sum + (item['quantity'] as int? ?? 0));
+        0, (acc, item) => acc + (item['quantity'] as int? ?? 0));
     final totalProducts = cartItems.length;
-    final totalValue = cartItems.fold<double>(0.0, (sum, item) {
+    final totalValue = cartItems.fold<double>(0.0, (acc, item) {
       final price = (item['sellingPrice'] ?? 0.0) as num;
       final discount = (item['discount'] ?? 0.0) as num;
       // Discount is stored as percentage (0-100), not multiplier (0-1)
       final discountedPrice = price * (1 - discount.toDouble() / 100);
       final quantity = (item['quantity'] ?? 0) as int;
-      return sum + (discountedPrice * quantity);
+      return acc + (discountedPrice * quantity);
     });
 
     if (isVietnamese) {

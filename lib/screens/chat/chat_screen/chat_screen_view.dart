@@ -113,9 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('Failed to parse product cards: $e');
-        }
+        // Failed to parse product cards
       }
     }
     return result;

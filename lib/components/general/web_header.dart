@@ -149,14 +149,14 @@ class _WebHeaderState extends State<WebHeader> {
         await FirebaseAuth.instance.signOut();
       } catch (e) {}
 
-      // Wait a brief moment to ensure signOut completes and localStorage is cleared
-      // Then reload immediately to prevent StreamBuilder from creating a guest user
-      await Future.delayed(const Duration(milliseconds: 50));
-
-      // Force immediate page reload - this will stop all further execution
-      platform_actions.reloadPage();
-
-      // This should never be reached as reload navigates away
+      // Navigate to home page after logout
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (Route<dynamic> route) => false,
+        );
+      }
       return;
     } else {
       // For mobile, clear data and navigate to home
@@ -167,7 +167,7 @@ class _WebHeaderState extends State<WebHeader> {
         if (context.mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
-            '/',
+            '/home',
             (Route<dynamic> route) => false,
           );
         }

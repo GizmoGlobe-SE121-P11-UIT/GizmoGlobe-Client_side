@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/objects/product_related/product.dart';
 import 'package:gizmoglobe_client/screens/product/product_detail/product_detail_state.dart';
@@ -64,10 +63,8 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
         isLoadingImages: false,
       ));
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading product images: $e');
-      }
       emit(state.copyWith(isLoadingImages: false, productImages: []));
+      rethrow;
     }
   }
 
@@ -160,9 +157,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
         break;
 
       default:
-        if (kDebugMode) {
-          print('Unknown category');
-        } //Danh mục không xác định
+      //Danh mục không xác định
     }
 
     emit(state.copyWith(technicalSpecs: specs));
@@ -239,9 +234,6 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
             ratings: page.ratings, hasMoreRatings: page.hasMore));
       } catch (e) {
         // Server-side paging may fail due to missing index; fallback to client-side full fetch then local pagination
-        if (kDebugMode) {
-          print('Falling back to client-side fetch for ratings: $e');
-        }
         final all = await _firebase.getRatingsByProductWithUsername(productId);
         final initial = all.take(limit).toList();
         final hasMore = all.length > initial.length;
@@ -250,7 +242,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
         emit(state.copyWith(ratings: initial, hasMoreRatings: hasMore));
       }
     } catch (e) {
-      if (kDebugMode) print('Error loading ratings page: $e');
+      rethrow;
     }
   }
 
@@ -277,7 +269,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
           (result['count'] as int?) ?? (result['count'] as num?)?.toInt() ?? 0;
       emit(state.copyWith(averageRating: avg, totalRatingsCount: count));
     } catch (e) {
-      if (kDebugMode) print('Error refreshing average rating: $e');
+      rethrow;
     }
   }
 
@@ -306,7 +298,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       final hasMore = combined.length < all.length;
       emit(state.copyWith(ratings: combined, hasMoreRatings: hasMore));
     } catch (e) {
-      if (kDebugMode) print('Error loading more ratings: $e');
+      rethrow;
     }
   }
 

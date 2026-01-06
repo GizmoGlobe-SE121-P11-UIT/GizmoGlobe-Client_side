@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -21,15 +20,8 @@ class AINLPService {
       final prompt = _createAnalysisPrompt(userQuery, isVietnamese);
       final response = await callGeminiAPI(prompt);
 
-      if (kDebugMode) {
-        print('NLP Analysis Response: $response');
-      }
-
       return _parseAnalysisResponse(response);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error in NLP analysis: $e');
-      }
       return _getFallbackAnalysis(userQuery);
     }
   }
@@ -43,9 +35,6 @@ class AINLPService {
 
       return _parseSynonymsResponse(response);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting synonyms: $e');
-      }
       return [productName];
     }
   }
@@ -59,9 +48,6 @@ class AINLPService {
 
       return _parseMappingResponse(response);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error mapping to technical name: $e');
-      }
       return null;
     }
   }
@@ -76,9 +62,6 @@ class AINLPService {
 
       return _parseFeatureResponse(response);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error extracting features: $e');
-      }
       return {};
     }
   }
@@ -91,15 +74,8 @@ class AINLPService {
       final prompt = _createProductNameExtractionPrompt(text, isVietnamese);
       final response = await callGeminiAPI(prompt);
 
-      if (kDebugMode) {
-        print('NLP Product Name Extraction Response: $response');
-      }
-
       return _parseProductNameResponse(response);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error in NLP product name extraction: $e');
-      }
       return null;
     }
   }
@@ -113,15 +89,8 @@ class AINLPService {
           _createMultipleProductNamesExtractionPrompt(text, isVietnamese);
       final response = await callGeminiAPI(prompt);
 
-      if (kDebugMode) {
-        print('NLP Multiple Product Names Extraction Response: $response');
-      }
-
       return _parseMultipleProductNamesResponse(response);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error in NLP multiple product names extraction: $e');
-      }
       return [];
     }
   }
@@ -302,16 +271,6 @@ Respond in JSON format:
 
       while (retryCount < modelMaxRetries) {
         try {
-          if (kDebugMode) {
-            if (useFallback) {
-              print(
-                  'NLP Service: Using fallback model: $model (Attempt ${retryCount + 1}/$modelMaxRetries)');
-            } else {
-              print(
-                  'NLP Service: Calling Gemini API with $model... (Attempt ${retryCount + 1}/$modelMaxRetries)');
-            }
-          }
-
           final response = await http.post(
             Uri.parse('$_baseUrl/$model:generateContent?key=$apiKey'),
             headers: {'Content-Type': 'application/json'},
@@ -331,11 +290,6 @@ Respond in JSON format:
             }),
           );
 
-          if (kDebugMode) {
-            print(
-                'NLP Service: Gemini API response status: ${response.statusCode}');
-          }
-
           if (response.statusCode == 200) {
             final responseData = jsonDecode(response.body);
             final candidates = responseData['candidates'] as List;
@@ -343,12 +297,6 @@ Respond in JSON format:
               final content = candidates[0]['content'];
               final parts = content['parts'] as List;
               if (parts.isNotEmpty) {
-                if (useFallback && kDebugMode) {
-                  if (kDebugMode) {
-                    print(
-                        'NLP Service: Successfully used fallback model: $model');
-                  }
-                }
                 return parts[0]['text'] as String;
               }
             }
@@ -356,10 +304,6 @@ Respond in JSON format:
           } else if (response.statusCode == 503) {
             // If 2.5-flash is overloaded, switch to fallback immediately
             if (model == 'gemini-2.5-flash' && !useFallback) {
-              if (kDebugMode) {
-                print(
-                    'NLP Service: Model 2.5-flash is overloaded after ${retryCount + 1} attempt(s), switching to 2.5-flash-lite fallback...');
-              }
               useFallback = true;
               break; // Break retry loop and try next model
             }
@@ -367,20 +311,12 @@ Respond in JSON format:
             // If fallback also fails, retry
             retryCount++;
             if (retryCount < modelMaxRetries) {
-              if (kDebugMode) {
-                print(
-                    'NLP Service: Model overloaded, retrying in ${retryCount * 2} seconds...');
-              }
               await Future.delayed(Duration(seconds: retryCount * 2));
               continue;
             }
           } else {
             // For other errors, try next model if available
             if (model == 'gemini-2.5-flash' && !useFallback) {
-              if (kDebugMode) {
-                print(
-                    'NLP Service: Model 2.5-flash failed with status ${response.statusCode} after ${retryCount + 1} attempt(s), switching to 2.5-flash-lite fallback...');
-              }
               useFallback = true;
               break; // Break retry loop and try next model
             }
@@ -388,25 +324,14 @@ Respond in JSON format:
                 'API call failed with status code: ${response.statusCode}, body: ${response.body}');
           }
         } catch (e) {
-          if (kDebugMode) {
-            print('NLP Service: Error calling Gemini API with $model: $e');
-          }
-
           // If 2.5-flash fails, try fallback
           if (model == 'gemini-2.5-flash' && !useFallback) {
-            if (kDebugMode) {
-              print(
-                  'NLP Service: Switching to 2.5-flash-lite fallback due to error after ${retryCount + 1} attempt(s)...');
-            }
             useFallback = true;
             break; // Break retry loop and try next model
           }
 
           retryCount++;
           if (retryCount < modelMaxRetries) {
-            if (kDebugMode) {
-              print('NLP Service: Retrying in ${retryCount * 2} seconds...');
-            }
             await Future.delayed(Duration(seconds: retryCount * 2));
             continue;
           }
@@ -432,9 +357,7 @@ Respond in JSON format:
         return jsonDecode(jsonString) as Map<String, dynamic>;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing analysis response: $e');
-      }
+      // Error parsing analysis response
     }
     return _getFallbackAnalysis('');
   }
@@ -451,9 +374,7 @@ Respond in JSON format:
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing synonyms response: $e');
-      }
+      // Error parsing synonyms response
     }
     return [];
   }
@@ -467,9 +388,7 @@ Respond in JSON format:
         return data['technical_name'] as String?;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing mapping response: $e');
-      }
+      // Error parsing mapping response
     }
     return null;
   }
@@ -483,9 +402,7 @@ Respond in JSON format:
         return data['features'] as Map<String, dynamic>? ?? {};
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing feature response: $e');
-      }
+      // Error parsing feature response
     }
     return {};
   }
@@ -557,9 +474,6 @@ Product name:
 
       return productName;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing product name response: $e');
-      }
       return null;
     }
   }
@@ -634,9 +548,7 @@ Examples:
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing multiple product names response: $e');
-      }
+      // Error parsing multiple product names response
     }
     return [];
   }
@@ -650,15 +562,8 @@ Examples:
           _createMultipleProductNamesExtractionPrompt(text, isVietnamese);
       final response = await callGeminiAPI(prompt);
 
-      if (kDebugMode) {
-        print('NLP Product Names and Brands Extraction Response: $response');
-      }
-
       return _parseProductNamesAndBrandsResponse(response);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error in NLP product names and brands extraction: $e');
-      }
       return {'product_names': [], 'brands': []};
     }
   }
@@ -692,9 +597,7 @@ Examples:
         };
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing product names and brands response: $e');
-      }
+      // Error parsing product names and brands response
     }
     return {'product_names': [], 'brands': []};
   }

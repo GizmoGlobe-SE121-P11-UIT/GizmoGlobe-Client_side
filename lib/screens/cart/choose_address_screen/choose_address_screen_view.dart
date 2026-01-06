@@ -144,13 +144,10 @@ class _ChooseAddressScreen extends State<ChooseAddressScreen> {
                 text: S.of(context).addAddress,
                 prefixIcon: Icons.add,
                 onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => AddAddressScreen.newInstance()),
-                  );
+                  // Use modal on web, full screen on mobile/desktop
+                  final result = await openAddAddressFlow(context);
 
-                  if (result != null && result is Address) {
+                  if (result != null) {
                     cubit.addAddress(result);
                     setState(() {
                       _selectedAddress = result;

@@ -211,54 +211,29 @@ class SePayServices {
           ),
         );
 
-        if (kDebugMode) {
-          print(
-              'SePay: Bank accounts API response status: ${response.statusCode}');
-        }
-
         // Handle 404 - endpoint not available
         if (response.statusCode == 404) {
-          if (kDebugMode) {
-            print(
-                'SePay: Bank accounts endpoint returned 404, falling back to .env');
-          }
           // Silently return empty list to allow fallback to .env account
           return [];
         }
 
         if (response.statusCode == 200) {
           final data = response.data;
-          if (kDebugMode) {
-            print(
-                'SePay: Bank accounts API response data type: ${data.runtimeType}');
-          }
 
           if (data is Map &&
               data['status'] == 200 &&
               data['bank_accounts'] != null) {
             final accounts = data['bank_accounts'] as List;
-            if (kDebugMode) {
-              print('SePay: Found ${accounts.length} bank account(s) from API');
-            }
             return accounts
                 .map((json) =>
                     SePayBankAccount.fromJson(json as Map<String, dynamic>))
                 .toList();
           } else if (data is List) {
-            if (kDebugMode) {
-              print(
-                  'SePay: Found ${data.length} bank account(s) from API (direct list)');
-            }
             return data
                 .map((json) =>
                     SePayBankAccount.fromJson(json as Map<String, dynamic>))
                 .toList();
-          } else if (kDebugMode) {
-            print('SePay: Unexpected response format: $data');
           }
-        } else if (kDebugMode) {
-          print(
-              'SePay: Bank accounts API returned status ${response.statusCode}: ${response.data}');
         }
       }
 
@@ -272,12 +247,8 @@ class SePayServices {
       // Log other DioException errors
 
       return [];
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Log unexpected errors
-      if (kDebugMode) {
-        print('SePay: Unexpected error when getting bank accounts: $e');
-        print('SePay: Stack trace: $stackTrace');
-      }
       return [];
     }
   }
@@ -320,10 +291,6 @@ class SePayServices {
         final defaultBankAccount = _getDefaultBankAccount();
         if (defaultBankAccount != null) {
           bankAccounts = [defaultBankAccount];
-          if (kDebugMode) {
-            print(
-                'SePay: Using .env configuration directly for virtual account creation');
-          }
         } else {
           throw Exception(
               'SEPAY_USE_ENV_ONLY is set but no default bank account configured.\n'
@@ -342,10 +309,6 @@ class SePayServices {
           final defaultBankAccount = _getDefaultBankAccount();
           if (defaultBankAccount != null) {
             bankAccounts = [defaultBankAccount];
-            if (kDebugMode) {
-              print(
-                  'SePay: API returned no bank accounts, using .env fallback');
-            }
           } else {
             throw Exception(
                 'No bank accounts available. Cannot create virtual account.\n'
@@ -432,12 +395,6 @@ class SePayServices {
         } else {
           // Direct API call (for mobile)
           final apiToken = _getApiToken();
-          if (kDebugMode) {
-            print('SePay: Creating virtual account via API (mobile)');
-            print('SePay: Order ID: $orderId');
-            print('SePay: Amount: $amountInVND VND');
-            print('SePay: Bank Account ID: $bankAccountId');
-          }
 
           response = await dio.post(
             '$baseUrl/va/create',
@@ -456,12 +413,6 @@ class SePayServices {
             ),
           );
 
-          if (kDebugMode) {
-            print(
-                'SePay: VA creation API response status: ${response.statusCode}');
-            print('SePay: VA creation API response data: ${response.data}');
-          }
-
           if (response.statusCode == 200 || response.statusCode == 201) {
             final responseData = response.data is Map
                 ? response.data as Map<String, dynamic>
@@ -472,27 +423,10 @@ class SePayServices {
               orderId: orderId,
               amount: amountInVND.toDouble(),
             );
-          } else {
-            if (kDebugMode) {
-              print(
-                  'SePay: VA creation failed with status ${response.statusCode}');
-            }
           }
         }
-      } catch (e, stackTrace) {
+      } catch (e) {
         // VA create endpoint failed, will use fallback
-        if (kDebugMode) {
-          print('SePay: VA creation API call failed: $e');
-          print('SePay: Error type: ${e.runtimeType}');
-          if (e is DioException) {
-            print('SePay: DioException type: ${e.type}');
-            print('SePay: DioException message: ${e.message}');
-            print('SePay: DioException status: ${e.response?.statusCode}');
-            print('SePay: DioException response: ${e.response?.data}');
-          }
-          print('SePay: Stack trace: $stackTrace');
-          print('SePay: Falling back to direct bank account usage');
-        }
       }
 
       // Fallback: Use bank account number directly (if VA creation not available)
@@ -563,12 +497,6 @@ class SePayServices {
     }
 
     final descriptionParam = Uri.encodeComponent(finalDescription);
-
-    if (kDebugMode) {
-      print('SePay: QR code description: $finalDescription');
-      print(
-          'SePay: QR code will include orderId: $orderId for webhook matching');
-    }
 
     // SePay VietQR expects bank name at `bank` param per docs:
     // https://docs.sepay.vn/tao-qr-code-vietqr-dong.html
@@ -838,9 +766,6 @@ class SePayServices {
 
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error checking payment by order ID: $e');
-      }
       return null;
     }
   }
@@ -938,15 +863,6 @@ class SePayServices {
     String? customerName,
     String? description,
   }) async {
-    if (kDebugMode) {
-      print('SePay: ===== createPayment called =====');
-      print('SePay: Order ID: $orderId');
-      print('SePay: Amount: $amount (${(amount * 1000).round()} VND)');
-      print('SePay: Bank Account ID: $bankAccountId');
-      print('SePay: Platform: ${kIsWeb ? "Web" : "Mobile"}');
-      print('SePay: Using .env only: ${_shouldUseEnvOnly()}');
-    }
-
     try {
       // Try to get bank accounts from API
       List<SePayBankAccount> bankAccounts = [];
@@ -954,19 +870,9 @@ class SePayServices {
 
       // If using .env only mode, get default account directly
       if (_shouldUseEnvOnly()) {
-        if (kDebugMode) {
-          print('SePay: Using .env only mode');
-        }
         defaultBankAccount = _getDefaultBankAccount();
         if (defaultBankAccount != null) {
           bankAccounts = [defaultBankAccount];
-          if (kDebugMode) {
-            print(
-                'SePay: Using .env configuration directly for payment creation');
-            print('SePay: Bank Account: ${defaultBankAccount.accountNumber}');
-            print(
-                'SePay: Bank: ${defaultBankAccount.bankName} (${defaultBankAccount.bankCode})');
-          }
         } else {
           final errorMsg =
               'SEPAY_USE_ENV_ONLY is set but no default bank account configured.\n'
@@ -975,32 +881,17 @@ class SePayServices {
               'SEPAY_DEFAULT_BANK_NAME=Bank Name\n'
               'SEPAY_DEFAULT_BANK_CODE=VCB\n'
               'SEPAY_DEFAULT_ACCOUNT_NAME=Account Name';
-          if (kDebugMode) {
-            print('SePay: ERROR: $errorMsg');
-          }
           throw Exception(errorMsg);
         }
       } else {
-        if (kDebugMode) {
-          print('SePay: Attempting to get bank accounts from API');
-        }
         // getBankAccounts() returns [] on errors to allow fallback
         bankAccounts = await getBankAccounts();
 
         if (bankAccounts.isEmpty) {
-          if (kDebugMode) {
-            print('SePay: API returned no bank accounts, trying .env fallback');
-          }
           // Try to use default bank account from .env as last resort (all platforms, all modes)
           defaultBankAccount = _getDefaultBankAccount();
           if (defaultBankAccount != null) {
             bankAccounts = [defaultBankAccount];
-            if (kDebugMode) {
-              print('SePay: Using .env fallback bank account');
-              print('SePay: Bank Account: ${defaultBankAccount.accountNumber}');
-              print(
-                  'SePay: Bank: ${defaultBankAccount.bankName} (${defaultBankAccount.bankCode})');
-            }
           } else {
             final errorMsg =
                 'Cannot connect to SePay API and no default bank account configured.\n'
@@ -1010,15 +901,7 @@ class SePayServices {
                 'SEPAY_DEFAULT_BANK_CODE=VCB\n'
                 'SEPAY_DEFAULT_ACCOUNT_NAME=Account Name\n\n'
                 'Or set SEPAY_USE_ENV_ONLY=true to use .env configuration directly.';
-            if (kDebugMode) {
-              print('SePay: ERROR: $errorMsg');
-            }
             throw Exception(errorMsg);
-          }
-        } else {
-          if (kDebugMode) {
-            print(
-                'SePay: Successfully retrieved ${bankAccounts.length} bank account(s) from API');
           }
         }
       }
@@ -1026,9 +909,6 @@ class SePayServices {
       // Safety check: ensure we have at least one bank account
       if (bankAccounts.isEmpty) {
         final errorMsg = 'No bank accounts available to process payment';
-        if (kDebugMode) {
-          print('SePay: ERROR: $errorMsg');
-        }
         throw Exception(errorMsg);
       }
 
@@ -1040,14 +920,6 @@ class SePayServices {
         orElse: () => bankAccounts.first,
       );
 
-      if (kDebugMode) {
-        print('SePay: Selected bank account:');
-        print('  ID: ${selectedBankAccount.accountId}');
-        print('  Number: ${selectedBankAccount.accountNumber}');
-        print(
-            '  Bank: ${selectedBankAccount.bankName} (${selectedBankAccount.bankCode})');
-      }
-
       // Create Virtual Account (or use fallback)
       SePayVirtualAccount va;
       try {
@@ -1058,21 +930,9 @@ class SePayServices {
           customerName: customerName,
           description: description,
         );
-        if (kDebugMode) {
-          print('SePay: Virtual account created successfully');
-          print('SePay: VA Account: ${va.accountNumber}');
-        }
-      } catch (e, stackTrace) {
+      } catch (e) {
         // If VA creation fails (e.g., API unavailable), use fallback with bank account directly
         // This fallback works on all platforms when API is unavailable
-        if (kDebugMode) {
-          print('SePay: VA creation failed with exception: $e');
-          print('SePay: Exception type: ${e.runtimeType}');
-          print('SePay: Stack trace: $stackTrace');
-          print('SePay: Using fallback: bank account directly');
-          print(
-              'SePay: Fallback enabled (env only: ${_shouldUseEnvOnly()}, debug: $kDebugMode)');
-        }
 
         // Always use fallback on mobile or when .env only mode is enabled
         // On web, only use fallback in debug mode to avoid silent failures in production
@@ -1089,13 +949,7 @@ class SePayServices {
             currency: 'VND',
             orderId: orderId,
           );
-          if (kDebugMode) {
-            print('SePay: Fallback VA created: ${va.accountNumber}');
-          }
         } else {
-          if (kDebugMode) {
-            print('SePay: Fallback not enabled, rethrowing exception');
-          }
           rethrow;
         }
       }
@@ -1103,10 +957,6 @@ class SePayServices {
       // Generate QR code URL
       // IMPORTANT: Pass orderId to ensure it's included in QR code description
       // This allows webhook to automatically detect payments when user scans QR or makes manual transfer
-      if (kDebugMode) {
-        print('SePay: Generating QR code URL...');
-        print('SePay: Order ID for QR code: ${va.orderId}');
-      }
       final qrCodeUrl = generateQRCodeUrl(
         accountNumber: va.accountNumber,
         bankCode: va.bankCode,
@@ -1119,25 +969,13 @@ class SePayServices {
       // Update VA with QR code URL
       final vaWithQR = va.copyWith(qrCode: qrCodeUrl);
 
-      if (kDebugMode) {
-        print('SePay: Payment creation successful');
-        print('SePay: QR Code URL: $qrCodeUrl');
-        print('SePay: ===== createPayment completed =====');
-      }
-
       return SePayPaymentResult(
         success: true,
         virtualAccount: vaWithQR,
         message: 'Virtual account created. Please scan QR code to pay.',
       );
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        print('SePay: ===== createPayment FAILED =====');
-        print('SePay: Error: $e');
-        print('SePay: Error type: ${e.runtimeType}');
-        print('SePay: Stack trace: $stackTrace');
-      }
-      throw Exception('Failed to create payment: $e');
+    } catch (e) {
+      rethrow;
     }
   }
 }

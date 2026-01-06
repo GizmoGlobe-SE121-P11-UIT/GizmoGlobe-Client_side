@@ -1,10 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../data/database/database.dart';
-import '../../authentication/sign_in_screen/sign_in_view.dart';
 import 'user_screen_state.dart';
 import '../../../services/local_guest_service_platform.dart';
 
@@ -64,9 +62,7 @@ class UserScreenCubit extends Cubit<UserScreenState> {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting user: $e');
-      }
+      // Error getting user
     }
   }
 
@@ -79,16 +75,14 @@ class UserScreenCubit extends Cubit<UserScreenState> {
       await FirebaseAuth.instance.signOut();
 
       if (context.mounted) {
-        Navigator.pushAndRemoveUntil(
+        Navigator.pushNamedAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => SignInScreen.newInstance()),
+          '/home',
           (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error signing out: $e');
-      }
+      // Error signing out
     }
   }
 
@@ -179,9 +173,6 @@ class UserScreenCubit extends Cubit<UserScreenState> {
         emit(state.copyWith(avatarUrl: avatarUrl));
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating avatar: $e');
-      }
       rethrow;
     }
   }

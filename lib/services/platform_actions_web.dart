@@ -1,5 +1,6 @@
 // Web-only implementations using package:web instead of deprecated dart:html
 import 'package:web/web.dart' as web;
+// ignore: depend_on_referenced_packages
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 void reloadPage() {

@@ -449,7 +449,7 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
       final ratings = userId.isEmpty ? <Rating>[] : Database().ratingList;
       if (mounted) setState(() => _userRatings = ratings);
     } catch (e) {
-      if (kDebugMode) print('Error loading user ratings: $e');
+      rethrow;
     }
   }
 }

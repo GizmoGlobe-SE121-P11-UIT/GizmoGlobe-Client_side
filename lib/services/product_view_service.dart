@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -32,15 +31,10 @@ class ProductViewService {
       );
 
       if (response.statusCode != 200) {
-        if (kDebugMode) {
-          print('Failed to track product view: ${response.statusCode}');
-        }
+        // Failed to track product view
       }
     } catch (e) {
       // Silently fail - tracking is non-critical
-      if (kDebugMode) {
-        print('Error tracking product view: $e');
-      }
     }
   }
 

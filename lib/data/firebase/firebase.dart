@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import '../../data/database/database.dart';
 
 import '../../enums/invoice_related/sales_status.dart';
@@ -37,13 +36,7 @@ class Firebase {
       } catch (e) {
         attempts++;
         if (attempts == maxRetries) {
-          if (kDebugMode) {
-            print('Final attempt failed: $e');
-          }
           rethrow;
-        }
-        if (kDebugMode) {
-          print('Attempt $attempts failed, retrying in ${retryDelayMs}ms...');
         }
         await Future.delayed(Duration(milliseconds: retryDelayMs * attempts));
       }
@@ -65,10 +58,6 @@ class Firebase {
       String customerID, String productID, int quantity) async {
     await _retryOperation(() async {
       try {
-        if (kDebugMode) {
-          print(
-              'Adding to cart - UserID: $customerID, ProductID: $productID, Quantity: $quantity');
-        }
         // Check if user document exists
         final userDoc =
             await _firestore.collection('customers').doc(customerID).get();
@@ -82,9 +71,6 @@ class Firebase {
         final productDoc =
             await _firestore.collection('products').doc(productID).get();
         if (!productDoc.exists) {
-          if (kDebugMode) {
-            print('Product not found: $productID');
-          }
           throw Exception('Product not found');
         }
 
@@ -125,9 +111,6 @@ class Firebase {
           });
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('Error in addToCart operation: $e');
-        }
         rethrow;
       }
     });
@@ -146,9 +129,6 @@ class Firebase {
         final productDoc =
             await _firestore.collection('products').doc(productID).get();
         if (!productDoc.exists) {
-          if (kDebugMode) {
-            print('Product not found: $productID');
-          }
           throw Exception('Product not found');
         }
 
@@ -169,9 +149,6 @@ class Firebase {
           'updatedAt': FieldValue.serverTimestamp(),
         });
       } catch (e) {
-        if (kDebugMode) {
-          print('Error in updateCartItemQuantity: $e');
-        }
         rethrow;
       }
     });
@@ -187,9 +164,6 @@ class Firebase {
           .doc(productID)
           .delete();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error removing from cart: $e');
-      }
       rethrow;
     }
   }
@@ -208,9 +182,6 @@ class Firebase {
         await doc.reference.delete();
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error clearing cart: $e');
-      }
       rethrow;
     }
   }
@@ -243,9 +214,6 @@ class Firebase {
 
       await Database().fetchAddress();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error creating new address: $e');
-      }
       rethrow;
     }
   }
@@ -259,9 +227,6 @@ class Firebase {
 
       await Database().fetchAddress();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating address: $e');
-      }
       rethrow;
     }
   }
@@ -279,9 +244,6 @@ class Firebase {
         'addedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding favorite: $e');
-      }
       rethrow;
     }
   }
@@ -296,9 +258,6 @@ class Firebase {
 
       await favoriteRef.delete();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error removing favorite: $e');
-      }
       rethrow;
     }
   }
@@ -313,9 +272,6 @@ class Firebase {
 
       return favoriteSnapshot.docs.map((doc) => doc.id).toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting favorites: $e');
-      }
       rethrow;
     }
   }
@@ -343,9 +299,6 @@ class Firebase {
         ),
       );
     } catch (e) {
-      if (kDebugMode) {
-        print('Error finding manufacturer by ID: $e');
-      }
       rethrow;
     }
   }
@@ -360,9 +313,6 @@ class Firebase {
 
       await Database().getProducts();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error changing product status: $e');
-      }
       rethrow;
     }
   }
@@ -395,8 +345,8 @@ class Firebase {
             .add(detail.toMap(salesInvoiceID));
       }
 
-      // Decrement product stock when invoice is created
-      await _decrementProductStock(salesInvoice.details);
+      // Stock will be decremented after successful payment confirmation
+      // This ensures stock is only reduced when payment is actually received
 
       // Update voucher usage if a voucher was applied
       if (salesInvoice.voucher != null) {
@@ -406,9 +356,6 @@ class Firebase {
 
       await Database().fetchSalesInvoice();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding sales invoice: $e');
-      }
       rethrow;
     }
   }
@@ -461,9 +408,6 @@ class Firebase {
 
       await Database().fetchSalesInvoice();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating sales invoice: $e');
-      }
       rethrow;
     }
   }
@@ -521,18 +465,15 @@ class Firebase {
         return salesInvoice;
       }).toList());
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting sales invoices: $e');
-      }
       rethrow;
     }
   }
 
   Future<void> updateLoyalPoint(String userID, int point) async {
-      await FirebaseFirestore.instance
-          .collection('customers')
-          .doc(userID)
-          .update({'loyalPoint': point});
+    await FirebaseFirestore.instance
+        .collection('customers')
+        .doc(userID)
+        .update({'loyalPoint': point});
   }
 
   Future<SalesInvoice?> getSalesInvoiceById(String salesInvoiceID) async {
@@ -549,9 +490,6 @@ class Firebase {
           .get();
 
       if (!docSnapshot.exists) {
-        if (kDebugMode) {
-          print('Sales invoice not found: $salesInvoiceID');
-        }
         return null;
       }
 
@@ -620,22 +558,15 @@ class Firebase {
             paymentStatus: salesInvoice.paymentStatus,
             details: salesInvoice.details,
             voucher: voucher,
-            voucherDiscount:
-                (data['voucherDiscount'] as num?)?.toInt() ?? 0,
+            voucherDiscount: (data['voucherDiscount'] as num?)?.toInt() ?? 0,
           );
         } catch (e) {
-          if (kDebugMode) {
-            print('Warning: Could not load voucher: $e');
-          }
           // Continue without voucher if not found
         }
       }
 
       return salesInvoice;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting sales invoice by ID: $e');
-      }
       rethrow;
     }
   }
@@ -655,9 +586,6 @@ class Firebase {
         return Rating.fromMap(doc.id, data);
       }).toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting ratings by user: $e');
-      }
       rethrow;
     }
   }
@@ -737,9 +665,6 @@ class Firebase {
           await _markInvoiceCompletedIfAllRated(invoiceId, userID);
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('Error submitting order rating: $e');
-        }
         rethrow;
       }
     });
@@ -784,9 +709,6 @@ class Firebase {
 
       await Database().fetchSalesInvoice();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error checking/completing invoice after rating: $e');
-      }
       // non-critical; do not rethrow
     }
   }
@@ -801,9 +723,6 @@ class Firebase {
       });
       await Database().fetchSalesInvoice();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error confirming delivery: $e');
-      }
       rethrow;
     }
   }
@@ -846,9 +765,6 @@ class Firebase {
 
           await _restoreProductStock(details);
         } catch (e) {
-          if (kDebugMode) {
-            print('Warning: Could not restore product stock: $e');
-          }
           // Continue with cancellation even if stock restore fails
         }
       }
@@ -862,9 +778,7 @@ class Firebase {
           final customerID = invoiceData['customerID'] as String;
           await _revertVoucherUses(customerID, voucher);
         } catch (e) {
-          if (kDebugMode) {
-            print('Warning: Could not revert voucher usage: $e');
-          }
+          // Could not revert voucher usage
         }
       }
 
@@ -874,9 +788,6 @@ class Firebase {
       });
       await Database().fetchSalesInvoice();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error cancelling sales invoice: $e');
-      }
       rethrow;
     }
   }
@@ -901,16 +812,14 @@ class Firebase {
 
       await Database().fetchSalesInvoice();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error deleting sales invoice: $e');
-      }
       rethrow;
     }
   }
 
   Future<List<Voucher>> getVouchers() async {
     try {
-      final QuerySnapshot snapshot = await _firestore.collection('vouchers').get();
+      final QuerySnapshot snapshot =
+          await _firestore.collection('vouchers').get();
       final List<Voucher> vouchers = [];
       // Collect heavy auto-claim tasks and run them after parsing so this function
       // can return quickly and avoid blocking on per-voucher transactions.
@@ -927,7 +836,8 @@ class Firebase {
           data['enDescription'] = (raw['enDescription']?.toString()) ?? '';
           data['viDescription'] = (raw['viDescription']?.toString()) ?? '';
 
-          data['isEnabled'] = raw['isEnabled'] == null ? true : (raw['isEnabled'] == true);
+          data['isEnabled'] =
+              raw['isEnabled'] == null ? true : (raw['isEnabled'] == true);
           data['isPercentage'] = raw['isPercentage'] == true;
           data['hasEndTime'] = raw['hasEndTime'] == true;
           data['isLimited'] = raw['isLimited'] == true;
@@ -1000,7 +910,8 @@ class Firebase {
           }
 
           if (data['isPercentage'] == true) {
-            data['maximumDiscountValue'] = parseInt(raw['maximumDiscountValue'], 0);
+            data['maximumDiscountValue'] =
+                parseInt(raw['maximumDiscountValue'], 0);
           } else {
             data['maximumDiscountValue'] = 0.0;
           }
@@ -1010,10 +921,15 @@ class Firebase {
 
           try {
             final currentUserId = Database().userID;
-            final bool isEveryone = voucher.distributionType == DistributionType.public;
-            final bool notExpired = data['hasEndTime'] != true || (endDate != null && endDate.isAfter(DateTime.now()));
+            final bool isEveryone =
+                voucher.distributionType == DistributionType.public;
+            final bool notExpired = data['hasEndTime'] != true ||
+                (endDate != null && endDate.isAfter(DateTime.now()));
             final bool started = !startDate.isAfter(DateTime.now());
-            if (currentUserId.isNotEmpty && isEveryone && notExpired && started) {
+            if (currentUserId.isNotEmpty &&
+                isEveryone &&
+                notExpired &&
+                started) {
               final int maxPerPerson = (data['maxUsagePerPerson'] as int?) ?? 1;
               final bool voucherIsLimited = voucher.isLimited;
               final String? voucherIdLocal = voucher.voucherID;
@@ -1025,8 +941,10 @@ class Firebase {
                   int toGrant = maxPerPerson;
 
                   if (voucherIsLimited) {
-                    final voucherRef = _firestore.collection('vouchers').doc(voucherIdLocal);
-                    final int granted = await _firestore.runTransaction<int>((tx) async {
+                    final voucherRef =
+                        _firestore.collection('vouchers').doc(voucherIdLocal);
+                    final int granted =
+                        await _firestore.runTransaction<int>((tx) async {
                       final snap = await tx.get(voucherRef);
                       if (!snap.exists) return 0;
 
@@ -1039,20 +957,15 @@ class Firebase {
                         } else if (usageLeftVal is String) {
                           currentLeft = int.tryParse(usageLeftVal) ?? 0;
                         } else {
-                          if (kDebugMode) {
-                            print('Warning: voucher $voucherIdLocal usageLeft has unexpected type: ${usageLeftVal.runtimeType}');
-                          }
                           currentLeft = 0;
                         }
                       } else {
-                        if (kDebugMode) {
-                          print('Warning: voucher $voucherIdLocal document data is not a Map but ${snapData.runtimeType}');
-                        }
                         return 0;
                       }
 
                       if (currentLeft <= 0) return 0;
-                      final int take = toGrant <= currentLeft ? toGrant : currentLeft;
+                      final int take =
+                          toGrant <= currentLeft ? toGrant : currentLeft;
                       tx.update(voucherRef, {'usageLeft': currentLeft - take});
                       return take;
                     });
@@ -1061,7 +974,8 @@ class Firebase {
 
                   if (toGrant <= 0) return;
 
-                  final ownedCollection = _firestore.collection('owned_vouchers');
+                  final ownedCollection =
+                      _firestore.collection('owned_vouchers');
                   final existingQuery = await ownedCollection
                       .where('customerID', isEqualTo: userIdLocal)
                       .where('voucherID', isEqualTo: voucherIdLocal)
@@ -1089,41 +1003,28 @@ class Firebase {
                       } else if (numberVal is String) {
                         currentUses = int.tryParse(numberVal) ?? 0;
                       } else {
-                        if (kDebugMode) {
-                          print('Warning: owned_voucher ${docSnap.id} numberOfUses has unexpected type: ${numberVal.runtimeType}');
-                        }
                         currentUses = 0;
                       }
                     } else {
-                      if (kDebugMode) {
-                        print('Warning: owned_voucher ${docSnap.id} data is not a Map but ${existingData.runtimeType}');
-                      }
                       currentUses = 0;
                     }
 
                     final needed = toGrant - currentUses;
                     if (needed > 0) {
-                      await docSnap.reference.update({'numberOfUses': currentUses + needed});
+                      await docSnap.reference
+                          .update({'numberOfUses': currentUses + needed});
                     }
                   }
                 } catch (e) {
-                  if (kDebugMode) {
-                    print('Warning: background auto-claim for voucher $voucherIdLocal failed: $e');
-                  }
+                  // Warning: background auto-claim for voucher failed
                 }
               })());
-             }
-           } catch (e) {
-             if (kDebugMode) {
-               print('Warning: auto-claim for voucher ${voucher.voucherID} failed: $e');
-             }
-           }
-        } catch (e, st) {
-          if (kDebugMode) {
-            print('Warning: skipping voucher ${doc.id} due to parse error: $e');
-            print('Document raw data: $raw');
-            print(st);
+            }
+          } catch (e) {
+            // Warning: auto-claim for voucher failed
           }
+        } catch (e) {
+          // Warning: skipping voucher due to parse error
         }
       }
 
@@ -1134,18 +1035,13 @@ class Firebase {
             await Future.wait(autoClaimTasks);
             await Database().updateVoucherLists();
           } catch (e) {
-            if (kDebugMode) {
-              print('Warning: background auto-claim failed: $e');
-            }
+            // Warning: background auto-claim failed
           }
         });
       }
 
       return vouchers;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting vouchers: $e');
-      }
       rethrow;
     }
   }
@@ -1156,9 +1052,6 @@ class Firebase {
       final docRef = await collectionRef.add(ownedVoucher.toMap());
       await docRef.update({'ownedVoucherID': docRef.id});
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding owned voucher: $e');
-      }
       rethrow;
     }
   }
@@ -1170,9 +1063,6 @@ class Firebase {
           .doc(ownedVoucherID)
           .delete();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error removing owned voucher: $e');
-      }
       rethrow;
     }
   }
@@ -1184,7 +1074,8 @@ class Firebase {
       }
 
       if (voucher.isLimited) {
-        final voucherRef = _firestore.collection('vouchers').doc(voucher.voucherID);
+        final voucherRef =
+            _firestore.collection('vouchers').doc(voucher.voucherID);
         await _firestore.runTransaction((tx) async {
           final snap = await tx.get(voucherRef);
           if (!snap.exists) {
@@ -1229,7 +1120,8 @@ class Firebase {
         final currentUses = (doc.data()['numberOfUses'] as num?)?.toInt() ?? 0;
         await doc.reference.update({'numberOfUses': currentUses + 1});
         final updated = await doc.reference.get();
-        final newUses = (updated.data()?['numberOfUses'] as num?)?.toInt() ?? (currentUses + 1);
+        final newUses = (updated.data()?['numberOfUses'] as num?)?.toInt() ??
+            (currentUses + 1);
         ownedVoucher = OwnedVoucher(
           ownedVoucherID: updated.id,
           voucherID: voucher.voucherID!,
@@ -1262,9 +1154,6 @@ class Firebase {
               ))
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting owned vouchers: $e');
-      }
       return [];
     }
   }
@@ -1302,9 +1191,6 @@ class Firebase {
       // Update local voucher lists to reflect changes
       await Database().updateVoucherLists();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error reverting voucher usage: $e');
-      }
       rethrow;
     }
   }
@@ -1321,11 +1207,13 @@ class Firebase {
       if (ownedVoucherQuery.docs.isNotEmpty) {
         final ownedVoucherDoc = ownedVoucherQuery.docs.first;
         final currentUsage = ownedVoucherDoc.data()['numberOfUses'] as int;
-        await ownedVoucherDoc.reference.update({'numberOfUses': currentUsage - 1});
+        await ownedVoucherDoc.reference
+            .update({'numberOfUses': currentUsage - 1});
       }
 
       // Decrease global usageLeft for limited vouchers, except redeemable vouchers.
-      if (voucher.isLimited && voucher.distributionType != DistributionType.rewards) {
+      if (voucher.isLimited &&
+          voucher.distributionType != DistributionType.rewards) {
         final voucherDoc = await _firestore
             .collection('vouchers')
             .doc(voucher.voucherID)
@@ -1334,17 +1222,14 @@ class Firebase {
         if (voucherDoc.exists) {
           final currentUsageLeft = voucherDoc.data()?['usageLeft'] as int? ?? 0;
           if (currentUsageLeft > 0) {
-            await voucherDoc.reference.update({'usageLeft': currentUsageLeft - 1});
+            await voucherDoc.reference
+                .update({'usageLeft': currentUsageLeft - 1});
           }
         }
       }
 
       await Database().updateVoucherLists();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating voucher usage: $e');
-        print('Error details: ${e.toString()}');
-      }
       // Continue with invoice creation even if voucher update fails
     }
   }
@@ -1364,16 +1249,13 @@ class Firebase {
   //   };
   // }
 
-  /// Decrement product stock when invoice is created
-  Future<void> _decrementProductStock(
+  /// Decrement product stock after successful payment confirmation
+  Future<void> decrementProductStock(
       List<SalesInvoiceDetail> invoiceDetails) async {
     try {
       for (final detail in invoiceDetails) {
         final productID = detail.product.productID;
         if (productID == null || productID.isEmpty) {
-          if (kDebugMode) {
-            print('Warning: Product ID is missing in invoice detail');
-          }
           continue;
         }
 
@@ -1386,9 +1268,6 @@ class Firebase {
         final productDoc = await productRef.get();
 
         if (!productDoc.exists) {
-          if (kDebugMode) {
-            print('Warning: Product not found: $productID');
-          }
           continue;
         }
 
@@ -1398,20 +1277,11 @@ class Firebase {
             (currentStock - quantity).clamp(0, double.infinity).toInt();
 
         await productRef.update({'stock': newStock});
-
-        if (kDebugMode) {
-          print(
-              'Decremented stock for product $productID: $currentStock -> $newStock (quantity: $quantity)');
-        }
       }
 
       // Refresh products in database to reflect stock changes
       await Database().getProducts();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error decrementing product stock: $e');
-        print('Error details: ${e.toString()}');
-      }
       // Continue with invoice creation even if stock update fails
       // In production, you might want to rethrow this error
     }
@@ -1424,9 +1294,6 @@ class Firebase {
       for (final detail in invoiceDetails) {
         final productID = detail['productID'] as String?;
         if (productID == null || productID.isEmpty) {
-          if (kDebugMode) {
-            print('Warning: Product ID is missing in invoice detail');
-          }
           continue;
         }
 
@@ -1439,9 +1306,6 @@ class Firebase {
         final productDoc = await productRef.get();
 
         if (!productDoc.exists) {
-          if (kDebugMode) {
-            print('Warning: Product not found: $productID');
-          }
           continue;
         }
 
@@ -1450,20 +1314,12 @@ class Firebase {
         final newStock = currentStock + quantity;
 
         await productRef.update({'stock': newStock});
-
-        if (kDebugMode) {
-          print(
-              'Restored stock for product $productID: $currentStock -> $newStock (quantity: $quantity)');
-        }
       }
 
       // Refresh products in database to reflect stock changes
       await Database().getProducts();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error restoring product stock: $e');
-        print('Error details: ${e.toString()}');
-      }
+      // Error restoring product stock
     }
   }
 
@@ -1480,9 +1336,6 @@ class Firebase {
         return ProductImage.fromMap(doc.id, doc.data() as Map<String, dynamic>);
       }).toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting product images: $e');
-      }
       return [];
     }
   }
@@ -1524,9 +1377,6 @@ class Firebase {
         fallbackSnapshot.docs.first.data(),
       );
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting product primary image: $e');
-      }
       return null;
     }
   }
@@ -1564,10 +1414,7 @@ class Firebase {
             }
           }
         } catch (e) {
-          if (kDebugMode) {
-            print(
-                'Warning: could not fetch username for rating ${rating.ratingID}: $e');
-          }
+          // Warning: could not fetch username for rating
         }
 
         ratings.add(rating);
@@ -1578,9 +1425,6 @@ class Firebase {
 
       return ratings;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting ratings by product: $e');
-      }
       rethrow;
     }
   }
@@ -1631,7 +1475,6 @@ class Firebase {
       return RatingsPage(
           ratings: ratings, lastDocument: lastDoc, hasMore: hasMore);
     } catch (e) {
-      if (kDebugMode) print('Server-side paged query failed: $e');
       rethrow; // let caller handle fallback
     }
   }
@@ -1668,7 +1511,6 @@ class Firebase {
       final average = (count > 0) ? (sum / count) : 0.0;
       return {'average': average, 'count': count, 'sum': sum};
     } catch (e) {
-      if (kDebugMode) print('Error computing average rating: $e');
       return {'average': 0.0, 'count': 0, 'sum': 0};
     }
   }
@@ -1703,19 +1545,14 @@ class Firebase {
         'lastUpdated': productRating['lastUpdated'],
       };
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting aggregated rating for product $productId: $e');
-      }
       return null;
     }
   }
 
   Future<Map<String, dynamic>?> getUserSurveyProfile(String userId) async {
     try {
-      final doc = await _firestore
-          .collection('surveyResponses_raw')
-          .doc(userId)
-          .get();
+      final doc =
+          await _firestore.collection('surveyResponses_raw').doc(userId).get();
 
       if (doc.exists) {
         final data = doc.data();
@@ -1726,9 +1563,6 @@ class Firebase {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting user survey profile: $e');
-      }
       return null;
     }
   }

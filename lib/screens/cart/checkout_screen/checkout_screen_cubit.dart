@@ -41,9 +41,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       }
       return '';
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting customer name: $e');
-      }
       return '';
     }
   }
@@ -193,9 +190,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
     try {
       await _firebase.cancelSalesInvoice(state.salesInvoice!.salesInvoiceID!);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error cancelling invoice: $e');
-      }
       // Don't throw - cancellation cleanup should not block UI
     }
   }
@@ -205,9 +199,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
     try {
       await _firebase.cancelSalesInvoice(salesInvoiceID);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error cancelling invoice by ID: $e');
-      }
       // Don't throw - cancellation cleanup should not block UI
     }
   }
@@ -288,6 +279,9 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         // Update invoice in Firebase
         await _firebase.updateSalesInvoice(invoiceToSave);
 
+        // Decrement product stock after COD order is confirmed
+        await _firebase.decrementProductStock(invoiceToSave.details);
+
         // Clear cart items
         for (var detail in invoiceToSave.details) {
           await _firebase.removeFromCart(
@@ -357,9 +351,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         }
 
         if (result == null) {
-          if (kDebugMode) {
-            print('Payment failed');
-          }
           // Payment failed - cancel the invoice
           if (invoiceWithRoundedTotal.salesInvoiceID != null &&
               invoiceWithRoundedTotal.salesInvoiceID!.isNotEmpty) {
@@ -376,6 +367,9 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         );
 
         await _firebase.updateSalesInvoice(invoiceToSave);
+
+        // Decrement product stock after successful payment confirmation
+        await _firebase.decrementProductStock(invoiceToSave.details);
 
         // Clear cart items after successful payment
         for (var detail in invoiceToSave.details) {
@@ -438,9 +432,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       StripeWebHelper.setSessionStorage(
           'stripe_checkout_data', checkoutDataJson);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error storing checkout data: $e');
-      }
+      // Error storing checkout data
     }
   }
 
@@ -478,6 +470,9 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       // Update invoice in Firebase
       await _firebase.updateSalesInvoice(updatedInvoice);
 
+      // Decrement product stock after successful payment confirmation
+      await _firebase.decrementProductStock(updatedInvoice.details);
+
       // Clear cart items
       for (var detail in updatedInvoice.details) {
         await _firebase.removeFromCart(
@@ -487,9 +482,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       // Clear stored checkout data
       StripeWebHelper.removeSessionStorage('stripe_checkout_data');
     } catch (e) {
-      if (kDebugMode) {
-        print('Error completing checkout from stored data: $e');
-      }
       rethrow;
     }
   }
@@ -513,15 +505,15 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       // Update invoice in Firebase
       await _firebase.updateSalesInvoice(updatedInvoice);
 
+      // Decrement product stock after successful payment confirmation
+      await _firebase.decrementProductStock(updatedInvoice.details);
+
       // Emit success state
       emit(state.copyWith(
         salesInvoice: updatedInvoice,
         processState: ProcessState.success,
       ));
     } catch (e) {
-      if (kDebugMode) {
-        print('Error completing SePay payment: $e');
-      }
       emit(state.copyWith(
         processState: ProcessState.failure,
         message: e.toString(),

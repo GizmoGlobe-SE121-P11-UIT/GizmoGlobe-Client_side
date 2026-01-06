@@ -37,9 +37,6 @@ class StripeServices {
         return await _makePaymentMobile(amount);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
       throw Exception('Payment failed'); //Thanh toán thất bại.
     }
   }
@@ -85,9 +82,6 @@ class StripeServices {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Web payment error: $e');
-      }
       rethrow;
     }
   }
@@ -98,14 +92,6 @@ class StripeServices {
       // For VND: database stores scaled values (e.g., 1000 = 1,000,000 VND)
       // Multiply by 1000 to convert to actual VND amount for Stripe
       final amountVND = _calculateAmountVND(amount);
-
-      if (kDebugMode) {
-        print('Stripe: Creating PaymentIntent');
-        print('  currency=$currency');
-        print('  dbAmount=$amount (k VND)');
-        print('  amountForStripe=$amountVND VND');
-        print('  usingProxy=${_isUsingProxy()}');
-      }
 
       Response response;
 
@@ -134,9 +120,6 @@ class StripeServices {
               proxyResponse['paymentIntent'] != null) {
             final paymentIntent =
                 proxyResponse['paymentIntent'] as Map<String, dynamic>;
-            if (kDebugMode) {
-              print('Stripe: PaymentIntent created via proxy');
-            }
             return paymentIntent['clientSecret'] as String?;
           } else {
             final error =
@@ -179,20 +162,12 @@ class StripeServices {
       // Handle direct API response (mobile only)
       if (!_isUsingProxy() && response.data != null) {
         if (response.statusCode == 200 || response.statusCode == 201) {
-          if (kDebugMode) {
-            print('Stripe: PaymentIntent created');
-          }
           return response.data['client_secret'];
         } else {
           // Handle 401 Unauthorized specifically
           if (response.statusCode == 401) {
             final errorMessage =
                 'Stripe authentication failed. Please check your API key configuration.';
-            if (kDebugMode) {
-              print('Stripe: 401 Unauthorized - Invalid or missing API key');
-              print('  Check that STRIPE_SECRET_KEY is set in .env file');
-              print('  Ensure the key starts with "sk_test_" or "sk_live_"');
-            }
             throw Exception(errorMessage);
           }
 
@@ -203,18 +178,11 @@ class StripeServices {
           final message = stripeError is Map
               ? (stripeError['message'] ?? stripeError.toString())
               : '$stripeError';
-          if (kDebugMode) {
-            print(
-                'Stripe: PaymentIntent error (${response.statusCode}): $message');
-          }
           throw Exception(message);
         }
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Stripe: Exception creating PaymentIntent: $e');
-      }
       // Re-throw if it's already an Exception with a message
       if (e is Exception) {
         rethrow;
@@ -235,13 +203,6 @@ class StripeServices {
       final cancelUrl = '$baseUrl#/cart';
 
       final unitAmount = _calculateAmountVND(amount);
-
-      if (kDebugMode) {
-        print('Stripe: Creating Checkout Session');
-        print('  dbAmount=$amount (k VND)');
-        print('  unit_amount=$unitAmount VND');
-        print('  usingProxy=${_isUsingProxy()}');
-      }
 
       Response response;
 
@@ -278,23 +239,12 @@ class StripeServices {
           if (proxyResponse['success'] == true &&
               proxyResponse['session'] != null) {
             final session = proxyResponse['session'] as Map<String, dynamic>;
-            if (kDebugMode) {
-              print(
-                  'Stripe: Checkout session created via proxy: ${session['id']}');
-            }
             return session['id'] as String?;
           } else {
             // Proxy returned error (wrapped in 200 response)
             final error =
                 proxyResponse['error'] ?? 'Failed to create checkout session';
-            final details = proxyResponse['details'];
-            if (kDebugMode) {
-              print('Stripe Proxy Error: $error');
-              if (details != null) {
-                print('Error details: $details');
-              }
-              print('Full response: $proxyResponse');
-            }
+            // final details = proxyResponse['details'];
             throw Exception(error);
           }
         } else {
@@ -302,10 +252,6 @@ class StripeServices {
           final errorMessage = response.data is Map
               ? (response.data['error'] ?? 'Proxy request failed')
               : 'Proxy request failed with status ${response.statusCode}';
-          if (kDebugMode) {
-            print('Stripe Proxy HTTP Error: ${response.statusCode}');
-            print('Response data: ${response.data}');
-          }
           throw Exception(errorMessage);
         }
       } else {
@@ -345,20 +291,12 @@ class StripeServices {
       // Handle direct API response (mobile only)
       if (!_isUsingProxy() && response.data != null) {
         if (response.statusCode == 200 || response.statusCode == 201) {
-          if (kDebugMode) {
-            print('Stripe: Checkout session created: ${response.data['id']}');
-          }
           return response.data['id'];
         } else {
           // Handle 401 Unauthorized specifically
           if (response.statusCode == 401) {
             final errorMessage =
                 'Stripe authentication failed. Please check your API key configuration.';
-            if (kDebugMode) {
-              print('Stripe: 401 Unauthorized - Invalid or missing API key');
-              print('  Check that STRIPE_SECRET_KEY is set in .env file');
-              print('  Ensure the key starts with "sk_test_" or "sk_live_"');
-            }
             throw Exception(errorMessage);
           }
 
@@ -368,18 +306,11 @@ class StripeServices {
           final message = stripeError is Map
               ? (stripeError['message'] ?? stripeError.toString())
               : '$stripeError';
-          if (kDebugMode) {
-            print(
-                'Stripe: Checkout session error (${response.statusCode}): $message');
-          }
           throw Exception(message);
         }
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error creating checkout session: $e');
-      }
       // Re-throw if it's already an Exception with a message
       if (e is Exception) {
         rethrow;
@@ -448,9 +379,6 @@ class StripeServices {
 
         // Handle 401 Unauthorized
         if (response.statusCode == 401) {
-          if (kDebugMode) {
-            print('Stripe: 401 Unauthorized when getting checkout session URL');
-          }
           throw Exception(
               'Stripe authentication failed. Please check your API key configuration.');
         }
@@ -461,9 +389,6 @@ class StripeServices {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting checkout session URL: $e');
-      }
       return null;
     }
   }
@@ -549,10 +474,6 @@ class StripeServices {
         // Check if Stripe secret key is available
         final secretKey = dotenv.env['STRIPE_SECRET_KEY'];
         if (secretKey == null || secretKey.isEmpty) {
-          if (kDebugMode) {
-            print(
-                'Stripe: Secret key not configured when checking payment status');
-          }
           return null;
         }
 
@@ -568,9 +489,6 @@ class StripeServices {
 
         // Handle 401 Unauthorized
         if (response.statusCode == 401) {
-          if (kDebugMode) {
-            print('Stripe: 401 Unauthorized when checking payment status');
-          }
           return null; // Return null instead of throwing to avoid breaking the flow
         }
 
@@ -589,9 +507,6 @@ class StripeServices {
         return null;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error checking payment status: $e');
-      }
       return null;
     }
   }
@@ -606,9 +521,6 @@ class StripeServices {
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
       throw Exception(
           'Payment processing failed'); //Quá trình thanh toán thất bại
     }
@@ -626,10 +538,6 @@ class StripeServices {
     int amountVND = (amount * 1000).round();
     // Enforce a small minimum to avoid Stripe 400 on tiny amounts (defensive)
     if (amountVND < 1000) {
-      if (kDebugMode) {
-        print(
-            'Stripe: amount below minimum, raising to 1000 VND (was $amountVND)');
-      }
       amountVND = 1000;
     }
     return amountVND.toString();

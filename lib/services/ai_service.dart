@@ -60,15 +60,8 @@ class AIService {
       try {
         classification = await _questionClassifier.classifyQuestion(
             userMessage, isVietnamese);
-        if (kDebugMode) {
-          print(
-              'Question classified as: ${classification.type} (confidence: ${classification.confidence})');
-          print('Extracted entities: ${classification.entities}');
-        }
       } catch (e) {
-        if (kDebugMode) {
-          print('NLP classification failed, using fallback: $e');
-        }
+        // NLP classification failed, using fallback
       }
 
       // Fallback to existing detection methods if NLP fails or low confidence
@@ -169,9 +162,6 @@ class AIService {
       return await _handleGeneralQuestion(
           processedMessage, userId, isVietnamese);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error in generateResponse: $e');
-      }
       return _utils.isVietnamese(userMessage)
           ? 'Xin lỗi, hiện tại tôi không thể xử lý yêu cầu của bạn. Vui lòng thử lại sau.'
           : 'Sorry, I cannot process your request at the moment. Please try again later.';
@@ -191,36 +181,22 @@ class AIService {
       String contextInfo = '';
 
       // First, try NLP-based extraction (more intelligent and flexible)
-      if (kDebugMode) {
-        print('Trying NLP-based extraction first...');
-      }
       try {
         productName = await _nlpService.extractProductNameWithNLP(
             userMessage, isVietnamese);
         if (productName != null && productName.isNotEmpty) {
-          if (kDebugMode) {
-            print('NLP extracted product name: "$productName"');
-          }
           contextInfo = isVietnamese
               ? ' (Đã xác định bằng NLP: $productName)'
               : ' (Identified via NLP: $productName)';
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('NLP extraction failed: $e');
-        }
+        // NLP extraction failed
       }
 
       // If NLP failed, try regex extraction as fallback
       if (productName == null || productName.isEmpty) {
-        if (kDebugMode) {
-          print('NLP extraction failed, trying regex extraction...');
-        }
         productName = _utils.extractProductNameFromRequest(userMessage);
         if (productName != null && productName.isNotEmpty) {
-          if (kDebugMode) {
-            print('Regex extracted product name: "$productName"');
-          }
           contextInfo = isVietnamese
               ? ' (Đã xác định bằng regex: $productName)'
               : ' (Identified via regex: $productName)';
@@ -233,12 +209,7 @@ class AIService {
 
       // If no product name found OR if it's just a pronoun/reference, try context extraction
       if (productName == null || productName.isEmpty || isPronounOrReference) {
-        if (isPronounOrReference) {
-          if (kDebugMode) {
-            print(
-                'Extracted name "$productName" is a pronoun/reference, using context extraction');
-          }
-        }
+        if (isPronounOrReference) {}
         productName = await _conversationService.extractProductNameFromContext(
             userId, userMessage);
 
@@ -258,12 +229,6 @@ class AIService {
         final synonyms =
             (nlpAnalysis['synonyms'] as List?)?.cast<String>() ?? [];
 
-        if (kDebugMode) {
-          print(
-              'NLP Enhanced Product Name: $enhancedProductName (original: $productName)');
-          print('Synonyms: $synonyms');
-        }
-
         // Try to find the product with enhanced name first
         var foundProduct =
             await _productService.findProductByName(enhancedProductName);
@@ -273,9 +238,6 @@ class AIService {
           for (final synonym in synonyms) {
             foundProduct = await _productService.findProductByName(synonym);
             if (foundProduct != null) {
-              if (kDebugMode) {
-                print('Found product using synonym: $synonym');
-              }
               break;
             }
           }
@@ -359,9 +321,6 @@ class AIService {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error handling add to cart request: $e');
-      }
       final response = isVietnamese
           ? 'Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu thêm vào giỏ hàng. Vui lòng thử lại sau.'
           : 'Sorry, an error occurred while processing your add to cart request. Please try again later.';
@@ -387,9 +346,6 @@ class AIService {
       }
       return response;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error handling voucher question: $e');
-      }
       return isVietnamese
           ? 'Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.'
           : 'Sorry, an error occurred while processing your request. Please try again later.';
@@ -419,14 +375,7 @@ class AIService {
 
     if (isFavoriteQuestion) {
       favorites = await _userDataService.getUserFavorites(userId);
-      if (kDebugMode) {
-        print(
-            'getUserFavorites returned ${favorites.length} products for user: $userId');
-      }
       content = _userDataService.formatFavoritesList(favorites, isVietnamese);
-      if (kDebugMode) {
-        print('Favorites content: $content');
-      }
       sectionTitle =
           isVietnamese ? 'DANH SÁCH SẢN PHẨM YÊU THÍCH' : 'FAVORITE PRODUCTS';
     }
@@ -437,9 +386,7 @@ class AIService {
       // If asking about quantity specifically, provide a focused response
       if (isCartQuantityQuestion) {
         final totalItems = cartItems.fold<int>(
-            // ignore: avoid_types_as_parameter_names
-            0,
-            (sum, item) => sum + (item['quantity'] as int? ?? 0));
+            0, (total, item) => total + (item['quantity'] as int? ?? 0));
         final totalProducts = cartItems.length;
 
         return isVietnamese
@@ -503,16 +450,6 @@ class AIService {
           .toList();
     }
 
-    // Attach product cards (all favorites/cart products)
-    if (kDebugMode) {
-      print('ProductCards prepared: ${productCards?.length ?? 0} cards');
-      if (productCards != null) {
-        for (var card in productCards) {
-          print('  - Card: ${card['name']}');
-        }
-      }
-    }
-
     final responseWithProducts = await _attachProductCardsToResponse(
       response,
       userMessage,
@@ -543,10 +480,6 @@ class AIService {
     final nlpAnalysis =
         await _nlpService.analyzeProductQuery(processedMessage, isVietnamese);
 
-    if (kDebugMode) {
-      print('NLP Analysis: $nlpAnalysis');
-    }
-
     // Extract information from NLP analysis
     final productName = nlpAnalysis['product_name'] as String? ?? '';
     final category = nlpAnalysis['category'] as String? ?? '';
@@ -560,10 +493,6 @@ class AIService {
         classification.entities.containsKey('budget')) {
       budgetMillionVND =
           (classification.entities['budget'] as num?)?.toDouble();
-      if (kDebugMode) {
-        print(
-            'Budget extracted from classification: $budgetMillionVND million VND');
-      }
     }
 
     // Extract max TDP from classification if available (for CPU power filtering)
@@ -571,13 +500,6 @@ class AIService {
     if (classification != null &&
         classification.entities.containsKey('max_tdp')) {
       maxTDP = (classification.entities['max_tdp'] as num?)?.toInt();
-      if (kDebugMode) {
-        print('Max TDP extracted from classification: $maxTDP W');
-      }
-    }
-    if (kDebugMode) {
-      print(
-          'NLP Results - Product: $productName, Category: $category, Synonyms: $synonyms, Confidence: $confidence');
     }
 
     // Search products using NLP-enhanced approach
@@ -596,11 +518,6 @@ class AIService {
     if (productsSnapshot == null || productsSnapshot.docs.isEmpty) {
       final fallbackCategory = _utils.detectProductCategory(processedMessage);
       final fallbackKeywords = _utils.extractSearchKeywords(processedMessage);
-
-      if (kDebugMode) {
-        print(
-            'Fallback search - Category: $fallbackCategory, Keywords: $fallbackKeywords');
-      }
 
       if (fallbackCategory != null) {
         productsSnapshot =
@@ -630,7 +547,7 @@ class AIService {
 
     if (budgetMillionVND != null) {
       final budgetInVND = budgetMillionVND * 1000000;
-      final originalDocsCount = docsToUse.length;
+      // final originalDocsCount = docsToUse.length;
 
       // Filter products by budget
       // NOTE: Database stores prices in thousands (VND/1000), so multiply by 1000 for comparison
@@ -647,11 +564,6 @@ class AIService {
 
       if (budgetFilteredDocs.isEmpty) {
         // No products within budget - prepare fallback message and get cheapest products
-        if (kDebugMode) {
-          print(
-              'No products found within budget of $budgetMillionVND million VND. '
-              'Suggesting cheapest alternatives.');
-        }
 
         // Sort all products by price (cheapest first)
         // NOTE: Prices are stored in thousands (VND/1000), so multiply by 1000
@@ -702,21 +614,11 @@ class AIService {
         // Products found within budget
         docsToUse = budgetFilteredDocs;
         isBudgetFiltered = true;
-
-        if (kDebugMode) {
-          print(
-              'Filtered products by budget: found ${budgetFilteredDocs.length} '
-              'out of $originalDocsCount products under $budgetMillionVND million VND');
-        }
       }
     }
 
     // Filter by TDP if specified (for CPUs)
     if (maxTDP != null && category.toLowerCase() == 'cpu') {
-      if (kDebugMode) {
-        print('Filtering CPUs by max TDP: $maxTDP W');
-      }
-
       final tdpFilteredDocs = docsToUse.where((doc) {
         final data = doc.data() as Map<String, dynamic>;
         // TDP is stored as an integer in Watts
@@ -726,10 +628,6 @@ class AIService {
 
       if (tdpFilteredDocs.isEmpty) {
         // No CPUs within TDP limit - prepare message
-        if (kDebugMode) {
-          print(
-              'No CPUs found with TDP <= $maxTDP W. Showing lowest TDP alternatives.');
-        }
 
         // Sort by TDP (lowest first)
         final allDocs = List<QueryDocumentSnapshot>.from(docsToUse);
@@ -755,10 +653,6 @@ class AIService {
       } else {
         // CPUs found within TDP limit
         docsToUse = tdpFilteredDocs;
-
-        if (kDebugMode) {
-          print('Found ${tdpFilteredDocs.length} CPUs with TDP <= $maxTDP W');
-        }
       }
     }
 
@@ -855,10 +749,6 @@ class AIService {
 
     // Skip extraction for non-product queries (voucher, account, general questions)
     if (_isNonProductQuery(originalMessage)) {
-      if (kDebugMode) {
-        print(
-            'Skipping product card extraction for non-product query: $originalMessage');
-      }
       return response;
     }
 
@@ -868,11 +758,6 @@ class AIService {
         await _extractProductNamesAndBrandsFromResponse(response, isVietnamese);
     final productNames = extractionResult['product_names'] ?? [];
     final mentionedBrands = extractionResult['brands'] ?? [];
-
-    if (kDebugMode) {
-      print('Found product mentions in response: $productNames');
-      print('Found brand mentions in response: $mentionedBrands');
-    }
 
     // Filter product names - only keep FULL product names with specs
     // This prevents extracting generic terms like "Core i7" or "Ultra 7"
@@ -885,13 +770,6 @@ class AIService {
           .hasMatch(lowerName); // GHz, GB, cores, etc.
       return hasModelNumber && hasSpecs;
     }).toList();
-
-    if (kDebugMode && filteredProductNames.length != productNames.length) {
-      if (kDebugMode) {
-        print(
-            'Filtered generic product names. Keeping only specific mentions: $filteredProductNames');
-      }
-    }
 
     if (filteredProductNames.isEmpty) {
       return response; // No specific products to attach
@@ -946,11 +824,6 @@ class AIService {
             // Check if key specs match (capacity, speed, cores, etc.)
             final specsMatch = _doSpecsMatch(mentionSpecs, foundSpecs);
 
-            if (kDebugMode) {
-              print(
-                  'Mention specs: $mentionSpecs, Found specs: $foundSpecs, Match: $specsMatch');
-            }
-
             isExactMatch = specsMatch;
           }
         }
@@ -971,10 +844,7 @@ class AIService {
                     .contains(productBrand.toLowerCase()));
 
             if (!brandMatches) {
-              if (kDebugMode) {
-                print(
-                    'Product ${data['productName']} brand mismatch. Product brand: $productBrand, Mentioned brands: $mentionedBrands.');
-              }
+              // Brand mismatch
             }
           }
 
@@ -1170,19 +1040,13 @@ class AIService {
           cleanedResponse, isVietnamese);
       if (nlpResult['product_names']!.isNotEmpty ||
           nlpResult['brands']!.isNotEmpty) {
-        if (kDebugMode) {
-          print('NLP extracted product names: ${nlpResult['product_names']}');
-          print('NLP extracted brands: ${nlpResult['brands']}');
-        }
         return {
           'product_names': nlpResult['product_names']!.take(3).toList(),
           'brands': nlpResult['brands']!.take(3).toList(),
         };
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('NLP extraction failed, falling back to regex: $e');
-      }
+      // NLP extraction failed, falling back to regex
     }
 
     // Fallback to regex patterns if NLP fails
@@ -1284,15 +1148,9 @@ class AIService {
   //     final nlpProductNames = await _nlpService.extractProductNamesFromText(
   //         cleanedResponse, isVietnamese);
   //     if (nlpProductNames.isNotEmpty) {
-  //       if (kDebugMode) {
-  //         print('NLP extracted product names: $nlpProductNames');
-  //       }
   //       return nlpProductNames.take(3).toList();
   //     }
   //   } catch (e) {
-  //     if (kDebugMode) {
-  //       print('NLP extraction failed, falling back to regex: $e');
-  //     }
   //   }
 
   //   // Fallback to regex patterns if NLP fails
@@ -1443,10 +1301,6 @@ TRẢ LỜI:
 
       final productName = productNames.first.toString();
 
-      if (kDebugMode) {
-        print('🔍 Product Spec Query - Extracted product name: "$productName"');
-      }
-
       // Search for product in Firestore
       final searchQuery = await FirebaseFirestore.instance
           .collection('products')
@@ -1456,7 +1310,6 @@ TRẢ LỜI:
       // Find best matching product with scoring
       QueryDocumentSnapshot? matchedProduct;
       double bestScore = 0.0;
-      String? bestMatchName;
 
       // Normalize: remove spaces, dashes, and lowercase
       final normalizedQuery =
@@ -1513,41 +1366,17 @@ TRẢ LỜI:
         if (score > bestScore) {
           bestScore = score;
           matchedProduct = doc;
-          bestMatchName = data['productName']?.toString();
         }
-
-        // Debug: Show top scoring products
-        if (kDebugMode && score > 0) {
-          if (kDebugMode) {
-            print('  - "${data['productName']}" → score: $score');
-          }
-        }
-      }
-
-      if (kDebugMode) {
-        print('🎯 Best match: "$bestMatchName" with score: $bestScore');
       }
 
       if (matchedProduct == null) {
-        if (kDebugMode) {
-          print('❌ No product matched for: "$productName"');
-        }
         return isVietnamese
             ? 'Không tìm thấy sản phẩm "$productName" trong hệ thống.'
             : 'Product "$productName" not found in the system.';
       }
 
-      if (kDebugMode) {
-        print('✅ Product found! ID: ${matchedProduct.id}');
-      }
-
       final productData = matchedProduct.data() as Map<String, dynamic>;
       final fullProductName = productData['productName'] ?? productName;
-
-      if (kDebugMode) {
-        print('📦 Full product name: "$fullProductName"');
-        print('🔧 Product data keys: ${productData.keys.toList()}');
-      }
 
       // Build context with product info and the spec question
 
@@ -1629,11 +1458,7 @@ ANSWER (1 SENTENCE):
         skipExtraction:
             true, // Don't extract products from AI response for spec queries
       );
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        print('❌ Error in _handleProductSpecQuestion: $e');
-        print('Stack trace: $stackTrace');
-      }
+    } catch (e) {
       return isVietnamese
           ? 'Xin lỗi, có lỗi xảy ra khi xử lý câu hỏi của bạn.'
           : 'Sorry, an error occurred while processing your question.';
@@ -1864,16 +1689,6 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
       int retryCount = 0;
       while (retryCount < modelMaxRetries) {
         try {
-          if (kDebugMode) {
-            if (useFallback) {
-              print(
-                  'Using fallback model: $model (Attempt ${retryCount + 1}/$modelMaxRetries)');
-            } else {
-              print(
-                  'Calling Gemini API with $model... (Attempt ${retryCount + 1}/$modelMaxRetries)');
-            }
-          }
-
           final response = await http.post(
             Uri.parse(
                 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey'),
@@ -1894,10 +1709,6 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
             }),
           );
 
-          if (kDebugMode) {
-            print('Gemini API response status: ${response.statusCode}');
-          }
-
           if (response.statusCode == 200) {
             // Decode response body as UTF-8 to fix Vietnamese character encoding
             final utf8Body = utf8.decode(response.bodyBytes);
@@ -1908,9 +1719,7 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
               final parts = content['parts'] as List;
               if (parts.isNotEmpty) {
                 if (useFallback) {
-                  if (kDebugMode) {
-                    print('Successfully used fallback model: $model');
-                  }
+                  // Successfully used fallback model
                 }
                 return parts[0]['text'] as String;
               }
@@ -1919,10 +1728,6 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
           } else if (response.statusCode == 503) {
             // If 2.5-flash is overloaded, switch to fallback immediately
             if (model == 'gemini-2.5-flash' && !useFallback) {
-              if (kDebugMode) {
-                print(
-                    'Model 2.5-flash is overloaded after ${retryCount + 1} attempt(s), switching to 2.5-flash-lite fallback...');
-              }
               useFallback = true;
               break; // Break retry loop and try next model
             }
@@ -1930,20 +1735,12 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
             // If fallback also fails, retry
             retryCount++;
             if (retryCount < modelMaxRetries) {
-              if (kDebugMode) {
-                print(
-                    'Model overloaded, retrying in ${retryCount * 2} seconds...');
-              }
               await Future.delayed(Duration(seconds: retryCount * 2));
               continue;
             }
           } else {
             // For other errors, try next model if available
             if (model == 'gemini-2.5-flash' && !useFallback) {
-              if (kDebugMode) {
-                print(
-                    'Model 2.5-flash failed with status ${response.statusCode} after ${retryCount + 1} attempt(s), switching to 2.5-flash-lite fallback...');
-              }
               useFallback = true;
               break; // Break retry loop and try next model
             }
@@ -1951,25 +1748,14 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
                 'API call failed with status code: ${response.statusCode}, body: ${response.body}');
           }
         } catch (e) {
-          if (kDebugMode) {
-            print('Error calling Gemini API with $model: $e');
-          }
-
           // If 2.5-flash fails, try fallback
           if (model == 'gemini-2.5-flash' && !useFallback) {
-            if (kDebugMode) {
-              print(
-                  'Switching to 2.5-flash-lite fallback due to error after ${retryCount + 1} attempt(s)...');
-            }
             useFallback = true;
             break; // Break retry loop and try next model
           }
 
           retryCount++;
           if (retryCount < modelMaxRetries) {
-            if (kDebugMode) {
-              print('Retrying in ${retryCount * 2} seconds...');
-            }
             await Future.delayed(Duration(seconds: retryCount * 2));
             continue;
           }

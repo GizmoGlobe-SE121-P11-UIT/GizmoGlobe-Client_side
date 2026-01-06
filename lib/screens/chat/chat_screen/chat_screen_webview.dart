@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:intl/intl.dart';
@@ -133,9 +132,7 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
           }
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('Failed to parse product cards: $e');
-        }
+        // Failed to parse product cards
       }
     }
     return result;

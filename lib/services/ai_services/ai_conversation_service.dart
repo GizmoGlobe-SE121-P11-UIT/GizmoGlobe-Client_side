@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'ai_utils.dart';
@@ -39,10 +38,6 @@ class AIConversationService {
         final history = _parseHistoryFromJson(historyJson);
         if (history.isNotEmpty) {
           _conversationHistory[userId] = _normalizeHistory(history);
-          if (kDebugMode) {
-            print(
-                'Loaded ${history.length} conversations from SharedPreferences for user: $userId');
-          }
           return;
         }
       }
@@ -50,9 +45,6 @@ class AIConversationService {
       // If no local data or empty, sync from Firebase
       await _syncFromFirebase(userId);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error initializing user history: $e');
-      }
       _conversationHistory[userId] = [];
     }
   }
@@ -123,19 +115,11 @@ class AIConversationService {
 
         // Save to SharedPreferences
         await _saveToSharedPreferences(userId);
-
-        if (kDebugMode) {
-          print(
-              'Synced ${recentMessages.length} conversations from Firebase for user: $userId');
-        }
       } else {
         _conversationHistory[userId] = [];
         await _saveToSharedPreferences(userId);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error syncing from Firebase: $e');
-      }
       _conversationHistory[userId] = [];
     }
   }
@@ -152,15 +136,8 @@ class AIConversationService {
 
       await prefs.setString(historyKey, historyJson);
       await prefs.setInt(lastSyncKey, DateTime.now().millisecondsSinceEpoch);
-
-      if (kDebugMode) {
-        print(
-            'Saved ${history.length} conversations to SharedPreferences for user: $userId');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error saving to SharedPreferences: $e');
-      }
+      // Error saving to SharedPreferences
     }
   }
 
@@ -214,24 +191,12 @@ class AIConversationService {
         for (int i = 0; i < messagesToRemove; i++) {
           currentData.remove(messageIds[i]);
         }
-
-        if (kDebugMode) {
-          print(
-              'Removed $messagesToRemove old messages to keep document size under limit');
-        }
       }
 
       // Update document with limited messages
       await docRef.set(currentData, SetOptions(merge: true));
-
-      if (kDebugMode) {
-        print(
-            'Saved message to Firebase for user: $userId, messageId: $messageId');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error saving to Firebase: $e');
-      }
+      // Error saving to Firebase
     }
   }
 
@@ -264,9 +229,6 @@ class AIConversationService {
               })
           .toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing history from JSON: $e');
-      }
       return [];
     }
   }
@@ -465,9 +427,6 @@ class AIConversationService {
       productName ??= _extractProductNameFromText(question);
 
       if (productName != null && _isValidProductName(productName)) {
-        if (kDebugMode) {
-          print('Extracted product name from user question: "$productName"');
-        }
         foundProducts.add(productName);
 
         // Store additional context about this product
@@ -484,10 +443,6 @@ class AIConversationService {
         if (answerProductName != null &&
             _isValidProductName(answerProductName) &&
             !foundProducts.contains(answerProductName)) {
-          if (kDebugMode) {
-            print(
-                'Extracted product name from AI answer: "$answerProductName"');
-          }
           foundProducts.add(answerProductName);
 
           // Store additional context about this product
@@ -503,10 +458,6 @@ class AIConversationService {
       if (productName == null && foundProducts.isEmpty) {
         productName = _extractProductNameFromText(answer);
         if (productName != null && _isValidProductName(productName)) {
-          if (kDebugMode) {
-            print(
-                'Extracted product name from AI answer (fallback): "$productName"');
-          }
           foundProducts.add(productName);
 
           // Store additional context about this product
@@ -523,12 +474,6 @@ class AIConversationService {
       // Sort by specificity (longer names are usually more specific)
       foundProducts.sort((a, b) => b.length.compareTo(a.length));
       final selectedProduct = foundProducts.first;
-
-      if (kDebugMode) {
-        print('Found products in context: $foundProducts');
-        print('Product details: $foundProductDetails');
-        print('Selected most specific: "$selectedProduct"');
-      }
 
       return selectedProduct;
     }
@@ -585,14 +530,8 @@ class AIConversationService {
 
       // Clear from Firebase
       await _firestore.collection('chats').doc(userId).delete();
-
-      if (kDebugMode) {
-        print('Cleared conversation history for user: $userId');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error clearing conversation history: $e');
-      }
+      // Error clearing conversation history
     }
   }
 

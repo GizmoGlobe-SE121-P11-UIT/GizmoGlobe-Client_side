@@ -1008,34 +1008,48 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildPaymentMethodOption(
-            selectedMethod: state.selectedPaymentMethod,
-            method: PaymentMethod.cod,
-            title: S.of(context).cashOnDelivery,
-            description: S.of(context).payWhenYouReceive,
-            icon: Icons.money,
-            isSelected: state.selectedPaymentMethod == PaymentMethod.cod,
-            onTap: () => cubit.updatePaymentMethod(PaymentMethod.cod),
-          ),
-          const SizedBox(height: 12),
-          _buildPaymentMethodOption(
-            selectedMethod: state.selectedPaymentMethod,
-            method: PaymentMethod.sepay,
-            title: S.of(context).sepay,
-            description: S.of(context).sepayDescription,
-            icon: Icons.account_balance,
-            isSelected: state.selectedPaymentMethod == PaymentMethod.sepay,
-            onTap: () => cubit.updatePaymentMethod(PaymentMethod.sepay),
-          ),
-          const SizedBox(height: 12),
-          _buildPaymentMethodOption(
-            selectedMethod: state.selectedPaymentMethod,
-            method: PaymentMethod.stripe,
-            title: S.of(context).stripe,
-            description: S.of(context).stripeDescription,
-            icon: Icons.credit_card,
-            isSelected: state.selectedPaymentMethod == PaymentMethod.stripe,
-            onTap: () => cubit.updatePaymentMethod(PaymentMethod.stripe),
+          RadioGroup<PaymentMethod>(
+            groupValue: state.selectedPaymentMethod,
+            onChanged: (value) {
+              if (value != null) {
+                cubit.updatePaymentMethod(value);
+              }
+            },
+            child: Column(
+              children: [
+                _buildPaymentMethodOption(
+                  selectedMethod: state.selectedPaymentMethod,
+                  method: PaymentMethod.cod,
+                  title: S.of(context).cashOnDelivery,
+                  description: S.of(context).payWhenYouReceive,
+                  icon: Icons.money,
+                  isSelected: state.selectedPaymentMethod == PaymentMethod.cod,
+                  onTap: () => cubit.updatePaymentMethod(PaymentMethod.cod),
+                ),
+                const SizedBox(height: 12),
+                _buildPaymentMethodOption(
+                  selectedMethod: state.selectedPaymentMethod,
+                  method: PaymentMethod.sepay,
+                  title: S.of(context).sepay,
+                  description: S.of(context).sepayDescription,
+                  icon: Icons.account_balance,
+                  isSelected:
+                      state.selectedPaymentMethod == PaymentMethod.sepay,
+                  onTap: () => cubit.updatePaymentMethod(PaymentMethod.sepay),
+                ),
+                const SizedBox(height: 12),
+                _buildPaymentMethodOption(
+                  selectedMethod: state.selectedPaymentMethod,
+                  method: PaymentMethod.stripe,
+                  title: S.of(context).stripe,
+                  description: S.of(context).stripeDescription,
+                  icon: Icons.credit_card,
+                  isSelected:
+                      state.selectedPaymentMethod == PaymentMethod.stripe,
+                  onTap: () => cubit.updatePaymentMethod(PaymentMethod.stripe),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1079,8 +1093,6 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
           children: [
             Radio<PaymentMethod>(
               value: method,
-              groupValue: selectedMethod,
-              onChanged: isDisabled ? null : (_) => onTap(),
             ),
             const SizedBox(width: 12),
             Icon(

@@ -213,40 +213,55 @@ class _QuestionCard extends StatelessWidget {
               // Wrap options in a flexible scrollable container
               Flexible(
                 child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: options.map((opt) {
-                      Map<String, dynamic> m;
-                      if (opt is Map) {
-                        m = Map<String, dynamic>.from(opt);
-                      } else {
-                        m = <String, dynamic>{};
-                      }
-                      final String? id = m['id'] as String?;
-                      final String label = (m['label'] as String?) ?? '';
-                      if (type == 'multiChoice') {
-                        return CheckboxListTile(
-                          value: selectedOptionIds.contains(id),
-                          onChanged: (checked) {
-                            if (id != null && id.isNotEmpty) {
-                              onToggleMulti?.call(id);
+                  child: type == 'singleChoice'
+                      ? RadioGroup<String>(
+                          groupValue: selectedOptionId,
+                          onChanged: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              onSelectSingle?.call(value);
                             }
                           },
-                          title: Text(label),
-                        );
-                      }
-                      return RadioListTile<String>(
-                        value: id ?? '',
-                        groupValue: selectedOptionId,
-                        onChanged: (v) {
-                          if (v != null && (id ?? '').isNotEmpty) {
-                            onSelectSingle?.call(v);
-                          }
-                        },
-                        title: Text(label),
-                      );
-                    }).toList(),
-                  ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: options.map((opt) {
+                              Map<String, dynamic> m;
+                              if (opt is Map) {
+                                m = Map<String, dynamic>.from(opt);
+                              } else {
+                                m = <String, dynamic>{};
+                              }
+                              final String? id = m['id'] as String?;
+                              final String label =
+                                  (m['label'] as String?) ?? '';
+                              return RadioListTile<String>(
+                                value: id ?? '',
+                                title: Text(label),
+                              );
+                            }).toList(),
+                          ),
+                        )
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: options.map((opt) {
+                            Map<String, dynamic> m;
+                            if (opt is Map) {
+                              m = Map<String, dynamic>.from(opt);
+                            } else {
+                              m = <String, dynamic>{};
+                            }
+                            final String? id = m['id'] as String?;
+                            final String label = (m['label'] as String?) ?? '';
+                            return CheckboxListTile(
+                              value: selectedOptionIds.contains(id),
+                              onChanged: (checked) {
+                                if (id != null && id.isNotEmpty) {
+                                  onToggleMulti?.call(id);
+                                }
+                              },
+                              title: Text(label),
+                            );
+                          }).toList(),
+                        ),
                 ),
               ),
             ],

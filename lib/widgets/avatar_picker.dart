@@ -24,10 +24,10 @@ class AvatarPicker extends StatefulWidget {
   });
 
   @override
-  _AvatarPickerState createState() => _AvatarPickerState();
+  AvatarPickerState createState() => AvatarPickerState();
 }
 
-class _AvatarPickerState extends State<AvatarPicker> {
+class AvatarPickerState extends State<AvatarPicker> {
   final ImagePicker _picker = ImagePicker();
   final StorageService _storageService = StorageService();
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
@@ -78,9 +78,6 @@ class _AvatarPickerState extends State<AvatarPicker> {
 
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error checking permission: $e');
-      }
       return false;
     }
   }
@@ -164,13 +161,6 @@ class _AvatarPickerState extends State<AvatarPicker> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      if (kDebugMode) {
-        print('Attempting to pick image from source: $source');
-        if (kIsWeb) {
-          print('Running on web platform');
-        }
-      }
-
       final XFile? image = await _picker
           .pickImage(
         source: source,
@@ -181,18 +171,10 @@ class _AvatarPickerState extends State<AvatarPicker> {
           .timeout(
         const Duration(seconds: 30),
         onTimeout: () {
-          if (kDebugMode) {
-            print('Image picker timed out - possible permission issue');
-          }
           throw Exception(
               'Camera access timed out. Please check browser permissions.');
         },
       );
-
-      if (kDebugMode) {
-        print(
-            'Image picker result: ${image != null ? "Success" : "Cancelled/Error"}');
-      }
 
       if (image != null) {
         setState(() => _isUploading = true);
@@ -284,9 +266,6 @@ class _AvatarPickerState extends State<AvatarPicker> {
             },
           ),
         );
-      }
-      if (kDebugMode) {
-        print('Error picking image: $e');
       }
     } finally {
       if (mounted) {

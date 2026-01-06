@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_state.dart';
 import '../../../../data/database/database.dart';
-import 'package:flutter/foundation.dart';
 
 import '../../../../data/firebase/firebase.dart';
 import '../../../../enums/processing/dialog_name_enum.dart';
@@ -50,9 +49,6 @@ class VoucherScreenCubit extends Cubit<VoucherScreenState> {
         processState: ProcessState.success,
       ));
     } catch (e) {
-      if (kDebugMode) {
-        print('Error initializing vouchers: $e');
-      }
       if (isClosed) return;
       emit(state.copyWith(
         processState: ProcessState.failure,
@@ -84,17 +80,14 @@ class VoucherScreenCubit extends Cubit<VoucherScreenState> {
           setPoints(Database().loyalPoint);
         }
       } catch (e) {
-        if (kDebugMode) print('Failed to subtract loyal points after redeem: $e');
+        rethrow;
       }
 
       await initialize();
       toSuccess();
-    } catch (e, st) {
-      if (kDebugMode) {
-        print('Error redeeming voucher: $e');
-        print(st);
-      }
+    } catch (e) {
       toFailure(e.toString());
+      rethrow;
     }
   }
 }

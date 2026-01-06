@@ -28,6 +28,17 @@ enum NotifyMessage {
       'As a guest, you will have limited access to app features. Would you like to continue?',
       'Với tư cách khách, bạn sẽ chỉ có thể sử dụng các tính năng giới hạn của ứng dụng. Bạn có muốn tiếp tục?'),
   msg13('Cannot add product to cart', 'Không thể thêm sản phẩm vào giỏ hàng'),
+  weakPassword(
+      'The password provided is too weak. Please use at least 6 characters.',
+      'Mật khẩu quá yếu. Vui lòng sử dụng ít nhất 6 ký tự.'),
+  emailAlreadyInUse('An account already exists with this email address.',
+      'Email này đã được sử dụng bởi tài khoản khác.'),
+  invalidEmail('The email address is not valid. Please enter a valid email.',
+      'Địa chỉ email không hợp lệ. Vui lòng nhập email đúng định dạng.'),
+  userNotFound('No account found with this email address.',
+      'Không tìm thấy tài khoản với địa chỉ email này.'),
+  wrongPassword('Incorrect password. Please try again.',
+      'Mật khẩu không chính xác. Vui lòng thử lại.'),
   ;
 
   final String description;

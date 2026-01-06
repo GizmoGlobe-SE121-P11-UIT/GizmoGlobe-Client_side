@@ -390,7 +390,7 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
                             )),
                         const SizedBox(width: 8),
                         Text(
-                          'Sản phẩm',
+                          S.of(context).productsTab,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
@@ -821,7 +821,9 @@ class _SortDropdown extends StatelessWidget {
     return PopupMenuButton<SortEnum>(
       initialValue: selected,
       onSelected: onChanged,
-      tooltip: isMobile ? 'Sắp xếp: ${_label(context, selected)}' : null,
+      tooltip: isMobile
+          ? '${S.of(context).sortBy} ${_label(context, selected)}'
+          : null,
       itemBuilder: (context) => SortEnum.values
           .map((v) => PopupMenuItem<SortEnum>(
                 value: v,
@@ -845,7 +847,7 @@ class _SortDropdown extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Sắp xếp: ${_label(context, selected)}',
+                    '${S.of(context).sortBy} ${_label(context, selected)}',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,

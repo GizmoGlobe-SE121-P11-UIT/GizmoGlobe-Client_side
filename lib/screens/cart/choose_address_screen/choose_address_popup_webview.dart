@@ -275,14 +275,10 @@ class _ChooseAddressPopupWebViewState
                         text: S.of(context).addAddress,
                         prefixIcon: Icons.add,
                         onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    AddAddressScreen.newInstance()),
-                          );
+                          // Use web modal on web and full-screen on mobile
+                          final result = await openAddAddressFlow(context);
 
-                          if (result != null && result is Address) {
+                          if (result != null) {
                             cubit.addAddress(result);
                           }
                         },

@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 class AIUtils {
   /// Detect if text is Vietnamese
   bool isVietnamese(String text) {
@@ -409,10 +407,6 @@ class AIUtils {
         if (extractedName.isNotEmpty) {
           extractedName = cleanProductName(extractedName);
           if (extractedName.isNotEmpty && !isOnlyCommonWords(extractedName)) {
-            if (kDebugMode) {
-              print(
-                  'Extracted product name from add-to-cart pattern: "$extractedName"');
-            }
             return extractedName;
           }
         }
@@ -459,9 +453,6 @@ class AIUtils {
         }
 
         if (fullName.isNotEmpty && !isOnlyCommonWords(fullName)) {
-          if (kDebugMode) {
-            print('Extracted product name from brand pattern: "$fullName"');
-          }
           return fullName;
         }
       }
@@ -479,16 +470,10 @@ class AIUtils {
       final match = pattern.firstMatch(message);
       if (match != null) {
         final productName = match.group(0)!.trim();
-        if (kDebugMode) {
-          print('Extracted product name from product pattern: "$productName"');
-        }
         return productName;
       }
     }
 
-    if (kDebugMode) {
-      print('No product name extracted from message: "$message"');
-    }
     return null;
   }
 
@@ -518,18 +503,11 @@ class AIUtils {
       if (match != null) {
         final quantity = int.tryParse(match.group(1) ?? '1');
         if (quantity != null && quantity > 0) {
-          if (kDebugMode) {
-            print(
-                'Extracted quantity: $quantity from pattern: ${pattern.pattern}');
-          }
           return quantity;
         }
       }
     }
 
-    if (kDebugMode) {
-      print('No quantity found in message: "$message", defaulting to 1');
-    }
     return 1;
   }
 

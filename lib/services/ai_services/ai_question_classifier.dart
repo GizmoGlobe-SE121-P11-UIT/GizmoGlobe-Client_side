@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'ai_nlp_service.dart';
 
 /// AI Question Classifier
@@ -19,9 +18,6 @@ class AIQuestionClassifier {
       final response = await _nlpService.callGeminiAPI(prompt);
       return _parseClassification(response, isVietnamese);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error classifying question: $e');
-      }
       // Fallback to general question type
       return QuestionClassification(
         type: QuestionType.general,
@@ -263,11 +259,6 @@ Analyze and respond in EXACT JSON format (NO ```json, NO explanation):
         entities: entities,
       );
     } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing classification: $e');
-        print('Response was: $response');
-      }
-
       // Fallback: Try to detect basic patterns
       return _fallbackClassification(response, isVietnamese);
     }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
@@ -167,9 +166,7 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
         const SnackBar(content: Text('Invoice PDF generated')),
       );
     } catch (error) {
-      if (kDebugMode) {
-        print('Unable to generate invoice PDF: $error');
-      }
+      // Unable to generate invoice PDF
       messenger?.showSnackBar(
         SnackBar(
           content: Text('Unable to generate invoice PDF: $error'),

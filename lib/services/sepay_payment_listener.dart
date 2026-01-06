@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../enums/invoice_related/payment_status.dart';
 
 /// SePay Payment Listener Service
@@ -34,9 +33,7 @@ class SePayPaymentListener {
     required void Function(PaymentStatus status) onPaymentStatusChanged,
   }) {
     try {
-      final invoiceRef = _firestore
-          .collection('sales_invoices')
-          .doc(invoiceId);
+      final invoiceRef = _firestore.collection('sales_invoices').doc(invoiceId);
 
       _subscription = invoiceRef.snapshots().listen(
         (snapshot) {
@@ -57,24 +54,17 @@ class SePayPaymentListener {
               // Notify listener of status change
               onPaymentStatusChanged(paymentStatus);
             } catch (e) {
-              if (kDebugMode) {
-                print('Error parsing payment status: $e');
-              }
+              // Error parsing payment status
             }
           }
         },
         onError: (error) {
-          if (kDebugMode) {
-            print('Error listening to payment status: $error');
-          }
+          // Error listening to payment status
         },
       );
 
       return _subscription;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error setting up payment status listener: $e');
-      }
       return null;
     }
   }
@@ -90,4 +80,3 @@ class SePayPaymentListener {
     stopListening();
   }
 }
-

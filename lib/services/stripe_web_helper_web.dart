@@ -1,38 +1,38 @@
 // Web-specific implementation
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 
 class StripeWebHelper {
   static String? getCurrentUrl() {
-    return html.window.location.href;
+    return web.window.location.href;
   }
 
   static String? getBaseUrl() {
-    final currentUrl = html.window.location.href;
+    final currentUrl = web.window.location.href;
     return currentUrl.split('#').first;
   }
 
   static Map<String, String> getUrlQueryParameters() {
-    final uri = Uri.parse(html.window.location.href);
+    final uri = Uri.parse(web.window.location.href);
     return uri.queryParameters;
   }
 
   static String? getHashFragment() {
-    return html.window.location.hash;
+    return web.window.location.hash;
   }
 
   static void setSessionStorage(String key, String value) {
-    html.window.sessionStorage[key] = value;
+    web.window.sessionStorage.setItem(key, value);
   }
 
   static String? getSessionStorage(String key) {
-    return html.window.sessionStorage[key];
+    return web.window.sessionStorage.getItem(key);
   }
 
   static void removeSessionStorage(String key) {
-    html.window.sessionStorage.remove(key);
+    web.window.sessionStorage.removeItem(key);
   }
 
   static void redirectTo(String url) {
-    html.window.location.href = url;
+    web.window.location.href = url;
   }
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../functions/helper.dart';
 
@@ -6,6 +5,7 @@ class AIProductService {
   final FirebaseFirestore _firestore;
 
   // Category mapping constants
+  // ignore: constant_identifier_names
   static const Map<String, String> CATEGORY_MAPPING = {
     'cpu': 'cpu',
     'gpu': 'gpu',
@@ -21,14 +21,8 @@ class AIProductService {
   Future<bool> checkFirebaseConnection() async {
     try {
       await _firestore.collection('products').limit(1).get();
-      if (kDebugMode) {
-        print('Firebase connection successful');
-      }
       return true;
     } catch (e) {
-      if (kDebugMode) {
-        print('Firebase connection failed: $e');
-      }
       return false;
     }
   }
@@ -41,11 +35,6 @@ class AIProductService {
     required bool isVietnamese,
   }) async {
     try {
-      if (kDebugMode) {
-        print(
-            'NLP Search - Product: $productName, Category: $category, Synonyms: $synonyms');
-      }
-
       // For now, use the traditional search with the best NLP result
       // This can be enhanced later with more sophisticated query building
 
@@ -70,15 +59,8 @@ class AIProductService {
         }
       }
 
-      if (kDebugMode) {
-        print('NLP Search found ${snapshot.docs.length} products');
-      }
-
       return snapshot;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error in NLP search: $e');
-      }
       return null;
     }
   }
@@ -87,43 +69,28 @@ class AIProductService {
   Future<QuerySnapshot> searchProducts(
       {String? category, String? keyword}) async {
     try {
-      if (kDebugMode) {
-        print(
-            'Original search params - category: $category, keyword: $keyword');
-      }
-
       // Normalize keyword if provided
       if (keyword != null) {
         keyword = normalizeProductName(keyword);
-        if (kDebugMode) {
-          print('Normalized keyword: $keyword');
-        }
       }
 
       final CollectionReference<Map<String, dynamic>> productsRef =
           _firestore.collection('products');
 
       // Get list of inactive manufacturers first
-      final manufacturerSnapshot = await _firestore
-          .collection('manufacturers')
-          .where('status', isEqualTo: 'inactive')
-          .get();
+      // final manufacturerSnapshot = await _firestore
+      //     .collection('manufacturers')
+      //     .where('status', isEqualTo: 'inactive')
+      //     .get();
 
-      final List<Map<String, dynamic>> inactiveManufacturers =
-          manufacturerSnapshot.docs
-              .map((doc) =>
-                  {'id': doc.id, 'status': doc['status'] ?? 'inactive'})
-              .toList();
+      // final List<Map<String, dynamic>> inactiveManufacturers =
+      //     manufacturerSnapshot.docs
+      //         .map((doc) =>
+      //             {'id': doc.id, 'status': doc['status'] ?? 'inactive'})
+      //         .toList();
 
-      final List<String> inactiveManufacturerIDs =
-          inactiveManufacturers.map((m) => m['id'] as String).toList();
-
-      if (kDebugMode && inactiveManufacturerIDs.isNotEmpty) {
-        if (kDebugMode) {
-          print(
-              'Found ${inactiveManufacturerIDs.length} inactive manufacturers to exclude');
-        }
-      }
+      // final List<String> inactiveManufacturerIDs =
+      //     inactiveManufacturers.map((m) => m['id'] as String).toList();
 
       // First query: Filter by active status
       var query = productsRef.where('status', isEqualTo: 'active');
@@ -132,9 +99,6 @@ class AIProductService {
       if (category != null) {
         final standardCategory =
             CATEGORY_MAPPING[category.toLowerCase()] ?? category.toLowerCase();
-        if (kDebugMode) {
-          print('Searching with standardized category: $standardCategory');
-        }
         query = query.where('category', isEqualTo: standardCategory);
       }
 
@@ -142,9 +106,6 @@ class AIProductService {
       if (keyword != null) {
         // Split keyword into parts
         final parts = extractProductParts(keyword);
-        if (kDebugMode) {
-          print('Extracted product parts: $parts');
-        }
 
         if (parts.isNotEmpty) {
           // Search by normalized product name
@@ -163,22 +124,13 @@ class AIProductService {
 
       // Filter out products from inactive manufacturers in memory
       // since Firestore doesn't support NOT IN queries directly in this context
-      final filteredDocs = result.docs
-          .where((doc) =>
-              !inactiveManufacturerIDs.contains(doc.data()['manufacturerID']))
-          .toList();
-
-      if (kDebugMode) {
-        print('Found ${result.docs.length} active products');
-        print(
-            'After filtering inactive manufacturers: ${filteredDocs.length} products remain');
-      }
+      // final filteredDocs = result.docs
+      //     .where((doc) =>
+      //         !inactiveManufacturerIDs.contains(doc.data()['manufacturerID']))
+      //     .toList();
 
       return result;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error in searchProducts: $e');
-      }
       rethrow;
     }
   }
@@ -186,10 +138,6 @@ class AIProductService {
   /// Find product by name
   Future<Map<String, dynamic>?> findProductByName(String productName) async {
     try {
-      if (kDebugMode) {
-        print('Searching for product: "$productName"');
-      }
-
       // Normalize product name for search
       final normalizedName = normalizeProductName(productName);
 
@@ -209,10 +157,6 @@ class AIProductService {
         };
       }).toList();
 
-      if (kDebugMode) {
-        print('Found ${products.length} active products to search through');
-      }
-
       // Find best match
       Map<String, dynamic>? bestMatch;
       double bestScore = 0.0;
@@ -231,12 +175,6 @@ class AIProductService {
         final score =
             normalizedScore > originalScore ? normalizedScore : originalScore;
 
-        // Uncomment for debugging product matching scores
-        // if (kDebugMode) {
-        //   print(
-        //       'Product: "$originalName" - Score: $score (Normalized: $normalizedScore, Original: $originalScore)');
-        // }
-
         if (score > bestScore && score > 0.2) {
           // Lowered threshold for better matching
           bestScore = score;
@@ -244,20 +182,8 @@ class AIProductService {
         }
       }
 
-      if (kDebugMode) {
-        if (bestMatch != null) {
-          print(
-              'Best match found: "${bestMatch['productName']}" with score: $bestScore');
-        } else {
-          print('No suitable match found (best score was: $bestScore)');
-        }
-      }
-
       return bestMatch;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error finding product by name: $e');
-      }
       return null;
     }
   }
@@ -304,9 +230,6 @@ class AIProductService {
 
       return scoredProducts.take(5).toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting product suggestions: $e');
-      }
       return [];
     }
   }

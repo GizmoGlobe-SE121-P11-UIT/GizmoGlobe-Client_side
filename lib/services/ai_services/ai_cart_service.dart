@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 
@@ -24,9 +23,6 @@ class AICartService {
       final productDoc =
           await _firestore.collection('products').doc(productID).get();
       if (!productDoc.exists) {
-        if (kDebugMode) {
-          print('Product not found: $productID');
-        }
         return false;
       }
 
@@ -69,9 +65,6 @@ class AICartService {
 
       return true;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding product to cart: $e');
-      }
       return false;
     }
   }
@@ -106,9 +99,6 @@ class AICartService {
       final productDoc =
           await _firestore.collection('products').doc(productID).get();
       if (!productDoc.exists) {
-        if (kDebugMode) {
-          print('Product not found: $productID');
-        }
         return false;
       }
 
@@ -130,15 +120,9 @@ class AICartService {
         return true;
       } else {
         // Already in favorites
-        if (kDebugMode) {
-          print('Product already in favorites: $productID');
-        }
         return true; // Still return true since it's in favorites
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding product to favorites: $e');
-      }
       return false;
     }
   }

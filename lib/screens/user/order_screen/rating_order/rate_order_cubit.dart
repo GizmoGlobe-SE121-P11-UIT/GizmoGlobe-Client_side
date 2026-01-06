@@ -1,7 +1,6 @@
 // dart
 import 'dart:io';
 import 'package:bloc/bloc.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
@@ -263,7 +262,7 @@ class RateOrderCubit extends Cubit<RateOrderState> {
         try {
           await Database().addLoyalPoint(200);
         } catch (e) {
-          if (kDebugMode) print('Failed to add loyal points: $e');
+          rethrow;
         }
       }
 

@@ -127,16 +127,14 @@ void main() async {
     }
     runApp(const MyApp());
   } catch (e) {
-    if (kDebugMode) {
-      runApp(MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: Text(
-                'Error initializing Firebase: $e'), // 'Lỗi khởi tạo Firebase: $e'
-          ),
+    runApp(MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Text(
+              'Error initializing Firebase: $e'), // 'Lỗi khởi tạo Firebase: $e'
         ),
-      ));
-    }
+      ),
+    ));
   }
 }
 
@@ -619,11 +617,11 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
         // First check if there's already an authenticated user (might be set by redirect)
         // Check if we're on the Firebase Auth handler path or have auth-related query params
-        final isAuthHandler = Uri.base.path.contains('__/auth/handler');
-        final hasAuthParams = Uri.base.query.contains('apiKey') ||
-            Uri.base.query.contains('mode') ||
-            Uri.base.query.contains('code') ||
-            Uri.base.query.contains('state');
+        // final isAuthHandler = Uri.base.path.contains('__/auth/handler');
+        // final hasAuthParams = Uri.base.query.contains('apiKey') ||
+        //     Uri.base.query.contains('mode') ||
+        //     Uri.base.query.contains('code') ||
+        //     Uri.base.query.contains('state');
 
         // Call getRedirectResult() - this must be called before any other auth operations
         // and it processes the redirect URL parameters automatically
@@ -685,7 +683,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
             await _webGuestService.createOrGetGuestUser();
           }
         }
-      } catch (e, stackTrace) {
+      } catch (e) {
         try {
           final currentUser = FirebaseAuth.instance.currentUser;
           if (currentUser != null) {

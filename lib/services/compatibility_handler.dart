@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../objects/product_related/product.dart';
 import '../enums/product_related/category_enum.dart';
 
@@ -172,13 +171,6 @@ class CompatibilityHandler {
               allDocs.add(doc);
             }
           }
-
-          if (kDebugMode) {
-            print(
-                'Found ${allDocs.where((d) => (d.data() as Map)['category'] == 'ram').length} RAM products for socket $socketNorm (RAM types: $compatibleRamTypes)');
-          }
-        } else if (kDebugMode) {
-          print('No RAM type mapping found for socket: $socketNorm');
         }
       }
 
@@ -188,9 +180,6 @@ class CompatibilityHandler {
         'context': context,
       };
     } catch (e) {
-      if (kDebugMode) {
-        print('Error querying Firestore for socket compatibility: $e');
-      }
       return {
         'products': <QueryDocumentSnapshot>[],
         'context': context,
@@ -214,27 +203,17 @@ class CompatibilityHandler {
           .get();
 
       // Find matching product by name
-      if (kDebugMode) {
-        print('Searching for product: "$productName"');
-      }
-
       QueryDocumentSnapshot? matchedProduct;
       for (var doc in searchQuery.docs) {
         final data = doc.data();
         final name = data['productName']?.toString().toLowerCase() ?? '';
         if (name.contains(productName.toLowerCase())) {
           matchedProduct = doc;
-          if (kDebugMode) {
-            print('Found matching product: ${data['productName']}');
-          }
           break;
         }
       }
 
       if (matchedProduct == null) {
-        if (kDebugMode) {
-          print('No product found matching: "$productName"');
-        }
         return {
           'products': <QueryDocumentSnapshot>[],
           'context': isVietnamese
@@ -285,11 +264,6 @@ class CompatibilityHandler {
               compatibleDocs.add(doc);
             }
           }
-
-          if (kDebugMode) {
-            print(
-                'Found ${compatibleDocs.length - 1} RAM products for ${productData['productName']} (socket $socketNorm, RAM types: $compatibleRamTypes)');
-          }
         }
       }
       // Query mainboards if product is CPU (and not specifically asking for RAM)
@@ -319,9 +293,6 @@ class CompatibilityHandler {
         'context': context,
       };
     } catch (e) {
-      if (kDebugMode) {
-        print('Error in _handleProductCompatibility: $e');
-      }
       return {
         'products': <QueryDocumentSnapshot>[],
         'context': isVietnamese
@@ -361,9 +332,6 @@ class CompatibilityHandler {
 
       return allDocs;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching product docs: $e');
-      }
       return [];
     }
   }

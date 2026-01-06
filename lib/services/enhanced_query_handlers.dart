@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 
 /// Enhanced Query Handlers for Phase 2
 ///
@@ -52,9 +51,6 @@ class EnhancedQueryHandlers {
         'threshold': threshold,
       };
     } catch (e) {
-      if (kDebugMode) {
-        print('Error handling promotion query: $e');
-      }
       return {
         'success': false,
         'message': isVietnamese
@@ -113,15 +109,6 @@ class EnhancedQueryHandlers {
       // Take top 5
       final topDocs = sortedDocs.take(5).toList();
 
-      if (kDebugMode) {
-        print('Found ${topDocs.length} bestselling products');
-        for (var doc in topDocs) {
-          final data = doc.data();
-          final sales = data['sales'] ?? 0;
-          print('  - ${data['productName']}: $sales sales');
-        }
-      }
-
       return {
         'success': true,
         'products': topDocs,
@@ -131,9 +118,6 @@ class EnhancedQueryHandlers {
         'userMessage': userMessage,
       };
     } catch (e) {
-      if (kDebugMode) {
-        print('Error handling bestseller query: $e');
-      }
       return {
         'success': false,
         'message': isVietnamese
@@ -233,11 +217,6 @@ class EnhancedQueryHandlers {
 
       if (specificCpuName != null) {
         // User specified a CPU - search for it specifically
-        if (kDebugMode) {
-          print(
-              'User specified CPU: $specificCpuName, searching for exact match...');
-        }
-
         final cpuQuery = await _firestore
             .collection('products')
             .where('category', isEqualTo: 'cpu')
@@ -264,11 +243,6 @@ class EnhancedQueryHandlers {
                 : 'Could not find CPU "$specificCpuName" in stock. Please check the product name or try searching for another CPU.'
           };
         }
-
-        if (kDebugMode) {
-          print(
-              'Found ${cpuCandidates.length} matching CPUs for "$specificCpuName"');
-        }
       } else {
         // No specific CPU - use varied price strategy
         cpuCandidates =
@@ -282,11 +256,6 @@ class EnhancedQueryHandlers {
               ? 'Không tìm thấy CPU phù hợp.'
               : 'Could not find suitable CPU.'
         };
-      }
-
-      if (kDebugMode) {
-        print(
-            'Found ${cpuCandidates.length} CPU candidates, finding build closest to budget ${budget}M...');
       }
 
       // Collect all valid builds, then pick the one closest to budget
@@ -344,11 +313,6 @@ class EnhancedQueryHandlers {
           };
       }
 
-      if (kDebugMode) {
-        print(
-            'Purpose "$purpose": CPU ${(allocation['cpu']! * 100).toInt()}%, GPU ${(allocation['gpu']! * 100).toInt()}%');
-      }
-
       // Allocate CPU budget based on purpose
       final cpuBudgetThousands = budgetInThousands * allocation['cpu']!;
 
@@ -358,10 +322,6 @@ class EnhancedQueryHandlers {
       if (specificCpuName != null) {
         // User specified CPU - use it directly, don't filter by budget
         affordableCpus = cpuCandidates;
-        if (kDebugMode) {
-          print(
-              'Using user-specified CPU: $specificCpuName (${cpuCandidates.length} matches)');
-        }
       } else {
         // No specific CPU - filter by budget allocation
         affordableCpus = cpuCandidates.where((cpu) {
@@ -394,11 +354,6 @@ class EnhancedQueryHandlers {
         };
       }
 
-      if (kDebugMode) {
-        print(
-            'Filtered to ${affordableCpus.length} CPUs within 35-50% budget allocation (${(cpuBudgetThousands / 1000).toStringAsFixed(1)}M)');
-      }
-
       // Try each affordable CPU to find different price point builds
       for (final cpuCandidate in affordableCpus) {
         final cpuData = cpuCandidate.data() as Map<String, dynamic>;
@@ -408,16 +363,9 @@ class EnhancedQueryHandlers {
 
         if (testSocket == null) continue;
 
-        if (kDebugMode) {
-          print('Testing CPU: ${cpuData['productName']}, Socket: $testSocket');
-        }
-
         // Try to find compatible mainboard
         final mbDocs = await _getCompatibleMainboards(testSocket);
         if (mbDocs.isEmpty) {
-          if (kDebugMode) {
-            print('✗ Skipping: No compatible mainboard for socket $testSocket');
-          }
           continue;
         }
 
@@ -425,9 +373,6 @@ class EnhancedQueryHandlers {
         final compatibleRamTypes = socketToRamType[testSocket] ?? [];
         final ramDocs = await _getCompatibleRam(compatibleRamTypes);
         if (ramDocs.isEmpty) {
-          if (kDebugMode) {
-            print('✗ Skipping: No compatible RAM for socket $testSocket');
-          }
           continue;
         }
 
@@ -441,10 +386,6 @@ class EnhancedQueryHandlers {
 
         // Ensure we have ALL 6 components
         if (gpuDocs.isEmpty || driveDocs.isEmpty || psuDocs.isEmpty) {
-          if (kDebugMode) {
-            print(
-                '✗ Skipping: Missing components - GPU:${gpuDocs.length}, Drive:${driveDocs.length}, PSU:${psuDocs.length}');
-          }
           continue;
         }
 
@@ -462,12 +403,7 @@ class EnhancedQueryHandlers {
             0;
 
         final basePrice = cpuPrice + mbPrice + ramPrice;
-        final remainingBudget = budgetInThousands - basePrice;
-
-        if (kDebugMode) {
-          print(
-              '  Base (CPU+MB+RAM): ${basePrice / 1000}M, Remaining: ${remainingBudget / 1000}M');
-        }
+        // final remainingBudget = budgetInThousands - basePrice;
 
         // Try to find GPU/Drive/PSU combination that fits remaining budget
         // Start with most expensive (end of ascending list) to maximize budget
@@ -522,20 +458,9 @@ class EnhancedQueryHandlers {
                   'cpuName': cpuData['productName'],
                 });
 
-                if (kDebugMode) {
-                  print(
-                      '✓ Valid build with ${cpuData['productName']}: ${totalPrice / 1000}M / ${budget}M (${buildSet.length} components)');
-                }
                 foundValidBuild = true;
               }
             }
-          }
-        }
-
-        if (!foundValidBuild && kDebugMode) {
-          if (kDebugMode) {
-            print(
-                '✗ No valid GPU/Drive/PSU combination found within remaining budget');
           }
         }
       }
@@ -559,12 +484,6 @@ class EnhancedQueryHandlers {
       final buildSet = bestBuild['buildSet'] as List<QueryDocumentSnapshot>;
       final totalPrice = bestBuild['totalPrice'] as double;
 
-      if (kDebugMode) {
-        print('✓ Selected best build: ${bestBuild['cpuName']}');
-        print(
-            '  Total: ${totalPrice / 1000}M / ${budget}M (${((totalPrice / budgetInThousands) * 100).toStringAsFixed(1)}% of budget)');
-      }
-
       return {
         'success': true,
         'products': buildSet,
@@ -577,9 +496,6 @@ class EnhancedQueryHandlers {
         'totalPrice': totalPrice / 1000,
       };
     } catch (e) {
-      if (kDebugMode) {
-        print('Error handling build suggestion: $e');
-      }
       return {
         'success': false,
         'message': isVietnamese
@@ -640,10 +556,6 @@ class EnhancedQueryHandlers {
 
       final docs = snapshot.docs.toList();
 
-      if (kDebugMode) {
-        print('Category "$category": Found ${docs.length} products');
-      }
-
       // Sort based on strategy
       if (sortOrder == 'descending') {
         // Most expensive first
@@ -684,9 +596,6 @@ class EnhancedQueryHandlers {
 
       return docs.take(topN).toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting products by category $category: $e');
-      }
       return [];
     }
   }
@@ -700,24 +609,6 @@ class EnhancedQueryHandlers {
           .where('category', isEqualTo: 'mainboard')
           .where('status', isEqualTo: 'active')
           .get();
-
-      if (kDebugMode) {
-        print(
-            'Mainboard Query: Found ${snapshot.docs.length} total mainboards');
-        print('Looking for socket: $socket');
-        if (snapshot.docs.isNotEmpty) {
-          print('Sample Mainboards:');
-          for (var doc in snapshot.docs.take(3)) {
-            final data = doc.data();
-            final attrs = data['attributes'] as Map<String, dynamic>?;
-            final mbSock = attrs?['socket'];
-            final price =
-                (data['discountedPrice'] ?? data['sellingPrice']) / 1000;
-            print(
-                '  - ${data['productName']}: Socket=$mbSock, Price=${price}M');
-          }
-        }
-      }
 
       final compatibleDocs = snapshot.docs.where((doc) {
         final data = doc.data();
@@ -738,15 +629,8 @@ class EnhancedQueryHandlers {
         return aPrice.compareTo(bPrice);
       });
 
-      if (kDebugMode) {
-        print('Found ${compatibleDocs.length} compatible mainboards');
-      }
-
       return compatibleDocs.take(1).toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting compatible mainboards: $e');
-      }
       return [];
     }
   }
@@ -760,22 +644,6 @@ class EnhancedQueryHandlers {
           .where('category', isEqualTo: 'ram')
           .where('status', isEqualTo: 'active')
           .get();
-
-      if (kDebugMode) {
-        print('RAM Query: Found ${snapshot.docs.length} total RAM products');
-        print('Looking for RAM types: $ramTypes');
-        if (snapshot.docs.isNotEmpty) {
-          print('Sample RAM products:');
-          for (var doc in snapshot.docs.take(3)) {
-            final data = doc.data();
-            final attrs = data['attributes'] as Map<String, dynamic>?;
-            final type = attrs?['type'];
-            final price =
-                (data['discountedPrice'] ?? data['sellingPrice']) / 1000;
-            print('  - ${data['productName']}: Type=$type, Price=${price}M');
-          }
-        }
-      }
 
       final compatibleDocs = snapshot.docs.where((doc) {
         final data = doc.data();
@@ -795,15 +663,8 @@ class EnhancedQueryHandlers {
         return aPrice.compareTo(bPrice);
       });
 
-      if (kDebugMode) {
-        print('Found ${compatibleDocs.length} compatible RAM products');
-      }
-
       return compatibleDocs.take(1).toList();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error getting compatible RAM: $e');
-      }
       return [];
     }
   }

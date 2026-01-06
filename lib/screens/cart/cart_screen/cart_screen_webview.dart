@@ -522,15 +522,6 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            // Delete button
-            InkWell(
-              onTap: () => _showDeleteDialog(item),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Icon(Icons.delete_outline, size: 20, color: Colors.red),
-              ),
-            ),
           ],
         ),
       ],
@@ -705,56 +696,10 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
-              // Delete Button
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 24),
-                onPressed: () => _showDeleteDialog(item),
-                style: IconButton.styleFrom(
-                  foregroundColor: Colors.red,
-                ),
-              ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  void _showDeleteDialog(CartItem item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Text(
-          S.of(context).removeItem,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        content: Text(
-          S.of(context).removeItemConfirmation,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(S.of(context).cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              cubit.removeFromCart(item);
-            },
-            child: Text(
-              S.of(context).remove,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

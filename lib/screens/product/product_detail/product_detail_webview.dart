@@ -375,7 +375,7 @@ class _ProductDetailScreenWebViewState
                               }
                             },
                             child: Text(
-                              'Sản phẩm',
+                              S.of(context).productsTab,
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .colorScheme

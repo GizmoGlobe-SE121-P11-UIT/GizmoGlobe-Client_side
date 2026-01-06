@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -70,9 +69,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       final isAIMode = prefs.getBool(_lastModeKey) ?? true;
       emit(state.copyWith(isAIMode: isAIMode));
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading last mode: $e');
-      }
+      // Error loading last mode
     }
   }
 
@@ -81,9 +78,7 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_lastModeKey, isAIMode);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error saving last mode: $e');
-      }
+      // Error saving last mode
     }
   }
 
@@ -276,9 +271,6 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
     try {
       final user = _auth.currentUser;
       if (user == null) {
-        if (kDebugMode) {
-          print('User not logged in');
-        }
         emit(state.copyWith(
           processState: ProcessState.failure,
           error: 'User not logged in',
@@ -299,9 +291,6 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
 
       return true;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error saving message: $e');
-      }
       emit(state.copyWith(
         processState: ProcessState.failure,
         error: 'Error saving message: ${e.toString()}',
@@ -316,9 +305,6 @@ class ChatScreenCubit extends Cubit<ChatScreenState> {
 
       final user = _auth.currentUser;
       if (user == null) {
-        if (kDebugMode) {
-          print('User not logged in');
-        }
         emit(state.copyWith(
           processState: ProcessState.failure,
           error: 'User not logged in',

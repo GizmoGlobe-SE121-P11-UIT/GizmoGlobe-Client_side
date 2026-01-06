@@ -27,9 +27,6 @@ class StorageService {
       String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error uploading image: $e');
-      }
       rethrow;
     }
   }
@@ -57,9 +54,6 @@ class StorageService {
       String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error uploading image from web: $e');
-      }
       rethrow;
     }
   }
@@ -81,9 +75,6 @@ class StorageService {
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error deleting avatar: $e');
-      }
       rethrow;
     }
   }

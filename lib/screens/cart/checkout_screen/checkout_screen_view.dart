@@ -699,8 +699,6 @@ class _CheckoutScreen extends State<CheckoutScreen> {
           children: [
             Radio<PaymentMethod>(
               value: method,
-              groupValue: selectedMethod,
-              onChanged: isDisabled ? null : (_) => onTap(),
             ),
             const SizedBox(width: 12),
             Icon(
@@ -827,53 +825,59 @@ class _CheckoutScreen extends State<CheckoutScreen> {
               // Payment method options
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildPaymentMethodOptionMobile(
-                      selectedMethod: currentState.selectedPaymentMethod,
-                      method: PaymentMethod.cod,
-                      title: S.of(context).cashOnDelivery,
-                      description: S.of(context).payWhenYouReceive,
-                      icon: Icons.money,
-                      isSelected: currentState.selectedPaymentMethod ==
-                          PaymentMethod.cod,
-                      onTap: () {
-                        cubit.updatePaymentMethod(PaymentMethod.cod);
-                        Navigator.pop(context);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildPaymentMethodOptionMobile(
-                      selectedMethod: currentState.selectedPaymentMethod,
-                      method: PaymentMethod.sepay,
-                      title: S.of(context).sepay,
-                      description: S.of(context).sepayDescription,
-                      icon: Icons.account_balance,
-                      isSelected: currentState.selectedPaymentMethod ==
-                          PaymentMethod.sepay,
-                      onTap: () {
-                        cubit.updatePaymentMethod(PaymentMethod.sepay);
-                        Navigator.pop(context);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildPaymentMethodOptionMobile(
-                      selectedMethod: currentState.selectedPaymentMethod,
-                      method: PaymentMethod.stripe,
-                      title: S.of(context).stripe,
-                      description: S.of(context).stripeDescription,
-                      icon: Icons.credit_card,
-                      isSelected: currentState.selectedPaymentMethod ==
-                          PaymentMethod.stripe,
-                      onTap: () {
-                        cubit.updatePaymentMethod(PaymentMethod.stripe);
-                        Navigator.pop(context);
-                      },
-                    ),
-                    SizedBox(
-                        height: MediaQuery.of(context).padding.bottom + 16),
-                  ],
+                child: RadioGroup<PaymentMethod>(
+                  groupValue: currentState.selectedPaymentMethod,
+                  onChanged: (value) {
+                    if (value != null) {
+                      cubit.updatePaymentMethod(value);
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildPaymentMethodOptionMobile(
+                        selectedMethod: currentState.selectedPaymentMethod,
+                        method: PaymentMethod.cod,
+                        title: S.of(context).cashOnDelivery,
+                        description: S.of(context).payWhenYouReceive,
+                        icon: Icons.money,
+                        isSelected: currentState.selectedPaymentMethod ==
+                            PaymentMethod.cod,
+                        onTap: () {
+                          // RadioGroup's onChanged will handle the update
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildPaymentMethodOptionMobile(
+                        selectedMethod: currentState.selectedPaymentMethod,
+                        method: PaymentMethod.sepay,
+                        title: S.of(context).sepay,
+                        description: S.of(context).sepayDescription,
+                        icon: Icons.account_balance,
+                        isSelected: currentState.selectedPaymentMethod ==
+                            PaymentMethod.sepay,
+                        onTap: () {
+                          // RadioGroup's onChanged will handle the update
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildPaymentMethodOptionMobile(
+                        selectedMethod: currentState.selectedPaymentMethod,
+                        method: PaymentMethod.stripe,
+                        title: S.of(context).stripe,
+                        description: S.of(context).stripeDescription,
+                        icon: Icons.credit_card,
+                        isSelected: currentState.selectedPaymentMethod ==
+                            PaymentMethod.stripe,
+                        onTap: () {
+                          // RadioGroup's onChanged will handle the update
+                        },
+                      ),
+                      SizedBox(
+                          height: MediaQuery.of(context).padding.bottom + 16),
+                    ],
+                  ),
                 ),
               ),
             ],
