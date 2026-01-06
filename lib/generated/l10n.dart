@@ -170,7 +170,7 @@ class S {
           name: 'payWhenYouReceive');
   String get sepay => Intl.message('SePay', name: 'sepay');
   String get sepayDescription => Intl.message(
-        'Local payment method (Coming soon)',
+        'Bank transfer (VietQR)',
         name: 'sepayDescription',
       );
   String get sepayScanInstructionsTitle => Intl.message(
