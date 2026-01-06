@@ -55,6 +55,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
   CheckoutScreenCubit get cubit => context.read<CheckoutScreenCubit>();
   bool _hasNavigatedToSePay = false;
   bool _hasShownSuccessDialog = false;
+  bool _hasShownErrorDialog = false;
 
   @override
   void initState() {
@@ -154,7 +155,9 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                 );
               }
             }
-          } else if (state.processState == ProcessState.failure) {
+          } else if (state.processState == ProcessState.failure &&
+              !_hasShownErrorDialog) {
+            _hasShownErrorDialog = true;
             String errorMessage = S.of(context).errorCheckout;
 
             // Handle specific error types with user-friendly messages
@@ -191,6 +194,9 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                   buttonText: S.of(context).tryAgain,
                   onPressed: () {
                     Navigator.pop(context);
+                    // Reset error state and flag after dialog is dismissed
+                    _hasShownErrorDialog = false;
+                    cubit.clearError();
                   },
                 ),
               );
@@ -776,6 +782,10 @@ class _CheckoutScreen extends State<CheckoutScreen> {
 
   void _showPaymentMethodBottomSheet(
       BuildContext context, CheckoutScreenState state) {
+    // Stripe requires minimum ~$0.50 USD which is approximately 15,000 VND
+    // In the app's unit system, 15 = 15,000 VND (amount * 1000)
+    const int stripeMinimumAmount = 15;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -783,106 +793,122 @@ class _CheckoutScreen extends State<CheckoutScreen> {
       builder: (bottomSheetContext) =>
           BlocBuilder<CheckoutScreenCubit, CheckoutScreenState>(
         bloc: cubit,
-        builder: (context, currentState) => Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[600],
-                  borderRadius: BorderRadius.circular(2),
+        builder: (context, currentState) {
+          // Recalculate in case the state changes
+          final bool currentStripeDisabled =
+              (currentState.salesInvoice?.totalPrice ?? 0) <
+                  stripeMinimumAmount;
+
+          return Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    Text(
-                      S.of(context).paymentMethod,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              // Payment method options
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: RadioGroup<PaymentMethod>(
-                  groupValue: currentState.selectedPaymentMethod,
-                  onChanged: (value) {
-                    if (value != null) {
-                      cubit.updatePaymentMethod(value);
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
                     children: [
-                      _buildPaymentMethodOptionMobile(
-                        selectedMethod: currentState.selectedPaymentMethod,
-                        method: PaymentMethod.cod,
-                        title: S.of(context).cashOnDelivery,
-                        description: S.of(context).payWhenYouReceive,
-                        icon: Icons.money,
-                        isSelected: currentState.selectedPaymentMethod ==
-                            PaymentMethod.cod,
-                        onTap: () {
-                          // RadioGroup's onChanged will handle the update
-                        },
+                      Text(
+                        S.of(context).paymentMethod,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      _buildPaymentMethodOptionMobile(
-                        selectedMethod: currentState.selectedPaymentMethod,
-                        method: PaymentMethod.sepay,
-                        title: S.of(context).sepay,
-                        description: S.of(context).sepayDescription,
-                        icon: Icons.account_balance,
-                        isSelected: currentState.selectedPaymentMethod ==
-                            PaymentMethod.sepay,
-                        onTap: () {
-                          // RadioGroup's onChanged will handle the update
-                        },
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      const SizedBox(height: 12),
-                      _buildPaymentMethodOptionMobile(
-                        selectedMethod: currentState.selectedPaymentMethod,
-                        method: PaymentMethod.stripe,
-                        title: S.of(context).stripe,
-                        description: S.of(context).stripeDescription,
-                        icon: Icons.credit_card,
-                        isSelected: currentState.selectedPaymentMethod ==
-                            PaymentMethod.stripe,
-                        onTap: () {
-                          // RadioGroup's onChanged will handle the update
-                        },
-                      ),
-                      SizedBox(
-                          height: MediaQuery.of(context).padding.bottom + 16),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
+                // Payment method options
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: RadioGroup<PaymentMethod>(
+                    groupValue: currentState.selectedPaymentMethod,
+                    onChanged: (value) {
+                      if (value != null) {
+                        // Don't allow selecting disabled Stripe
+                        if (value == PaymentMethod.stripe &&
+                            currentStripeDisabled) {
+                          return;
+                        }
+                        cubit.updatePaymentMethod(value);
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildPaymentMethodOptionMobile(
+                          selectedMethod: currentState.selectedPaymentMethod,
+                          method: PaymentMethod.cod,
+                          title: S.of(context).cashOnDelivery,
+                          description: S.of(context).payWhenYouReceive,
+                          icon: Icons.money,
+                          isSelected: currentState.selectedPaymentMethod ==
+                              PaymentMethod.cod,
+                          onTap: () {
+                            // RadioGroup's onChanged will handle the update
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        _buildPaymentMethodOptionMobile(
+                          selectedMethod: currentState.selectedPaymentMethod,
+                          method: PaymentMethod.sepay,
+                          title: S.of(context).sepay,
+                          description: S.of(context).sepayDescription,
+                          icon: Icons.account_balance,
+                          isSelected: currentState.selectedPaymentMethod ==
+                              PaymentMethod.sepay,
+                          onTap: () {
+                            // RadioGroup's onChanged will handle the update
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        _buildPaymentMethodOptionMobile(
+                          selectedMethod: currentState.selectedPaymentMethod,
+                          method: PaymentMethod.stripe,
+                          title: S.of(context).stripe,
+                          description: currentStripeDisabled
+                              ? S.of(context).stripeMinimumOrder
+                              : S.of(context).stripeDescription,
+                          icon: Icons.credit_card,
+                          isSelected: currentState.selectedPaymentMethod ==
+                              PaymentMethod.stripe,
+                          onTap: () {
+                            // RadioGroup's onChanged will handle the update
+                          },
+                          isDisabled: currentStripeDisabled,
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

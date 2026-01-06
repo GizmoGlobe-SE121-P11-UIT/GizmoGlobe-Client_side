@@ -60,6 +60,7 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
   CheckoutScreenCubit get cubit => context.read<CheckoutScreenCubit>();
   bool _hasNavigatedToSePay = false;
   bool _hasShownSuccessDialog = false;
+  bool _hasShownErrorDialog = false;
 
   @override
   void initState() {
@@ -260,7 +261,9 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                         },
                       ),
                     );
-                  } else if (state.processState == ProcessState.failure) {
+                  } else if (state.processState == ProcessState.failure &&
+                      !_hasShownErrorDialog) {
+                    _hasShownErrorDialog = true;
                     String errorMessage = S.of(context).errorCheckout;
 
                     if ((state.message
@@ -279,6 +282,9 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                         buttonText: S.of(context).tryAgain,
                         onPressed: () {
                           Navigator.pop(context);
+                          // Reset error state and flag after dialog is dismissed
+                          _hasShownErrorDialog = false;
+                          cubit.clearError();
                         },
                       ),
                     );
@@ -987,6 +993,12 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
   }
 
   Widget _buildPaymentMethodSection(CheckoutScreenState state) {
+    // Stripe requires minimum ~$0.50 USD which is approximately 15,000 VND
+    // In the app's unit system, 15 = 15,000 VND (amount * 1000)
+    const int stripeMinimumAmount = 15;
+    final bool isStripeDisabled =
+        (state.salesInvoice?.totalPrice ?? 0) < stripeMinimumAmount;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1042,11 +1054,16 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                   selectedMethod: state.selectedPaymentMethod,
                   method: PaymentMethod.stripe,
                   title: S.of(context).stripe,
-                  description: S.of(context).stripeDescription,
+                  description: isStripeDisabled
+                      ? S.of(context).stripeMinimumOrder
+                      : S.of(context).stripeDescription,
                   icon: Icons.credit_card,
                   isSelected:
                       state.selectedPaymentMethod == PaymentMethod.stripe,
-                  onTap: () => cubit.updatePaymentMethod(PaymentMethod.stripe),
+                  onTap: isStripeDisabled
+                      ? () {}
+                      : () => cubit.updatePaymentMethod(PaymentMethod.stripe),
+                  isDisabled: isStripeDisabled,
                 ),
               ],
             ),

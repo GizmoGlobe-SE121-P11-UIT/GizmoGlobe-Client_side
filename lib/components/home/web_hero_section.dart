@@ -357,38 +357,24 @@ class _WebHeroSectionState extends State<WebHeroSection>
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
+                color: Theme.of(context).cardTheme.color ??
                     Theme.of(context).colorScheme.surface,
-                    Theme.of(context).colorScheme.surfaceContainerLowest,
-                  ],
-                ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: Theme.of(context)
                       .colorScheme
                       .primary
-                      .withValues(alpha: 0.1),
-                  width: 1.5,
+                      .withValues(alpha: 0.15),
+                  width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Theme.of(context)
                         .colorScheme
                         .shadow
-                        .withValues(alpha: 0.05),
+                        .withValues(alpha: 0.08),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
-                  ),
-                  BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.05),
-                    blurRadius: 40,
-                    offset: const Offset(0, 16),
                   ),
                 ],
               ),

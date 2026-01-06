@@ -214,8 +214,16 @@ class MyApp extends StatelessWidget {
                     onError: Colors.white,
                     shadow: Color(0x1A000000),
                   ),
-                  scaffoldBackgroundColor: Colors.white,
-                  canvasColor: Colors.white,
+                  scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+                  canvasColor: const Color(0xFFF8F9FA),
+                  cardTheme: CardThemeData(
+                    color: Colors.white,
+                    elevation: 2,
+                    shadowColor: Colors.black.withValues(alpha: 0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   pageTransitionsTheme: kIsWeb
                       ? const PageTransitionsTheme(
                           builders: {
@@ -270,6 +278,14 @@ class MyApp extends StatelessWidget {
                   ),
                   scaffoldBackgroundColor: const Color(0xFF121212),
                   canvasColor: const Color(0xFF121212),
+                  cardTheme: CardThemeData(
+                    color: const Color(0xFF2D2D2D),
+                    elevation: 4,
+                    shadowColor: Colors.black.withValues(alpha: 0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   pageTransitionsTheme: kIsWeb
                       ? const PageTransitionsTheme(
                           builders: {

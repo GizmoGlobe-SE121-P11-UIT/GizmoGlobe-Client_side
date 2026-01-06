@@ -191,6 +191,16 @@ class SePayPaymentScreenCubit extends Cubit<SePayPaymentScreenState> {
     }
   }
 
+  /// Clear error state - call this after showing error dialog
+  void clearError() {
+    if (state.processState == ProcessState.failure) {
+      emit(state.copyWith(
+        processState: ProcessState.idle,
+        message: '',
+      ));
+    }
+  }
+
   Future<bool> handleDismissal() async {
     _stopPolling();
     _paymentStatusSubscription?.cancel();

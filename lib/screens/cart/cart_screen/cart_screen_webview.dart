@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -42,11 +43,45 @@ class CartScreenWebView extends StatefulWidget {
 class _CartScreenWebViewState extends State<CartScreenWebView> {
   CartScreenCubit get cubit => context.read<CartScreenCubit>();
   final WebGuestService _webGuestService = WebGuestService();
+  final Map<String, TextEditingController> _quantityControllers = {};
 
   @override
   void initState() {
     super.initState();
     _checkGuestUser();
+  }
+
+  @override
+  void dispose() {
+    // Dispose all quantity controllers
+    for (var controller in _quantityControllers.values) {
+      controller.dispose();
+    }
+    _quantityControllers.clear();
+    super.dispose();
+  }
+
+  TextEditingController _getQuantityController(CartItem item) {
+    final productID = item.product.productID ?? '';
+    if (!_quantityControllers.containsKey(productID)) {
+      _quantityControllers[productID] = TextEditingController(
+        text: item.quantity.toString(),
+      );
+    }
+    return _quantityControllers[productID]!;
+  }
+
+  void _handleQuantityInput(CartItem item, String value) {
+    final parsedQuantity = int.tryParse(value);
+    if (parsedQuantity != null && parsedQuantity >= 1) {
+      cubit.updateQuantity(item, parsedQuantity);
+    } else {
+      // Revert to current valid quantity if input is invalid
+      final controller = _getQuantityController(item);
+      if (controller.text != item.quantity.toString()) {
+        controller.text = item.quantity.toString();
+      }
+    }
   }
 
   Future<void> _checkGuestUser() async {
@@ -77,26 +112,72 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
           if (kIsWeb) const WebHeader(),
           // Main Content
           Expanded(
-            child: BlocBuilder<CartScreenCubit, CartScreenState>(
+            child: BlocConsumer<CartScreenCubit, CartScreenState>(
+              listener: (context, state) {
+                // Sync quantity controllers with state after frame is built
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+
+                  final currentProductIDs = state.items
+                      .map((item) => item.product.productID ?? '')
+                      .where((id) => id.isNotEmpty)
+                      .toSet();
+
+                  // Remove controllers for items no longer in cart
+                  final controllersToRemove = _quantityControllers.keys
+                      .where((id) => !currentProductIDs.contains(id))
+                      .toList();
+                  for (var id in controllersToRemove) {
+                    _quantityControllers[id]?.dispose();
+                    _quantityControllers.remove(id);
+                  }
+
+                  // Sync existing controllers and create new ones for new items
+                  for (var item in state.items) {
+                    final productID = item.product.productID ?? '';
+                    if (productID.isEmpty) continue;
+
+                    if (_quantityControllers.containsKey(productID)) {
+                      final controller = _quantityControllers[productID]!;
+                      // Only update if the parsed value doesn't match state
+                      // This prevents overwriting user input during editing
+                      final parsedValue = int.tryParse(controller.text);
+                      if (controller.text.isEmpty ||
+                          parsedValue == null ||
+                          parsedValue != item.quantity) {
+                        controller.text = item.quantity.toString();
+                      }
+                    } else {
+                      _quantityControllers[productID] = TextEditingController(
+                        text: item.quantity.toString(),
+                      );
+                    }
+                  }
+                });
+
+                // Handle sign-in modal for guest users
+                if (state.processState == ProcessState.failure &&
+                    state.error == 'User not logged in' &&
+                    kIsWeb) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                    if (!mounted) return;
+                    final overlayState = Navigator.of(context).overlay!;
+                    SnackbarService.showGuestRestrictionAboveOverlay(
+                      overlayState,
+                      context: context,
+                      actionType: 'cart',
+                    );
+                    final signInCubit = SignInCubit();
+                    await showSignInModalWithCubit(context, signInCubit);
+                  });
+                }
+              },
               builder: (context, state) {
                 if (state.processState == ProcessState.loading) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 if (state.processState == ProcessState.failure) {
-                  // If it's a "User not logged in" error, show sign-in modal
-                  if (state.error == 'User not logged in' && kIsWeb) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) async {
-                      final overlayState = Navigator.of(context).overlay!;
-                      SnackbarService.showGuestRestrictionAboveOverlay(
-                        overlayState,
-                        context: context,
-                        actionType: 'cart',
-                      );
-                      final signInCubit = SignInCubit();
-                      await showSignInModalWithCubit(context, signInCubit);
-                    });
-                  }
                   return Center(
                       child:
                           Text(state.error ?? S.of(context).errorLoadingCart));
@@ -219,7 +300,8 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                 ),
                 const SizedBox(height: 16),
                 // Cart Items List
-                ...state.items.map((item) => _buildCartItem(item, state)),
+                ...state.items
+                    .map((item) => _buildCartItem(item, state, isMobile: true)),
               ],
             ),
           );
@@ -233,7 +315,7 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
               // Cart Items List - Main Content
               Expanded(
                 flex: 2,
-                child: _buildCartItemsList(state),
+                child: _buildCartItemsList(state, isMobile: false),
               ),
               // Order Summary Sidebar
               Container(
@@ -270,18 +352,19 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
     );
   }
 
-  Widget _buildCartItemsList(CartScreenState state) {
+  Widget _buildCartItemsList(CartScreenState state, {required bool isMobile}) {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
       itemCount: state.items.length,
       itemBuilder: (context, index) {
         final item = state.items.elementAt(index);
-        return _buildCartItem(item, state);
+        return _buildCartItem(item, state, isMobile: isMobile);
       },
     );
   }
 
-  Widget _buildCartItem(CartItem item, CartScreenState state) {
+  Widget _buildCartItem(CartItem item, CartScreenState state,
+      {required bool isMobile}) {
     // Check selection by productID for reliability using the state passed in
     final productID = item.product.productID;
     final isSelected = state.selectedItems.any(
@@ -292,56 +375,49 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
     final discount = product.discount;
     final finalPrice = product.discountedPrice;
 
-    // Use LayoutBuilder to detect mobile
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 500;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: InkWell(
-              onTap: () {
-                final productId = product.productID;
-                if (kIsWeb && productId != null) {
-                  Navigator.of(context).pushNamed('/products/$productId');
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ProductDetailScreen.newInstance(product),
-                    ),
-                  );
-                }
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: EdgeInsets.all(isMobile ? 12 : 16),
-                child: isMobile
-                    ? _buildMobileCartItem(
-                        item,
-                        isSelected,
-                        product,
-                        originalPrice.toDouble(),
-                        discount.toDouble(),
-                        finalPrice.toDouble())
-                    : _buildDesktopCartItem(
-                        item,
-                        isSelected,
-                        product,
-                        originalPrice.toDouble(),
-                        discount.toDouble(),
-                        finalPrice.toDouble()),
-              ),
-            ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          onTap: () {
+            final productId = product.productID;
+            if (kIsWeb && productId != null) {
+              Navigator.of(context).pushNamed('/products/$productId');
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProductDetailScreen.newInstance(product),
+                ),
+              );
+            }
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
+            child: isMobile
+                ? _buildMobileCartItem(
+                    item,
+                    isSelected,
+                    product,
+                    originalPrice.toDouble(),
+                    discount.toDouble(),
+                    finalPrice.toDouble())
+                : _buildDesktopCartItem(
+                    item,
+                    isSelected,
+                    product,
+                    originalPrice.toDouble(),
+                    discount.toDouble(),
+                    finalPrice.toDouble()),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -495,15 +571,31 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        item.quantity.toString(),
+                    SizedBox(
+                      width: 40,
+                      child: TextField(
+                        controller: _getQuantityController(item),
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          isDense: true,
+                        ),
+                        onSubmitted: (value) =>
+                            _handleQuantityInput(item, value),
+                        onTapOutside: (event) {
+                          final value = _getQuantityController(item).text;
+                          _handleQuantityInput(item, value);
+                        },
                       ),
                     ),
                     InkWell(
@@ -522,9 +614,55 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                 ),
               ),
             ),
+            const SizedBox(width: 8),
+            // Delete button
+            InkWell(
+              onTap: () => _showDeleteDialog(item),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(Icons.delete_outline, size: 20, color: Colors.red),
+              ),
+            ),
           ],
         ),
       ],
+    );
+  }
+
+  void _showDeleteDialog(CartItem item) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          S.of(context).removeItem,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        content: Text(
+          S.of(context).removeItemConfirmation,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(S.of(context).cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              cubit.removeFromCart(item);
+            },
+            child: Text(
+              S.of(context).remove,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -665,17 +803,31 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                                 .withValues(alpha: 0.3),
                       ),
                     ),
-                    Container(
-                      constraints: const BoxConstraints(minWidth: 40),
-                      alignment: Alignment.center,
-                      child: Text(
-                        (item.quantity).toString(),
+                    SizedBox(
+                      width: 60,
+                      child: TextField(
+                        controller: _getQuantityController(item),
                         textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          isDense: true,
+                        ),
+                        onSubmitted: (value) =>
+                            _handleQuantityInput(item, value),
+                        onTapOutside: (event) {
+                          final value = _getQuantityController(item).text;
+                          _handleQuantityInput(item, value);
+                        },
                       ),
                     ),
                     IconButton(
@@ -695,6 +847,16 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(width: 16),
+              // Delete Button
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 24),
+                onPressed: () => _showDeleteDialog(item),
+                style: IconButton.styleFrom(
+                  foregroundColor: Colors.red,
+                ),
+                tooltip: S.of(context).removeItem,
               ),
             ],
           ),

@@ -148,12 +148,29 @@ class _ChooseAddressPopupWebViewState
                 ),
               ),
               // Empty state
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 60.0),
+              Expanded(
                 child: Center(
-                  child: Text(
-                    S.of(context).noAddressFound,
-                    style: AppTextStyle.regularText,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        S.of(context).noAddressFound,
+                        style: AppTextStyle.regularText,
+                      ),
+                      const SizedBox(height: 24),
+                      InvisibleGradientButton(
+                        text: S.of(context).addAddress,
+                        prefixIcon: Icons.add,
+                        onPressed: () async {
+                          // Use web modal on web and full-screen on mobile
+                          final result = await openAddAddressFlow(context);
+
+                          if (result != null) {
+                            cubit.addAddress(result);
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -32,9 +32,11 @@ class _SurveyScaffoldState extends State<_SurveyScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    // Prefill answers for signed-in users
-    context.read<SurveyScreenCubit>().loadExistingSelections();
     final cubit = context.read<SurveyScreenCubit>();
+    // Set localized questions data
+    cubit.setQuestionsData(S.of(context));
+    // Prefill answers for signed-in users
+    cubit.loadExistingSelections();
     final questions = cubit.questionsData;
 
     return Scaffold(

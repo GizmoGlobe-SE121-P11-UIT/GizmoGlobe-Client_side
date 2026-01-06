@@ -44,13 +44,13 @@ GizmoGlobe is a cross-platform e-commerce application built with Flutter, focusi
 - **Configuration Builder**: Build custom PC configurations with compatibility checking
 - **Multiple Sessions**: Save and manage multiple PC build sessions
 - **PDF Export**: Generate PDF configurations for your builds
-- **Cost Estimation**: Real-time cost calculation for builds
+- **Cost Estimation**: Cost calculation for builds
 - **Compatibility Validation**: Automatic compatibility checking between components
 
 ### Payment Integration
-- **Stripe**: Credit/debit card payments (web & mobile)
+- **Stripe**: Credit/debit card payments
 - **SePay**: Bank transfer payments (Vietnam)
-- **COD (Cash on Delivery)**: Pay on delivery option
+- **COD (Cash on Delivery)**: Pay with cash-on-delivery option
 - **Stock Management**: Automatic stock reduction after successful payment
 
 ### User Management

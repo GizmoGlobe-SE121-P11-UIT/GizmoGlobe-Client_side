@@ -40,7 +40,11 @@ class ManufacturerFilter extends StatelessWidget {
           Wrap(
             spacing: 16.0,
             runSpacing: 16.0,
-            children: manufacturerList.map((manufacturer) {
+            children: (List<Manufacturer>.from(manufacturerList)
+                  ..sort((a, b) => a.manufacturerName
+                      .toLowerCase()
+                      .compareTo(b.manufacturerName.toLowerCase())))
+                .map((manufacturer) {
               return SizedBox(
                 width: itemWidth,
                 child: CheckboxButton(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/components/general/web_header.dart';
 import 'package:gizmoglobe_client/components/general/web_product_card.dart';
@@ -149,16 +150,20 @@ class _ProductDetailScreenWebViewState
   final WebGuestService _webGuestService = WebGuestService();
   final PageController _pageController = PageController();
   int _currentImageIndex = 0;
+  final TextEditingController _quantityController = TextEditingController();
+  bool _isQuantityEditing = false;
 
   @override
   void initState() {
     super.initState();
     // No need to manually update the hash - Navigator.pushNamed handles it
+    _quantityController.text = cubit.state.quantity.toString();
   }
 
   @override
   void dispose() {
     // Don't manipulate the hash on dispose - let the browser's back/forward handle it
+    _quantityController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -313,6 +318,16 @@ class _ProductDetailScreenWebViewState
         }
       },
       builder: (context, state) {
+        // Update quantity controller when state changes (if not currently editing)
+        if (!_isQuantityEditing &&
+            _quantityController.text != state.quantity.toString()) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _quantityController.text = state.quantity.toString();
+            }
+          });
+        }
+
         if (state.processState == ProcessState.loading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -752,10 +767,20 @@ class _ProductDetailScreenWebViewState
                                                                     alignment:
                                                                         Alignment
                                                                             .center,
-                                                                    child: Text(
-                                                                      state
-                                                                          .quantity
-                                                                          .toString(),
+                                                                    child:
+                                                                        TextField(
+                                                                      controller:
+                                                                          _quantityController,
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .center,
+                                                                      keyboardType:
+                                                                          TextInputType
+                                                                              .number,
+                                                                      inputFormatters: [
+                                                                        FilteringTextInputFormatter
+                                                                            .digitsOnly,
+                                                                      ],
                                                                       style: TextStyle(
                                                                           color: Theme.of(context)
                                                                               .colorScheme
@@ -764,6 +789,52 @@ class _ProductDetailScreenWebViewState
                                                                               .bold,
                                                                           fontSize:
                                                                               18),
+                                                                      decoration:
+                                                                          InputDecoration(
+                                                                        border:
+                                                                            InputBorder.none,
+                                                                        contentPadding:
+                                                                            EdgeInsets.zero,
+                                                                        isDense:
+                                                                            true,
+                                                                      ),
+                                                                      onTap:
+                                                                          () {
+                                                                        setState(
+                                                                            () {
+                                                                          _isQuantityEditing =
+                                                                              true;
+                                                                        });
+                                                                      },
+                                                                      onSubmitted:
+                                                                          (value) {
+                                                                        setState(
+                                                                            () {
+                                                                          _isQuantityEditing =
+                                                                              false;
+                                                                        });
+                                                                        final intValue =
+                                                                            int.tryParse(value);
+                                                                        if (intValue !=
+                                                                                null &&
+                                                                            intValue >=
+                                                                                1) {
+                                                                          cubit.updateQuantity(
+                                                                              intValue);
+                                                                        } else {
+                                                                          _quantityController.text = state
+                                                                              .quantity
+                                                                              .toString();
+                                                                        }
+                                                                      },
+                                                                      onEditingComplete:
+                                                                          () {
+                                                                        setState(
+                                                                            () {
+                                                                          _isQuantityEditing =
+                                                                              false;
+                                                                        });
+                                                                      },
                                                                     ),
                                                                   ),
                                                                   _buildQuantityButton(
@@ -1180,9 +1251,19 @@ class _ProductDetailScreenWebViewState
                                                               alignment:
                                                                   Alignment
                                                                       .center,
-                                                              child: Text(
-                                                                state.quantity
-                                                                    .toString(),
+                                                              child: TextField(
+                                                                controller:
+                                                                    _quantityController,
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                                keyboardType:
+                                                                    TextInputType
+                                                                        .number,
+                                                                inputFormatters: [
+                                                                  FilteringTextInputFormatter
+                                                                      .digitsOnly,
+                                                                ],
                                                                 style: TextStyle(
                                                                     color: Theme.of(
                                                                             context)
@@ -1193,6 +1274,52 @@ class _ProductDetailScreenWebViewState
                                                                             .bold,
                                                                     fontSize:
                                                                         16),
+                                                                decoration:
+                                                                    InputDecoration(
+                                                                  border:
+                                                                      InputBorder
+                                                                          .none,
+                                                                  contentPadding:
+                                                                      EdgeInsets
+                                                                          .zero,
+                                                                  isDense: true,
+                                                                ),
+                                                                onTap: () {
+                                                                  setState(() {
+                                                                    _isQuantityEditing =
+                                                                        true;
+                                                                  });
+                                                                },
+                                                                onSubmitted:
+                                                                    (value) {
+                                                                  setState(() {
+                                                                    _isQuantityEditing =
+                                                                        false;
+                                                                  });
+                                                                  final intValue =
+                                                                      int.tryParse(
+                                                                          value);
+                                                                  if (intValue !=
+                                                                          null &&
+                                                                      intValue >=
+                                                                          1) {
+                                                                    cubit.updateQuantity(
+                                                                        intValue);
+                                                                  } else {
+                                                                    _quantityController
+                                                                            .text =
+                                                                        state
+                                                                            .quantity
+                                                                            .toString();
+                                                                  }
+                                                                },
+                                                                onEditingComplete:
+                                                                    () {
+                                                                  setState(() {
+                                                                    _isQuantityEditing =
+                                                                        false;
+                                                                  });
+                                                                },
                                                               ),
                                                             ),
                                                             _buildQuantityButton(

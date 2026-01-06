@@ -219,6 +219,8 @@ class S {
   String get stripe => Intl.message('Stripe', name: 'stripe');
   String get stripeDescription =>
       Intl.message('Credit/Debit card payment', name: 'stripeDescription');
+  String get stripeMinimumOrder =>
+      Intl.message('Minimum order: 15,000 VND', name: 'stripeMinimumOrder');
   String get transactionContentLabel =>
       Intl.message('Transfer content', name: 'transactionContentLabel');
   String get transactionContentCopied => Intl.message(
@@ -299,6 +301,7 @@ class S {
   String get seeAll => Intl.message('See All', name: 'seeAll');
   String get appLogo => Intl.message('App Logo', name: 'appLogo');
   String get chatButton => Intl.message('Chat Support', name: 'chatButton');
+  String get helloGreeting => Intl.message('Hello,', name: 'helloGreeting');
 
   // Survey
   String get surveyJoin => Intl.message('Join the survey', name: 'surveyJoin');
@@ -308,6 +311,129 @@ class S {
   String get surveySubmit => Intl.message('Submit', name: 'surveySubmit');
   String get surveySubmitted =>
       Intl.message('Survey submitted', name: 'surveySubmitted');
+
+  // Survey Questions
+  String get surveyQAge =>
+      Intl.message('What age group do you belong to?', name: 'surveyQAge');
+  String get surveyQPurpose =>
+      Intl.message('What do you mainly use your computer for?',
+          name: 'surveyQPurpose');
+  String get surveyQCurrentDevice =>
+      Intl.message('What type of device are you currently using?',
+          name: 'surveyQCurrentDevice');
+  String get surveyQPreference =>
+      Intl.message('When buying a new computer, what do you prefer?',
+          name: 'surveyQPreference');
+  String get surveyQKnowledge =>
+      Intl.message('How well do you understand computer hardware?',
+          name: 'surveyQKnowledge');
+  String get surveyQBudget =>
+      Intl.message('What is your budget for your next computer purchase?',
+          name: 'surveyQBudget');
+  String get surveyQDecisionFactor =>
+      Intl.message('What is the most important factor when buying a computer?',
+          name: 'surveyQDecisionFactor');
+  String get surveyQPurchaseMethod =>
+      Intl.message('How do you usually decide to buy a computer?',
+          name: 'surveyQPurchaseMethod');
+
+  // Survey Options - Age
+  String get surveyOptUnder18 =>
+      Intl.message('Under 18 years old', name: 'surveyOptUnder18');
+  String get surveyOpt18_24 =>
+      Intl.message('18 - 24 years old', name: 'surveyOpt18_24');
+  String get surveyOpt25_34 =>
+      Intl.message('25 - 34 years old', name: 'surveyOpt25_34');
+  String get surveyOpt35_44 =>
+      Intl.message('35 - 44 years old', name: 'surveyOpt35_44');
+  String get surveyOpt45_54 =>
+      Intl.message('45 - 54 years old', name: 'surveyOpt45_54');
+  String get surveyOpt55Plus =>
+      Intl.message('55 years old or above', name: 'surveyOpt55Plus');
+
+  // Survey Options - Purpose
+  String get surveyOptOffice =>
+      Intl.message('Study / Office work', name: 'surveyOptOffice');
+  String get surveyOptDesign =>
+      Intl.message('Graphic design / Architecture / Multimedia',
+          name: 'surveyOptDesign');
+  String get surveyOptProgramming =>
+      Intl.message('Programming / Engineering', name: 'surveyOptProgramming');
+  String get surveyOptGaming => Intl.message('Gaming', name: 'surveyOptGaming');
+  String get surveyOptEntertainment =>
+      Intl.message('Entertainment (movies, music, web browsing)',
+          name: 'surveyOptEntertainment');
+
+  // Survey Options - Current Device
+  String get surveyOptLaptop => Intl.message('Laptop', name: 'surveyOptLaptop');
+  String get surveyOptPrebuiltPc =>
+      Intl.message('Pre-built PC', name: 'surveyOptPrebuiltPc');
+  String get surveyOptCustomPc =>
+      Intl.message('Custom-built PC from components',
+          name: 'surveyOptCustomPc');
+
+  // Survey Options - Preference
+  String get surveyOptPreferLaptop =>
+      Intl.message('Laptop', name: 'surveyOptPreferLaptop');
+  String get surveyOptPreferPrebuilt =>
+      Intl.message('Pre-built PC', name: 'surveyOptPreferPrebuilt');
+  String get surveyOptPreferCustom =>
+      Intl.message('Custom-built PC from components',
+          name: 'surveyOptPreferCustom');
+  String get surveyOptPreferConsult =>
+      Intl.message('Not sure / Need consultation',
+          name: 'surveyOptPreferConsult');
+
+  // Survey Options - Knowledge
+  String get surveyOptNovice =>
+      Intl.message('Not familiar, rely on recommendations',
+          name: 'surveyOptNovice');
+  String get surveyOptBasic =>
+      Intl.message('Basic knowledge (know component names, not in-depth)',
+          name: 'surveyOptBasic');
+  String get surveyOptAdvanced =>
+      Intl.message('Good understanding (can choose configurations myself)',
+          name: 'surveyOptAdvanced');
+  String get surveyOptExpert =>
+      Intl.message('Expert (can build and optimize myself)',
+          name: 'surveyOptExpert');
+
+  // Survey Options - Budget
+  String get surveyOptUnder10m =>
+      Intl.message('Under 10 million VND', name: 'surveyOptUnder10m');
+  String get surveyOpt10_20m =>
+      Intl.message('10 - 20 million VND', name: 'surveyOpt10_20m');
+  String get surveyOpt20_30m =>
+      Intl.message('20 - 30 million VND', name: 'surveyOpt20_30m');
+  String get surveyOpt30_50m =>
+      Intl.message('30 - 50 million VND', name: 'surveyOpt30_50m');
+  String get surveyOptOver50m =>
+      Intl.message('Over 50 million VND', name: 'surveyOptOver50m');
+
+  // Survey Options - Decision Factor
+  String get surveyOptPerformance =>
+      Intl.message('Performance (specifications)',
+          name: 'surveyOptPerformance');
+  String get surveyOptPrice => Intl.message('Price', name: 'surveyOptPrice');
+  String get surveyOptBrand => Intl.message('Brand', name: 'surveyOptBrand');
+  String get surveyOptDesignLook =>
+      Intl.message('Design / Appearance', name: 'surveyOptDesignLook');
+  String get surveyOptWarranty =>
+      Intl.message('Warranty / Service', name: 'surveyOptWarranty');
+  String get surveyOptOther => Intl.message('Other', name: 'surveyOptOther');
+
+  // Survey Options - Purchase Method
+  String get surveyOptOnlineSelf =>
+      Intl.message('Buy online after researching myself',
+          name: 'surveyOptOnlineSelf');
+  String get surveyOptOnlineInfluencer =>
+      Intl.message('Buy online based on reviewer/influencer recommendations',
+          name: 'surveyOptOnlineInfluencer');
+  String get surveyOptOfflineStore =>
+      Intl.message('Buy at physical store', name: 'surveyOptOfflineStore');
+  String get surveyOptFriendsAdvice =>
+      Intl.message('Get advice from friends/family',
+          name: 'surveyOptFriendsAdvice');
 
   // Main Screen
   String get homeTab => Intl.message('Home', name: 'homeTab');

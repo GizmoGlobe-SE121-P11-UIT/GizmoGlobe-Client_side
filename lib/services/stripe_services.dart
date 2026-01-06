@@ -244,7 +244,6 @@ class StripeServices {
             // Proxy returned error (wrapped in 200 response)
             final error =
                 proxyResponse['error'] ?? 'Failed to create checkout session';
-            // final details = proxyResponse['details'];
             throw Exception(error);
           }
         } else {

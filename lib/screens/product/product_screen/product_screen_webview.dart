@@ -338,6 +338,7 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -350,149 +351,178 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
                 children: [
                   const WebHeader(),
                   // Breadcrumbs: Home / Sản phẩm / <Category>
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Home link
-                        InkWell(
-                          onTap: () {
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              '/home',
-                              (route) => false,
-                            );
-                          },
-                          child: Text(
-                            S.of(context).homeTab,
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text('/',
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.4),
-                            )),
-                        const SizedBox(width: 8),
-                        Text(
-                          S.of(context).productsTab,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text('/',
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.4),
-                            )),
-                        const SizedBox(width: 8),
-                        Text(
-                          _currentCategoryLabel(context),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Search section card-like
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      final bool isWide = constraints.maxWidth >= 900;
-                      final EdgeInsets horizontalPadding = EdgeInsets.symmetric(
+                      final bool isWide = constraints.maxWidth >= 1100;
+                      final EdgeInsets pagePadding = EdgeInsets.symmetric(
                         horizontal: isWide ? 24 : 12,
                       );
-                      final double fieldMaxWidth = isWide
-                          ? math.min(1600, constraints.maxWidth - 60)
-                          : constraints.maxWidth - 40;
+                      final double maxBodyWidth =
+                          isWide ? 1400 : constraints.maxWidth;
                       return Container(
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.surface,
                         ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding.horizontal / 2,
-                          vertical: 12,
+                        padding: pagePadding.add(
+                          const EdgeInsets.symmetric(vertical: 8),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: ConstrainedBox(
-                                  constraints:
-                                      BoxConstraints(maxWidth: fieldMaxWidth),
-                                  child: FieldWithIcon(
-                                    height: 52,
-                                    controller: searchController,
-                                    focusNode: searchFocusNode,
-                                    hintText: S.of(context).findYourItem,
-                                    fillColor:
-                                        Theme.of(context).colorScheme.surface,
-                                    prefixIcon: Icon(
-                                      Icons.search,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: maxBodyWidth),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // Home link
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        '/home',
+                                        (route) => false,
+                                      );
+                                    },
+                                    child: Text(
+                                      S.of(context).homeTab,
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.6),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text('/',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.4),
+                                      )),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    S.of(context).productsTab,
+                                    style: TextStyle(
                                       color: Theme.of(context)
                                           .colorScheme
-                                          .onSurface
-                                          .withValues(alpha: 0.6),
+                                          .onSurface,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                    onChanged: (value) {
-                                      cubit.updateSearchText(
-                                          searchController.text);
-                                    },
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+                                  Text('/',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.4),
+                                      )),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _currentCategoryLabel(context),
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: _listen,
-                              child: SizedBox(
-                                width: 36,
-                                height: 36,
-                                child: Center(
-                                  child: AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 180),
-                                    switchInCurve: Curves.easeOut,
-                                    switchOutCurve: Curves.easeIn,
-                                    child: _isListening
-                                        ? _MicVisualizer(
-                                            key: const ValueKey('mic_viz'),
-                                            controller: _micController,
-                                          )
-                                        : Icon(
-                                            Icons.mic,
-                                            key: const ValueKey('mic_icon'),
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withValues(alpha: 0.6),
-                                          ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // Search section card-like
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool isWide = constraints.maxWidth >= 1100;
+                      final EdgeInsets pagePadding = EdgeInsets.symmetric(
+                        horizontal: isWide ? 24 : 12,
+                      );
+                      final double maxBodyWidth =
+                          isWide ? 1400 : constraints.maxWidth;
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                        padding: pagePadding.add(
+                          const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: maxBodyWidth),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: FieldWithIcon(
+                                      height: 52,
+                                      controller: searchController,
+                                      focusNode: searchFocusNode,
+                                      hintText: S.of(context).findYourItem,
+                                      fillColor:
+                                          Theme.of(context).colorScheme.surface,
+                                      prefixIcon: Icon(
+                                        Icons.search,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.6),
+                                      ),
+                                      onChanged: (value) {
+                                        cubit.updateSearchText(
+                                            searchController.text);
+                                      },
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 12),
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: _listen,
+                                    child: SizedBox(
+                                      width: 36,
+                                      height: 36,
+                                      child: Center(
+                                        child: AnimatedSwitcher(
+                                          duration:
+                                              const Duration(milliseconds: 180),
+                                          switchInCurve: Curves.easeOut,
+                                          switchOutCurve: Curves.easeIn,
+                                          child: _isListening
+                                              ? _MicVisualizer(
+                                                  key:
+                                                      const ValueKey('mic_viz'),
+                                                  controller: _micController,
+                                                )
+                                              : Icon(
+                                                  Icons.mic,
+                                                  key: const ValueKey(
+                                                      'mic_icon'),
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withValues(alpha: 0.6),
+                                                ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       );
                     },
@@ -500,110 +530,135 @@ class _ProductScreenWebViewState extends State<ProductScreenWebView>
                   // Categories + Sort row (restored below search)
                   LayoutBuilder(
                     builder: (context, constraints) {
+                      final bool isWide = constraints.maxWidth >= 1100;
                       final isMobile = constraints.maxWidth < 600;
+                      final EdgeInsets pagePadding = EdgeInsets.symmetric(
+                        horizontal: isWide ? 24 : 12,
+                      );
+                      final double maxBodyWidth =
+                          isWide ? 1400 : constraints.maxWidth;
                       return Container(
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.surface,
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: IgnorePointer(
-                                ignoring: _isTabLoading,
-                                child: TabBar(
-                                  controller: tabController,
-                                  isScrollable: isMobile,
-                                  tabAlignment: isMobile
-                                      ? TabAlignment.start
-                                      : TabAlignment.fill,
-                                  labelPadding: EdgeInsets.zero,
-                                  dividerColor: Colors.transparent,
-                                  labelColor:
-                                      Theme.of(context).colorScheme.onPrimary,
-                                  unselectedLabelColor: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.9),
-                                  indicator: BoxDecoration(
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(8),
+                        padding: pagePadding.add(
+                          const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: maxBodyWidth),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: IgnorePointer(
+                                      ignoring: _isTabLoading,
+                                      child: TabBar(
+                                        controller: tabController,
+                                        isScrollable: isMobile,
+                                        tabAlignment: isMobile
+                                            ? TabAlignment.start
+                                            : TabAlignment.fill,
+                                        labelPadding: EdgeInsets.zero,
+                                        dividerColor: Colors.transparent,
+                                        labelColor: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary,
+                                        unselectedLabelColor: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.9),
+                                        indicator: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        indicatorSize: TabBarIndicatorSize.tab,
+                                        onTap: kIsWeb
+                                            ? (int value) {
+                                                if (_isTabLoading) return;
+                                                final int previous =
+                                                    tabController.index;
+                                                setState(() {
+                                                  _isTabLoading = true;
+                                                });
+                                                _updateUrlForTab(value);
+                                                // Keep visual selection at previous until swap completes
+                                                tabController.index = previous;
+                                                _tabSwitchTimer?.cancel();
+                                                _tabSwitchTimer = Timer(
+                                                    const Duration(seconds: 1),
+                                                    () {
+                                                  if (!mounted) return;
+                                                  setState(() {
+                                                    _shownTabIndex = value;
+                                                    _isTabLoading = false;
+                                                    tabController.index = value;
+                                                  });
+                                                });
+                                              }
+                                            : null,
+                                        tabs: [
+                                          _buildChipTab(S.of(context).all),
+                                          _buildChipTab(S.of(context).ram),
+                                          _buildChipTab(S.of(context).cpu),
+                                          _buildChipTab(S.of(context).psu),
+                                          _buildChipTab(S.of(context).gpu),
+                                          _buildChipTab(S.of(context).drive),
+                                          _buildChipTab(
+                                              S.of(context).mainboard),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                  indicatorSize: TabBarIndicatorSize.tab,
-                                  onTap: kIsWeb
-                                      ? (int value) {
-                                          if (_isTabLoading) return;
-                                          final int previous =
-                                              tabController.index;
-                                          setState(() {
-                                            _isTabLoading = true;
-                                          });
-                                          _updateUrlForTab(value);
-                                          // Keep visual selection at previous until swap completes
-                                          tabController.index = previous;
-                                          _tabSwitchTimer?.cancel();
-                                          _tabSwitchTimer = Timer(
-                                              const Duration(seconds: 1), () {
-                                            if (!mounted) return;
-                                            setState(() {
-                                              _shownTabIndex = value;
-                                              _isTabLoading = false;
-                                              tabController.index = value;
-                                            });
-                                          });
-                                        }
-                                      : null,
-                                  tabs: [
-                                    _buildChipTab(S.of(context).all),
-                                    _buildChipTab(S.of(context).ram),
-                                    _buildChipTab(S.of(context).cpu),
-                                    _buildChipTab(S.of(context).psu),
-                                    _buildChipTab(S.of(context).gpu),
-                                    _buildChipTab(S.of(context).drive),
-                                    _buildChipTab(S.of(context).mainboard),
-                                  ],
-                                ),
+                                  const SizedBox(width: 12),
+                                  _SortDropdown(
+                                    selected: context
+                                        .watch<ProductScreenCubit>()
+                                        .state
+                                        .selectedSortOption,
+                                    onChanged: (value) {
+                                      context
+                                          .read<ProductScreenCubit>()
+                                          .updateSortOption(value);
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.filter_list_alt),
+                                    tooltip: 'Filter',
+                                    onPressed: () async {
+                                      // Get the TabCubit for the currently shown tab
+                                      final tabCubit =
+                                          _tabCubitCache[_shownTabIndex];
+                                      if (tabCubit == null) return;
+
+                                      final state = tabCubit.state;
+                                      final FilterArgument arguments =
+                                          state.filterArgument;
+                                      final result =
+                                          await filter_web.showFilterModal(
+                                        context,
+                                        arguments: arguments,
+                                        selectedTabIndex: _shownTabIndex,
+                                        manufacturerList:
+                                            Database().manufacturerList,
+                                      );
+                                      if (result is FilterArgument) {
+                                        tabCubit.updateFilter(filter: result);
+                                        tabCubit.applyFilters();
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            _SortDropdown(
-                              selected: context
-                                  .watch<ProductScreenCubit>()
-                                  .state
-                                  .selectedSortOption,
-                              onChanged: (value) {
-                                context
-                                    .read<ProductScreenCubit>()
-                                    .updateSortOption(value);
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.filter_list_alt),
-                              tooltip: 'Filter',
-                              onPressed: () async {
-                                // Get the TabCubit for the currently shown tab
-                                final tabCubit = _tabCubitCache[_shownTabIndex];
-                                if (tabCubit == null) return;
-
-                                final state = tabCubit.state;
-                                final FilterArgument arguments =
-                                    state.filterArgument;
-                                final result = await filter_web.showFilterModal(
-                                  context,
-                                  arguments: arguments,
-                                  selectedTabIndex: _shownTabIndex,
-                                  manufacturerList: Database().manufacturerList,
-                                );
-                                if (result is FilterArgument) {
-                                  tabCubit.updateFilter(filter: result);
-                                  tabCubit.applyFilters();
-                                }
-                              },
-                            ),
-                          ],
+                          ),
                         ),
                       );
                     },

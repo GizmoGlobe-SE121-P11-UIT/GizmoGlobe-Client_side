@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/widgets/general/field_with_icon.dart';
 
@@ -12,6 +13,7 @@ class RangeFilter extends StatelessWidget {
   final String toValue;
   final String? fromHint;
   final String? toHint;
+  final Icon? prefixIcon;
 
   const RangeFilter({
     super.key,
@@ -24,6 +26,7 @@ class RangeFilter extends StatelessWidget {
     required this.toValue,
     this.fromHint,
     this.toHint,
+    this.prefixIcon,
   });
 
   @override
@@ -54,12 +57,15 @@ class RangeFilter extends StatelessWidget {
                   ),
                   const SizedBox(height: 4.0),
                   FieldWithIcon(
-                    prefixIcon: const Icon(Icons.attach_money),
+                    prefixIcon: prefixIcon ?? const Icon(Icons.attach_money),
                     controller: fromController,
                     fillColor: Theme.of(context).colorScheme.surface,
                     hintText: fromHint ?? S.of(context).min,
                     onChanged: onFromValueChanged,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
                   ),
                 ],
               ),
@@ -77,12 +83,15 @@ class RangeFilter extends StatelessWidget {
                   ),
                   const SizedBox(height: 4.0),
                   FieldWithIcon(
-                    prefixIcon: const Icon(Icons.attach_money),
+                    prefixIcon: prefixIcon ?? const Icon(Icons.attach_money),
                     controller: toController,
                     fillColor: Theme.of(context).colorScheme.surface,
                     hintText: toHint ?? S.of(context).max,
                     onChanged: onToValueChanged,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
                   ),
                 ],
               ),

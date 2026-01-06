@@ -51,6 +51,7 @@ class SePayPaymentScreen extends StatefulWidget {
 
 class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
   SePayPaymentScreenCubit get cubit => context.read<SePayPaymentScreenCubit>();
+  bool _hasShownErrorDialog = false;
 
   @override
   void initState() {
@@ -145,7 +146,9 @@ class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
                 },
               ),
             );
-          } else if (state.processState == ProcessState.failure) {
+          } else if (state.processState == ProcessState.failure &&
+              !_hasShownErrorDialog) {
+            _hasShownErrorDialog = true;
             // Show error dialog
             showDialog(
               context: context,
@@ -156,7 +159,12 @@ class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
                     : S.of(context).sepayPaymentInitFailed,
                 dialogName: DialogName.failure,
                 buttonText: S.of(context).sepayGoBack,
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  Navigator.pop(context);
+                  // Reset error state and flag after dialog is dismissed
+                  _hasShownErrorDialog = false;
+                  cubit.clearError();
+                },
               ),
             );
           }

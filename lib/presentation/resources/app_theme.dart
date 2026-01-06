@@ -8,11 +8,22 @@ class AppTheme {
   static const Color darkBlue = Color(0xFF0D47A1); // Darker blue
   static const Color accentBlue = Color(0xFF2196F3); // Accent blue
 
-  // Monochrome grays
-  static const Color lightGray = Color(0xFFF5F5F5);
+  // Monochrome grays - refined for better contrast
+  static const Color offWhite =
+      Color(0xFFF8F9FA); // Subtle off-white background
+  static const Color lightGray =
+      Color(0xFFF1F3F4); // Slightly darker for cards on off-white
   static const Color mediumGray = Color(0xFF9E9E9E);
   static const Color darkGray = Color(0xFF424242);
   static const Color charcoal = Color(0xFF212121);
+
+  // Dark mode surface hierarchy - increased contrast for better UX
+  static const Color darkBackground = Color(0xFF121212); // Darkest - scaffold
+  static const Color darkSurface = Color(0xFF1A1A1A); // Dark - main surfaces
+  static const Color darkCard =
+      Color(0xFF2D2D2D); // Notably lighter - cards stand out
+  static const Color darkContainer =
+      Color(0xFF363636); // Lightest - containers/inputs
 
   static const Color lightThemeMoneyColor = Color(0xFF2E7D32);
   static const Color darkThemeMoneyColor = Color(0xFF66BB6A);
@@ -29,7 +40,7 @@ class AppTheme {
       onTertiary: Colors.white,
       primaryContainer: Color(0xFFE3F2FD), // Very light blue
       secondaryContainer: Color(0xFFBBDEFB), // Light blue container
-      surface: Colors.white,
+      surface: offWhite,
       onSurface: charcoal,
       onSurfaceVariant: darkGray,
       error: Color(0xFFD32F2F),
@@ -70,9 +81,9 @@ class AppTheme {
         ),
       ),
     ),
-    scaffoldBackgroundColor: Colors.white,
+    scaffoldBackgroundColor: offWhite,
     appBarTheme: AppBarTheme(
-      backgroundColor: Colors.white,
+      backgroundColor: offWhite,
       foregroundColor: charcoal,
       elevation: 0,
       shadowColor: Colors.transparent,
@@ -85,7 +96,7 @@ class AppTheme {
       iconTheme: const IconThemeData(color: charcoal),
     ),
     cardTheme: CardThemeData(
-      color: Colors.white,
+      color: Colors.white, // Pure white cards stand out on off-white background
       elevation: 2,
       shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
@@ -107,7 +118,7 @@ class AppTheme {
       hintStyle: const TextStyle(color: mediumGray),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Colors.white,
+      backgroundColor: offWhite,
       selectedItemColor: primaryBlue,
       unselectedItemColor: mediumGray,
       type: BottomNavigationBarType.fixed,
@@ -156,14 +167,14 @@ class AppTheme {
       onTertiary: charcoal,
       primaryContainer: darkBlue,
       secondaryContainer: Color(0xFF1976D2),
-      surface: Color(0xFF1A1A1A),
+      surface: darkSurface,
       onSurface: Colors.white,
       onSurfaceVariant: Color(0xFFE0E0E0),
       error: Color(0xFFEF5350),
       onError: charcoal,
       outline: Color(0xFF757575),
       shadow: Color(0x33000000),
-      surfaceContainerHighest: Color(0xFF2A2A2A),
+      surfaceContainerHighest: darkContainer,
       onPrimaryContainer: Colors.white,
       onSecondaryContainer: Colors.white,
     ),
@@ -197,9 +208,9 @@ class AppTheme {
         ),
       ),
     ),
-    scaffoldBackgroundColor: const Color(0xFF121212),
+    scaffoldBackgroundColor: darkBackground,
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF1A1A1A),
+      backgroundColor: darkSurface,
       foregroundColor: Colors.white,
       elevation: 0,
       shadowColor: Colors.transparent,
@@ -212,7 +223,7 @@ class AppTheme {
       iconTheme: IconThemeData(color: Colors.white),
     ),
     cardTheme: CardThemeData(
-      color: const Color(0xFF1E1E1E),
+      color: darkCard, // Elevated cards are lighter than surface
       elevation: 4,
       shadowColor: Colors.black.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
@@ -221,7 +232,7 @@ class AppTheme {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFF2A2A2A),
+      fillColor: darkContainer,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide.none,
@@ -234,14 +245,14 @@ class AppTheme {
       hintStyle: const TextStyle(color: Color(0xFF757575)),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Color(0xFF1A1A1A),
+      backgroundColor: darkSurface,
       selectedItemColor: lightBlue,
       unselectedItemColor: Color(0xFF757575),
       type: BottomNavigationBarType.fixed,
       elevation: 8,
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: darkSurface,
       indicatorColor: lightBlue.withValues(alpha: 0.2),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {

@@ -29,6 +29,10 @@ class _WebHeaderState extends State<WebHeader> {
   final GlobalKey _userIconKey = GlobalKey();
   final GlobalKey _headerKey = GlobalKey();
 
+  // Cache for user info to prevent redundant Firestore queries
+  Map<String, dynamic>? _cachedUserInfo;
+  String? _cachedUserId;
+
   void _closeUserMenuIfOpen() {
     if (_isUserMenuOpen) {
       setState(() => _isUserMenuOpen = false);
@@ -57,17 +61,17 @@ class _WebHeaderState extends State<WebHeader> {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Theme.of(context).dividerColor,
+            color:
+                Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.3),
+            width: 1.5,
           ),
         ),
         child: Icon(
           _isSidebarOpen ? Icons.menu_open : Icons.menu,
-          color: _isSidebarOpen
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+          color: Theme.of(context).colorScheme.onPrimary,
           size: iconSize,
         ),
       ),
@@ -139,7 +143,15 @@ class _WebHeaderState extends State<WebHeader> {
     }
   }
 
+  void _clearUserInfoCache() {
+    _cachedUserInfo = null;
+    _cachedUserId = null;
+  }
+
   Future<void> _handleLogout(BuildContext context) async {
+    // Clear cached user info
+    _clearUserInfoCache();
+
     if (kIsWeb) {
       try {
         // Clear local guest data first (this clears favorites, cart, etc.)
@@ -184,6 +196,25 @@ class _WebHeaderState extends State<WebHeader> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Listen to auth state changes and clear cache when user changes
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (mounted) {
+        final currentCachedUserId = _cachedUserId;
+        final newUserId = user?.uid;
+
+        // Clear cache if user changed (including sign out)
+        if (currentCachedUserId != newUserId) {
+          setState(() {
+            _clearUserInfoCache();
+          });
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _removeOverlay();
     _hideSidebarOverlay();
@@ -216,11 +247,11 @@ class _WebHeaderState extends State<WebHeader> {
               vertical: isMobile ? 16 : 24,
             ),
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.primary,
               border: Border(
                 bottom: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                  width: 1,
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+                  width: 0.5,
                 ),
               ),
             ),
@@ -310,36 +341,100 @@ class _WebHeaderState extends State<WebHeader> {
     final size = isMobile ? 32.0 : 40.0;
     final iconSize = isMobile ? 16.0 : 20.0;
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        GestureDetector(
-          onTap: () {
-            _onUserIconTap(context, isMobile);
-          },
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            key: _userIconKey,
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Theme.of(context).dividerColor,
-              ),
+    return FutureBuilder<bool>(
+      future: _webGuestService.isCurrentUserGuest(),
+      builder: (context, guestSnapshot) {
+        final isGuest = guestSnapshot.data ?? true;
+
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // User icon button
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    _onUserIconTap(context, isMobile);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    key: _userIconKey,
+                    width: size,
+                    height: size,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onPrimary
+                            .withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(Icons.person_outline,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        size: iconSize),
+                  ),
+                ),
+              ],
             ),
-            child: Icon(Icons.person_outline,
-                color: _isUserMenuOpen
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
-                size: iconSize),
-          ),
-        ),
-      ],
+            // Reserved space for greeting (always shown on desktop)
+            if (!isMobile)
+              SizedBox(
+                width: 140,
+                child: isGuest
+                    ? const SizedBox.shrink()
+                    : FutureBuilder<Map<String, dynamic>?>(
+                        future: _getCurrentUserInfo(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SizedBox.shrink();
+                          }
+                          final userInfo = snapshot.data;
+                          final displayName = userInfo?['displayName'] ??
+                              userInfo?['username'] ??
+                              userInfo?['email']?.split('@')[0];
+                          if (displayName == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  S.of(context).helloGreeting,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  displayName,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -662,6 +757,14 @@ class _WebHeaderState extends State<WebHeader> {
     try {
       // Check if user is authenticated via Firebase Auth
       final currentUser = FirebaseAuth.instance.currentUser;
+
+      // Return cached data if user hasn't changed and cache exists
+      if (currentUser != null &&
+          _cachedUserId == currentUser.uid &&
+          _cachedUserInfo != null) {
+        return _cachedUserInfo;
+      }
+
       if (currentUser != null) {
         // Get user info from Firestore
         final userDoc = await FirebaseFirestore.instance
@@ -669,23 +772,29 @@ class _WebHeaderState extends State<WebHeader> {
             .doc(currentUser.uid)
             .get();
 
+        Map<String, dynamic> result;
         if (userDoc.exists) {
           final userData = userDoc.data() as Map<String, dynamic>;
-          return {
+          result = {
             'displayName': userData['displayName'] ?? userData['username'],
             'username': userData['username'],
             'email': currentUser.email,
             'avatarUrl': userData['avatarUrl'] ?? currentUser.photoURL,
           };
+        } else {
+          // Fallback to Firebase Auth user info
+          result = {
+            'displayName': currentUser.displayName,
+            'username': currentUser.displayName,
+            'email': currentUser.email,
+            'avatarUrl': currentUser.photoURL,
+          };
         }
 
-        // Fallback to Firebase Auth user info
-        return {
-          'displayName': currentUser.displayName,
-          'username': currentUser.displayName,
-          'email': currentUser.email,
-          'avatarUrl': currentUser.photoURL,
-        };
+        // Cache the result
+        _cachedUserId = currentUser.uid;
+        _cachedUserInfo = result;
+        return result;
       }
 
       // Check if user is a guest user
@@ -806,18 +915,18 @@ class _WebHeaderState extends State<WebHeader> {
             width: size,
             height: size,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: Theme.of(context).dividerColor,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onPrimary
+                    .withValues(alpha: 0.3),
+                width: 1.5,
               ),
             ),
             child: Icon(Icons.shopping_cart_outlined,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.7),
-                size: iconSize),
+                color: Theme.of(context).colorScheme.onPrimary, size: iconSize),
           ),
         ),
         if (cartCount > 0)

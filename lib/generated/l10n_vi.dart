@@ -334,6 +334,9 @@ class SVI extends S {
   String get stripeDescription => 'Thanh toán bằng thẻ tín dụng/ghi nợ';
 
   @override
+  String get stripeMinimumOrder => 'Đơn hàng tối thiểu: 15.000 VND';
+
+  @override
   String get transactionContentLabel => 'Nội dung chuyển khoản';
 
   @override
@@ -426,6 +429,9 @@ class SVI extends S {
   @override
   String get chatButton => 'Hỗ trợ trò chuyện';
 
+  @override
+  String get helloGreeting => 'Chào,';
+
   // Survey
   @override
   String get surveyJoin => 'Tham gia khảo sát';
@@ -439,6 +445,122 @@ class SVI extends S {
   String get surveySubmit => 'Gửi';
   @override
   String get surveySubmitted => 'Đã gửi khảo sát';
+
+  // Survey Questions
+  @override
+  String get surveyQAge => 'Bạn thuộc nhóm độ tuổi nào?';
+  @override
+  String get surveyQPurpose => 'Bạn chủ yếu sử dụng máy tính cho mục đích gì?';
+  @override
+  String get surveyQCurrentDevice =>
+      'Bạn hiện đang sử dụng loại thiết bị nào là chính?';
+  @override
+  String get surveyQPreference =>
+      'Khi cần mua máy tính mới, bạn ưu tiên lựa chọn:';
+  @override
+  String get surveyQKnowledge =>
+      'Mức độ am hiểu của bạn về phần cứng máy tính?';
+  @override
+  String get surveyQBudget => 'Ngân sách bạn dự kiến cho lần mua máy sắp tới?';
+  @override
+  String get surveyQDecisionFactor =>
+      'Yếu tố quan trọng nhất khi quyết định mua máy?';
+  @override
+  String get surveyQPurchaseMethod =>
+      'Bạn thường quyết định mua máy theo cách nào?';
+
+  // Survey Options - Age
+  @override
+  String get surveyOptUnder18 => 'Dưới 18 tuổi';
+  @override
+  String get surveyOpt18_24 => '18 - 24 tuổi';
+  @override
+  String get surveyOpt25_34 => '25 - 34 tuổi';
+  @override
+  String get surveyOpt35_44 => '35 - 44 tuổi';
+  @override
+  String get surveyOpt45_54 => '45 - 54 tuổi';
+  @override
+  String get surveyOpt55Plus => '55 tuổi trở lên';
+
+  // Survey Options - Purpose
+  @override
+  String get surveyOptOffice => 'Học tập / Làm việc văn phòng';
+  @override
+  String get surveyOptDesign => 'Thiết kế đồ họa / Kiến trúc / Multimedia';
+  @override
+  String get surveyOptProgramming => 'Lập trình / Kỹ thuật';
+  @override
+  String get surveyOptGaming => 'Chơi game';
+  @override
+  String get surveyOptEntertainment =>
+      'Giải trí đơn thuần (xem phim, nghe nhạc, lướt web)';
+
+  // Survey Options - Current Device
+  @override
+  String get surveyOptLaptop => 'Laptop';
+  @override
+  String get surveyOptPrebuiltPc => 'Máy bàn lắp ráp sẵn (pre-built PC)';
+  @override
+  String get surveyOptCustomPc => 'Máy bàn tự build từ linh kiện';
+
+  // Survey Options - Preference
+  @override
+  String get surveyOptPreferLaptop => 'Laptop';
+  @override
+  String get surveyOptPreferPrebuilt => 'PC lắp ráp sẵn (pre-built)';
+  @override
+  String get surveyOptPreferCustom => 'PC tự build từ linh kiện';
+  @override
+  String get surveyOptPreferConsult => 'Chưa rõ / Cần tư vấn';
+
+  // Survey Options - Knowledge
+  @override
+  String get surveyOptNovice => 'Không rành, chỉ nghe tư vấn';
+  @override
+  String get surveyOptBasic =>
+      'Biết cơ bản (hiểu tên linh kiện, nhưng không chuyên sâu)';
+  @override
+  String get surveyOptAdvanced => 'Am hiểu khá (có thể tự chọn cấu hình)';
+  @override
+  String get surveyOptExpert => 'Chuyên sâu (có thể tự build và tối ưu)';
+
+  // Survey Options - Budget
+  @override
+  String get surveyOptUnder10m => 'Dưới 10 triệu';
+  @override
+  String get surveyOpt10_20m => '10 - 20 triệu';
+  @override
+  String get surveyOpt20_30m => '20 - 30 triệu';
+  @override
+  String get surveyOpt30_50m => '30 - 50 triệu';
+  @override
+  String get surveyOptOver50m => 'Trên 50 triệu';
+
+  // Survey Options - Decision Factor
+  @override
+  String get surveyOptPerformance => 'Hiệu năng (cấu hình)';
+  @override
+  String get surveyOptPrice => 'Giá cả';
+  @override
+  String get surveyOptBrand => 'Thương hiệu';
+  @override
+  String get surveyOptDesignLook => 'Thiết kế ngoại hình';
+  @override
+  String get surveyOptWarranty => 'Bảo hành / Dịch vụ';
+  @override
+  String get surveyOptOther => 'Khác';
+
+  // Survey Options - Purchase Method
+  @override
+  String get surveyOptOnlineSelf => 'Mua online sau khi tự nghiên cứu';
+  @override
+  String get surveyOptOnlineInfluencer =>
+      'Mua online theo gợi ý từ reviewer/influencer';
+  @override
+  String get surveyOptOfflineStore => 'Mua offline tại cửa hàng';
+  @override
+  String get surveyOptFriendsAdvice => 'Nghe tư vấn từ bạn bè/người thân';
 
   @override
   String get homeTab => 'Trang chủ';

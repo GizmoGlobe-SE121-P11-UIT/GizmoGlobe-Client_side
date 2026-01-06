@@ -112,13 +112,35 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
   final TextEditingController minPriceController = TextEditingController();
   final TextEditingController maxPriceController = TextEditingController();
 
+  // Specification controllers
+  final TextEditingController minMemoryController = TextEditingController();
+  final TextEditingController maxMemoryController = TextEditingController();
+  final TextEditingController minClockSpeedController = TextEditingController();
+  final TextEditingController maxClockSpeedController = TextEditingController();
+  final TextEditingController minTdpController = TextEditingController();
+  final TextEditingController maxTdpController = TextEditingController();
+  final TextEditingController minM2SlotsController = TextEditingController();
+  final TextEditingController maxM2SlotsController = TextEditingController();
+  final TextEditingController minSataPortsController = TextEditingController();
+  final TextEditingController maxSataPortsController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     // Initialize controllers from widget arguments initially
-    // They will be synced with state in didChangeDependencies
-    minPriceController.text = widget.arguments.minPrice;
-    maxPriceController.text = widget.arguments.maxPrice;
+    final args = widget.arguments;
+    minPriceController.text = args.minPrice;
+    maxPriceController.text = args.maxPrice;
+    minMemoryController.text = args.minMemoryGb;
+    maxMemoryController.text = args.maxMemoryGb;
+    minClockSpeedController.text = args.minClockSpeed;
+    maxClockSpeedController.text = args.maxClockSpeed;
+    minTdpController.text = args.minTdp;
+    maxTdpController.text = args.maxTdp;
+    minM2SlotsController.text = args.minM2Slots;
+    maxM2SlotsController.text = args.maxM2Slots;
+    minSataPortsController.text = args.minSataPorts;
+    maxSataPortsController.text = args.maxSataPorts;
   }
 
   @override
@@ -126,12 +148,61 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
     super.didChangeDependencies();
     // Sync controllers with current state when widget is rebuilt or reopened
     final state = cubit.state;
-    if (minPriceController.text != state.filterArgument.minPrice) {
-      minPriceController.text = state.filterArgument.minPrice;
+    final args = state.filterArgument;
+
+    if (minPriceController.text != args.minPrice) {
+      minPriceController.text = args.minPrice;
     }
-    if (maxPriceController.text != state.filterArgument.maxPrice) {
-      maxPriceController.text = state.filterArgument.maxPrice;
+    if (maxPriceController.text != args.maxPrice) {
+      maxPriceController.text = args.maxPrice;
     }
+    if (minMemoryController.text != args.minMemoryGb) {
+      minMemoryController.text = args.minMemoryGb;
+    }
+    if (maxMemoryController.text != args.maxMemoryGb) {
+      maxMemoryController.text = args.maxMemoryGb;
+    }
+    if (minClockSpeedController.text != args.minClockSpeed) {
+      minClockSpeedController.text = args.minClockSpeed;
+    }
+    if (maxClockSpeedController.text != args.maxClockSpeed) {
+      maxClockSpeedController.text = args.maxClockSpeed;
+    }
+    if (minTdpController.text != args.minTdp) {
+      minTdpController.text = args.minTdp;
+    }
+    if (maxTdpController.text != args.maxTdp) {
+      maxTdpController.text = args.maxTdp;
+    }
+    if (minM2SlotsController.text != args.minM2Slots) {
+      minM2SlotsController.text = args.minM2Slots;
+    }
+    if (maxM2SlotsController.text != args.maxM2Slots) {
+      maxM2SlotsController.text = args.maxM2Slots;
+    }
+    if (minSataPortsController.text != args.minSataPorts) {
+      minSataPortsController.text = args.minSataPorts;
+    }
+    if (maxSataPortsController.text != args.maxSataPorts) {
+      maxSataPortsController.text = args.maxSataPorts;
+    }
+  }
+
+  @override
+  void dispose() {
+    minPriceController.dispose();
+    maxPriceController.dispose();
+    minMemoryController.dispose();
+    maxMemoryController.dispose();
+    minClockSpeedController.dispose();
+    maxClockSpeedController.dispose();
+    minTdpController.dispose();
+    maxTdpController.dispose();
+    minM2SlotsController.dispose();
+    maxM2SlotsController.dispose();
+    minSataPortsController.dispose();
+    maxSataPortsController.dispose();
+    super.dispose();
   }
 
   @override
@@ -249,7 +320,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Type',
+          name: S.of(context).type,
           enumValues: RAMType.values,
           selectedValues: List<RAMType>.from(state.filterArgument.ramType),
           onToggleSelection: (type) {
@@ -266,11 +337,10 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         RangeFilter(
-          name: 'Total RAM (GB)',
-          fromController:
-              TextEditingController(text: state.filterArgument.minMemoryGb),
-          toController:
-              TextEditingController(text: state.filterArgument.maxMemoryGb),
+          name: '${S.of(context).ram} (GB)',
+          prefixIcon: const Icon(Icons.memory),
+          fromController: minMemoryController,
+          toController: maxMemoryController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minMemoryGb: value),
@@ -293,7 +363,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Series',
+          name: S.of(context).series,
           enumValues: CPUSeries.getValues(),
           selectedValues: List<CPUSeries>.from(state.filterArgument.cpuSeries),
           onToggleSelection: (family) {
@@ -311,11 +381,10 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         RangeFilter(
-          name: 'CPU clock speed (GHz)',
-          fromController:
-              TextEditingController(text: state.filterArgument.minClockSpeed),
-          toController:
-              TextEditingController(text: state.filterArgument.maxClockSpeed),
+          name: '${S.of(context).cpuClockSpeed} (GHz)',
+          prefixIcon: const Icon(Icons.speed),
+          fromController: minClockSpeedController,
+          toController: maxClockSpeedController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minClockSpeed: value),
@@ -332,10 +401,9 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         const SizedBox(height: 16),
         RangeFilter(
           name: 'TDP',
-          fromController:
-              TextEditingController(text: state.filterArgument.minTdp),
-          toController:
-              TextEditingController(text: state.filterArgument.maxTdp),
+          prefixIcon: const Icon(Icons.power),
+          fromController: minTdpController,
+          toController: maxTdpController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minTdp: value),
@@ -375,7 +443,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Modular',
+          name: S.of(context).modular,
           enumValues: PSUModular.getValues(),
           selectedValues:
               List<PSUModular>.from(state.filterArgument.psuModularity),
@@ -394,7 +462,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16.0),
         OptionFilter(
-          name: 'Efficiency',
+          name: S.of(context).efficiency,
           enumValues: PSUEfficiency.getValues(),
           selectedValues:
               List<PSUEfficiency>.from(state.filterArgument.psuEfficiency),
@@ -413,11 +481,10 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16.0),
         RangeFilter(
-          name: 'PSU wattage',
-          fromController:
-              TextEditingController(text: state.filterArgument.minTdp),
-          toController:
-              TextEditingController(text: state.filterArgument.maxTdp),
+          name: S.of(context).psuWattage,
+          prefixIcon: const Icon(Icons.power),
+          fromController: minTdpController,
+          toController: maxTdpController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minTdp: value),
@@ -440,7 +507,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'GPU series',
+          name: '${S.of(context).gpu} ${S.of(context).series}',
           enumValues: GPUSeries.getValues(),
           selectedValues: List<GPUSeries>.from(state.filterArgument.gpuSeries),
           onToggleSelection: (series) {
@@ -458,7 +525,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         OptionFilter(
-          name: 'GPU version',
+          name: S.of(context).gpuVersion,
           enumValues: GPUVersion.getValues(),
           selectedValues:
               List<GPUVersion>.from(state.filterArgument.gpuVersion),
@@ -477,11 +544,10 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         RangeFilter(
-          name: 'GPU clock speed',
-          fromController:
-              TextEditingController(text: state.filterArgument.minClockSpeed),
-          toController:
-              TextEditingController(text: state.filterArgument.maxClockSpeed),
+          name: S.of(context).gpuClockSpeed,
+          prefixIcon: const Icon(Icons.speed),
+          fromController: minClockSpeedController,
+          toController: maxClockSpeedController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minClockSpeed: value),
@@ -498,10 +564,9 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         const SizedBox(height: 16),
         RangeFilter(
           name: 'TDP',
-          fromController:
-              TextEditingController(text: state.filterArgument.minTdp),
-          toController:
-              TextEditingController(text: state.filterArgument.maxTdp),
+          prefixIcon: const Icon(Icons.power),
+          fromController: minTdpController,
+          toController: maxTdpController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minTdp: value),
@@ -517,11 +582,10 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         RangeFilter(
-          name: 'Memory (GB)',
-          fromController:
-              TextEditingController(text: state.filterArgument.minMemoryGb),
-          toController:
-              TextEditingController(text: state.filterArgument.maxMemoryGb),
+          name: '${S.of(context).memory} (GB)',
+          prefixIcon: const Icon(Icons.memory),
+          fromController: minMemoryController,
+          toController: maxMemoryController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minMemoryGb: value),
@@ -544,7 +608,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Type',
+          name: S.of(context).type,
           enumValues: DriveType.getValues(),
           selectedValues: List<DriveType>.from(state.filterArgument.driveType),
           onToggleSelection: (type) {
@@ -562,7 +626,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         OptionFilter(
-          name: 'Drive form factor',
+          name: '${S.of(context).drive} ${S.of(context).formFactor}',
           enumValues: DriveFormFactor.getValues(),
           selectedValues:
               List<DriveFormFactor>.from(state.filterArgument.driveFormFactor),
@@ -581,7 +645,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         OptionFilter(
-          name: 'Interface',
+          name: S.of(context).driveInterface,
           enumValues: InterfaceType.getValues(),
           selectedValues:
               List<InterfaceType>.from(state.filterArgument.interfaceType),
@@ -600,7 +664,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         OptionFilter(
-          name: 'Generation',
+          name: S.of(context).driveGeneration,
           enumValues: DriveGen.getValues(),
           selectedValues: List<DriveGen>.from(state.filterArgument.gen),
           onToggleSelection: (gen) {
@@ -617,11 +681,10 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         RangeFilter(
-          name: 'Capacity (GB)',
-          fromController:
-              TextEditingController(text: state.filterArgument.minMemoryGb),
-          toController:
-              TextEditingController(text: state.filterArgument.maxMemoryGb),
+          name: '${S.of(context).capacity} (GB)',
+          prefixIcon: const Icon(Icons.storage),
+          fromController: minMemoryController,
+          toController: maxMemoryController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minMemoryGb: value),
@@ -645,7 +708,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionFilter(
-          name: 'Mainboard form factor',
+          name: '${S.of(context).mainboard} ${S.of(context).formFactor}',
           enumValues: MainboardFormFactor.getValues(),
           selectedValues: List<MainboardFormFactor>.from(
               state.filterArgument.mainboardFormFactor),
@@ -681,7 +744,7 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         OptionFilter(
-          name: 'RAM type',
+          name: S.of(context).ramType,
           enumValues: RAMType.getValues(),
           selectedValues: List<RAMType>.from(state.filterArgument.ramType),
           onToggleSelection: (type) {
@@ -698,11 +761,10 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         ),
         const SizedBox(height: 16),
         RangeFilter(
-          name: 'Total RAM (GB)',
-          fromController:
-              TextEditingController(text: state.filterArgument.minMemoryGb),
-          toController:
-              TextEditingController(text: state.filterArgument.maxMemoryGb),
+          name: '${S.of(context).ram} (GB)',
+          prefixIcon: const Icon(Icons.memory),
+          fromController: minMemoryController,
+          toController: maxMemoryController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minMemoryGb: value),
@@ -719,10 +781,9 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         const SizedBox(height: 16),
         RangeFilter(
           name: 'M.2 Slots',
-          fromController:
-              TextEditingController(text: state.filterArgument.minM2Slots),
-          toController:
-              TextEditingController(text: state.filterArgument.maxM2Slots),
+          prefixIcon: const Icon(Icons.developer_board),
+          fromController: minM2SlotsController,
+          toController: maxM2SlotsController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minM2Slots: value),
@@ -739,10 +800,9 @@ class _FilterScreenWebViewState extends State<_FilterScreenWebView> {
         const SizedBox(height: 16),
         RangeFilter(
           name: 'SATA Ports',
-          fromController:
-              TextEditingController(text: state.filterArgument.minSataPorts),
-          toController:
-              TextEditingController(text: state.filterArgument.maxSataPorts),
+          prefixIcon: const Icon(Icons.cable),
+          fromController: minSataPortsController,
+          toController: maxSataPortsController,
           onFromValueChanged: (value) {
             cubit.updateFilterArgument(
               state.filterArgument.copyWith(minSataPorts: value),

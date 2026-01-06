@@ -124,10 +124,8 @@ class _WebProductCardState extends State<WebProductCard> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 100),
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: 0.3),
+                    color: Theme.of(context).cardTheme.color ??
+                        Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isHovered
@@ -135,7 +133,9 @@ class _WebProductCardState extends State<WebProductCard> {
                               .colorScheme
                               .primary
                               .withValues(alpha: 0.5)
-                          : Theme.of(context).dividerColor,
+                          : Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.3),
                       width: isHovered ? 2 : 1,
                     ),
                   ),
@@ -150,8 +150,7 @@ class _WebProductCardState extends State<WebProductCard> {
                             decoration: BoxDecoration(
                               color: Theme.of(context)
                                   .colorScheme
-                                  .surfaceContainerHighest
-                                  .withValues(alpha: 0.5),
+                                  .surfaceContainerHighest,
                               borderRadius: const BorderRadius.only(
                                 topLeft: Radius.circular(12),
                                 topRight: Radius.circular(12),

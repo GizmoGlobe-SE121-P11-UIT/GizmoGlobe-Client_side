@@ -4,6 +4,7 @@ import 'package:gizmoglobe_client/data/database/database.dart';
 import '../../../services/survey_service.dart';
 import 'survey_screen_state.dart';
 import 'survey_data.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 
 class SurveyScreenCubit extends Cubit<SurveyScreenState> {
   SurveyScreenCubit({SurveyService? service})
@@ -11,11 +12,21 @@ class SurveyScreenCubit extends Cubit<SurveyScreenState> {
         super(const SurveyScreenState());
 
   final SurveyService _service;
+  List<Map<String, dynamic>>? _questionsData;
 
-  List<Map<String, dynamic>> get questionsData =>
-      List<Map<String, dynamic>>.from(kSurveyQuestionsData)
-        ..sort((a, b) =>
-            (a['displayOrder'] as int).compareTo(b['displayOrder'] as int));
+  /// Set the localized questions data from the view
+  void setQuestionsData(S s) {
+    _questionsData = getSurveyQuestionsData(s)
+      ..sort((a, b) =>
+          (a['displayOrder'] as int).compareTo(b['displayOrder'] as int));
+  }
+
+  List<Map<String, dynamic>> get questionsData {
+    _questionsData ??= getSurveyQuestionsData(S.current)
+      ..sort((a, b) =>
+          (a['displayOrder'] as int).compareTo(b['displayOrder'] as int));
+    return _questionsData!;
+  }
 
   int get total => questionsData.length;
 
@@ -59,11 +70,9 @@ class SurveyScreenCubit extends Cubit<SurveyScreenState> {
       }
       if (nextSingle.isNotEmpty || nextMulti.isNotEmpty) {
         emit(state.copyWith(
-          singleAnswers: nextSingle.isNotEmpty
-              ? nextSingle
-              : state.singleAnswers,
-          multiAnswers:
-              nextMulti.isNotEmpty ? nextMulti : state.multiAnswers,
+          singleAnswers:
+              nextSingle.isNotEmpty ? nextSingle : state.singleAnswers,
+          multiAnswers: nextMulti.isNotEmpty ? nextMulti : state.multiAnswers,
         ));
       }
     } catch (_) {

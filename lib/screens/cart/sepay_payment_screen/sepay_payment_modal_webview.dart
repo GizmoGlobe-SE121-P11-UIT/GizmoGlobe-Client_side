@@ -103,6 +103,7 @@ class _SePayPaymentModal extends StatefulWidget {
 
 class _SePayPaymentModalState extends State<_SePayPaymentModal> {
   SePayPaymentScreenCubit get cubit => context.read<SePayPaymentScreenCubit>();
+  bool _hasShownErrorDialog = false;
 
   @override
   void dispose() {
@@ -211,7 +212,9 @@ class _SePayPaymentModalState extends State<_SePayPaymentModal> {
                         },
                       ),
                     );
-                  } else if (state.processState == ProcessState.failure) {
+                  } else if (state.processState == ProcessState.failure &&
+                      !_hasShownErrorDialog) {
+                    _hasShownErrorDialog = true;
                     showDialog(
                       context: context,
                       builder: (context) => InformationDialog(
@@ -228,6 +231,9 @@ class _SePayPaymentModalState extends State<_SePayPaymentModal> {
                             // Fallback for minification issues
                             Navigator.of(context, rootNavigator: true).pop();
                           }
+                          // Reset error state and flag after dialog is dismissed
+                          _hasShownErrorDialog = false;
+                          cubit.clearError();
                         },
                       ),
                     );

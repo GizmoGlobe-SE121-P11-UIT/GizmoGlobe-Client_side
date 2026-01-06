@@ -46,7 +46,26 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
   }
 
   void updatePaymentMethod(PaymentMethod paymentMethod) {
-    emit(state.copyWith(selectedPaymentMethod: paymentMethod));
+    // Reset failure state when changing payment method to prevent error dialog from reappearing
+    if (state.processState == ProcessState.failure) {
+      emit(state.copyWith(
+        selectedPaymentMethod: paymentMethod,
+        processState: ProcessState.idle,
+        message: '',
+      ));
+    } else {
+      emit(state.copyWith(selectedPaymentMethod: paymentMethod));
+    }
+  }
+
+  /// Clear error state - call this after showing error dialog
+  void clearError() {
+    if (state.processState == ProcessState.failure) {
+      emit(state.copyWith(
+        processState: ProcessState.idle,
+        message: '',
+      ));
+    }
   }
 
   Future<String> createInvoiceFromCartItems(
@@ -577,12 +596,12 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
     int discount;
     if (voucher.isPercentage) {
-      int calculatedDiscount = (totalBeforeDiscount * (voucher.discountValue / 100)).round();
+      int calculatedDiscount =
+          (totalBeforeDiscount * (voucher.discountValue / 100)).round();
       final percentageVoucher = voucher as PercentageInterface;
-      discount =
-          calculatedDiscount > percentageVoucher.maximumDiscountValue
-              ? percentageVoucher.maximumDiscountValue
-              : calculatedDiscount;
+      discount = calculatedDiscount > percentageVoucher.maximumDiscountValue
+          ? percentageVoucher.maximumDiscountValue
+          : calculatedDiscount;
     } else {
       discount = voucher.discountValue > totalBeforeDiscount
           ? totalBeforeDiscount
