@@ -55,26 +55,11 @@ class _WebHeaderState extends State<WebHeader> {
     final size = isTablet ? 36.0 : 40.0;
     final iconSize = isTablet ? 18.0 : 20.0;
 
-    return GestureDetector(
+    return _HoverIconButton(
       onTap: _toggleSidebar,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color:
-                Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.3),
-            width: 1.5,
-          ),
-        ),
-        child: Icon(
-          _isSidebarOpen ? Icons.menu_open : Icons.menu,
-          color: Theme.of(context).colorScheme.onPrimary,
-          size: iconSize,
-        ),
-      ),
+      size: size,
+      iconSize: iconSize,
+      icon: _isSidebarOpen ? Icons.menu_open : Icons.menu,
     );
   }
 
@@ -353,30 +338,14 @@ class _WebHeaderState extends State<WebHeader> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                GestureDetector(
+                _HoverIconButton(
+                  key: _userIconKey,
                   onTap: () {
                     _onUserIconTap(context, isMobile);
                   },
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    key: _userIconKey,
-                    width: size,
-                    height: size,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onPrimary
-                            .withValues(alpha: 0.3),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Icon(Icons.person_outline,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        size: iconSize),
-                  ),
+                  size: size,
+                  iconSize: iconSize,
+                  icon: Icons.person_outline,
                 ),
               ],
             ),
@@ -907,27 +876,13 @@ class _WebHeaderState extends State<WebHeader> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        GestureDetector(
+        _HoverIconButton(
           onTap: () {
             _handleCartNavigation(context);
           },
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onPrimary
-                    .withValues(alpha: 0.3),
-                width: 1.5,
-              ),
-            ),
-            child: Icon(Icons.shopping_cart_outlined,
-                color: Theme.of(context).colorScheme.onPrimary, size: iconSize),
-          ),
+          size: size,
+          iconSize: iconSize,
+          icon: Icons.shopping_cart_outlined,
         ),
         if (cartCount > 0)
           Positioned(
@@ -1056,6 +1011,76 @@ class _WebHeaderState extends State<WebHeader> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// A hover-aware icon button for web header interactions.
+/// Shows visual feedback when hovered.
+class _HoverIconButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final double size;
+  final double iconSize;
+  final IconData icon;
+
+  const _HoverIconButton({
+    super.key,
+    required this.onTap,
+    required this.size,
+    required this.iconSize,
+    required this.icon,
+  });
+
+  @override
+  State<_HoverIconButton> createState() => _HoverIconButtonState();
+}
+
+class _HoverIconButtonState extends State<_HoverIconButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final onPrimaryColor = Theme.of(context).colorScheme.onPrimary;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            color:
+                _isHovered ? primaryColor.withValues(alpha: 0.8) : primaryColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _isHovered
+                  ? onPrimaryColor.withValues(alpha: 0.6)
+                  : onPrimaryColor.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: onPrimaryColor.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Icon(
+            widget.icon,
+            color: onPrimaryColor,
+            size: widget.iconSize,
+          ),
+        ),
+      ),
     );
   }
 }

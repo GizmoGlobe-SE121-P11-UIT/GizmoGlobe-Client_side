@@ -9,6 +9,7 @@ import 'package:gizmoglobe_client/screens/builder/builder/pc_builder_cubit.dart'
 import 'package:gizmoglobe_client/screens/builder/builder/pc_builder_state.dart';
 import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_view.dart';
 import 'package:gizmoglobe_client/widgets/dialog/confirmation_dialog.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:intl/intl.dart';
 
 import 'pc_builder_webview.dart';
@@ -52,7 +53,10 @@ class _PCBuilderMobileView extends StatelessWidget {
     final s = S.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(s.buildYourDreamPc.replaceAll('\n', ' ')),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: GradientText(text: s.buildYourDreamPc.replaceAll('\n', ' ')),
       ),
       body: BlocBuilder<PCBuilderCubit, PCBuilderState>(
         bloc: cubit,

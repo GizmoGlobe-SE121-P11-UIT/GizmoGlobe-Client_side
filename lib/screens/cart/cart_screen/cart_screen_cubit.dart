@@ -137,6 +137,35 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     }
   }
 
+  /// Deletes only the selected items from the cart
+  Future<void> deleteSelectedItems() async {
+    try {
+      if (isClosed) return;
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final selectedProductIDs = state.selectedItems
+          .map((item) => item.product.productID)
+          .where((id) => id != null)
+          .toList();
+
+      // Delete each selected item
+      for (final productID in selectedProductIDs) {
+        if (productID != null) {
+          await _firebase.removeFromCart(user.uid, productID);
+        }
+      }
+
+      // Clear selection and reload
+      emit(state.copyWith(selectedItems: []));
+      await loadCartItems();
+    } catch (e) {
+      if (isClosed) return;
+      emit(state.copyWith(
+          processState: ProcessState.failure, error: e.toString()));
+    }
+  }
+
   Future<void> clearCart() async {
     try {
       if (isClosed) return;

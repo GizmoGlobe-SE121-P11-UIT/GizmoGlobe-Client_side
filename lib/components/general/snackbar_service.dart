@@ -1,112 +1,133 @@
 import 'package:flutter/material.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 
-class SnackbarService {
-  // Removed custom positioning - using default snackbar positioning
+/// Snackbar type for styling
+enum _SnackbarType { success, error, warning, info }
 
-  /// Shows a snackbar using ScaffoldMessenger (default). Use
-  /// [showGuestRestrictionAboveOverlay] if you must ensure above dialogs.
-  static void _showOverlaySnackbar(
+class SnackbarService {
+  /// Shows a snackbar at the bottom of the screen
+  static void _showSnackbar(
     BuildContext context, {
     required String title,
     required String message,
-    required ContentType contentType,
+    required _SnackbarType type,
   }) {
-    final snackBar = SnackBar(
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      duration: const Duration(seconds: 3),
-      content: AwesomeSnackbarContent(
-        title: title,
-        message: message,
-        contentType: contentType,
-      ),
+    final overlay = Overlay.of(context);
+    _insertSnackbar(
+      overlay,
+      title: title,
+      message: message,
+      type: type,
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  /// Show a snackbar-like overlay ABOVE dialogs using a provided root Overlay
-  /// This ensures the snackbar appears on top of all UI elements including modals
-  static void _insertOverlaySnackbar(
+  /// Insert snackbar using overlay (works above dialogs)
+  static void _insertSnackbar(
     OverlayState overlay, {
     required String title,
     required String message,
-    required ContentType contentType,
+    required _SnackbarType type,
   }) {
-    OverlayEntry? overlayEntry;
+    Widget snackbar;
 
-    // Use multiple post-frame callbacks to ensure we insert AFTER dialogs are fully rendered
-    // This guarantees the snackbar overlay entry is added last and appears on top
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Wait one more frame to ensure dialog is completely rendered
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        overlayEntry = OverlayEntry(
-          maintainState: false,
-          opaque: false, // Allow clicks to pass through the snackbar area
-          builder: (context) => Positioned(
-            left: 16,
-            right: 16,
-            bottom: 24,
-            child: IgnorePointer(
-              ignoring: false, // Allow interaction with the snackbar itself
-              child: Material(
-                elevation:
-                    9999, // Maximum elevation to appear above all dialogs
-                color: Colors.transparent,
-                shadowColor:
-                    Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
-                child: GestureDetector(
-                  onTap: () {
-                    overlayEntry?.remove();
-                  },
-                  child: Stack(
-                    children: [
-                      AwesomeSnackbarContent(
-                        title: title,
-                        message: message,
-                        contentType: contentType,
-                      ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: GestureDetector(
-                          onTap: () {
-                            overlayEntry?.remove();
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+    switch (type) {
+      case _SnackbarType.success:
+        snackbar = CustomSnackBar.success(
+          message: '$title: $message',
+          maxLines: 3,
+        );
+        break;
+      case _SnackbarType.error:
+        snackbar = CustomSnackBar.error(
+          message: '$title: $message',
+          maxLines: 3,
+        );
+        break;
+      case _SnackbarType.warning:
+        snackbar = _buildCustomSnackbar(
+          title: title,
+          message: message,
+          backgroundColor: Colors.orange.shade600,
+          icon: Icons.warning_amber_rounded,
+        );
+        break;
+      case _SnackbarType.info:
+        snackbar = CustomSnackBar.info(
+          message: '$title: $message',
+          maxLines: 3,
+        );
+        break;
+    }
+
+    showTopSnackBar(
+      overlay,
+      Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: snackbar,
+        ),
+      ),
+      snackBarPosition: SnackBarPosition.bottom,
+      animationDuration: const Duration(milliseconds: 300),
+      displayDuration: const Duration(seconds: 3),
+    );
+  }
+
+  /// Build a custom styled snackbar for types not provided by the package
+  static Widget _buildCustomSnackbar({
+    required String title,
+    required String message,
+    required Color backgroundColor,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
                 ),
-              ),
+                const SizedBox(height: 2),
+                Text(
+                  message,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 12,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
-        );
-
-        // Insert at the end of overlay entries to ensure it's on top
-        // This ensures the snackbar appears above all other overlays including dialogs
-        overlay.insert(overlayEntry!);
-
-        // Auto-remove after 5 seconds (extended from 3 to give users more time to read)
-        Future.delayed(const Duration(seconds: 5), () {
-          overlayEntry?.remove();
-        });
-      });
-    });
+        ],
+      ),
+    );
   }
 
   /// Shows a success snackbar
@@ -115,11 +136,11 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    _showOverlaySnackbar(
+    _showSnackbar(
       context,
       title: title,
       message: message,
-      contentType: ContentType.success,
+      type: _SnackbarType.success,
     );
   }
 
@@ -129,11 +150,11 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    _showOverlaySnackbar(
+    _showSnackbar(
       context,
       title: title,
       message: message,
-      contentType: ContentType.failure,
+      type: _SnackbarType.error,
     );
   }
 
@@ -143,11 +164,11 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    _showOverlaySnackbar(
+    _showSnackbar(
       context,
       title: title,
       message: message,
-      contentType: ContentType.warning,
+      type: _SnackbarType.warning,
     );
   }
 
@@ -157,11 +178,11 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    _showOverlaySnackbar(
+    _showSnackbar(
       context,
       title: title,
       message: message,
-      contentType: ContentType.help,
+      type: _SnackbarType.info,
     );
   }
 
@@ -247,11 +268,11 @@ class SnackbarService {
         message = S.of(context).loginRequired;
     }
 
-    _insertOverlaySnackbar(
+    _insertSnackbar(
       overlay,
       title: actionType == 'google_cancelled' ? 'Google Sign-In' : title,
       message: message,
-      contentType: ContentType.help,
+      type: _SnackbarType.info,
     );
   }
 
@@ -261,11 +282,11 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    _insertOverlaySnackbar(
+    _insertSnackbar(
       overlay,
       title: title,
       message: message,
-      contentType: ContentType.failure,
+      type: _SnackbarType.error,
     );
   }
 
@@ -275,11 +296,11 @@ class SnackbarService {
     required String title,
     required String message,
   }) {
-    _insertOverlaySnackbar(
+    _insertSnackbar(
       overlay,
       title: title,
       message: message,
-      contentType: ContentType.success,
+      type: _SnackbarType.success,
     );
   }
 
