@@ -113,9 +113,6 @@ class AIService {
             final isCart = section == 'cart' ||
                 (section == null && _utils.isCartQuestion(userMessage));
 
-            print(
-                '🔍 CartFavorites route: section=$section, isFav=$isFav, isCart=$isCart');
-
             return await _handleUserDataQuestion(
                 userMessage, userId, isVietnamese, isFav, isCart, false);
 
@@ -145,11 +142,7 @@ class AIService {
       }
 
       // Handle favorite or cart questions
-      print(
-          '🔍 DEBUG: isFavoriteQuestion=$isFavoriteQuestion, isCartQuestion=$isCartQuestion');
       if (isFavoriteQuestion || isCartQuestion) {
-        print(
-            '🔍 Calling _handleUserDataQuestion for ${isCartQuestion ? "cart" : "favorites"}');
         return await _handleUserDataQuestion(userMessage, userId, isVietnamese,
             isFavoriteQuestion, isCartQuestion, isCartQuantityQuestion);
       }
