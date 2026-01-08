@@ -321,7 +321,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                const SizedBox(height: 36),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${S.of(context).inStock}: ${state.product.stock}',
+                                  style: TextStyle(
+                                    color: state.product.stock > 0
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.7)
+                                        : Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
                                 Container(
                                   decoration: BoxDecoration(
                                     border: Border.all(

@@ -75,23 +75,15 @@ class SalesInvoiceWidget extends StatelessWidget {
                                         child: const Text('Rate product'),
                                       ),
                                     ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surface,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        'To get 200 points',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color: colorScheme.onSurface
-                                                  .withValues(alpha: 0.9),
-                                            ),
-                                      ),
+                                    Text(
+                                      S.of(context).toGetPoints(200),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: colorScheme.onSurface
+                                                .withValues(alpha: 0.7),
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -189,17 +181,11 @@ class SalesInvoiceWidget extends StatelessWidget {
                     child: Text(S.of(context).received),
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'To get $points point${points == 1 ? '' : 's'}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.9),
-                        ),
-                  ),
+                Text(
+                  S.of(context).toGetPoints(points),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
                 ),
               ],
             ),

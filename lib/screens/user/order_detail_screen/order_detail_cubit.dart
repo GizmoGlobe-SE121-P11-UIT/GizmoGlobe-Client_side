@@ -93,17 +93,24 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
       final updatedInvoice =
           invoice.copyWith(salesStatus: SalesStatus.cancelled);
       await Database().fetchSalesInvoice();
+
+      // Update local state immediately
+      emit(state.copyWith(
+        salesInvoice: updatedInvoice,
+        processState: ProcessState.success,
+      ));
+
       // Refresh order lists if cubit is available upstream
       OrderScreenCubit? orderCubit;
       try {
         orderCubit = BlocProvider.of<OrderScreenCubit>(context, listen: false);
       } catch (_) {}
-      orderCubit?.initialize(orderCubit.state.orderOption);
 
-      emit(state.copyWith(
-        salesInvoice: updatedInvoice,
-        processState: ProcessState.success,
-      ));
+      // Await the initialize to ensure state is refreshed before closing modal
+      if (orderCubit != null) {
+        await orderCubit.initialize(orderCubit.state.orderOption);
+      }
+
       // Close detail modal before showing snackbar
       await _closeDetailModal(context);
       if (!context.mounted) return;

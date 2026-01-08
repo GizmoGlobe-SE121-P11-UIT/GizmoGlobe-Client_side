@@ -730,6 +730,26 @@ class _ProductDetailScreenWebViewState
                                                               ),
                                                             ),
                                                             const SizedBox(
+                                                                width: 8),
+                                                            Text(
+                                                              '(${S.of(context).inStock}: ${state.product.stock})',
+                                                              style: TextStyle(
+                                                                color: state.product
+                                                                            .stock >
+                                                                        0
+                                                                    ? Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .onSurface
+                                                                        .withValues(
+                                                                            alpha:
+                                                                                0.6)
+                                                                    : Colors
+                                                                        .red,
+                                                                fontSize: 14,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
                                                                 width: 24),
                                                             Container(
                                                               decoration:
@@ -1220,6 +1240,23 @@ class _ProductDetailScreenWebViewState
                                                           fontSize: 16,
                                                           fontWeight:
                                                               FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        '(${S.of(context).inStock}: ${state.product.stock})',
+                                                        style: TextStyle(
+                                                          color: state.product
+                                                                      .stock >
+                                                                  0
+                                                              ? Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .onSurface
+                                                                  .withValues(
+                                                                      alpha:
+                                                                          0.6)
+                                                              : Colors.red,
+                                                          fontSize: 12,
                                                         ),
                                                       ),
                                                       Container(

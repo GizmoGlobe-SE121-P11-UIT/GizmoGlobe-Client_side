@@ -692,6 +692,9 @@ class SVI extends S {
   String get stock => 'Tồn kho';
 
   @override
+  String get inStock => 'Còn hàng';
+
+  @override
   String get releaseDate => 'Ngày phát hành';
 
   @override
@@ -938,6 +941,9 @@ class SVI extends S {
 
   @override
   String itemsCount(int count) => 'Sản phẩm ($count)';
+
+  @override
+  String toGetPoints(int points) => 'Để nhận $points điểm';
 
   @override
   String get originalPrice => 'Giá gốc';

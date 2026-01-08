@@ -510,6 +510,7 @@ class S {
   String get statusInformation =>
       Intl.message('Status Information', name: 'statusInformation');
   String get stock => Intl.message('Stock', name: 'stock');
+  String get inStock => Intl.message('In stock', name: 'inStock');
   String get releaseDate => Intl.message('Release Date', name: 'releaseDate');
   String get technicalSpecifications =>
       Intl.message('Technical Specifications', name: 'technicalSpecifications');
@@ -631,6 +632,11 @@ class S {
         'Items ($count)',
         name: 'itemsCount',
         args: [count],
+      );
+  String toGetPoints(int points) => Intl.message(
+        'To get $points point${points == 1 ? '' : 's'}',
+        name: 'toGetPoints',
+        args: [points],
       );
   String get originalPrice =>
       Intl.message('Original Price', name: 'originalPrice');
