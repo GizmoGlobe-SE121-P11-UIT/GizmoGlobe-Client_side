@@ -783,7 +783,7 @@ class _UserScreen extends State<UserScreen> {
                                           fontWeight: FontWeight.bold,
                                           color: Theme.of(context)
                                               .colorScheme
-                                              .primary,
+                                              .onSurface,
                                         ),
                                       ),
                                     ],
@@ -901,7 +901,7 @@ class _UserScreen extends State<UserScreen> {
                                           fontWeight: FontWeight.bold,
                                           color: Theme.of(context)
                                               .colorScheme
-                                              .primary,
+                                              .onSurface,
                                         ),
                                       ),
                                       const Spacer(),
@@ -966,7 +966,7 @@ class _UserScreen extends State<UserScreen> {
                                         fontWeight: FontWeight.bold,
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .primary,
+                                            .onSurface,
                                       ),
                                     ),
                                     const Spacer(),
@@ -1045,7 +1045,7 @@ class _UserScreen extends State<UserScreen> {
                                             fontWeight: FontWeight.bold,
                                             color: Theme.of(context)
                                                 .colorScheme
-                                                .primary,
+                                                .onSurface,
                                           ),
                                         ),
                                         const Spacer(),
@@ -1433,7 +1433,7 @@ class _UserScreen extends State<UserScreen> {
                                         fontWeight: FontWeight.bold,
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .primary,
+                                            .onSurface,
                                       ),
                                     ),
                                     const Spacer(),
@@ -1620,7 +1620,7 @@ class _UserScreen extends State<UserScreen> {
                                         fontWeight: FontWeight.bold,
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .primary,
+                                            .onSurface,
                                       ),
                                     ),
                                     const Spacer(),

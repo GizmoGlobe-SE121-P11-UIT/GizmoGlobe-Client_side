@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 class AppTheme {
   // Define the blue color palette
   static const Color primaryBlue = Color(0xFF1565C0); // Main blue
-  static const Color lightBlue = Color(0xFF42A5F5); // Lighter blue
+  static const Color lightBlue =
+      Color(0xFF64B5F6); // Lighter blue - brighter for dark mode
   static const Color darkBlue = Color(0xFF0D47A1); // Darker blue
   static const Color accentBlue = Color(0xFF2196F3); // Accent blue
 
