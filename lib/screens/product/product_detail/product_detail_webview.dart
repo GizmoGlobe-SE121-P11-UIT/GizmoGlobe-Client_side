@@ -841,8 +841,13 @@ class _ProductDetailScreenWebViewState
                                                                       icon: Icons
                                                                           .add,
                                                                       onPressed:
-                                                                          () =>
-                                                                              cubit.incrementQuantity()),
+                                                                          () => cubit
+                                                                              .incrementQuantity(),
+                                                                      enabled: state
+                                                                              .quantity <
+                                                                          state
+                                                                              .product
+                                                                              .stock),
                                                                 ],
                                                               ),
                                                             ),
@@ -1326,7 +1331,12 @@ class _ProductDetailScreenWebViewState
                                                                 icon: Icons.add,
                                                                 onPressed: () =>
                                                                     cubit
-                                                                        .incrementQuantity()),
+                                                                        .incrementQuantity(),
+                                                                enabled: state
+                                                                        .quantity <
+                                                                    state
+                                                                        .product
+                                                                        .stock),
                                                           ],
                                                         ),
                                                       ),
@@ -1756,13 +1766,19 @@ class _ProductDetailScreenWebViewState
   Widget _buildQuantityButton({
     required IconData icon,
     required VoidCallback onPressed,
+    bool enabled = true,
   }) {
     return SizedBox(
       width: 40,
       height: 40,
       child: IconButton(
-        icon: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
-        onPressed: onPressed,
+        icon: Icon(
+          icon,
+          color: enabled
+              ? Theme.of(context).colorScheme.onSurface
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+        ),
+        onPressed: enabled ? onPressed : null,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
         iconSize: 20,

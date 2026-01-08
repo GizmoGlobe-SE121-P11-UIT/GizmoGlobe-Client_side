@@ -105,7 +105,7 @@ class _OrderScreenState extends State<OrderScreen>
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const MainScreen(initialIndex: 3),
+                  builder: (context) => const MainScreen(initialIndex: 4),
                 ),
                 (route) => false,
               );

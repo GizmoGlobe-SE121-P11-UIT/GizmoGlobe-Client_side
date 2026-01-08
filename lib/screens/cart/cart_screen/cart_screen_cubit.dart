@@ -51,10 +51,15 @@ class CartScreenCubit extends Cubit<CartScreenState> {
     try {
       if (isClosed) return;
 
+      // Clamp the quantity to not exceed available stock
+      final maxStock = cartItem.product.stock;
+      final clampedQuantity = newQuantity > maxStock ? maxStock : newQuantity;
+      if (clampedQuantity < 1) return; // Ensure at least 1
+
       final productID = cartItem.product.productID;
       final updatedItems = state.items.map((item) {
         if (item.product.productID == productID) {
-          return item.copyWith(quantity: newQuantity);
+          return item.copyWith(quantity: clampedQuantity);
         }
         return item;
       }).toList();
@@ -62,7 +67,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       // Also update selectedItems if this item is selected
       final updatedSelectedItems = state.selectedItems.map((item) {
         if (item.product.productID == productID) {
-          return item.copyWith(quantity: newQuantity);
+          return item.copyWith(quantity: clampedQuantity);
         }
         return item;
       }).toList();
@@ -78,7 +83,7 @@ class CartScreenCubit extends Cubit<CartScreenState> {
       if (user == null) return;
 
       await _firebase.updateCartItemQuantity(
-          user.uid, cartItem.product.productID!, newQuantity);
+          user.uid, cartItem.product.productID!, clampedQuantity);
     } catch (e) {
       if (isClosed) return;
       // Revert the state if the update call fails

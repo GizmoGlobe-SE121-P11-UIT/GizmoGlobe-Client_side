@@ -24,8 +24,9 @@ abstract class TabCubit extends Cubit<TabState> {
 
   TabCubit() : super(const TabState());
 
-  void initialize(FilterArgument filter,
-      {String? searchText, required List<Product> initialProducts}) {
+  Future<void> initialize(FilterArgument filter,
+      {String? searchText, required List<Product> initialProducts}) async {
+    await _fetchProducts();
     emit(state.copyWith(
         manufacturerList: Database().manufacturerList,
         productList:
@@ -152,6 +153,9 @@ abstract class TabCubit extends Cubit<TabState> {
     final List<Product> filteredProducts = <Product>[];
 
     for (final product in allProducts) {
+      // Exclude out of stock products
+      if (product.stock <= 0) continue;
+
       // Category
       if (applyCategory && product.category != activeCategory) continue;
 

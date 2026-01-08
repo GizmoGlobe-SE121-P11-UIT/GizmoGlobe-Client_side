@@ -600,14 +600,20 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                       ),
                     ),
                     InkWell(
-                      onTap: () =>
-                          cubit.updateQuantity(item, item.quantity + 1),
+                      onTap: item.quantity < item.product.stock
+                          ? () => cubit.updateQuantity(item, item.quantity + 1)
+                          : null,
                       child: Padding(
                         padding: const EdgeInsets.all(6),
                         child: Icon(
                           Icons.add,
                           size: 16,
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: item.quantity < item.product.stock
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.3),
                         ),
                       ),
                     ),
@@ -813,17 +819,23 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.add, size: 20),
-                      onPressed: () {
-                        cubit.updateQuantity(item, item.quantity + 1);
-                      },
+                      onPressed: item.quantity < item.product.stock
+                          ? () {
+                              cubit.updateQuantity(item, item.quantity + 1);
+                            }
+                          : null,
                       padding: const EdgeInsets.all(8),
                       constraints: const BoxConstraints(
                         minWidth: 40,
                         minHeight: 40,
                       ),
                       style: IconButton.styleFrom(
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onSurface,
+                        foregroundColor: item.quantity < item.product.stock
+                            ? Theme.of(context).colorScheme.onSurface
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.3),
                       ),
                     ),
                   ],
