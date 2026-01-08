@@ -116,6 +116,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
   }
 
   Widget _buildComponentList(BuildContext context, PCBuilderState state) {
+    final s = S.of(context);
     final config = state.activeConfiguration;
     final isCompatibilityMode = state.enableCompatibilityChecker;
     final mainboard = config['mainboard'] as Product?;
@@ -125,29 +126,16 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     final components = [
       {
         'key': 'mainboard',
-        'label': 'Mainboard - Bo mạch chủ',
+        'label': s.mainboard,
         'category': CategoryEnum.mainboard
       },
-      {'key': 'cpu', 'label': 'CPU', 'category': CategoryEnum.cpu},
-      {'key': 'ram', 'label': 'RAM', 'category': CategoryEnum.ram},
-      {
-        'key': 'drive',
-        'label': 'Ổ lưu trữ (SSD/HDD)',
-        'category': CategoryEnum.drive
-      },
-      {
-        'key': 'gpu',
-        'label': 'VGA - Card màn hình',
-        'category': CategoryEnum.gpu
-      },
-      {
-        'key': 'psu',
-        'label': 'PSU - Nguồn máy tính',
-        'category': CategoryEnum.psu
-      },
+      {'key': 'cpu', 'label': s.cpu, 'category': CategoryEnum.cpu},
+      {'key': 'ram', 'label': s.ram, 'category': CategoryEnum.ram},
+      {'key': 'drive', 'label': s.drive, 'category': CategoryEnum.drive},
+      {'key': 'gpu', 'label': s.gpu, 'category': CategoryEnum.gpu},
+      {'key': 'psu', 'label': s.psu, 'category': CategoryEnum.psu},
     ];
 
-    final s = S.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
 
@@ -160,7 +148,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Linh kiện tương thích',
+                    s.compatibleComponents,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
@@ -192,7 +180,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Linh kiện tương thích',
+                    s.compatibleComponents,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
@@ -301,7 +289,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
         Align(
           alignment: Alignment.centerRight,
           child: Text(
-            'Chi phí dự tính: ${Helper.toCurrencyFormat(state.estimatedCost)}',
+            '${s.estimatedCost}: ${Helper.toCurrencyFormat(state.estimatedCost)}',
             style: TextStyle(
               color: Theme.of(context).colorScheme.primary,
               fontSize: 18,
@@ -324,6 +312,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     bool isEnabled = true,
     List<Product>? compatibleProducts,
   }) {
+    final s = S.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
 
@@ -505,8 +494,10 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                         : null,
                     icon: const Icon(Icons.add, size: 18),
                     label: Text(products.isNotEmpty
-                        ? 'THÊM'
-                        : (isMobile ? 'CHỌN' : 'CHỌN ${label.toUpperCase()}')),
+                        ? s.add
+                        : (isMobile
+                            ? s.choose
+                            : s.chooseComponent(label.toUpperCase()))),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -526,17 +517,18 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
   }
 
   Widget _buildComponentRow(
-      BuildContext context, {
-        required String label,
-        Product? product,
-        required String componentKey,
-        required int quantity,
-        required VoidCallback onSelect,
-        VoidCallback? onRemove,
-        Function(int)? onQuantityChanged,
-        bool showAddButton = false,
-        bool isEnabled = true,
-      }) {
+    BuildContext context, {
+    required String label,
+    Product? product,
+    required String componentKey,
+    required int quantity,
+    required VoidCallback onSelect,
+    VoidCallback? onRemove,
+    Function(int)? onQuantityChanged,
+    bool showAddButton = false,
+    bool isEnabled = true,
+  }) {
+    final s = S.of(context);
     final isMultiSelect = componentKey == 'ram' || componentKey == 'drive';
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
@@ -549,7 +541,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
         decoration: BoxDecoration(
           border: Border.all(
             color:
-            Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -570,9 +562,9 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
                 foregroundColor: quantity > 1
                     ? Theme.of(context).colorScheme.onSurface
                     : Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.3),
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.3),
               ),
             ),
             Container(
@@ -590,7 +582,8 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
             ),
             IconButton(
               icon: Icon(Icons.add, size: isMobile ? 16 : 20),
-              onPressed: isEnabled ? () => onQuantityChanged(quantity + 1) : null,
+              onPressed:
+                  isEnabled ? () => onQuantityChanged(quantity + 1) : null,
               padding: EdgeInsets.all(isMobile ? 4 : 8),
               constraints: BoxConstraints(
                 minWidth: isMobile ? 32 : 40,
@@ -626,7 +619,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
         onPressed: isEnabled ? onSelect : null,
         style: ElevatedButton.styleFrom(
           backgroundColor:
-          Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
           foregroundColor: Theme.of(context).colorScheme.primary,
           elevation: 0,
           padding: EdgeInsets.symmetric(
@@ -639,7 +632,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
           ),
         ),
         child: Text(
-          'ĐỔI${label.isNotEmpty ? ' ${label.toUpperCase()}' : ''}',
+          label.isNotEmpty ? s.changeComponent(label.toUpperCase()) : s.change,
           style: TextStyle(
             fontSize: isMobile ? 12 : 14,
             fontWeight: FontWeight.bold,
@@ -660,10 +653,10 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
         onPressed: isEnabled ? onSelect : null,
         icon: const Icon(Icons.add, size: 18),
         label: Text(showAddButton
-            ? 'THÊM'
+            ? s.add
             : (label.isNotEmpty
-            ? (isMobile ? 'CHỌN' : 'CHỌN ${label.toUpperCase()}')
-            : 'CHỌN')),
+                ? (isMobile ? s.choose : s.chooseComponent(label.toUpperCase()))
+                : s.choose)),
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -753,6 +746,10 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     final s = S.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
+    final hasComponents = state.activeConfiguration.values.any((value) {
+      if (value is List) return value.isNotEmpty;
+      return value != null;
+    });
 
     if (isMobile) {
       // On mobile, use full-width equal buttons stacked vertically
@@ -763,8 +760,8 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
           _buildActionButton(
             context,
             icon: Icons.picture_as_pdf,
-            label: 'TẢI PDF',
-            onPressed: () => cubit.downloadConfigurationPdf(),
+            label: s.downloadPDF,
+            onPressed: hasComponents ? () => cubit.downloadConfigurationPdf() : null,
             fullWidth: true,
           ),
           const SizedBox(height: 12),
@@ -826,8 +823,8 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
         _buildActionButton(
           context,
           icon: Icons.picture_as_pdf,
-          label: 'TẢI FILE PDF CẤU HÌNH',
-          onPressed: () => cubit.downloadConfigurationPdf(),
+          label: s.downloadPDF,
+          onPressed: hasComponents ? () => cubit.downloadConfigurationPdf() : null,
         ),
         _buildActionButton(
           context,
@@ -889,7 +886,7 @@ class _PCBuilderWebViewState extends State<PCBuilderWebView> {
     BuildContext context, {
     required IconData icon,
     required String label,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     bool isPrimary = false,
     bool fullWidth = false,
   }) {

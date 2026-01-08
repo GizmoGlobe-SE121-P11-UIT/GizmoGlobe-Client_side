@@ -29,12 +29,13 @@ class AIUserDataService {
           .where(FieldPath.documentId, whereIn: favoriteProductIDs)
           .get();
 
-      return productSnapshot.docs
-          .map((doc) => {
-                ...doc.data(),
-                'productID': doc.id,
-              })
-          .toList();
+      return productSnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          ...data,
+          'productID': data['productID'] ?? doc.id,
+        };
+      }).toList();
     } catch (e) {
       return [];
     }
@@ -83,6 +84,7 @@ class AIUserDataService {
             final productData = productDoc.data()!;
             return {
               ...productData,
+              'productID': productID,
               'quantity': item['quantity'],
               'cartDocId': item['docId'],
             };

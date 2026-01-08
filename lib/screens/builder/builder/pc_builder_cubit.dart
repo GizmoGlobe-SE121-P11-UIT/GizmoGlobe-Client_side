@@ -588,7 +588,7 @@ class PCBuilderCubit extends Cubit<PCBuilderState> {
                 headers: const [
                   'Category',
                   'Product',
-                  'Discounted Price',
+                  'Price',
                   'Quantity',
                 ],
                 data: components

@@ -1284,6 +1284,18 @@ class SVI extends S {
   String get noEndTime => 'Không có thời gian kết thúc';
 
   @override
+  String get redeem => 'Đổi điểm';
+
+  @override
+  String get loyalPoints => 'Điểm thân thiết';
+
+  @override
+  String get noVoucherToRedeem => 'Không có mã giảm giá để đổi';
+
+  @override
+  String redeemWithPoints(int points) => 'Đổi: $points';
+
+  @override
   String get retry => 'Thử lại';
 
   @override
@@ -1598,6 +1610,39 @@ class SVI extends S {
 
   @override
   String builderSessionComponents(int count) => '$count linh kiện';
+
+  @override
+  String get compatibleComponents => 'Linh kiện tương thích';
+
+  @override
+  String chooseComponent(String componentName) => 'CHỌN $componentName';
+
+  @override
+  String get choose => 'CHỌN';
+
+  @override
+  String get downloadPDF => 'TẢI PDF';
+
+  @override
+  String get estimatedCost => 'Chi phí dự tính';
+
+  @override
+  String get change => 'ĐỔI';
+
+  @override
+  String changeComponent(String componentName) => 'ĐỔI $componentName';
+
+  @override
+  String get add => 'THÊM';
+
+  @override
+  String selectedCount(int count) => 'Đã chọn: $count';
+
+  @override
+  String get clearSelection => 'Xóa chọn';
+
+  @override
+  String get select => 'Chọn';
 
   // Footer
   @override

@@ -995,13 +995,20 @@ class _WebHeaderState extends State<WebHeader> {
           left: position.dx - 280 + size.width, // Align right edge with icon
           top: position.dy + size.height + 12,
           child: Material(
-            elevation: 8,
+            elevation: 12,
             borderRadius: BorderRadius.circular(12),
-            color: Theme.of(context).colorScheme.surface,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
             child: Container(
               constraints: const BoxConstraints(
                 maxHeight: 300,
                 maxWidth: 280,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                  width: 1,
+                ),
               ),
               child: GestureDetector(
                 onTap: () {}, // Prevent closing when clicking inside menu
