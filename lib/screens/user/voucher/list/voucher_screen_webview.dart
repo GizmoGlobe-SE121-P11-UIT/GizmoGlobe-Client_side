@@ -47,7 +47,7 @@ class _VoucherScreenWebViewState extends State<VoucherScreenWebView>
       await cubit.initialize();
     });
     tabController = TabController(
-      length: 2,
+      length: 3,
       vsync: this,
       initialIndex: 0,
     );
@@ -253,6 +253,14 @@ class _VoucherScreenWebViewState extends State<VoucherScreenWebView>
               ),
             ),
           ),
+          Tab(
+            child: Center(
+              child: Text(
+                S.of(context).redeem,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -274,6 +282,8 @@ class _VoucherScreenWebViewState extends State<VoucherScreenWebView>
           S.of(context).noVouchersAvailable,
           Icons.schedule,
         ),
+        // Tab 3: Redeem vouchers with loyal points
+        _buildRedeemTab(state),
       ],
     );
   }
@@ -449,6 +459,255 @@ class _VoucherScreenWebViewState extends State<VoucherScreenWebView>
                 const SizedBox(height: 8),
               ],
               // Card tap will navigate to details; no explicit button needed
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRedeemTab(VoucherScreenState state) {
+    return Column(
+      children: [
+        // Loyal Points Badge
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    S.of(context).loyalPoints,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${state.points}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.auto_awesome,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    size: 18,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Redeemable Vouchers Grid
+        Expanded(
+          child: state.redeemableList.isEmpty
+              ? _buildEmptyState(
+                  S.of(context).noVoucherToRedeem,
+                  Icons.card_giftcard_outlined,
+                )
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisCount =
+                        _getCrossAxisCount(constraints.maxWidth);
+                    final childAspectRatio =
+                        _getChildAspectRatio(constraints.maxWidth);
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        childAspectRatio: childAspectRatio,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: state.redeemableList.length,
+                      itemBuilder: (context, index) {
+                        final voucher = state.redeemableList[index];
+                        return _buildRedeemableVoucherCard(voucher, state);
+                      },
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRedeemableVoucherCard(
+      Voucher voucher, VoucherScreenState state) {
+    final int? redeemPrice = voucher.redeemPrice;
+    final bool canRedeem = redeemPrice == null || state.points >= redeemPrice;
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: () => _onVoucherTap(context, voucher),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+              ],
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Voucher Header
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.local_offer,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      size: 20,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      voucher.isPercentage
+                          ? '${voucher.discountValue}%'
+                          : Helper.toCurrencyFormat(voucher.discountValue),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Voucher Name
+              Text(
+                voucher.voucherName,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              // Minimum Purchase
+              Text(
+                '${S.of(context).minimumPurchase}: ${Helper.toCurrencyFormat(voucher.minimumPurchase)}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onPrimary
+                          .withValues(alpha: 0.8),
+                    ),
+              ),
+              const Spacer(),
+              // Redeem Button
+              if (redeemPrice != null) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: canRedeem
+                        ? () async {
+                            await cubit.redeemVoucher(voucher);
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      disabledBackgroundColor: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withValues(alpha: 0.5),
+                      disabledForegroundColor: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          S.of(context).redeemWithPoints(redeemPrice),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.auto_awesome,
+                          size: 18,
+                          color: canRedeem
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

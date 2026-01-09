@@ -77,7 +77,7 @@ class UserScreenCubit extends Cubit<UserScreenState> {
       if (context.mounted) {
         Navigator.pushNamedAndRemoveUntil(
           context,
-          '/home',
+          '/sign-in',
           (Route<dynamic> route) => false,
         );
       }

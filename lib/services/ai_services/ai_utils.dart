@@ -102,8 +102,28 @@ class AIUtils {
   /// Detect if message is about favorites
   bool isFavoriteQuestion(String message) {
     final favoriteKeywords = {
-      'en': ['favorite', 'favourite', 'like', 'save', 'bookmark', 'wishlist'],
-      'vi': ['yêu thích', 'thích', 'lưu', 'đánh dấu', 'wishlist']
+      'en': [
+        'favorite',
+        'favourite',
+        'like',
+        'save',
+        'bookmark',
+        'wishlist',
+        'saved products',
+        'liked products'
+      ],
+      'vi': [
+        'yêu thích',
+        'thích',
+        'lưu',
+        'đánh dấu',
+        'wishlist',
+        'đã lưu',
+        'sản phẩm yêu thích',
+        'sản phẩm đã lưu',
+        'tìm yêu thích',
+        'danh sách yêu thích'
+      ]
     };
 
     final isVietnameseText = isVietnamese(message);
@@ -129,7 +149,8 @@ class AIUtils {
         'quantity',
         'count',
         'total items',
-        'items count'
+        'items count',
+        'cart contents'
       ],
       'vi': [
         'giỏ hàng',
@@ -145,7 +166,11 @@ class AIUtils {
         'số lượng',
         'đếm',
         'tổng sản phẩm',
-        'số sản phẩm'
+        'số sản phẩm',
+        'trong giỏ',
+        'tìm giỏ hàng',
+        'đã thêm vào giỏ',
+        'có gì trong giỏ'
       ]
     };
 
@@ -280,7 +305,6 @@ class AIUtils {
         'order this',
         'get this',
         'add',
-        'cart',
         'buy',
         'purchase',
         'put in',
@@ -301,8 +325,6 @@ class AIUtils {
         'đặt hàng cái này',
         'lấy cái này',
         'thêm',
-        'giỏ hàng',
-        'yêu thích',
         'mua',
         'đặt hàng',
         'lấy',
@@ -319,6 +341,30 @@ class AIUtils {
     final hasKeyword =
         keywords.any((keyword) => lowerMessage.contains(keyword.toLowerCase()));
 
+    // If explicit add keyword found, it's definitely an add request
+    if (hasKeyword) return true;
+
+    // Check for view/show keywords - if present, NOT an add request
+    final viewKeywords = [
+      'xem',
+      'view',
+      'show',
+      'display',
+      'hiển thị',
+      'trong',
+      'in',
+      'what',
+      'gì',
+      'những gì',
+      'my',
+      'của tôi',
+    ];
+    final hasViewKeyword =
+        viewKeywords.any((keyword) => lowerMessage.contains(keyword));
+
+    if (hasViewKeyword) return false;
+
+    // Fallback: check for product + action combination
     final productTerms = [
       'cpu',
       'gpu',
@@ -352,7 +398,7 @@ class AIUtils {
     final hasActionTerm =
         actionTerms.any((term) => lowerMessage.contains(term.toLowerCase()));
 
-    return hasKeyword || (hasProductTerm && hasActionTerm);
+    return hasProductTerm && hasActionTerm;
   }
 
   /// Detect if action is specifically for favorites (vs cart)

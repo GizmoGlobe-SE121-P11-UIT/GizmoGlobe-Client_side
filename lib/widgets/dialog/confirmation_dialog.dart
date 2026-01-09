@@ -53,66 +53,69 @@ class ConfirmationDialog extends StatelessWidget {
     final theme = Theme.of(context);
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: theme.colorScheme.surface.withValues(alpha: 0.9),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (title.isNotEmpty) ...[
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: theme.colorScheme.surface.withValues(alpha: 0.9),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (title.isNotEmpty) ...[
+                  Text(
+                    title,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.w700,
+                  content,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
-              ],
-              Text(
-                content,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: GradientButton(
+                        onPress: onCancel ?? () => Navigator.pop(context),
+                        height: cancelHeight,
+                        width: cancelWidth,
+                        borderRadius: cancelBorderRadius,
+                        text: cancelText ?? S.of(context).cancel,
+                        fontSize: cancelFontSize,
+                        fontColor: cancelFontColor,
+                        fontWeight: cancelFontWeight,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: GradientButton(
+                        onPress: onConfirm ?? () => Navigator.pop(context),
+                        height: confirmHeight,
+                        width: confirmWidth,
+                        borderRadius: confirmBorderRadius,
+                        text: confirmText ?? S.of(context).confirm,
+                        fontSize: confirmFontSize,
+                        fontColor: confirmFontColor,
+                        fontWeight: confirmFontWeight,
+                      ),
+                    ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: GradientButton(
-                      onPress: onCancel ?? () => Navigator.pop(context),
-                      height: cancelHeight,
-                      width: cancelWidth,
-                      borderRadius: cancelBorderRadius,
-                      text: cancelText ?? S.of(context).cancel,
-                      fontSize: cancelFontSize,
-                      fontColor: cancelFontColor,
-                      fontWeight: cancelFontWeight,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: GradientButton(
-                      onPress: onConfirm ?? () => Navigator.pop(context),
-                      height: confirmHeight,
-                      width: confirmWidth,
-                      borderRadius: confirmBorderRadius,
-                      text: confirmText ?? S.of(context).confirm,
-                      fontSize: confirmFontSize,
-                      fontColor: confirmFontColor,
-                      fontWeight: confirmFontWeight,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

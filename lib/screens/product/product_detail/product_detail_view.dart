@@ -321,7 +321,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                const SizedBox(height: 36),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${S.of(context).inStock}: ${state.product.stock}',
+                                  style: TextStyle(
+                                    color: state.product.stock > 0
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.7)
+                                        : Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
                                 Container(
                                   decoration: BoxDecoration(
                                     border: Border.all(
@@ -361,6 +374,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                         icon: Icons.add,
                                         onPressed: () =>
                                             cubit.incrementQuantity(),
+                                        enabled: state.quantity <
+                                            state.product.stock,
                                       ),
                                     ],
                                   ),
@@ -620,13 +635,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _buildQuantityButton({
     required IconData icon,
     required VoidCallback onPressed,
+    bool enabled = true,
   }) {
     return SizedBox(
       width: 32,
       height: 32,
       child: IconButton(
-        icon: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
-        onPressed: onPressed,
+        icon: Icon(
+          icon,
+          color: enabled
+              ? Theme.of(context).colorScheme.onSurface
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+        ),
+        onPressed: enabled ? onPressed : null,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
         iconSize: 18,

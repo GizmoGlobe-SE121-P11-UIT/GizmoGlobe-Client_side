@@ -9,6 +9,7 @@ import 'package:gizmoglobe_client/screens/builder/builder/pc_builder_cubit.dart'
 import 'package:gizmoglobe_client/screens/builder/builder/pc_builder_state.dart';
 import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_view.dart';
 import 'package:gizmoglobe_client/widgets/dialog/confirmation_dialog.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:intl/intl.dart';
 
 import 'pc_builder_webview.dart';
@@ -52,7 +53,10 @@ class _PCBuilderMobileView extends StatelessWidget {
     final s = S.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(s.buildYourDreamPc.replaceAll('\n', ' ')),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: GradientText(text: s.buildYourDreamPc.replaceAll('\n', ' ')),
       ),
       body: BlocBuilder<PCBuilderCubit, PCBuilderState>(
         bloc: cubit,
@@ -66,26 +70,14 @@ class _PCBuilderMobileView extends StatelessWidget {
           final components = [
             {
               'key': 'mainboard',
-              'label': 'Mainboard - Bo mạch chủ',
+              'label': s.mainboard,
               'category': CategoryEnum.mainboard
             },
-            {'key': 'cpu', 'label': 'CPU', 'category': CategoryEnum.cpu},
-            {'key': 'ram', 'label': 'RAM', 'category': CategoryEnum.ram},
-            {
-              'key': 'drive',
-              'label': 'Ổ lưu trữ (SSD/HDD)',
-              'category': CategoryEnum.drive
-            },
-            {
-              'key': 'gpu',
-              'label': 'VGA - Card màn hình',
-              'category': CategoryEnum.gpu
-            },
-            {
-              'key': 'psu',
-              'label': 'PSU - Nguồn máy tính',
-              'category': CategoryEnum.psu
-            },
+            {'key': 'cpu', 'label': s.cpu, 'category': CategoryEnum.cpu},
+            {'key': 'ram', 'label': s.ram, 'category': CategoryEnum.ram},
+            {'key': 'drive', 'label': s.drive, 'category': CategoryEnum.drive},
+            {'key': 'gpu', 'label': s.gpu, 'category': CategoryEnum.gpu},
+            {'key': 'psu', 'label': s.psu, 'category': CategoryEnum.psu},
           ];
 
           return SingleChildScrollView(
@@ -253,13 +245,18 @@ class _PCBuilderMobileView extends StatelessWidget {
 
   Widget _buildPrimaryActions(BuildContext context, PCBuilderState state) {
     final s = S.of(context);
+    final hasComponents = state.activeConfiguration.values.any((value) {
+      if (value is List) return value.isNotEmpty;
+      return value != null;
+    });
+    
     return Row(
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () => cubit.downloadConfigurationPdf(),
+            onPressed: hasComponents ? () => cubit.downloadConfigurationPdf() : null,
             icon: const Icon(Icons.picture_as_pdf),
-            label: const Text('TẢI FILE PDF CẤU HÌNH'),
+            label: Text(s.downloadPDF),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
@@ -293,6 +290,7 @@ class _PCBuilderMobileView extends StatelessWidget {
     bool isEnabled = true,
     List<Product>? compatibleProducts,
   }) {
+    final s = S.of(context);
     final isMultiSelect = componentKey == 'ram' || componentKey == 'drive';
     return Opacity(
       opacity: isEnabled ? 1.0 : 0.5,
@@ -432,8 +430,8 @@ class _PCBuilderMobileView extends StatelessWidget {
                               : null,
                           icon: const Icon(Icons.add),
                           label: Text(product == null
-                              ? 'CHỌN ${label.toUpperCase()}'
-                              : 'THÊM'),
+                              ? s.chooseComponent(label.toUpperCase())
+                              : s.add),
                         ),
                       ),
                     ),
@@ -456,6 +454,7 @@ class _PCBuilderMobileView extends StatelessWidget {
     bool isEnabled = true,
     List<Product>? compatibleProducts,
   }) {
+    final s = S.of(context);
     return Opacity(
       opacity: isEnabled ? 1.0 : 0.5,
       child: Card(
@@ -584,8 +583,8 @@ class _PCBuilderMobileView extends StatelessWidget {
                       : null,
                   icon: const Icon(Icons.add),
                   label: Text(products.isEmpty
-                      ? 'CHỌN ${label.toUpperCase()}'
-                      : 'THÊM'),
+                      ? s.chooseComponent(label.toUpperCase())
+                      : s.add),
                 ),
               ),
             ],

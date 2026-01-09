@@ -107,13 +107,14 @@ class AIService {
 
           case QuestionType.cartFavorites:
             // Route to existing cart/favorites handler
+            final section = classification.entities['section'];
+            final isFav = section == 'favorites' ||
+                (section == null && _utils.isFavoriteQuestion(userMessage));
+            final isCart = section == 'cart' ||
+                (section == null && _utils.isCartQuestion(userMessage));
+
             return await _handleUserDataQuestion(
-                userMessage,
-                userId,
-                isVietnamese,
-                classification.entities['section'] == 'favorites',
-                classification.entities['section'] == 'cart',
-                false);
+                userMessage, userId, isVietnamese, isFav, isCart, false);
 
           // Add other NLP routes as needed
           default:
@@ -426,24 +427,22 @@ class AIService {
     } else if (isCartQuestion && cartItems.isNotEmpty) {
       productCards = cartItems
           .map((item) {
-            final product = item['product'] as Map<String, dynamic>?;
-            if (product == null) return null;
-
-            final price = (product['sellingPrice'] as num?)?.toDouble() ?? 0;
-            final discount = (product['discount'] as num?)?.toDouble() ?? 0;
+            // Product data is merged directly into item, not nested
+            final price = (item['sellingPrice'] as num?)?.toDouble() ?? 0;
+            final discount = (item['discount'] as num?)?.toDouble() ?? 0;
             final discountedPrice =
-                (product['discountedPrice'] as num?)?.toDouble() ??
+                (item['discountedPrice'] as num?)?.toDouble() ??
                     price * (1 - discount / 100);
 
             return {
-              'id': product['productID'],
-              'name': product['productName'] ?? '',
+              'id': item['productID'],
+              'name': item['productName'] ?? '',
               'price': discountedPrice,
               'originalPrice': price,
               'discount': discount,
-              'stock': product['stock'] ?? 0,
-              'imageUrl': product['imageUrl'],
-              'category': product['category'] ?? '',
+              'stock': item['stock'] ?? 0,
+              'imageUrl': item['imageUrl'],
+              'category': item['category'] ?? '',
             };
           })
           .whereType<Map<String, dynamic>>()

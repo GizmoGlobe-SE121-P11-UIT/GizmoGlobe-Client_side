@@ -74,6 +74,9 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
   Future<void> initialize() async {
     if (isClosed) return; // Prevent emitting after cubit is closed
 
+    // Load cart items first to enable recommendations
+    await loadCartItems();
+
     await _updateFavoriteProducts();
 
     if (!isClosed) {

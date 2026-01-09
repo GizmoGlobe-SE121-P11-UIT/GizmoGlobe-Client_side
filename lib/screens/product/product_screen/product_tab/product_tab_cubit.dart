@@ -24,8 +24,9 @@ abstract class TabCubit extends Cubit<TabState> {
 
   TabCubit() : super(const TabState());
 
-  void initialize(FilterArgument filter,
-      {String? searchText, required List<Product> initialProducts}) {
+  Future<void> initialize(FilterArgument filter,
+      {String? searchText, required List<Product> initialProducts}) async {
+    await _fetchProducts();
     emit(state.copyWith(
         manufacturerList: Database().manufacturerList,
         productList:
@@ -152,6 +153,9 @@ abstract class TabCubit extends Cubit<TabState> {
     final List<Product> filteredProducts = <Product>[];
 
     for (final product in allProducts) {
+      // Exclude out of stock products
+      if (product.stock <= 0) continue;
+
       // Category
       if (applyCategory && product.category != activeCategory) continue;
 
@@ -167,8 +171,8 @@ abstract class TabCubit extends Cubit<TabState> {
         if (!selectedMans.contains(manu)) continue;
       }
 
-      // Price range
-      if (!matchesMinMax(
+      // Price range (convert UI input to database format)
+      if (!matchesPriceRange(
           product.discountedPrice.toDouble(), fa.minPrice, fa.maxPrice)) {
         continue;
       }
@@ -268,6 +272,16 @@ abstract class TabCubit extends Cubit<TabState> {
     final double min = double.tryParse(minStr ?? '') ?? 0;
     final double max = double.tryParse(maxStr ?? '') ?? double.infinity;
     return value >= min && value <= max;
+  }
+
+  /// Matches price range, converting UI price (e.g., 1000 = 1000 VND) to database format (1).
+  /// Database stores prices as 1/1000 of the displayed VND value.
+  bool matchesPriceRange(double dbPrice, String? minStr, String? maxStr) {
+    // Convert UI input to database format by dividing by 1000
+    final double min = (double.tryParse(minStr ?? '') ?? 0) / 1000;
+    final double max =
+        (double.tryParse(maxStr ?? '') ?? double.infinity) / 1000;
+    return dbPrice >= min && dbPrice <= max;
   }
 
   bool matchedCpuClockSpeed(

@@ -510,6 +510,7 @@ class S {
   String get statusInformation =>
       Intl.message('Status Information', name: 'statusInformation');
   String get stock => Intl.message('Stock', name: 'stock');
+  String get inStock => Intl.message('In stock', name: 'inStock');
   String get releaseDate => Intl.message('Release Date', name: 'releaseDate');
   String get technicalSpecifications =>
       Intl.message('Technical Specifications', name: 'technicalSpecifications');
@@ -631,6 +632,11 @@ class S {
         'Items ($count)',
         name: 'itemsCount',
         args: [count],
+      );
+  String toGetPoints(int points) => Intl.message(
+        'To get $points point${points == 1 ? '' : 's'}',
+        name: 'toGetPoints',
+        args: [points],
       );
   String get originalPrice =>
       Intl.message('Original Price', name: 'originalPrice');
@@ -874,6 +880,15 @@ class S {
       Intl.message('Number of uses left', name: 'maxUsagePerPerson');
   String get description => Intl.message('Description', name: 'description');
   String get noEndTime => Intl.message('No end time', name: 'noEndTime');
+  String get redeem => Intl.message('Redeem', name: 'redeem');
+  String get loyalPoints => Intl.message('Loyal points', name: 'loyalPoints');
+  String get noVoucherToRedeem =>
+      Intl.message('No voucher to redeem', name: 'noVoucherToRedeem');
+  String redeemWithPoints(int points) => Intl.message(
+        'Redeem: $points',
+        name: 'redeemWithPoints',
+        args: [points],
+      );
 
   String get retry => Intl.message('Retry', name: 'retry');
 
@@ -1052,6 +1067,32 @@ class S {
         name: 'builderSessionComponents',
         args: [count],
       );
+  String get compatibleComponents =>
+      Intl.message('Compatible components', name: 'compatibleComponents');
+  String chooseComponent(String componentName) => Intl.message(
+        'CHOOSE $componentName',
+        name: 'chooseComponent',
+        args: [componentName],
+      );
+  String get choose => Intl.message('CHOOSE', name: 'choose');
+  String get downloadPDF => Intl.message('DOWNLOAD PDF', name: 'downloadPDF');
+  String get estimatedCost =>
+      Intl.message('Estimated cost', name: 'estimatedCost');
+  String get change => Intl.message('CHANGE', name: 'change');
+  String changeComponent(String componentName) => Intl.message(
+        'CHANGE $componentName',
+        name: 'changeComponent',
+        args: [componentName],
+      );
+  String get add => Intl.message('ADD', name: 'add');
+  String selectedCount(int count) => Intl.message(
+        'Selected: $count',
+        name: 'selectedCount',
+        args: [count],
+      );
+  String get clearSelection =>
+      Intl.message('Clear selection', name: 'clearSelection');
+  String get select => Intl.message('Select', name: 'select');
   String get loading => Intl.message('Loading...', name: 'loading');
 
   // Ratings

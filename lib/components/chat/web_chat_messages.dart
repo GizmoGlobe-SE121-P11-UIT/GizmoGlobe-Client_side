@@ -24,14 +24,17 @@ class WebChatMessages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmall = screenWidth < 400;
+    
     return ListView.builder(
       shrinkWrap: false,
       reverse: true,
       physics: const BouncingScrollPhysics(),
       controller: controller,
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 16 : 32,
-        vertical: 20,
+        horizontal: isMobile ? 12 : 32,
+        vertical: isMobile ? 12 : 20,
       ),
       itemCount: messages.length,
       itemBuilder: (context, index) {
@@ -44,14 +47,16 @@ class WebChatMessages extends StatelessWidget {
         final sanitizedContent = sanitizeContent(message.content);
         final productCards = extractProductCards(message.content);
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
+          padding: EdgeInsets.only(bottom: isMobile ? 8.0 : 12.0),
           child: Align(
             alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: isMobile
-                    ? MediaQuery.of(context).size.width * 0.75
-                    : MediaQuery.of(context).size.width * 0.7,
+                maxWidth: isVerySmall
+                    ? screenWidth * 0.92  // Use more width on very small screens
+                    : (isMobile
+                        ? screenWidth * 0.85
+                        : screenWidth * 0.7),
               ),
               decoration: BoxDecoration(
                 color: isUser
@@ -79,7 +84,10 @@ class WebChatMessages extends StatelessWidget {
                       ]
                     : null,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: isVerySmall ? 10 : (isMobile ? 12 : 16), 
+                vertical: isVerySmall ? 8 : (isMobile ? 10 : 12)
+              ),
               child: SelectionArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,17 +98,17 @@ class WebChatMessages extends StatelessWidget {
                         children: [
                           Icon(
                             isAdminBot ? Icons.support_agent : Icons.smart_toy,
-                            size: 16,
+                            size: isMobile ? 14 : 16,
                             color: isAdminBot
                                 ? colorScheme.onSurface.withValues(alpha: 0.7)
                                 : colorScheme.onSecondaryContainer
                                     .withValues(alpha: 0.7),
                           ),
-                          const SizedBox(width: 6),
+                          SizedBox(width: isMobile ? 4 : 6),
                           Text(
                             isAdminBot ? 'Admin' : 'AI Assistant',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: isMobile ? 11 : 12,
                               fontWeight: FontWeight.w600,
                               color: isAdminBot
                                   ? colorScheme.onSurface.withValues(alpha: 0.8)
@@ -143,7 +151,7 @@ class WebChatMessages extends StatelessWidget {
                         children: productCards
                             .map(
                               (card) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12.0),
+                                padding: EdgeInsets.only(bottom: isMobile ? 8.0 : 12.0),
                                 child: ProductMiniCard(cardData: card),
                               ),
                             )

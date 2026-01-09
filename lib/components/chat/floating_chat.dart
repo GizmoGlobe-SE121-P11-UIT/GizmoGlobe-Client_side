@@ -21,8 +21,6 @@ class FloatingChat extends StatefulWidget {
 
 class _FloatingChatState extends State<FloatingChat> {
   bool _isOpen = false;
-  final double _panelWidth = 420;
-  final double _panelHeight = 560;
   final WebGuestService _webGuestService = WebGuestService();
   bool _authModalOpen = false;
   ValueNotifier<bool>? _globalModalOpen;
@@ -151,28 +149,65 @@ class _FloatingChatState extends State<FloatingChat> {
           }
         }
 
+        // Responsive panel sizing
+        final screenWidth = MediaQuery.of(context).size.width;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final isVerySmall = screenWidth < 400;
+        final isSmall = screenWidth < 600;
+        
+        // Calculate responsive dimensions
+        final panelWidth = isVerySmall 
+            ? screenWidth - 16  // Almost full width on very small screens
+            : (isSmall 
+                ? screenWidth * 0.95  // 95% width on small screens
+                : 420.0);  // Fixed 420px on larger screens
+        final panelHeight = isVerySmall
+            ? screenHeight - 120  // Leave space for FAB and top margin
+            : (isSmall
+                ? screenHeight * 0.75
+                : 560.0);
+        final rightPosition = isVerySmall ? 8.0 : (isSmall ? 12.0 : 24.0);
+        final bottomPosition = isVerySmall ? 80.0 : 96.0;
+        
         return Stack(
           children: [
             widget.child,
             // Panel
             if (_isOpen)
               Positioned(
-                right: 24,
-                bottom: 96,
-                child: Material(
-                  elevation: 16,
-                  borderRadius: BorderRadius.circular(16),
-                  clipBehavior: Clip.antiAlias,
-                  child: SizedBox(
-                    width: _panelWidth,
-                    height: _panelHeight,
-                    child: Overlay(
-                      initialEntries: [
-                        OverlayEntry(
-                          builder: (context) =>
-                              ChatScreenWebView.newInstance(embedded: true),
-                        ),
-                      ],
+                right: rightPosition,
+                bottom: bottomPosition,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(isVerySmall ? 12 : 16),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    elevation: 0,
+                    borderRadius: BorderRadius.circular(isVerySmall ? 12 : 16),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    clipBehavior: Clip.antiAlias,
+                    child: SizedBox(
+                      width: panelWidth,
+                      height: panelHeight,
+                      child: Overlay(
+                        initialEntries: [
+                          OverlayEntry(
+                            builder: (context) =>
+                                ChatScreenWebView.newInstance(embedded: true),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

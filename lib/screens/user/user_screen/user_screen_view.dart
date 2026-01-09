@@ -633,13 +633,17 @@ class _UserScreen extends State<UserScreen> {
                                   builder: (context, state) {
                                     return SafeArea(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           const SizedBox(height: 16),
                                           AvatarPicker(
-                                            userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                                            userId: FirebaseAuth.instance
+                                                    .currentUser?.uid ??
+                                                '',
                                             currentAvatarUrl: state.avatarUrl,
-                                            onAvatarChanged: (String newAvatarUrl) {
+                                            onAvatarChanged:
+                                                (String newAvatarUrl) {
                                               cubit.updateAvatar(newAvatarUrl);
                                             },
                                             isGuest: state.isGuest,
@@ -692,7 +696,8 @@ class _UserScreen extends State<UserScreen> {
                                 ),
                                 BlocBuilder<UserScreenCubit, UserScreenState>(
                                   builder: (context, state) {
-                                    if (state.isGuest || state.loyalPoint <= 0) {
+                                    if (state.isGuest ||
+                                        state.loyalPoint <= 0) {
                                       return const SizedBox.shrink();
                                     }
                                     return Positioned(
@@ -707,7 +712,8 @@ class _UserScreen extends State<UserScreen> {
                                           decoration: BoxDecoration(
                                             color: Colors.white
                                                 .withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(20),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
                                             border: Border.all(
                                               color: Colors.white
                                                   .withValues(alpha: 0.3),
@@ -777,7 +783,7 @@ class _UserScreen extends State<UserScreen> {
                                           fontWeight: FontWeight.bold,
                                           color: Theme.of(context)
                                               .colorScheme
-                                              .primary,
+                                              .onSurface,
                                         ),
                                       ),
                                     ],
@@ -796,7 +802,8 @@ class _UserScreen extends State<UserScreen> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) =>
-                                                  OrderScreen.newInstance(orderOption: OrderOption.toShip,
+                                                  OrderScreen.newInstance(
+                                                orderOption: OrderOption.toShip,
                                               ),
                                             ),
                                           );
@@ -813,7 +820,9 @@ class _UserScreen extends State<UserScreen> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) =>
-                                                  OrderScreen.newInstance(orderOption: OrderOption.toReceive,
+                                                  OrderScreen.newInstance(
+                                                orderOption:
+                                                    OrderOption.toReceive,
                                               ),
                                             ),
                                           );
@@ -830,7 +839,9 @@ class _UserScreen extends State<UserScreen> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) =>
-                                                  OrderScreen.newInstance(orderOption: OrderOption.completed,
+                                                  OrderScreen.newInstance(
+                                                orderOption:
+                                                    OrderOption.completed,
                                               ),
                                             ),
                                           );
@@ -890,7 +901,7 @@ class _UserScreen extends State<UserScreen> {
                                           fontWeight: FontWeight.bold,
                                           color: Theme.of(context)
                                               .colorScheme
-                                              .primary,
+                                              .onSurface,
                                         ),
                                       ),
                                       const Spacer(),
@@ -955,7 +966,7 @@ class _UserScreen extends State<UserScreen> {
                                         fontWeight: FontWeight.bold,
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .primary,
+                                            .onSurface,
                                       ),
                                     ),
                                     const Spacer(),
@@ -1034,7 +1045,7 @@ class _UserScreen extends State<UserScreen> {
                                             fontWeight: FontWeight.bold,
                                             color: Theme.of(context)
                                                 .colorScheme
-                                                .primary,
+                                                .onSurface,
                                           ),
                                         ),
                                         const Spacer(),
@@ -1338,7 +1349,8 @@ class _UserScreen extends State<UserScreen> {
                                                                 ],
                                                               ),
                                                             ),
-                                                            Consumer<ThemeProvider>(
+                                                            Consumer<
+                                                                ThemeProvider>(
                                                               builder: (context,
                                                                   themeProvider,
                                                                   child) {
@@ -1421,7 +1433,7 @@ class _UserScreen extends State<UserScreen> {
                                         fontWeight: FontWeight.bold,
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .primary,
+                                            .onSurface,
                                       ),
                                     ),
                                     const Spacer(),
@@ -1455,26 +1467,31 @@ class _UserScreen extends State<UserScreen> {
                                   isScrollControlled: true,
                                   builder: (context) => Padding(
                                     padding: EdgeInsets.only(
-                                      bottom: MediaQuery.of(context).viewInsets.bottom +
+                                      bottom: MediaQuery.of(context)
+                                              .viewInsets
+                                              .bottom +
                                           MediaQuery.of(context).padding.bottom,
                                     ),
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: Theme.of(context)
                                             .scaffoldBackgroundColor,
-                                        borderRadius: const BorderRadius.vertical(
-                                            top: Radius.circular(24)),
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                                top: Radius.circular(24)),
                                       ),
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Container(
-                                            margin: const EdgeInsets.only(top: 12),
+                                            margin:
+                                                const EdgeInsets.only(top: 12),
                                             width: 40,
                                             height: 4,
                                             decoration: BoxDecoration(
                                               color: Colors.grey[600],
-                                              borderRadius: BorderRadius.circular(2),
+                                              borderRadius:
+                                                  BorderRadius.circular(2),
                                             ),
                                           ),
                                           Container(
@@ -1603,7 +1620,7 @@ class _UserScreen extends State<UserScreen> {
                                         fontWeight: FontWeight.bold,
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .primary,
+                                            .onSurface,
                                       ),
                                     ),
                                     const Spacer(),
@@ -1623,57 +1640,67 @@ class _UserScreen extends State<UserScreen> {
                         // Add spacing before Log Out Card
                         const SizedBox(height: 16),
 
-                        // Log Out Card
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                          child: Card(
-                            elevation: 4,
-                            shadowColor: Colors.black12,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: InkWell(
-                              onTap: () => cubit.logOut(context),
-                              borderRadius: BorderRadius.circular(24),
-                              child: Container(
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .error
-                                      .withValues(alpha: 0.1),
+                        // Log Out Card (only show for non-guest users)
+                        BlocBuilder<UserScreenCubit, UserScreenState>(
+                          builder: (context, state) {
+                            if (state.isGuest) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                              child: Card(
+                                elevation: 4,
+                                shadowColor: Colors.black12,
+                                shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(24),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.logout,
-                                      color:
-                                          Theme.of(context).colorScheme.error,
-                                      size: 28,
+                                child: InkWell(
+                                  onTap: () => cubit.logOut(context),
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .error
+                                          .withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(24),
                                     ),
-                                    const SizedBox(width: 16),
-                                    Text(
-                                      S.of(context).logOut,
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            Theme.of(context).colorScheme.error,
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.logout,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .error,
+                                          size: 28,
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Text(
+                                          S.of(context).logOut,
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .error,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .error,
+                                          size: 20,
+                                        ),
+                                      ],
                                     ),
-                                    const Spacer(),
-                                    Icon(
-                                      Icons.arrow_forward_ios,
-                                      color:
-                                          Theme.of(context).colorScheme.error,
-                                      size: 20,
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       ],
                     ),

@@ -317,16 +317,24 @@ class _CartScreen extends State<CartScreen> {
                                       Icons.add,
                                       size: 16,
                                     ),
-                                    onPressed: () {
-                                      cubit.updateQuantity(
-                                          item, item.quantity + 1);
-                                    },
+                                    onPressed: item.quantity < product.stock
+                                        ? () {
+                                            cubit.updateQuantity(
+                                                item, item.quantity + 1);
+                                          }
+                                        : null,
                                     padding: const EdgeInsets.all(4),
                                     constraints: const BoxConstraints(),
                                     style: IconButton.styleFrom(
-                                      foregroundColor: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
+                                      foregroundColor:
+                                          item.quantity < product.stock
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.3),
                                     ),
                                   ),
                                 ],

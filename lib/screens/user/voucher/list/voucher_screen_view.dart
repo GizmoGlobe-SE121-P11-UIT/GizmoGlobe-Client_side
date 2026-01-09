@@ -79,7 +79,7 @@ class _VoucherScreenState extends State<VoucherScreen>
             tabs: [
               Tab(text: S.of(context).ongoing),
               Tab(text: S.of(context).upcoming),
-              const Tab(text: 'Redeem'),
+              Tab(text: S.of(context).redeem),
             ],
           ),
         ),
@@ -97,7 +97,8 @@ class _VoucherScreenState extends State<VoucherScreen>
                         Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => VoucherScreen.newInstance()));
+                                builder: (context) =>
+                                    VoucherScreen.newInstance()));
                       },
                     ),
                   );
@@ -161,7 +162,8 @@ class _VoucherScreenState extends State<VoucherScreen>
                               final voucher = state.ongoingList[index];
                               return VoucherWidget(
                                 voucher: voucher,
-                                onPressed: () => _onVoucherTap(context, voucher),
+                                onPressed: () =>
+                                    _onVoucherTap(context, voucher),
                               );
                             },
                           ),
@@ -180,7 +182,8 @@ class _VoucherScreenState extends State<VoucherScreen>
                               final voucher = state.upcomingList[index];
                               return VoucherWidget(
                                 voucher: voucher,
-                                onPressed: () => _onVoucherTap(context, voucher),
+                                onPressed: () =>
+                                    _onVoucherTap(context, voucher),
                               );
                             },
                           ),
@@ -214,9 +217,11 @@ class _VoucherScreenState extends State<VoucherScreen>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'Loyal points',
+                                    S.of(context).loyalPoints,
                                     style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                     ),
@@ -225,7 +230,9 @@ class _VoucherScreenState extends State<VoucherScreen>
                                   Text(
                                     '${state.points}',
                                     style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                     ),
@@ -233,7 +240,8 @@ class _VoucherScreenState extends State<VoucherScreen>
                                   const SizedBox(width: 4),
                                   Icon(
                                     Icons.auto_awesome,
-                                    color: Theme.of(context).colorScheme.onPrimary,
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
                                     size: 16,
                                   ),
                                 ],
@@ -247,18 +255,20 @@ class _VoucherScreenState extends State<VoucherScreen>
                           child: state.redeemableList.isEmpty
                               ? Center(
                                   child: Text(
-                                    'No voucher to redeem',
+                                    S.of(context).noVoucherToRedeem,
                                     style: AppTextStyle.regularText,
                                   ),
                                 )
                               : ListView.builder(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
                                   itemCount: state.redeemableList.length,
                                   itemBuilder: (context, index) {
                                     final v = state.redeemableList[index];
                                     return RedeemableVoucherWidget(
                                       voucher: v,
-                                      onPressed: () => _onVoucherTap(context, v),
+                                      onPressed: () =>
+                                          _onVoucherTap(context, v),
                                       onRedeem: () => cubit.redeemVoucher(v),
                                     );
                                   },

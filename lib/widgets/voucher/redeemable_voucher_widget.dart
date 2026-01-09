@@ -147,7 +147,8 @@ class RedeemableVoucherWidget extends StatelessWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      'Redeem: ${voucher.redeemPrice}',
+                                      S.of(context).redeemWithPoints(
+                                          voucher.redeemPrice!),
                                       style:
                                           theme.textTheme.bodyMedium?.copyWith(
                                         color: colorScheme.onSurface,

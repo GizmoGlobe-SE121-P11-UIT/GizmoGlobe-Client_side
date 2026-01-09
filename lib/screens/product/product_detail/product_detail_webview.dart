@@ -730,6 +730,26 @@ class _ProductDetailScreenWebViewState
                                                               ),
                                                             ),
                                                             const SizedBox(
+                                                                width: 8),
+                                                            Text(
+                                                              '(${S.of(context).inStock}: ${state.product.stock})',
+                                                              style: TextStyle(
+                                                                color: state.product
+                                                                            .stock >
+                                                                        0
+                                                                    ? Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .onSurface
+                                                                        .withValues(
+                                                                            alpha:
+                                                                                0.6)
+                                                                    : Colors
+                                                                        .red,
+                                                                fontSize: 14,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
                                                                 width: 24),
                                                             Container(
                                                               decoration:
@@ -841,8 +861,13 @@ class _ProductDetailScreenWebViewState
                                                                       icon: Icons
                                                                           .add,
                                                                       onPressed:
-                                                                          () =>
-                                                                              cubit.incrementQuantity()),
+                                                                          () => cubit
+                                                                              .incrementQuantity(),
+                                                                      enabled: state
+                                                                              .quantity <
+                                                                          state
+                                                                              .product
+                                                                              .stock),
                                                                 ],
                                                               ),
                                                             ),
@@ -1217,6 +1242,23 @@ class _ProductDetailScreenWebViewState
                                                               FontWeight.w600,
                                                         ),
                                                       ),
+                                                      Text(
+                                                        '(${S.of(context).inStock}: ${state.product.stock})',
+                                                        style: TextStyle(
+                                                          color: state.product
+                                                                      .stock >
+                                                                  0
+                                                              ? Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .onSurface
+                                                                  .withValues(
+                                                                      alpha:
+                                                                          0.6)
+                                                              : Colors.red,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
                                                       Container(
                                                         decoration:
                                                             BoxDecoration(
@@ -1326,7 +1368,12 @@ class _ProductDetailScreenWebViewState
                                                                 icon: Icons.add,
                                                                 onPressed: () =>
                                                                     cubit
-                                                                        .incrementQuantity()),
+                                                                        .incrementQuantity(),
+                                                                enabled: state
+                                                                        .quantity <
+                                                                    state
+                                                                        .product
+                                                                        .stock),
                                                           ],
                                                         ),
                                                       ),
@@ -1756,13 +1803,19 @@ class _ProductDetailScreenWebViewState
   Widget _buildQuantityButton({
     required IconData icon,
     required VoidCallback onPressed,
+    bool enabled = true,
   }) {
     return SizedBox(
       width: 40,
       height: 40,
       child: IconButton(
-        icon: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
-        onPressed: onPressed,
+        icon: Icon(
+          icon,
+          color: enabled
+              ? Theme.of(context).colorScheme.onSurface
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+        ),
+        onPressed: enabled ? onPressed : null,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
         iconSize: 20,

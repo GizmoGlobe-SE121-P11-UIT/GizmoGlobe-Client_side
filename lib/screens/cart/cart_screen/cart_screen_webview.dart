@@ -16,6 +16,7 @@ import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_webview.dart';
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_cubit.dart';
 import 'package:gizmoglobe_client/components/general/web_header.dart';
+import 'package:gizmoglobe_client/widgets/dialog/confirmation_dialog.dart';
 
 import '../../../enums/processing/process_state_enum.dart';
 import '../../../enums/product_related/category_enum.dart';
@@ -599,14 +600,20 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                       ),
                     ),
                     InkWell(
-                      onTap: () =>
-                          cubit.updateQuantity(item, item.quantity + 1),
+                      onTap: item.quantity < item.product.stock
+                          ? () => cubit.updateQuantity(item, item.quantity + 1)
+                          : null,
                       child: Padding(
                         padding: const EdgeInsets.all(6),
                         child: Icon(
                           Icons.add,
                           size: 16,
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: item.quantity < item.product.stock
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.3),
                         ),
                       ),
                     ),
@@ -632,36 +639,16 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
   void _showDeleteDialog(CartItem item) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Text(
-          S.of(context).removeItem,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        content: Text(
-          S.of(context).removeItemConfirmation,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(S.of(context).cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              cubit.removeFromCart(item);
-            },
-            child: Text(
-              S.of(context).remove,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
+      builder: (context) => ConfirmationDialog(
+        title: S.of(context).removeItem,
+        content: S.of(context).removeItemConfirmation,
+        confirmText: S.of(context).remove,
+        cancelText: S.of(context).cancel,
+        onConfirm: () {
+          Navigator.pop(context);
+          cubit.removeFromCart(item);
+        },
+        onCancel: () => Navigator.pop(context),
       ),
     );
   }
@@ -832,17 +819,23 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.add, size: 20),
-                      onPressed: () {
-                        cubit.updateQuantity(item, item.quantity + 1);
-                      },
+                      onPressed: item.quantity < item.product.stock
+                          ? () {
+                              cubit.updateQuantity(item, item.quantity + 1);
+                            }
+                          : null,
                       padding: const EdgeInsets.all(8),
                       constraints: const BoxConstraints(
                         minWidth: 40,
                         minHeight: 40,
                       ),
                       style: IconButton.styleFrom(
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onSurface,
+                        foregroundColor: item.quantity < item.product.stock
+                            ? Theme.of(context).colorScheme.onSurface
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.3),
                       ),
                     ),
                   ],
@@ -1110,45 +1103,39 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
               ),
             ),
             const SizedBox(height: 16),
-            // Clear Cart Button
+            // Clear Cart / Delete Selected Button
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: state.items.isNotEmpty
                     ? () {
+                        final hasSelection = state.selectedCount > 0;
+                        final dialogTitle = hasSelection
+                            ? S.of(context).removeItem
+                            : S.of(context).clearCart;
+                        final dialogContent = hasSelection
+                            ? '${S.of(context).removeItemConfirmation} (${state.selectedCount})'
+                            : S.of(context).clearCartConfirmation;
+                        final confirmText = hasSelection
+                            ? S.of(context).remove
+                            : S.of(context).clearAll;
+
                         showDialog(
                           context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.surface,
-                            title: Text(
-                              S.of(context).clearCart,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            content: Text(
-                              S.of(context).clearCartConfirmation,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text(S.of(context).cancel),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  cubit.clearCart();
-                                },
-                                child: Text(
-                                  S.of(context).clearAll,
-                                  style: const TextStyle(color: Colors.red),
-                                ),
-                              ),
-                            ],
+                          builder: (context) => ConfirmationDialog(
+                            title: dialogTitle,
+                            content: dialogContent,
+                            confirmText: confirmText,
+                            cancelText: S.of(context).cancel,
+                            onConfirm: () {
+                              Navigator.pop(context);
+                              if (hasSelection) {
+                                cubit.deleteSelectedItems();
+                              } else {
+                                cubit.clearCart();
+                              }
+                            },
+                            onCancel: () => Navigator.pop(context),
                           ),
                         );
                       }
@@ -1168,7 +1155,9 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                   ),
                 ),
                 child: Text(
-                  S.of(context).clearCart,
+                  state.selectedCount > 0
+                      ? '${S.of(context).remove} (${state.selectedCount})'
+                      : S.of(context).clearCart,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

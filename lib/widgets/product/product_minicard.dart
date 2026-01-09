@@ -112,68 +112,89 @@ class ProductMiniCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmall = screenWidth < 400;
+    final isMobile = screenWidth < 600;
+    
+    // Responsive sizing - extra small for very narrow screens
+    final iconSize = isVerySmall ? 40.0 : (isMobile ? 48.0 : 72.0);
+    final iconRadius = isVerySmall ? 6.0 : (isMobile ? 8.0 : 12.0);
+    final cardPadding = isVerySmall ? 8.0 : (isMobile ? 12.0 : 16.0);
+    final spacing = isVerySmall ? 6.0 : (isMobile ? 8.0 : 12.0);
+    final iconInnerSize = isVerySmall ? 20.0 : (isMobile ? 24.0 : 36.0);
+    
     return InkWell(
       onTap: () => _openProductDetail(context),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
       child: Container(
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(isVerySmall ? 8 : (isMobile ? 12 : 16)),
           border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
           boxShadow: [
             BoxShadow(
               color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              blurRadius: isVerySmall ? 4 : (isMobile ? 8 : 12),
+              offset: Offset(0, isVerySmall ? 2 : (isMobile ? 4 : 6)),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(cardPadding),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 72,
-              height: 72,
+              width: iconSize,
+              height: iconSize,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(iconRadius),
                 color: colorScheme.surfaceContainerHighest,
               ),
               child: Icon(
                 _getCategoryIcon(),
-                size: 36,
+                size: iconInnerSize,
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: spacing),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     _name,
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: (isVerySmall
+                        ? theme.textTheme.bodyMedium
+                        : (isMobile 
+                            ? theme.textTheme.bodyLarge 
+                            : theme.textTheme.titleMedium))?.copyWith(
                       fontWeight: FontWeight.w600,
+                      fontSize: isVerySmall ? 13 : null,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: isVerySmall ? 3 : (isMobile ? 4 : 8)),
                   Row(
                     children: [
                       Flexible(
                         child: Text(
                           Helper.toCurrencyFormat(_discountedPrice),
-                          style: theme.textTheme.titleLarge?.copyWith(
+                          style: (isVerySmall
+                              ? theme.textTheme.titleSmall
+                              : (isMobile
+                                  ? theme.textTheme.titleMedium
+                                  : theme.textTheme.titleLarge))?.copyWith(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.bold,
+                            fontSize: isVerySmall ? 14 : null,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (_sellingPrice != null &&
                           _sellingPrice! > _discountedPrice) ...[
-                        const SizedBox(width: 8),
+                        SizedBox(width: isVerySmall ? 3 : (isMobile ? 4 : 8)),
                         Flexible(
                           child: Text(
                             Helper.toCurrencyFormat(_sellingPrice!),
@@ -181,6 +202,7 @@ class ProductMiniCard extends StatelessWidget {
                               decoration: TextDecoration.lineThrough,
                               color:
                                   colorScheme.onSurface.withValues(alpha: 0.6),
+                              fontSize: isVerySmall ? 9 : (isMobile ? 10 : null),
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),

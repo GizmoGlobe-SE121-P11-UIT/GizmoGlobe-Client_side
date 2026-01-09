@@ -62,7 +62,6 @@ dependencies:
     sdk: flutter
   speech_to_text: ^7.0.0
   cached_network_image: ^3.3.1
-  awesome_snackbar_content: ^0.1.8
   web: ^1.1.1
   video_player: ^2.5.1
   printing: ^5.12.0
@@ -70,6 +69,7 @@ dependencies:
     git:
       url: https://github.com/quocbao238/flutter_profanity_words_checker
       ref: 1.0.0
+  top_snackbar_flutter: ^3.3.0
 
 dev_dependencies:
   flutter_test:

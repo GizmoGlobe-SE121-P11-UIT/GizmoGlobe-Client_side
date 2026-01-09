@@ -70,6 +70,12 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
     final sanitizedContent = _stripProductCardMarkup(content);
     final List<InlineSpan> spans = [];
     int lastIndex = 0;
+    
+    // Responsive font size - smaller for very narrow screens
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmall = screenWidth < 400;
+    final isMobile = screenWidth < 600;
+    final fontSize = isVerySmall ? 13.0 : (isMobile ? 14.0 : 16.0);
 
     for (final match in _productLinkRegex.allMatches(sanitizedContent)) {
       // Thêm text trước link nếu có
@@ -77,7 +83,7 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
         spans.add(TextSpan(
           text: sanitizedContent.substring(lastIndex, match.start),
           style: TextStyle(
-            fontSize: 16,
+            fontSize: fontSize,
             color: textColor,
           ),
         ));
@@ -89,7 +95,7 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
         TextSpan(
           text: productName,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: fontSize,
             color: textColor,
           ),
         ),
@@ -103,7 +109,7 @@ class _ChatScreenWebViewState extends State<ChatScreenWebView> {
       spans.add(TextSpan(
         text: sanitizedContent.substring(lastIndex),
         style: TextStyle(
-          fontSize: 16,
+          fontSize: fontSize,
           color: textColor,
         ),
       ));
