@@ -102,8 +102,28 @@ class AIUtils {
   /// Detect if message is about favorites
   bool isFavoriteQuestion(String message) {
     final favoriteKeywords = {
-      'en': ['favorite', 'favourite', 'like', 'save', 'bookmark', 'wishlist'],
-      'vi': ['yêu thích', 'thích', 'lưu', 'đánh dấu', 'wishlist']
+      'en': [
+        'favorite',
+        'favourite',
+        'like',
+        'save',
+        'bookmark',
+        'wishlist',
+        'saved products',
+        'liked products'
+      ],
+      'vi': [
+        'yêu thích',
+        'thích',
+        'lưu',
+        'đánh dấu',
+        'wishlist',
+        'đã lưu',
+        'sản phẩm yêu thích',
+        'sản phẩm đã lưu',
+        'tìm yêu thích',
+        'danh sách yêu thích'
+      ]
     };
 
     final isVietnameseText = isVietnamese(message);
@@ -129,7 +149,8 @@ class AIUtils {
         'quantity',
         'count',
         'total items',
-        'items count'
+        'items count',
+        'cart contents'
       ],
       'vi': [
         'giỏ hàng',
@@ -145,7 +166,11 @@ class AIUtils {
         'số lượng',
         'đếm',
         'tổng sản phẩm',
-        'số sản phẩm'
+        'số sản phẩm',
+        'trong giỏ',
+        'tìm giỏ hàng',
+        'đã thêm vào giỏ',
+        'có gì trong giỏ'
       ]
     };
 

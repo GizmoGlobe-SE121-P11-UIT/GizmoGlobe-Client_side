@@ -90,12 +90,29 @@ LOẠI CÂU HỎI:
    - "i7 12700 giá bao nhiêu?" → đây là STOCK_PRICE ✗
    
 10. CART_FAVORITES - Giỏ hàng, yêu thích
+    ⚠️ KEYWORDS: "giỏ hàng", "giỏ", "cart", "yêu thích", "favorites", "wishlist", "đã lưu", "đã thêm"
     ⚠️ ENTITIES: Extract "section" = "favorites" or "cart"
-    Ví dụ: 
+    Ví dụ GIỎ HÀNG (section: "cart"):
     - "Trong giỏ hàng tôi có gì?" → section: "cart"
+    - "Xem giỏ hàng của tôi" → section: "cart"
+    - "Giỏ hàng của tôi có những gì?" → section: "cart"
+    - "Hiển thị giỏ hàng" → section: "cart"
+    - "Xem giỏ" → section: "cart"
+    - "Tôi đã thêm gì vào giỏ?" → section: "cart"
+    - "Sản phẩm trong giỏ hàng" → section: "cart"
+    - "Show my cart" → section: "cart"
+    - "What's in my cart?" → section: "cart"
+    
+    Ví dụ YÊU THÍCH (section: "favorites"):
     - "Danh sách yêu thích?" → section: "favorites"
     - "Sản phẩm đã lưu?" → section: "favorites"
-    - "tìm các sản phẩm yêu thích của tôi" → section: "favorites"
+    - "Tìm các sản phẩm yêu thích của tôi" → section: "favorites"
+    - "Xem sản phẩm yêu thích" → section: "favorites"
+    - "Tôi đã lưu những gì?" → section: "favorites"
+    - "Hiển thị danh sách yêu thích" → section: "favorites"
+    - "Sản phẩm tôi thích" → section: "favorites"
+    - "Show my favorites" → section: "favorites"
+    - "My wishlist" → section: "favorites"
    
 11. GENERAL - Câu hỏi chung
      Ví dụ: "Cảm ơn", "Xin chào", "Bạn giúp gì được tôi?"
@@ -168,7 +185,26 @@ QUESTION TYPES:
     ⚠️ NOTE: Must have SPECIFIC PRODUCT NAME + ASK ABOUT TECH SPEC (socket, GB, cores, wattage...)
     
 10. CART_FAVORITES - Cart, favorites
-    Examples: "What's in my cart?", "My favorites?", "Saved products?"
+    ⚠️ KEYWORDS: "cart", "shopping cart", "favorites", "wishlist", "saved", "liked"
+    ⚠️ ENTITIES: Extract "section" = "favorites" or "cart"
+    Examples for CART (section: "cart"):
+    - "What's in my cart?" → section: "cart"
+    - "Show my cart" → section: "cart"
+    - "View my shopping cart" → section: "cart"
+    - "Display cart" → section: "cart"
+    - "What did I add to cart?" → section: "cart"
+    - "Cart items" → section: "cart"
+    - "My cart contents" → section: "cart"
+    
+    Examples for FAVORITES (section: "favorites"):
+    - "My favorites?" → section: "favorites"
+    - "Saved products?" → section: "favorites"
+    - "Show my wishlist" → section: "favorites"
+    - "View my favorites" → section: "favorites"
+    - "What did I save?" → section: "favorites"
+    - "Display favorites" → section: "favorites"
+    - "Products I liked" → section: "favorites"
+    - "My wishlist items" → section: "favorites"
     
 11. GENERAL - General questions
      Examples: "Thank you", "Hello", "How can you help me?"
@@ -303,6 +339,31 @@ Analyze and respond in EXACT JSON format (NO ```json, NO explanation):
         type: QuestionType.buildSuggestion,
         confidence: 0.7,
         entities: {},
+      );
+    }
+
+    // Cart patterns
+    if (lower.contains('giỏ hàng') ||
+        lower.contains('giỏ') ||
+        lower.contains('cart') ||
+        lower.contains('shopping cart')) {
+      return QuestionClassification(
+        type: QuestionType.cartFavorites,
+        confidence: 0.7,
+        entities: {'section': 'cart'},
+      );
+    }
+
+    // Favorites patterns
+    if (lower.contains('yêu thích') ||
+        lower.contains('đã lưu') ||
+        lower.contains('favorites') ||
+        lower.contains('wishlist') ||
+        lower.contains('saved')) {
+      return QuestionClassification(
+        type: QuestionType.cartFavorites,
+        confidence: 0.7,
+        entities: {'section': 'favorites'},
       );
     }
 
