@@ -59,6 +59,10 @@ class VoucherScreenCubit extends Cubit<VoucherScreenState> {
   }
 
   Future<void> initialize() async {
+    // Load vouchers from Firebase first
+    await Database().updateVoucherLists();
+
+    // Then reload voucher lists into state
     reloadVoucher();
     setPoints(Database().loyalPoint);
   }

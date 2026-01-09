@@ -134,30 +134,28 @@ class _AddressScreenWebViewState extends State<AddressScreenWebView> {
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-                      // Only show header button when there are addresses
-                      // (empty state has its own button)
-                      if (state.addressList.isNotEmpty)
-                        ElevatedButton.icon(
-                          onPressed: () async {
-                            final result = await openAddAddressFlow(context);
-                            if (result != null) {
-                              cubit.addAddress(result);
-                            }
-                          },
-                          icon: const Icon(Icons.add),
-                          label: Text(S.of(context).addAddress),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            foregroundColor:
-                                Theme.of(context).colorScheme.onPrimary,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                      // Always show add button in header
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final result = await openAddAddressFlow(context);
+                          if (result != null) {
+                            cubit.addAddress(result);
+                          }
+                        },
+                        icon: const Icon(Icons.add),
+                        label: Text(S.of(context).addAddress),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ),
