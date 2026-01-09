@@ -305,7 +305,6 @@ class AIUtils {
         'order this',
         'get this',
         'add',
-        'cart',
         'buy',
         'purchase',
         'put in',
@@ -326,8 +325,6 @@ class AIUtils {
         'đặt hàng cái này',
         'lấy cái này',
         'thêm',
-        'giỏ hàng',
-        'yêu thích',
         'mua',
         'đặt hàng',
         'lấy',
@@ -344,6 +341,30 @@ class AIUtils {
     final hasKeyword =
         keywords.any((keyword) => lowerMessage.contains(keyword.toLowerCase()));
 
+    // If explicit add keyword found, it's definitely an add request
+    if (hasKeyword) return true;
+
+    // Check for view/show keywords - if present, NOT an add request
+    final viewKeywords = [
+      'xem',
+      'view',
+      'show',
+      'display',
+      'hiển thị',
+      'trong',
+      'in',
+      'what',
+      'gì',
+      'những gì',
+      'my',
+      'của tôi',
+    ];
+    final hasViewKeyword =
+        viewKeywords.any((keyword) => lowerMessage.contains(keyword));
+
+    if (hasViewKeyword) return false;
+
+    // Fallback: check for product + action combination
     final productTerms = [
       'cpu',
       'gpu',
@@ -377,7 +398,7 @@ class AIUtils {
     final hasActionTerm =
         actionTerms.any((term) => lowerMessage.contains(term.toLowerCase()));
 
-    return hasKeyword || (hasProductTerm && hasActionTerm);
+    return hasProductTerm && hasActionTerm;
   }
 
   /// Detect if action is specifically for favorites (vs cart)
