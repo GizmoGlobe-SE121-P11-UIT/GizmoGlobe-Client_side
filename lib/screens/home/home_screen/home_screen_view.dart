@@ -18,6 +18,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../product/product_screen/product_screen_view.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import 'package:gizmoglobe_client/components/general/web_product_card.dart';
+import 'package:gizmoglobe_client/enums/processing/sort_enum.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -153,7 +154,9 @@ class _HomeScreen extends State<HomeScreen> {
                                         builder: (context) =>
                                             ProductScreen.newInstance(
                                                 initialProducts:
-                                                    state.favoriteProducts)));
+                                                    state.bestSellerProducts,
+                                                initialSortOption:
+                                                    SortEnum.salesHighest)));
                               },
                               length: 4,
                             ),
@@ -163,7 +166,13 @@ class _HomeScreen extends State<HomeScreen> {
                                 title: S.of(context).favorites,
                                 products: state.favoriteProducts,
                                 onSeeAll: () {
-                                  Navigator.pushNamed(context, '/products');
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ProductScreen.newInstance(
+                                                  initialProducts:
+                                                      state.favoriteProducts)));
                                 },
                                 length: 4,
                               ),
@@ -172,7 +181,13 @@ class _HomeScreen extends State<HomeScreen> {
                               title: S.of(context).recommendedForYou,
                               products: state.recommendedProducts,
                               onSeeAll: () {
-                                Navigator.pushNamed(context, '/products');
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            ProductScreen.newInstance(
+                                                initialProducts: state
+                                                    .recommendedProducts)));
                               },
                               length: 20,
                             ),

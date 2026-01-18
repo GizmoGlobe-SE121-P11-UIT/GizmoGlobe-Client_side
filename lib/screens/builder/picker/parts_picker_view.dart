@@ -12,6 +12,8 @@ import 'package:gizmoglobe_client/screens/builder/picker/parts_picker_webview.da
 import 'package:gizmoglobe_client/enums/processing/process_state_enum.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/services/recommendation/find_compatible.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 
 import '../../../widgets/general/field_with_icon.dart';
 
@@ -75,12 +77,21 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_getCategoryLabel(widget.category)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: GradientIconButton(
+          icon: Icons.chevron_left,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          fillColor: Colors.transparent,
+        ),
+        title: GradientText(text: _getCategoryLabel(widget.category)),
         actions: [
           if (widget.allowMultipleSelection)
             BlocBuilder<PartsPickerCubit, PartsPickerState>(
               buildWhen: (p, c) =>
-              p.selectedProducts.length != c.selectedProducts.length,
+                  p.selectedProducts.length != c.selectedProducts.length,
               builder: (context, state) {
                 return TextButton(
                   onPressed: state.selectedProducts.isNotEmpty
@@ -90,11 +101,11 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
                     S.of(context).clearAll,
                     style: TextStyle(
                       color: state.selectedProducts.isNotEmpty
-                          ? Theme.of(context).colorScheme.onPrimary
+                          ? Theme.of(context).colorScheme.primary
                           : Theme.of(context)
-                          .colorScheme
-                          .onPrimary
-                          .withValues(alpha: 0.5),
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.5),
                     ),
                   ),
                 );
@@ -123,36 +134,40 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
               child: Text(
                 S.of(context).noProductsFound,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.7),
-                ),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7),
+                    ),
               ),
             );
           }
 
           return Column(
             children: [
-              FieldWithIcon(
-                height: 40,
-                controller: searchController,
-                focusNode: searchFocusNode,
-                hintText: S.of(context).findYourItem,
-                fillColor: Theme.of(context).colorScheme.surface,
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: FieldWithIcon(
+                  height: 40,
+                  controller: searchController,
+                  focusNode: searchFocusNode,
+                  hintText: S.of(context).findYourItem,
+                  fillColor: Theme.of(context).colorScheme.surface,
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
+                  ),
+                  onChanged: (value) {
+                    cubit.updateSearchText(searchController.text);
+                  },
+                  onSubmitted: (value) {
+                    searchFocusNode.unfocus();
+                  },
                 ),
-                onChanged: (value) {
-                  cubit.updateSearchText(searchController.text);
-                },
-                onSubmitted: (value) {
-                  searchFocusNode.unfocus();
-                },
               ),
               Expanded(
                 child: GridView.builder(
@@ -233,8 +248,8 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
           Text(
             S.of(context).itemsCount(state.selectedProducts.length),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           Row(
             children: [
@@ -248,9 +263,9 @@ class _PartsPickerScreenState extends State<PartsPickerScreen> {
               ElevatedButton(
                 onPressed: state.selectedProducts.isNotEmpty
                     ? () {
-                  widget.onProductsSelected(state.selectedProducts);
-                  Navigator.of(context).pop();
-                }
+                        widget.onProductsSelected(state.selectedProducts);
+                        Navigator.of(context).pop();
+                      }
                     : null,
                 child: Text(S.of(context).confirm),
               ),
@@ -310,15 +325,57 @@ class _MobileProductCard extends StatelessWidget {
                     ),
                     child: product.productID != null
                         ? FutureBuilder<ProductImage?>(
-                      future: Firebase()
-                          .getProductPrimaryImage(product.productID!),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting ||
-                            !snapshot.hasData ||
-                            snapshot.data == null ||
-                            snapshot.data!.url.isEmpty) {
-                          return Container(
+                            future: Firebase()
+                                .getProductPrimaryImage(product.productID!),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                      ConnectionState.waiting ||
+                                  !snapshot.hasData ||
+                                  snapshot.data == null ||
+                                  snapshot.data!.url.isEmpty) {
+                                return Container(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest
+                                      .withValues(alpha: 0.4),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.memory,
+                                      size: 42,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.4),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return Image.network(
+                                snapshot.data!.url,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest
+                                        .withValues(alpha: 0.4),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.memory,
+                                        size: 42,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.4),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          )
+                        : Container(
                             color: Theme.of(context)
                                 .colorScheme
                                 .surfaceContainerHighest
@@ -333,54 +390,12 @@ class _MobileProductCard extends StatelessWidget {
                                     .withValues(alpha: 0.4),
                               ),
                             ),
-                          );
-                        }
-                        return Image.network(
-                          snapshot.data!.url,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest
-                                  .withValues(alpha: 0.4),
-                              child: Center(
-                                child: Icon(
-                                  Icons.memory,
-                                  size: 42,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.4),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    )
-                        : Container(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
-                          .withValues(alpha: 0.4),
-                      child: Center(
-                        child: Icon(
-                          Icons.memory,
-                          size: 42,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.4),
-                        ),
-                      ),
-                    ),
+                          ),
                   ),
                 ),
                 Padding(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -389,18 +404,18 @@ class _MobileProductCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         Helper.toCurrencyFormat(
                             product.discountedPrice.toInt()),
                         style:
-                        Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                     ],
                   ),
@@ -418,9 +433,9 @@ class _MobileProductCard extends StatelessWidget {
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary
                         : Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: 0.85),
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.85),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

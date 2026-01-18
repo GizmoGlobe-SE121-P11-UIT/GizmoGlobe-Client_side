@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
 import 'package:gizmoglobe_client/enums/processing/dialog_name_enum.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'survey_screen_cubit.dart';
 import 'survey_screen_state.dart';
 
@@ -41,7 +43,16 @@ class _SurveyScaffoldState extends State<_SurveyScaffold> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.of(context).surveyTitle),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: GradientIconButton(
+          icon: Icons.chevron_left,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          fillColor: Colors.transparent,
+        ),
+        title: GradientText(text: S.of(context).surveyTitle),
       ),
       body: BlocConsumer<SurveyScreenCubit, SurveyScreenState>(
         listener: (context, state) {

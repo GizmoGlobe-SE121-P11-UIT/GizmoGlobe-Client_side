@@ -14,6 +14,7 @@ import '../../../providers/theme_provider.dart';
 import '../../../widgets/avatar_picker.dart';
 import '../../../widgets/dialog/information_dialog.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
+import '../../../components/general/snackbar_service.dart';
 import '../../authentication/sign_in_screen/sign_in_view.dart';
 import '../../authentication/sign_up_screen/sign_up_view.dart';
 import '../../user/voucher/list/voucher_screen_view.dart';
@@ -349,40 +350,71 @@ class _UserScreen extends State<UserScreen> {
                         () async {
                           final User? user = FirebaseAuth.instance.currentUser;
                           if (user != null) {
-                            await FirebaseAuth.instance
-                                .sendPasswordResetEmail(email: user.email!);
-                            if (mounted) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text(
-                                    S.of(context).passwordResetEmailSent,
-                                    style: TextStyle(
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                            // Show loading dialog
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => Center(
+                                child: Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        Theme.of(context).colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
-                                  content: Text(
-                                    S
-                                        .of(context)
-                                        .passwordResetEmailContent(user.email!),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text(
-                                        S.of(context).ok,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircularProgressIndicator(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        S.of(context).loading,
                                         style: TextStyle(
                                           color: Theme.of(context)
                                               .colorScheme
-                                              .primary,
+                                              .onSurface,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              );
+                              ),
+                            );
+
+                            try {
+                              await FirebaseAuth.instance
+                                  .sendPasswordResetEmail(email: user.email!);
+
+                              if (mounted) {
+                                // Close loading dialog
+                                Navigator.pop(context);
+
+                                // Show success snackbar
+                                SnackbarService.showSuccess(
+                                  context,
+                                  title: S.of(context).success,
+                                  message: S.of(context).passwordResetEmailSent,
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                // Close loading dialog
+                                Navigator.pop(context);
+
+                                // Show error dialog
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => InformationDialog(
+                                    dialogName: DialogName.failure,
+                                    title: S.of(context).error,
+                                    content: e.toString(),
+                                  ),
+                                );
+                              }
                             }
                           }
                         },

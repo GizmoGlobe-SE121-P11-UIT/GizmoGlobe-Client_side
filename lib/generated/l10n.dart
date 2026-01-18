@@ -173,6 +173,10 @@ class S {
         'Bank transfer (VietQR)',
         name: 'sepayDescription',
       );
+  String get sepayNotAvailableForFreeOrder => Intl.message(
+        'Not available for free orders',
+        name: 'sepayNotAvailableForFreeOrder',
+      );
   String get sepayScanInstructionsTitle => Intl.message(
         'Scan QR code to pay',
         name: 'sepayScanInstructionsTitle',
@@ -216,6 +220,19 @@ class S {
         name: 'sepayPaymentInitFailed',
       );
   String get sepayGoBack => Intl.message('Go Back', name: 'sepayGoBack');
+  String get sepayCancelPayment =>
+      Intl.message('Cancel Payment', name: 'sepayCancelPayment');
+  String get sepayCancelPaymentConfirmation => Intl.message(
+      'Are you sure you want to cancel? Payment will not be processed.',
+      name: 'sepayCancelPaymentConfirmation');
+  String sepayTransferContentNote(String orderId) => Intl.message(
+      'Note: The transfer content must include "Order {orderId}" for the system to automatically confirm payment.',
+      name: 'sepayTransferContentNote',
+      args: [orderId],
+      meaning: 'Note about transfer content requirement');
+  String get orderPrefix => Intl.message('Order', name: 'orderPrefix');
+  String get no => Intl.message('No', name: 'no');
+  String get yes => Intl.message('Yes', name: 'yes');
   String get stripe => Intl.message('Stripe', name: 'stripe');
   String get stripeDescription =>
       Intl.message('Credit/Debit card payment', name: 'stripeDescription');
@@ -845,6 +862,16 @@ class S {
         'Take a Picture',
         name: 'takeAPicture',
       );
+  String get accessDenied =>
+      Intl.message('Access Denied', name: 'accessDenied');
+  String accessDeniedMessage(String feature) => Intl.message(
+      'You need to grant {feature} access to use this feature.',
+      name: 'accessDeniedMessage',
+      args: [feature],
+      meaning: 'Permission denied message');
+  String get openSettings =>
+      Intl.message('Open Settings', name: 'openSettings');
+  String get close => Intl.message('Close', name: 'close');
   String get chooseVoucher => Intl.message(
         'Choose Voucher',
         name: 'chooseVoucher',

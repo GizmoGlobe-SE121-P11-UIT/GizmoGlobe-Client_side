@@ -10,6 +10,7 @@ import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_
 import 'package:gizmoglobe_client/screens/authentication/sign_in_screen/sign_in_cubit.dart';
 
 import '../../../objects/address_related/address.dart';
+import '../../../widgets/dialog/confirmation_dialog.dart';
 import '../add_address_screen/add_address_screen_view.dart';
 import '../edit_address_screen/edit_address_screen_view.dart';
 import '../edit_address_screen/edit_address_modal_webview.dart';
@@ -400,36 +401,17 @@ class _AddressScreenWebViewState extends State<AddressScreenWebView> {
   void _showDeleteConfirmation(Address address) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Text(
-          S.of(context).deleteAddress,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        content: Text(
-          S.of(context).deleteAddressConfirmation,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(S.of(context).cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              cubit.deleteAddress(address);
-            },
-            child: Text(
-              S.of(context).delete,
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
+      builder: (context) => ConfirmationDialog(
+        title: S.of(context).deleteAddress,
+        content: S.of(context).deleteAddressConfirmation,
+        cancelText: S.of(context).cancel,
+        confirmText: S.of(context).delete,
+        onCancel: () => Navigator.pop(context),
+        onConfirm: () {
+          Navigator.pop(context);
+          cubit.deleteAddress(address);
+        },
+        confirmFontColor: Colors.red,
       ),
     );
   }

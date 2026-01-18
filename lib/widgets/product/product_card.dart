@@ -29,24 +29,34 @@ class _ProductCardState extends State<ProductCard> {
     super.initState();
     if (widget.product.productID != null) {
       _fetchAggregatedRating();
-    }
+    } else {}
   }
 
   Future<void> _fetchAggregatedRating() async {
     if (widget.product.productID == null) return;
 
-    try {
-      final aggregated = await Firebase()
-          .getAggregatedProductRating(widget.product.productID!);
+    // Store productID to verify we're still showing the same product
+    final productID = widget.product.productID!;
 
-      if (aggregated != null && mounted) {
+    try {
+      final aggregated = await Firebase().getAggregatedProductRating(productID);
+
+      // Verify we're still showing the same product before updating
+      if (aggregated != null &&
+          mounted &&
+          widget.product.productID == productID) {
         final avgRating = (aggregated['avgRating'] as num?)?.toDouble() ?? 0.0;
         final ratingCount = (aggregated['ratingCount'] as num?)?.toInt() ?? 0;
+
+        // Debug: Log the fetched data
+
         widget.product.setAggregatedRating(avgRating, ratingCount);
         if (mounted) setState(() {});
+      } else if (aggregated == null) {
+        // Log when rating data is not found
       }
     } catch (e) {
-      // Silently fail - will show 0.0 rating
+      // Log error but don't crash - will show 0.0 rating
     }
   }
 
@@ -289,6 +299,7 @@ class _ProductCardState extends State<ProductCard> {
   Widget _buildRatingSection() {
     final double? rating = widget.product.rating;
     final int? ratingCount = widget.product.ratingCount;
+
     final String ratingText =
         (rating != null && rating > 0) ? rating.toStringAsFixed(1) : '0.0';
     final String countText = '(${ratingCount ?? 0})';

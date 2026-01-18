@@ -280,6 +280,10 @@ class SVI extends S {
   String get sepayDescription => 'Chuyển khoản ngân hàng VietQR';
 
   @override
+  String get sepayNotAvailableForFreeOrder =>
+      'Không khả dụng cho đơn hàng miễn phí';
+
+  @override
   String get sepayScanInstructionsTitle => 'Quét mã QR để thanh toán';
 
   @override
@@ -326,6 +330,26 @@ class SVI extends S {
 
   @override
   String get sepayGoBack => 'Quay lại';
+
+  @override
+  String get sepayCancelPayment => 'Hủy thanh toán';
+
+  @override
+  String get sepayCancelPaymentConfirmation =>
+      'Bạn có chắc chắn muốn hủy? Thanh toán sẽ không được xử lý.';
+
+  @override
+  String sepayTransferContentNote(String orderId) =>
+      'Lưu ý: Nội dung chuyển khoản phải có "Order $orderId" để hệ thống tự động xác nhận thanh toán.';
+
+  @override
+  String get orderPrefix => 'Order';
+
+  @override
+  String get no => 'Không';
+
+  @override
+  String get yes => 'Có';
 
   @override
   String get stripe => 'Stripe';
@@ -1219,6 +1243,16 @@ class SVI extends S {
 
   @override
   String get takeAPicture => 'Chụp ảnh mới';
+
+  @override
+  String get accessDenied => 'Truy cập bị từ chối';
+
+  @override
+  String accessDeniedMessage(String feature) =>
+      'Bạn cần cấp quyền $feature để sử dụng tính năng này.';
+
+  @override
+  String get openSettings => 'Mở Cài đặt';
 
   @override
   String get chooseVoucher => 'Chọn voucher';

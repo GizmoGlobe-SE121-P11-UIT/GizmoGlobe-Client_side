@@ -11,6 +11,7 @@ import '../../../enums/product_related/category_enum.dart';
 import '../../../functions/helper.dart';
 import '../../../widgets/general/gradient_icon_button.dart';
 import '../../../widgets/general/gradient_text.dart';
+import '../../../widgets/dialog/confirmation_dialog.dart';
 import 'cart_screen_cubit.dart';
 import 'cart_screen_state.dart';
 import 'cart_screen_webview.dart';
@@ -350,36 +351,17 @@ class _CartScreen extends State<CartScreen> {
                               onPressed: () {
                                 showDialog(
                                   context: context,
-                                  builder: (context) => AlertDialog(
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.surface,
-                                    title: Text(
-                                      S.of(context).removeItem,
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                    content: Text(
-                                      S.of(context).removeItemConfirmation,
-                                      style: const TextStyle(
-                                          color: Colors.white70),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text(S.of(context).cancel),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          cubit.removeFromCart(item);
-                                        },
-                                        child: Text(
-                                          S.of(context).remove,
-                                          style: const TextStyle(
-                                              color: Colors.red),
-                                        ),
-                                      ),
-                                    ],
+                                  builder: (context) => ConfirmationDialog(
+                                    title: S.of(context).removeItem,
+                                    content: S.of(context).removeItemConfirmation,
+                                    cancelText: S.of(context).cancel,
+                                    confirmText: S.of(context).remove,
+                                    onCancel: () => Navigator.pop(context),
+                                    onConfirm: () {
+                                      Navigator.pop(context);
+                                      cubit.removeFromCart(item);
+                                    },
+                                    confirmFontColor: Colors.red,
                                   ),
                                 );
                               },

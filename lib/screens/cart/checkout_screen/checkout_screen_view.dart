@@ -106,7 +106,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                     description: 'Order ${state.salesInvoice!.salesInvoiceID}',
                   ),
                 ),
-              ).then((paymentSuccess) {
+              ).then((paymentSuccess) async {
                 _hasNavigatedToSePay = false;
                 // Payment screen returned - check if payment was successful
                 if (paymentSuccess == true) {
@@ -114,8 +114,52 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                   final currentState = cubit.state;
                   if (currentState.salesInvoice != null &&
                       currentState.salesInvoice!.salesInvoiceID != null) {
-                    cubit.completeSePayPayment(
+                    // Show loading dialog
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                S.of(context).loading,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+
+                    // Complete payment
+                    await cubit.completeSePayPayment(
                         currentState.salesInvoice!.salesInvoiceID!);
+
+                    // Close loading dialog
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
+                  }
+                } else if (paymentSuccess == false) {
+                  // Payment was cancelled - navigate back to cart screen
+                  // Cart has already been restored in handleDismissal()
+                  if (mounted) {
+                    Navigator.pop(
+                        context); // Pop checkout screen to return to cart
                   }
                 }
               });
@@ -793,9 +837,10 @@ class _CheckoutScreen extends State<CheckoutScreen> {
         bloc: cubit,
         builder: (context, currentState) {
           // Recalculate in case the state changes
-          final bool currentStripeDisabled =
-              (currentState.salesInvoice?.totalPrice ?? 0) <
-                  stripeMinimumAmount;
+          final totalPrice = currentState.salesInvoice?.totalPrice ?? 0;
+          final bool isFreeOrder = totalPrice == 0;
+          final bool currentStripeDisabled = totalPrice < stripeMinimumAmount;
+          final bool currentSePayDisabled = isFreeOrder;
 
           return Container(
             decoration: BoxDecoration(
@@ -861,14 +906,19 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                         selectedMethod: currentState.selectedPaymentMethod,
                         method: PaymentMethod.sepay,
                         title: S.of(context).sepay,
-                        description: S.of(context).sepayDescription,
+                        description: currentSePayDisabled
+                            ? S.of(context).sepayNotAvailableForFreeOrder
+                            : S.of(context).sepayDescription,
                         icon: Icons.account_balance,
                         isSelected: currentState.selectedPaymentMethod ==
                             PaymentMethod.sepay,
                         onTap: () {
-                          cubit.updatePaymentMethod(PaymentMethod.sepay);
-                          Navigator.pop(context);
+                          if (!currentSePayDisabled) {
+                            cubit.updatePaymentMethod(PaymentMethod.sepay);
+                            Navigator.pop(context);
+                          }
                         },
+                        isDisabled: currentSePayDisabled,
                       ),
                       const SizedBox(height: 12),
                       _buildPaymentMethodOptionMobile(

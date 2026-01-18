@@ -5,6 +5,7 @@ import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_cubit.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/list/voucher_screen_state.dart';
 import 'package:gizmoglobe_client/screens/user/voucher/voucher_detail/voucher_detail_view.dart';
+import 'package:gizmoglobe_client/widgets/general/gradient_icon_button.dart';
 import 'package:gizmoglobe_client/widgets/general/gradient_text.dart';
 import 'package:gizmoglobe_client/widgets/voucher/redeemable_voucher_widget.dart';
 import 'voucher_screen_webview.dart';
@@ -65,7 +66,15 @@ class _VoucherScreenState extends State<VoucherScreen>
       },
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.transparent,
           elevation: 0,
+          leading: GradientIconButton(
+            icon: Icons.chevron_left,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            fillColor: Colors.transparent,
+          ),
           title: GradientText(text: S.of(context).voucher),
           bottom: TabBar(
             controller: tabController,
@@ -219,9 +228,8 @@ class _VoucherScreenState extends State<VoucherScreen>
                                   Text(
                                     S.of(context).loyalPoints,
                                     style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                     ),
@@ -230,9 +238,8 @@ class _VoucherScreenState extends State<VoucherScreen>
                                   Text(
                                     '${state.points}',
                                     style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                     ),

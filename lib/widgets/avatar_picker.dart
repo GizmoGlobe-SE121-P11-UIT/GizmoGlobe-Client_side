@@ -8,6 +8,7 @@ import '../enums/processing/dialog_name_enum.dart';
 import '../generated/l10n.dart';
 import '../services/storage_service.dart';
 import 'dialog/information_dialog.dart';
+import 'dialog/confirmation_dialog.dart';
 
 class AvatarPicker extends StatefulWidget {
   final String userId;
@@ -138,23 +139,16 @@ class AvatarPickerState extends State<AvatarPicker> {
   void _showPermissionDeniedDialog(String feature) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Access Denied'),
-        content: Text(
-            'You need to grant $feature access to use this feature.'), // 'Bạn cần cấp quyền $feature để sử dụng tính năng này.'
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'), // Đóng
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              openAppSettings();
-            },
-            child: const Text('Open Settings'), // 'Mở Cài đặt'
-          ),
-        ],
+      builder: (context) => ConfirmationDialog(
+        title: S.of(context).accessDenied,
+        content: S.of(context).accessDeniedMessage(feature),
+        cancelText: S.of(context).close,
+        confirmText: S.of(context).openSettings,
+        onCancel: () => Navigator.pop(context),
+        onConfirm: () {
+          Navigator.pop(context);
+          openAppSettings();
+        },
       ),
     );
   }

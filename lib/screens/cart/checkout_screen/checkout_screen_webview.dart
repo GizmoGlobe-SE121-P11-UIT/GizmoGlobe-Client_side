@@ -223,8 +223,47 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                         final currentState = cubit.state;
                         if (currentState.salesInvoice != null &&
                             currentState.salesInvoice!.salesInvoiceID != null) {
-                          cubit.completeSePayPayment(
+                          // Show loading dialog
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircularProgressIndicator(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Processing order...',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+
+                          // Complete payment
+                          await cubit.completeSePayPayment(
                               currentState.salesInvoice!.salesInvoiceID!);
+
+                          // Close loading dialog
+                          if (mounted) {
+                            Navigator.pop(context);
+                          }
                         }
                       } else {
                         if (mounted) {
@@ -996,8 +1035,10 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
     // Stripe requires minimum ~$0.50 USD which is approximately 15,000 VND
     // In the app's unit system, 15 = 15,000 VND (amount * 1000)
     const int stripeMinimumAmount = 15;
-    final bool isStripeDisabled =
-        (state.salesInvoice?.totalPrice ?? 0) < stripeMinimumAmount;
+    final totalPrice = state.salesInvoice?.totalPrice ?? 0;
+    final bool isFreeOrder = totalPrice == 0;
+    final bool isStripeDisabled = totalPrice < stripeMinimumAmount;
+    final bool isSePayDisabled = isFreeOrder;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1036,10 +1077,15 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                 selectedMethod: state.selectedPaymentMethod,
                 method: PaymentMethod.sepay,
                 title: S.of(context).sepay,
-                description: S.of(context).sepayDescription,
+                description: isSePayDisabled
+                    ? S.of(context).sepayNotAvailableForFreeOrder
+                    : S.of(context).sepayDescription,
                 icon: Icons.account_balance,
                 isSelected: state.selectedPaymentMethod == PaymentMethod.sepay,
-                onTap: () => cubit.updatePaymentMethod(PaymentMethod.sepay),
+                onTap: isSePayDisabled
+                    ? () {}
+                    : () => cubit.updatePaymentMethod(PaymentMethod.sepay),
+                isDisabled: isSePayDisabled,
               ),
               const SizedBox(height: 12),
               _buildPaymentMethodOption(

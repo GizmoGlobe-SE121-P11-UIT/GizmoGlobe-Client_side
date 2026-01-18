@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 
 import '../../../widgets/avatar_picker.dart';
+import '../../../widgets/dialog/information_dialog.dart';
+import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../components/general/web_header.dart';
 import '../../../components/general/snackbar_service.dart';
 import '../address_screen/address_screen_webview.dart';
@@ -629,14 +631,69 @@ class _UserScreenWebViewState extends State<UserScreenWebView> {
                     onPressed: () async {
                       final User? user = FirebaseAuth.instance.currentUser;
                       if (user != null) {
-                        await FirebaseAuth.instance
-                            .sendPasswordResetEmail(email: user.email!);
-                        if (mounted) {
-                          SnackbarService.showSuccess(
-                            context,
-                            title: S.of(context).success,
-                            message: S.of(context).passwordResetEmailSent,
-                          );
+                        // Show loading dialog
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircularProgressIndicator(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Sending email...',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+
+                        try {
+                          await FirebaseAuth.instance
+                              .sendPasswordResetEmail(email: user.email!);
+
+                          if (mounted) {
+                            // Close loading dialog
+                            Navigator.pop(context);
+
+                            // Show success snackbar
+                            SnackbarService.showSuccess(
+                              context,
+                              title: S.of(context).success,
+                              message: S.of(context).passwordResetEmailSent,
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            // Close loading dialog
+                            Navigator.pop(context);
+
+                            // Show error dialog
+                            showDialog(
+                              context: context,
+                              builder: (context) => InformationDialog(
+                                dialogName: DialogName.failure,
+                                title: S.of(context).error,
+                                content: e.toString(),
+                              ),
+                            );
+                          }
                         }
                       }
                     },

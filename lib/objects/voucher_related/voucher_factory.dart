@@ -210,12 +210,8 @@ class VoucherFactory {
         final parsed = int.tryParse(v);
         if (parsed != null) {
           copy[key] = parsed;
-        } else {
-          print('⚠️ Failed to parse $key as int from string: $v');
-        }
-      } else {
-        print('⚠️ Unexpected type for $key: ${v.runtimeType}');
-      }
+        } else {}
+      } else {}
     }
 
     // Datetime handling: accept DateTime, Firestore Timestamp, numeric millis, or ISO string

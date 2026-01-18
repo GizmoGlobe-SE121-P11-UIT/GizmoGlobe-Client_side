@@ -229,7 +229,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         throw Exception('No invoice to checkout');
       }
 
-      final paymentMethod = state.selectedPaymentMethod;
       final currentAddress = state.salesInvoice!.address;
 
       // Get customer name if needed
@@ -241,7 +240,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       // Create invoice with all fields explicitly set to avoid any state timing issues
       SalesInvoice invoiceToProcess = state.salesInvoice!.copyWith(
         customerName: customerName,
-        paymentMethod: paymentMethod,
         address: currentAddress,
       );
 
@@ -250,6 +248,19 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       final voucherDiscount = invoiceToProcess.voucherDiscount;
       final totalAfterDiscount = totalBeforeVoucher - voucherDiscount;
       final finalTotal = totalAfterDiscount > 0.0 ? totalAfterDiscount : 0.0;
+
+      // If total is 0, force COD payment method
+      PaymentMethod paymentMethod = state.selectedPaymentMethod;
+      if (finalTotal == 0 &&
+          (paymentMethod == PaymentMethod.sepay ||
+              paymentMethod == PaymentMethod.stripe)) {
+        paymentMethod = PaymentMethod.cod;
+      }
+
+      // Update invoice with correct payment method
+      invoiceToProcess = invoiceToProcess.copyWith(
+        paymentMethod: paymentMethod,
+      );
 
       // Round only once at the end - round to 3 decimal places
       final roundedTotalPrice = (finalTotal).round();
@@ -590,7 +601,18 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       totalPrice: finalTotal,
     );
 
-    emit(state.copyWith(salesInvoice: finalInvoice));
+    // If total is 0, automatically switch to COD and disable SePay/Stripe
+    PaymentMethod paymentMethod = state.selectedPaymentMethod;
+    if (finalTotal == 0 &&
+        (paymentMethod == PaymentMethod.sepay ||
+            paymentMethod == PaymentMethod.stripe)) {
+      paymentMethod = PaymentMethod.cod;
+    }
+
+    emit(state.copyWith(
+      salesInvoice: finalInvoice,
+      selectedPaymentMethod: paymentMethod,
+    ));
 
     // Invoice is only in memory until checkout, so no need to update Firebase here
     // Changes will be saved to Firebase when user places the order

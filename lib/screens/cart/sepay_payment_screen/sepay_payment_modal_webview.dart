@@ -394,7 +394,7 @@ class _SePayPaymentModalState extends State<_SePayPaymentModal> {
                                         children: [
                                           Flexible(
                                             child: Text(
-                                              'Order ${va.orderId}',
+                                              '${S.of(context).orderPrefix} ${va.orderId}',
                                               textAlign: TextAlign.right,
                                               style: TextStyle(
                                                 fontSize: 13,
@@ -414,7 +414,7 @@ class _SePayPaymentModalState extends State<_SePayPaymentModal> {
                                               await Clipboard.setData(
                                                 ClipboardData(
                                                     text:
-                                                        'Order ${va.orderId}'),
+                                                        '${S.of(context).orderPrefix} ${va.orderId}'),
                                               );
                                               if (context.mounted) {
                                                 SnackbarService.showSuccess(

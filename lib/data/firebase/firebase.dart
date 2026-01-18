@@ -1030,11 +1030,8 @@ class Firebase {
           } catch (e) {
             // Auto-claim check failed - silently continue
           }
-        } catch (e, stackTrace) {
+        } catch (e) {
           // Failed to parse voucher - log details for debugging
-          print('⚠️ Failed to parse voucher ${doc.id}: $e');
-          print('Stack trace: $stackTrace');
-          print('Raw data keys: ${raw.keys.toList()}');
         }
       }
 
@@ -1528,33 +1525,61 @@ class Firebase {
 
   /// Get aggregated product rating from Cloud Functions aggregation
   /// Returns null if no aggregated data exists for this product
+  /// Reads from aggregations/productRatings (nested map structure)
+  /// Falls back to direct calculation from order_ratings if aggregated data not found
   Future<Map<String, dynamic>?> getAggregatedProductRating(
       String productId) async {
     try {
       if (productId.isEmpty) return null;
 
-      final doc = await _firestore
-          .collection('aggregations')
-          .doc('productRatings')
-          .get();
+      // Try aggregations/productRatings structure first (nested map)
+      try {
+        final doc = await _firestore
+            .collection('aggregations')
+            .doc('productRatings')
+            .get();
 
-      if (!doc.exists) return null;
+        if (doc.exists) {
+          final data = doc.data();
+          final products = data?['products'] as Map<String, dynamic>?;
 
-      final data = doc.data();
-      final products = data?['products'] as Map<String, dynamic>?;
+          if (products != null && products.containsKey(productId)) {
+            final productRating = products[productId] as Map<String, dynamic>?;
+            if (productRating != null) {
+              final avgRating =
+                  (productRating['avgRating'] as num?)?.toDouble() ?? 0.0;
+              final ratingCount =
+                  (productRating['ratingCount'] as num?)?.toInt() ?? 0;
+              if (ratingCount > 0) {
+                return {
+                  'avgRating': avgRating,
+                  'ratingCount': ratingCount,
+                  'lastUpdated': productRating['lastUpdated'],
+                };
+              }
+            }
+          }
+        }
+      } catch (e) {}
 
-      if (products == null || !products.containsKey(productId)) {
-        return null;
-      }
+      // Fallback: Calculate directly from order_ratings if aggregated data not found
+      try {
+        final result = await getAverageRatingForProduct(productId);
+        final avgRating = (result['average'] as num?)?.toDouble() ?? 0.0;
+        final ratingCount = (result['count'] as int?) ??
+            (result['count'] as num?)?.toInt() ??
+            0;
 
-      final productRating = products[productId] as Map<String, dynamic>?;
-      if (productRating == null) return null;
+        if (ratingCount > 0) {
+          return {
+            'avgRating': avgRating,
+            'ratingCount': ratingCount,
+            'lastUpdated': null,
+          };
+        }
+      } catch (e) {}
 
-      return {
-        'avgRating': productRating['avgRating'] ?? 0.0,
-        'ratingCount': productRating['ratingCount'] ?? 0,
-        'lastUpdated': productRating['lastUpdated'],
-      };
+      return null;
     } catch (e) {
       return null;
     }

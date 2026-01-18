@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:gizmoglobe_client/functions/helper.dart';
 import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
+import 'package:gizmoglobe_client/widgets/dialog/confirmation_dialog.dart';
 import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/process_state_enum.dart';
 import 'sepay_payment_screen_cubit.dart';
@@ -83,41 +84,33 @@ class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
                   : () {
                       showDialog(
                         context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          title: const Text('Cancel Payment'),
-                          content: const Text(
-                              'Are you sure you want to cancel? Payment will not be processed.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(dialogContext),
-                              child: const Text('No'),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(dialogContext); // close confirm
-                                final success = await cubit.handleDismissal();
-                                if (!mounted) return;
-                                if (!success &&
-                                    cubit.state.dismissError != null) {
-                                  await showDialog<void>(
-                                    context: context,
-                                    builder: (ctx) => InformationDialog(
-                                      title: S.of(ctx).paymentStatus,
-                                      content: cubit.state.dismissError!,
-                                      dialogName: DialogName.failure,
-                                      buttonText: S.of(ctx).ok,
-                                      onPressed: () => Navigator.pop(ctx),
-                                    ),
-                                  );
-                                  cubit.clearDismissError();
-                                }
-                                if (mounted) {
-                                  Navigator.pop(context, false);
-                                }
-                              },
-                              child: const Text('Yes'),
-                            ),
-                          ],
+                        builder: (dialogContext) => ConfirmationDialog(
+                          title: S.of(context).sepayCancelPayment,
+                          content: S.of(context).sepayCancelPaymentConfirmation,
+                          cancelText: S.of(context).no,
+                          confirmText: S.of(context).yes,
+                          onCancel: () => Navigator.pop(dialogContext),
+                          onConfirm: () async {
+                            Navigator.pop(dialogContext); // close confirm
+                            final success = await cubit.handleDismissal();
+                            if (!mounted) return;
+                            if (!success && cubit.state.dismissError != null) {
+                              await showDialog<void>(
+                                context: context,
+                                builder: (ctx) => InformationDialog(
+                                  title: S.of(ctx).paymentStatus,
+                                  content: cubit.state.dismissError!,
+                                  dialogName: DialogName.failure,
+                                  buttonText: S.of(ctx).ok,
+                                  onPressed: () => Navigator.pop(ctx),
+                                ),
+                              );
+                              cubit.clearDismissError();
+                            }
+                            if (mounted) {
+                              Navigator.pop(context, false);
+                            }
+                          },
                         ),
                       );
                     },
@@ -370,7 +363,7 @@ class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
                             SizedBox(
                               width: 100,
                               child: Text(
-                                'Nội dung',
+                                S.of(context).transactionContentLabel,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Theme.of(context)
@@ -386,7 +379,7 @@ class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      'Order ${va.orderId}',
+                                      '${S.of(context).orderPrefix} ${va.orderId}',
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
@@ -400,19 +393,21 @@ class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   IconButton(
-                                    tooltip: 'Copy',
+                                    tooltip: S.of(context).copy,
                                     icon: const Icon(Icons.copy, size: 18),
                                     onPressed: () async {
                                       await Clipboard.setData(
                                         ClipboardData(
-                                            text: 'Order ${va.orderId}'),
+                                            text:
+                                                '${S.of(context).orderPrefix} ${va.orderId}'),
                                       );
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           SnackBar(
-                                            content: Text(
-                                                'Đã sao chép nội dung chuyển khoản'),
+                                            content: Text(S
+                                                .of(context)
+                                                .transactionContentCopied),
                                             duration:
                                                 const Duration(seconds: 2),
                                           ),
@@ -486,7 +481,7 @@ class _SePayPaymentScreenState extends State<SePayPaymentScreen> {
                       Text(
                         // Emphasize that content must include "Order {orderId}" for webhook auto-match
                         '${S.of(context).sepayManualInstructions}\n\n'
-                        'Lưu ý: Nội dung chuyển khoản phải có "Order ${va.orderId}" để hệ thống tự động xác nhận thanh toán.',
+                        '${S.of(context).sepayTransferContentNote(va.orderId)}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Theme.of(context).colorScheme.onSurface,
