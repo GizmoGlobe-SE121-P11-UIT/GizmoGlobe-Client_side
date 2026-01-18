@@ -5,6 +5,8 @@ import 'rate_order_state.dart';
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../generated/l10n.dart';
 import '../../../../services/comment_moderation/comment_moderation_service.dart';
+import '../../../../widgets/general/gradient_icon_button.dart';
+import '../../../../widgets/general/gradient_text.dart';
 
 class RateOrderView extends StatelessWidget {
   final String productId;
@@ -26,7 +28,18 @@ class RateOrderView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(title: Text(S.of(context).rateProduct)),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: GradientIconButton(
+          icon: Icons.chevron_left,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          fillColor: Colors.transparent,
+        ),
+        title: GradientText(text: S.of(context).rateProduct),
+      ),
       body: BlocConsumer<RateOrderCubit, RateOrderState>(
         listener: (context, state) {
           if (state.processState == ProcessState.success) {
