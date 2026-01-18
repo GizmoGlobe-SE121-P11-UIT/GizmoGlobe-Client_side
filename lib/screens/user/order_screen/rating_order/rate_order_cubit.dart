@@ -252,6 +252,7 @@ class RateOrderCubit extends Cubit<RateOrderState> {
         comment: (state.comment.trim().isEmpty) ? null : state.comment,
         images: state.images.isEmpty ? null : state.images,
         video: state.video,
+        sentiment: state.sentiment?.name, // Save sentiment if available
       );
 
       final bool eligibleForPoints = ((state.images.length >= 2) ||

@@ -820,6 +820,7 @@ class Firebase {
     try {
       final QuerySnapshot snapshot =
           await _firestore.collection('vouchers').get();
+
       final List<Voucher> vouchers = [];
       // Collect heavy auto-claim tasks and run them after parsing so this function
       // can return quickly and avoid blocking on per-voucher transactions.
@@ -899,7 +900,13 @@ class Firebase {
             return def;
           }
 
-          data['discountValue'] = parseInt(raw['discountValue'], 0);
+          double parseDouble(dynamic v, [double def = 0.0]) {
+            if (v is num) return v.toDouble();
+            if (v is String) return double.tryParse(v) ?? def;
+            return def;
+          }
+
+          data['discountValue'] = parseDouble(raw['discountValue'], 0.0);
           data['minimumPurchase'] = parseInt(raw['minimumPurchase'], 0);
           data['maxUsagePerPerson'] = parseInt(raw['maxUsagePerPerson'], 1);
           data['redeemPrice'] = parseInt(raw['redeemPrice'], 0);
@@ -913,7 +920,7 @@ class Firebase {
             data['maximumDiscountValue'] =
                 parseInt(raw['maximumDiscountValue'], 0);
           } else {
-            data['maximumDiscountValue'] = 0.0;
+            data['maximumDiscountValue'] = 0;
           }
 
           final voucher = VoucherFactory.fromMap(doc.id, data);
@@ -1016,15 +1023,18 @@ class Firebase {
                     }
                   }
                 } catch (e) {
-                  // Warning: background auto-claim for voucher failed
+                  // Auto-claim failed - silently continue
                 }
               })());
             }
           } catch (e) {
-            // Warning: auto-claim for voucher failed
+            // Auto-claim check failed - silently continue
           }
-        } catch (e) {
-          // Warning: skipping voucher due to parse error
+        } catch (e, stackTrace) {
+          // Failed to parse voucher - log details for debugging
+          print('⚠️ Failed to parse voucher ${doc.id}: $e');
+          print('Stack trace: $stackTrace');
+          print('Raw data keys: ${raw.keys.toList()}');
         }
       }
 
@@ -1033,9 +1043,10 @@ class Firebase {
         Future.microtask(() async {
           try {
             await Future.wait(autoClaimTasks);
-            await Database().updateVoucherLists();
+            // Don't call updateVoucherLists here to avoid infinite loop
+            // The vouchers are already loaded and will be used
           } catch (e) {
-            // Warning: background auto-claim failed
+            // Background auto-claim failed - silently continue
           }
         });
       }

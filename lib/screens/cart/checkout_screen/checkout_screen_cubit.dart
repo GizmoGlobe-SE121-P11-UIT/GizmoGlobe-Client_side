@@ -436,7 +436,8 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         'details': detailsData,
         'salesInvoiceID': state
             .salesInvoice!.salesInvoiceID, // Store invoice ID for completion
-        'paymentMethod': state.selectedPaymentMethod.getName(), // Store payment method explicitly
+        'paymentMethod': state.selectedPaymentMethod
+            .getName(), // Store payment method explicitly
       };
 
       final checkoutDataJson = jsonEncode(checkoutData);
@@ -475,7 +476,8 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
       // Restore payment method from stored data (in case it wasn't saved correctly)
       final storedPaymentMethod = checkoutData['paymentMethod'] as String?;
-      PaymentMethod paymentMethod = PaymentMethod.stripe; // Default for Stripe checkout
+      PaymentMethod paymentMethod =
+          PaymentMethod.stripe; // Default for Stripe checkout
       if (storedPaymentMethod != null) {
         paymentMethod = PaymentMethod.values.firstWhere(
           (e) => e.getName() == storedPaymentMethod,
@@ -606,9 +608,10 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
           ? percentageVoucher.maximumDiscountValue
           : calculatedDiscount;
     } else {
-      discount = voucher.discountValue > totalBeforeDiscount
+      final discountValue = voucher.discountValue.toInt();
+      discount = discountValue > totalBeforeDiscount
           ? totalBeforeDiscount
-          : voucher.discountValue;
+          : discountValue;
     }
     return discount;
   }

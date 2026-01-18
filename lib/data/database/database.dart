@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:gizmoglobe_client/objects/invoice_related/rating.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -194,12 +195,14 @@ class Database {
 
   Future<void> fetchDataFromFirestore() async {
     try {
-      userID = await getCurrentUserID() ?? '';
-
-      // await addStatusToAllProducts();
+      // Ensure auth state is initialized first
       await _ensureAuthStateInitialized();
+
+      // Get user ID and data early to ensure it's available for voucher loading
+      userID = await getCurrentUserID() ?? '';
       await getUserData();
       await getLoyalPoint();
+
       // print('Đang lấy dữ liệu từ Firebase');
       provinceList = await fetchProvinces();
 
@@ -232,6 +235,9 @@ class Database {
       favoriteProducts = await fetchFavoriteProducts(userID);
 
       await getCartItems();
+
+      // Update vouchers AFTER userID is guaranteed to be set
+      // This ensures auto-claim vouchers work correctly on first load
       await updateVoucherLists();
 
       await fetchSalesInvoice();
@@ -706,15 +712,23 @@ class Database {
       return;
     }
     try {
+      // Wait for auth state to be ready (increased timeout for mobile)
       await FirebaseAuth.instance
           .authStateChanges()
           .first
-          .timeout(const Duration(seconds: 2));
+          .timeout(const Duration(seconds: 5));
       _authStateInitialized = true;
+
+      // On mobile, add extra wait to ensure userID is fully propagated
+      if (!kIsWeb) {
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
     } on TimeoutException {
-      // Auth state initialization timed out
+      // Auth state initialization timed out - mark as initialized anyway
+      _authStateInitialized = true;
     } catch (e) {
-      // Error waiting for auth state
+      // Error waiting for auth state - mark as initialized anyway
+      _authStateInitialized = true;
     }
   }
 

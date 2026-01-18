@@ -1589,6 +1589,13 @@ class SVI extends S {
   String get ratingRequired => 'Cần đánh giá';
 
   @override
+  String get ratingPointsHint =>
+      'Thêm ít nhất 2 hình ảnh hoặc video và viết nhận xét để nhận 200 điểm';
+
+  @override
+  String get submitAndGetPoints => 'Gửi và nhận 200 điểm';
+
+  @override
   String get pleaseProvideRating => 'Vui lòng cung cấp đánh giá.';
 
   @override

@@ -59,7 +59,7 @@ class LimitedAmountVoucherWithEndTime
     String? voucherID,
     String? voucherName,
     DateTime? startTime,
-    int? discountValue,
+    double? discountValue,
     int? minimumPurchase,
     int? maxUsagePerPerson,
     DistributionType? distributionType,

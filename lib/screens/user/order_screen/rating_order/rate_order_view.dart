@@ -104,28 +104,34 @@ class RateOrderView extends StatelessWidget {
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Expanded(
-                          child: Text(
-                            'Add at least 2 images or video and write a comment to get 200 points',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withValues(alpha: 0.9),
-                                    ),
-                            textAlign: TextAlign.center,
-                          ),
+                        child: Text(
+                          S.of(context).ratingPointsHint,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.9),
+                                  ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: state.processState == ProcessState.loading
+                        onPressed: state.processState == ProcessState.loading ||
+                                state.isAnalyzing
                             ? null
-                            : () => cubit.submit(productId),
-                        child: state.processState == ProcessState.loading
+                            : () {
+                                if (state.isContentVerified) {
+                                  cubit.submitRating(productId, context);
+                                } else {
+                                  cubit.checkContent(context);
+                                }
+                              },
+                        child: state.processState == ProcessState.loading ||
+                                state.isAnalyzing
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
@@ -133,9 +139,11 @@ class RateOrderView extends StatelessWidget {
                                     CircularProgressIndicator(strokeWidth: 2),
                               )
                             : Text(
-                                eligibleForPoints
-                                    ? 'Submit and get 200 points'
-                                    : S.of(context).submitRating,
+                                state.isContentVerified
+                                    ? (eligibleForPoints
+                                        ? S.of(context).submitAndGetPoints
+                                        : S.of(context).submitRating)
+                                    : S.of(context).checkContent,
                               ),
                       ),
                     ),

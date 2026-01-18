@@ -15,156 +15,152 @@ typedef VoucherConstructor = Voucher Function(Map<String, dynamic>);
 class VoucherFactory {
   static final Map<String, VoucherConstructor> voucherConstructors = {
     'limited_percentage_end': (props) => LimitedPercentageVoucherWithEndTime(
-      voucherID: props['voucherID'],
-      voucherName: props['voucherName'],
-      startTime: props['startTime'],
-      discountValue: props['discountValue'],
-      minimumPurchase: props['minimumPurchase'],
-      maxUsagePerPerson: props['maxUsagePerPerson'],
-      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
-      isEnabled: props['isEnabled'],
-      enDescription: props['enDescription'],
-      viDescription: props['viDescription'],
-      isPercentage: true,
-      isLimited: true,
-      hasEndTime: true,
-      maximumUsage: props['maximumUsage'],
-      usageLeft: props['usageLeft'],
-      maximumDiscountValue: props['maximumDiscountValue'],
-      endTime: props['endTime'],
-      redeemPrice: props['redeemPrice']
-    ),
-
-    'limited_percentage_noend': (props) => LimitedPercentageVoucherWithoutEndTime(
-      voucherID: props['voucherID'],
-      voucherName: props['voucherName'],
-      startTime: props['startTime'],
-      discountValue: props['discountValue'],
-      minimumPurchase: props['minimumPurchase'],
-      maxUsagePerPerson: props['maxUsagePerPerson'],
-      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
-      isEnabled: props['isEnabled'],
-      enDescription: props['enDescription'],
-      viDescription: props['viDescription'],
-      isPercentage: true,
-      isLimited: true,
-      hasEndTime: false,
-      maximumUsage: props['maximumUsage'],
-      usageLeft: props['usageLeft'],
-      maximumDiscountValue: props['maximumDiscountValue'],
-      redeemPrice: props['redeemPrice']
-    ),
-
+        voucherID: props['voucherID'],
+        voucherName: props['voucherName'],
+        startTime: props['startTime'],
+        discountValue: props['discountValue'],
+        minimumPurchase: props['minimumPurchase'],
+        maxUsagePerPerson: props['maxUsagePerPerson'],
+        distributionType:
+            DistributionTypeExtension.fromName(props['distributionType']),
+        isEnabled: props['isEnabled'],
+        enDescription: props['enDescription'],
+        viDescription: props['viDescription'],
+        isPercentage: true,
+        isLimited: true,
+        hasEndTime: true,
+        maximumUsage: props['maximumUsage'],
+        usageLeft: props['usageLeft'],
+        maximumDiscountValue: props['maximumDiscountValue'],
+        endTime: props['endTime'],
+        redeemPrice: props['redeemPrice']),
+    'limited_percentage_noend': (props) =>
+        LimitedPercentageVoucherWithoutEndTime(
+            voucherID: props['voucherID'],
+            voucherName: props['voucherName'],
+            startTime: props['startTime'],
+            discountValue: props['discountValue'],
+            minimumPurchase: props['minimumPurchase'],
+            maxUsagePerPerson: props['maxUsagePerPerson'],
+            distributionType:
+                DistributionTypeExtension.fromName(props['distributionType']),
+            isEnabled: props['isEnabled'],
+            enDescription: props['enDescription'],
+            viDescription: props['viDescription'],
+            isPercentage: true,
+            isLimited: true,
+            hasEndTime: false,
+            maximumUsage: props['maximumUsage'],
+            usageLeft: props['usageLeft'],
+            maximumDiscountValue: props['maximumDiscountValue'],
+            redeemPrice: props['redeemPrice']),
     'limited_amount_end': (props) => LimitedAmountVoucherWithEndTime(
-      voucherID: props['voucherID'],
-      voucherName: props['voucherName'],
-      startTime: props['startTime'],
-      discountValue: props['discountValue'],
-      minimumPurchase: props['minimumPurchase'],
-      maxUsagePerPerson: props['maxUsagePerPerson'],
-      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
-      isEnabled: props['isEnabled'],
-      enDescription: props['enDescription'],
-      viDescription: props['viDescription'],
-      isPercentage: false,
-      isLimited: true,
-      hasEndTime: true,
-      maximumUsage: props['maximumUsage'],
-      usageLeft: props['usageLeft'],
-      endTime: props['endTime'],
-      redeemPrice: props['redeemPrice']
-    ),
-
+        voucherID: props['voucherID'],
+        voucherName: props['voucherName'],
+        startTime: props['startTime'],
+        discountValue: props['discountValue'],
+        minimumPurchase: props['minimumPurchase'],
+        maxUsagePerPerson: props['maxUsagePerPerson'],
+        distributionType:
+            DistributionTypeExtension.fromName(props['distributionType']),
+        isEnabled: props['isEnabled'],
+        enDescription: props['enDescription'],
+        viDescription: props['viDescription'],
+        isPercentage: false,
+        isLimited: true,
+        hasEndTime: true,
+        maximumUsage: props['maximumUsage'],
+        usageLeft: props['usageLeft'],
+        endTime: props['endTime'],
+        redeemPrice: props['redeemPrice']),
     'limited_amount_noend': (props) => LimitedAmountVoucherWithoutEndTime(
-      voucherID: props['voucherID'],
-      voucherName: props['voucherName'],
-      startTime: props['startTime'],
-      discountValue: props['discountValue'],
-      minimumPurchase: props['minimumPurchase'],
-      maxUsagePerPerson: props['maxUsagePerPerson'],
-      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
-      isEnabled: props['isEnabled'],
-      enDescription: props['enDescription'],
-      viDescription: props['viDescription'],
-      isPercentage: false,
-      isLimited: true,
-      hasEndTime: false,
-      maximumUsage: props['maximumUsage'],
-      usageLeft: props['usageLeft'],
-      redeemPrice: props['redeemPrice']
-    ),
-
-    'unlimited_percentage_end': (props) => UnlimitedPercentageVoucherWithEndTime(
-      voucherID: props['voucherID'],
-      voucherName: props['voucherName'],
-      startTime: props['startTime'],
-      discountValue: props['discountValue'],
-      minimumPurchase: props['minimumPurchase'],
-      maxUsagePerPerson: props['maxUsagePerPerson'],
-      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
-      isEnabled: props['isEnabled'],
-      enDescription: props['enDescription'],
-      viDescription: props['viDescription'],
-      isPercentage: true,
-      isLimited: false,
-      hasEndTime: true,
-      maximumDiscountValue: props['maximumDiscountValue'],
-      endTime: props['endTime'],
-      redeemPrice: props['redeemPrice']
-    ),
-
-    'unlimited_percentage_noend': (props) => UnlimitedPercentageVoucherWithoutEndTime(
-      voucherID: props['voucherID'],
-      voucherName: props['voucherName'],
-      startTime: props['startTime'],
-      discountValue: props['discountValue'],
-      minimumPurchase: props['minimumPurchase'],
-      maxUsagePerPerson: props['maxUsagePerPerson'],
-      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
-      isEnabled: props['isEnabled'],
-      enDescription: props['enDescription'],
-      viDescription: props['viDescription'],
-      isPercentage: true,
-      isLimited: false,
-      hasEndTime: false,
-      maximumDiscountValue: props['maximumDiscountValue'],
-      redeemPrice: props['redeemPrice']
-    ),
-
+        voucherID: props['voucherID'],
+        voucherName: props['voucherName'],
+        startTime: props['startTime'],
+        discountValue: props['discountValue'],
+        minimumPurchase: props['minimumPurchase'],
+        maxUsagePerPerson: props['maxUsagePerPerson'],
+        distributionType:
+            DistributionTypeExtension.fromName(props['distributionType']),
+        isEnabled: props['isEnabled'],
+        enDescription: props['enDescription'],
+        viDescription: props['viDescription'],
+        isPercentage: false,
+        isLimited: true,
+        hasEndTime: false,
+        maximumUsage: props['maximumUsage'],
+        usageLeft: props['usageLeft'],
+        redeemPrice: props['redeemPrice']),
+    'unlimited_percentage_end': (props) =>
+        UnlimitedPercentageVoucherWithEndTime(
+            voucherID: props['voucherID'],
+            voucherName: props['voucherName'],
+            startTime: props['startTime'],
+            discountValue: props['discountValue'],
+            minimumPurchase: props['minimumPurchase'],
+            maxUsagePerPerson: props['maxUsagePerPerson'],
+            distributionType:
+                DistributionTypeExtension.fromName(props['distributionType']),
+            isEnabled: props['isEnabled'],
+            enDescription: props['enDescription'],
+            viDescription: props['viDescription'],
+            isPercentage: true,
+            isLimited: false,
+            hasEndTime: true,
+            maximumDiscountValue: props['maximumDiscountValue'],
+            endTime: props['endTime'],
+            redeemPrice: props['redeemPrice']),
+    'unlimited_percentage_noend': (props) =>
+        UnlimitedPercentageVoucherWithoutEndTime(
+            voucherID: props['voucherID'],
+            voucherName: props['voucherName'],
+            startTime: props['startTime'],
+            discountValue: props['discountValue'],
+            minimumPurchase: props['minimumPurchase'],
+            maxUsagePerPerson: props['maxUsagePerPerson'],
+            distributionType:
+                DistributionTypeExtension.fromName(props['distributionType']),
+            isEnabled: props['isEnabled'],
+            enDescription: props['enDescription'],
+            viDescription: props['viDescription'],
+            isPercentage: true,
+            isLimited: false,
+            hasEndTime: false,
+            maximumDiscountValue: props['maximumDiscountValue'],
+            redeemPrice: props['redeemPrice']),
     'unlimited_amount_end': (props) => UnlimitedAmountVoucherWithEndTime(
-      voucherID: props['voucherID'],
-      voucherName: props['voucherName'],
-      startTime: props['startTime'],
-      discountValue: props['discountValue'],
-      minimumPurchase: props['minimumPurchase'],
-      maxUsagePerPerson: props['maxUsagePerPerson'],
-      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
-      isEnabled: props['isEnabled'],
-      enDescription: props['enDescription'],
-      viDescription: props['viDescription'],
-      isPercentage: false,
-      isLimited: false,
-      hasEndTime: true,
-      endTime: props['endTime'],
-      redeemPrice: props['redeemPrice']
-    ),
-
+        voucherID: props['voucherID'],
+        voucherName: props['voucherName'],
+        startTime: props['startTime'],
+        discountValue: props['discountValue'],
+        minimumPurchase: props['minimumPurchase'],
+        maxUsagePerPerson: props['maxUsagePerPerson'],
+        distributionType:
+            DistributionTypeExtension.fromName(props['distributionType']),
+        isEnabled: props['isEnabled'],
+        enDescription: props['enDescription'],
+        viDescription: props['viDescription'],
+        isPercentage: false,
+        isLimited: false,
+        hasEndTime: true,
+        endTime: props['endTime'],
+        redeemPrice: props['redeemPrice']),
     'unlimited_amount_noend': (props) => UnlimitedAmountVoucherWithoutEndTime(
-      voucherID: props['voucherID'],
-      voucherName: props['voucherName'],
-      startTime: props['startTime'],
-      discountValue: props['discountValue'],
-      minimumPurchase: props['minimumPurchase'],
-      maxUsagePerPerson: props['maxUsagePerPerson'],
-      distributionType: DistributionTypeExtension.fromName(props['distributionType']),
-      isEnabled: props['isEnabled'],
-      enDescription: props['enDescription'],
-      viDescription: props['viDescription'],
-      isPercentage: false,
-      isLimited: false,
-      hasEndTime: false,
-      redeemPrice: props['redeemPrice']
-    ),
+        voucherID: props['voucherID'],
+        voucherName: props['voucherName'],
+        startTime: props['startTime'],
+        discountValue: props['discountValue'],
+        minimumPurchase: props['minimumPurchase'],
+        maxUsagePerPerson: props['maxUsagePerPerson'],
+        distributionType:
+            DistributionTypeExtension.fromName(props['distributionType']),
+        isEnabled: props['isEnabled'],
+        enDescription: props['enDescription'],
+        viDescription: props['viDescription'],
+        isPercentage: false,
+        isLimited: false,
+        hasEndTime: false,
+        redeemPrice: props['redeemPrice']),
   };
 
   static String getKey({
@@ -212,7 +208,13 @@ class VoucherFactory {
         copy[key] = v.toInt();
       } else if (v is String) {
         final parsed = int.tryParse(v);
-        if (parsed != null) copy[key] = parsed;
+        if (parsed != null) {
+          copy[key] = parsed;
+        } else {
+          print('⚠️ Failed to parse $key as int from string: $v');
+        }
+      } else {
+        print('⚠️ Unexpected type for $key: ${v.runtimeType}');
       }
     }
 
@@ -239,9 +241,9 @@ class VoucherFactory {
     // Defaults for numeric fields and ensure correct types
     if (copy['discountValue'] == null) copy['discountValue'] = 0.0;
     if (copy['minimumPurchase'] == null) copy['minimumPurchase'] = 0;
-    if (copy['maxUsagePerPerson'] == null) copy['maxUsagePerPerson'] = 1.0;
-    if (copy['maximumUsage'] == null) copy['maximumUsage'] = 0.0;
-    if (copy['usageLeft'] == null) copy['usageLeft'] = 0.0;
+    if (copy['maxUsagePerPerson'] == null) copy['maxUsagePerPerson'] = 1;
+    if (copy['maximumUsage'] == null) copy['maximumUsage'] = 0;
+    if (copy['usageLeft'] == null) copy['usageLeft'] = 0;
     if (copy['maximumDiscountValue'] == null) copy['maximumDiscountValue'] = 0;
     if (copy['redeemPrice'] == null) copy['redeemPrice'] = 0;
 
@@ -265,7 +267,10 @@ class VoucherFactory {
     required bool hasEndTime,
     required Map<String, dynamic> properties,
   }) {
-    final key = getKey(isLimited: isLimited, isPercentage: isPercentage, hasEndTime: hasEndTime);
+    final key = getKey(
+        isLimited: isLimited,
+        isPercentage: isPercentage,
+        hasEndTime: hasEndTime);
     final constructor = voucherConstructors[key];
     if (constructor == null) throw Exception('Invalid voucher type: $key');
 

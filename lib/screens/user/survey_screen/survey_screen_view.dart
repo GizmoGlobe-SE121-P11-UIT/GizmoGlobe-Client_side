@@ -216,31 +216,28 @@ class _QuestionCard extends StatelessWidget {
               Flexible(
                 child: SingleChildScrollView(
                   child: type == 'singleChoice'
-                      ? RadioGroup<String>(
-                          groupValue: selectedOptionId,
-                          onChanged: (value) {
-                            if (value != null && value.isNotEmpty) {
-                              onSelectSingle?.call(value);
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: options.map((opt) {
+                            Map<String, dynamic> m;
+                            if (opt is Map) {
+                              m = Map<String, dynamic>.from(opt);
+                            } else {
+                              m = <String, dynamic>{};
                             }
-                          },
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: options.map((opt) {
-                              Map<String, dynamic> m;
-                              if (opt is Map) {
-                                m = Map<String, dynamic>.from(opt);
-                              } else {
-                                m = <String, dynamic>{};
-                              }
-                              final String? id = m['id'] as String?;
-                              final String label =
-                                  (m['label'] as String?) ?? '';
-                              return RadioListTile<String>(
-                                value: id ?? '',
-                                title: Text(label),
-                              );
-                            }).toList(),
-                          ),
+                            final String? id = m['id'] as String?;
+                            final String label = (m['label'] as String?) ?? '';
+                            return RadioListTile<String>(
+                              value: id ?? '',
+                              groupValue: selectedOptionId,
+                              onChanged: (value) {
+                                if (value != null && value.isNotEmpty) {
+                                  onSelectSingle?.call(value);
+                                }
+                              },
+                              title: Text(label),
+                            );
+                          }).toList(),
                         )
                       : Column(
                           mainAxisSize: MainAxisSize.min,

@@ -1157,6 +1157,11 @@ class S {
         name: 'ratingMismatchMessage',
         args: [sentiment, stars],
       );
+  String get ratingPointsHint => Intl.message(
+      'Add at least 2 images or video and write a comment to get 200 points',
+      name: 'ratingPointsHint');
+  String get submitAndGetPoints =>
+      Intl.message('Submit and get 200 points', name: 'submitAndGetPoints');
 
   String get goodWithThisProduct =>
       Intl.message('Good with this product', name: 'goodWithThisProduct');

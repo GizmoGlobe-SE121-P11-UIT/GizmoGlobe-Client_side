@@ -35,16 +35,16 @@ class ChooseVoucherScreenCubit extends Cubit<ChooseVoucherScreenState> {
 
   int calculateDiscount(Voucher voucher, int totalAmount) {
     if (voucher.isPercentage) {
-      final calculatedDiscount = (totalAmount * (voucher.discountValue / 100)).round();
+      final calculatedDiscount =
+          (totalAmount * (voucher.discountValue / 100)).round();
 
       final percentageVoucher = voucher as PercentageInterface;
       return calculatedDiscount > percentageVoucher.maximumDiscountValue
           ? percentageVoucher.maximumDiscountValue
           : calculatedDiscount;
     } else {
-      return voucher.discountValue > totalAmount
-          ? totalAmount
-          : voucher.discountValue;
+      final discountValue = voucher.discountValue.toInt();
+      return discountValue > totalAmount ? totalAmount : discountValue;
     }
   }
 }

@@ -7,7 +7,7 @@ abstract class Voucher {
   String? voucherID;
   String voucherName;
   DateTime startTime;
-  int discountValue;
+  double discountValue; // Changed from int to double
   int minimumPurchase;
   int maxUsagePerPerson;
   DistributionType distributionType;
@@ -40,7 +40,7 @@ abstract class Voucher {
   void updateVoucher({
     String? voucherID,
     String? voucherName,
-    int? discountValue,
+    double? discountValue, // Changed from int to double
     int? minimumPurchase,
     int? maxUsagePerPerson,
     DateTime? startTime,
