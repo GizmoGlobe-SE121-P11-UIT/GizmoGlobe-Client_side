@@ -125,8 +125,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
             // Only show success if we have a valid invoice with address
             // This prevents showing success when address validation fails
             if (state.salesInvoice != null &&
-                state.salesInvoice!.address != null &&
-                state.salesInvoice!.address != Address.nullAddress) {
+                (state.salesInvoice!.address?.isValid == true)) {
               _hasShownSuccessDialog = true;
               if (context.mounted) {
                 showDialog(
@@ -450,7 +449,7 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                         );
 
                                         if (address != null &&
-                                            address != Address.nullAddress) {
+                                            address.isValid) {
                                           cubit.updateAddress(address);
                                         }
                                       },
@@ -467,11 +466,10 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        (state.salesInvoice == null ||
-                                                state.salesInvoice?.address ==
-                                                    null ||
-                                                state.salesInvoice?.address ==
-                                                    Address.nullAddress)
+                                        (state.salesInvoice?.address == null ||
+                                                !(state.salesInvoice?.address
+                                                        ?.isValid ??
+                                                    false))
                                             ? Center(
                                                 child: Text(
                                                   S.of(context).chooseAddress,
@@ -484,11 +482,9 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                                                     .firstLine(),
                                                 style: AppTextStyle.boldText,
                                               ),
-                                        if (state.salesInvoice != null &&
-                                            state.salesInvoice!.address !=
-                                                null &&
-                                            state.salesInvoice!.address !=
-                                                Address.nullAddress)
+                                        if (state.salesInvoice?.address
+                                                ?.isValid ==
+                                            true)
                                           Text(
                                             state.salesInvoice!.address!
                                                 .secondLine(),
@@ -623,10 +619,10 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                         child: ElevatedButton(
                           onPressed: () async {
                             // Validate address before proceeding
+                            final address = state.salesInvoice?.address;
                             if (state.salesInvoice == null ||
-                                state.salesInvoice?.address == null ||
-                                state.salesInvoice?.address ==
-                                    Address.nullAddress) {
+                                address == null ||
+                                !address.isValid) {
                               if (context.mounted) {
                                 showDialog(
                                   context: context,

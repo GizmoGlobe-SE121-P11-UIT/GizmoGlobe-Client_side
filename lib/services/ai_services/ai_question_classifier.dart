@@ -307,7 +307,10 @@ Analyze and respond in EXACT JSON format (NO ```json, NO explanation):
 
     // Compatibility patterns
     if (lower.contains('tương thích') ||
+        lower.contains('phù hợp') ||
         lower.contains('compatible') ||
+        lower.contains('hợp với') ||
+        lower.contains('dùng được') ||
         lower.contains('socket') ||
         lower.contains('lga') ||
         lower.contains('am4') ||

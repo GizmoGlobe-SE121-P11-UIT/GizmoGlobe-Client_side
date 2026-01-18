@@ -1178,6 +1178,12 @@ class S {
   String get copyrightText =>
       Intl.message('© 2025 GizmoGlobe. All rights reserved.',
           name: 'copyrightText');
+
+  // Stripe Checkout
+  String get verifyingPayment =>
+      Intl.message('Verifying payment...', name: 'verifyingPayment');
+  String get returnToCart =>
+      Intl.message('Return to Cart', name: 'returnToCart');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

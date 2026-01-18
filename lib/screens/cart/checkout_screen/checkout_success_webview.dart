@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gizmoglobe_client/components/general/web_header.dart';
+import 'package:gizmoglobe_client/generated/l10n.dart';
 import 'package:gizmoglobe_client/services/stripe_services.dart';
 import 'package:gizmoglobe_client/screens/user/order_screen/order_screen_view.dart';
+import 'package:gizmoglobe_client/widgets/dialog/information_dialog.dart';
+import '../../../enums/processing/dialog_name_enum.dart';
 import '../../../enums/processing/order_option_enum.dart';
 import 'package:gizmoglobe_client/services/stripe_web_helper_stub.dart'
     if (dart.library.html) 'package:gizmoglobe_client/services/stripe_web_helper_web.dart';
@@ -69,23 +72,38 @@ class _CheckoutSuccessWebViewState extends State<CheckoutSuccessWebView> {
           await cubit.completeCheckoutFromStoredData(paymentIntentId);
 
           if (mounted) {
-            // Navigate to orders page
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OrderScreen.newInstance(
-                  orderOption: OrderOption.toShip,
-                ),
+            // Show success dialog before navigating
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (dialogContext) => InformationDialog(
+                title: S.of(context).orderPlaced,
+                content: S.of(context).orderPlacedSuccess,
+                dialogName: DialogName.success,
+                buttonText: S.of(context).ok,
+                onPressed: () {
+                  Navigator.pop(dialogContext); // Close dialog
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderScreen.newInstance(
+                        orderOption: OrderOption.toShip,
+                      ),
+                    ),
+                    (route) => false,
+                  );
+                },
               ),
-              (route) => false,
             );
           }
         } catch (e) {
           // Payment verification failed - cancel the invoice
           try {
-            final checkoutDataJson = StripeWebHelper.getSessionStorage('stripe_checkout_data');
+            final checkoutDataJson =
+                StripeWebHelper.getSessionStorage('stripe_checkout_data');
             if (checkoutDataJson != null) {
-              final checkoutData = jsonDecode(checkoutDataJson) as Map<String, dynamic>;
+              final checkoutData =
+                  jsonDecode(checkoutDataJson) as Map<String, dynamic>;
               final salesInvoiceID = checkoutData['salesInvoiceID'] as String?;
               if (salesInvoiceID != null && salesInvoiceID.isNotEmpty) {
                 final cubit = CheckoutScreenCubit();
@@ -106,9 +124,11 @@ class _CheckoutSuccessWebViewState extends State<CheckoutSuccessWebView> {
       } else {
         // Payment failed or was cancelled - cancel the invoice
         try {
-          final checkoutDataJson = StripeWebHelper.getSessionStorage('stripe_checkout_data');
+          final checkoutDataJson =
+              StripeWebHelper.getSessionStorage('stripe_checkout_data');
           if (checkoutDataJson != null) {
-            final checkoutData = jsonDecode(checkoutDataJson) as Map<String, dynamic>;
+            final checkoutData =
+                jsonDecode(checkoutDataJson) as Map<String, dynamic>;
             final salesInvoiceID = checkoutData['salesInvoiceID'] as String?;
             if (salesInvoiceID != null && salesInvoiceID.isNotEmpty) {
               final cubit = CheckoutScreenCubit();
@@ -127,9 +147,11 @@ class _CheckoutSuccessWebViewState extends State<CheckoutSuccessWebView> {
     } catch (e) {
       // Error during payment verification - cancel the invoice
       try {
-        final checkoutDataJson = StripeWebHelper.getSessionStorage('stripe_checkout_data');
+        final checkoutDataJson =
+            StripeWebHelper.getSessionStorage('stripe_checkout_data');
         if (checkoutDataJson != null) {
-          final checkoutData = jsonDecode(checkoutDataJson) as Map<String, dynamic>;
+          final checkoutData =
+              jsonDecode(checkoutDataJson) as Map<String, dynamic>;
           final salesInvoiceID = checkoutData['salesInvoiceID'] as String?;
           if (salesInvoiceID != null && salesInvoiceID.isNotEmpty) {
             final cubit = CheckoutScreenCubit();
@@ -166,7 +188,7 @@ class _CheckoutSuccessWebViewState extends State<CheckoutSuccessWebView> {
                           const CircularProgressIndicator(),
                           const SizedBox(height: 16),
                           Text(
-                            'Verifying payment...',
+                            S.of(context).verifyingPayment,
                             style: TextStyle(
                               fontSize: 16,
                               color: Theme.of(context)
@@ -206,7 +228,7 @@ class _CheckoutSuccessWebViewState extends State<CheckoutSuccessWebView> {
                                       (route) => false,
                                     );
                                   },
-                                  child: const Text('Return to Cart'),
+                                  child: Text(S.of(context).returnToCart),
                                 ),
                               ],
                             ),

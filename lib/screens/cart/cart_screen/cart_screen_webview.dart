@@ -264,7 +264,8 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
   Widget _buildWebLayout(CartScreenState state) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 800;
+        // Use mobile layout for screens smaller than 1000px
+        final isMobile = constraints.maxWidth < 1000;
 
         if (isMobile) {
           // Mobile layout: Column with order summary on top
@@ -309,18 +310,21 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
         }
 
         // Desktop layout: Row with sidebar
+        // Calculate sidebar width responsively (max 400px, min 320px)
+        final sidebarWidth = (constraints.maxWidth * 0.3).clamp(320.0, 400.0);
+
         return Container(
           padding: const EdgeInsets.all(24),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Cart Items List - Main Content
               Expanded(
-                flex: 2,
                 child: _buildCartItemsList(state, isMobile: false),
               ),
               // Order Summary Sidebar
               Container(
-                width: 400,
+                width: sidebarWidth,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   border: Border(
@@ -691,6 +695,8 @@ class _CartScreenWebViewState extends State<CartScreenWebView> {
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
               if (discount > 0) ...[

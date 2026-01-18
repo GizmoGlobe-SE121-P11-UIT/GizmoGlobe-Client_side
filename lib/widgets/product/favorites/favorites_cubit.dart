@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,9 +11,33 @@ class FavoritesCubit extends Cubit<Set<String>> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final LocalGuestService _localGuestService = LocalGuestService();
+  StreamSubscription<User?>? _authSubscription;
+  User? _previousUser;
 
   FavoritesCubit() : super({}) {
     loadFavorites();
+    _previousUser = _auth.currentUser;
+    
+    // Listen to auth state changes to reload favorites when user logs in
+    _authSubscription = _auth.authStateChanges().listen((User? user) {
+      if (user != null && _previousUser == null) {
+        // User just logged in
+        loadFavorites();
+      } else if (user != null && _previousUser != null && user.uid != _previousUser!.uid) {
+        // User switched accounts
+        loadFavorites();
+      } else if (user == null && _previousUser != null) {
+        // User logged out - clear favorites
+        emit({});
+      }
+      _previousUser = user;
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _authSubscription?.cancel();
+    return super.close();
   }
 
   Future<bool> _isGuestUser() async {

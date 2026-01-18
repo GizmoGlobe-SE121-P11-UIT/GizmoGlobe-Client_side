@@ -52,6 +52,12 @@ class Address {
     receiverPhone: '',
   );
 
+  /// Check if this address is valid (has an addressID and is not the null address)
+  bool get isValid =>
+      addressID != null &&
+      addressID!.isNotEmpty &&
+      this != nullAddress;
+
   Map<String, dynamic> toMap() {
     return {
       'addressID': addressID,

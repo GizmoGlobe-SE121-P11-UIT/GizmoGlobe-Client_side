@@ -221,7 +221,7 @@ class _VoucherScreenState extends State<VoucherScreen>
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .colorScheme
-                                          .onPrimary,
+                                          .primary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                     ),
@@ -232,7 +232,7 @@ class _VoucherScreenState extends State<VoucherScreen>
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .colorScheme
-                                          .onPrimary,
+                                          .primary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                     ),
@@ -241,7 +241,7 @@ class _VoucherScreenState extends State<VoucherScreen>
                                   Icon(
                                     Icons.auto_awesome,
                                     color:
-                                        Theme.of(context).colorScheme.onPrimary,
+                                        Theme.of(context).colorScheme.primary,
                                     size: 16,
                                   ),
                                 ],

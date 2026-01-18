@@ -1668,4 +1668,10 @@ class SVI extends S {
   String get sslEncrypted => 'Mã hóa SSL';
   @override
   String get copyrightText => '© 2025 GizmoGlobe. Bảo lưu mọi quyền.';
+
+  // Stripe Checkout
+  @override
+  String get verifyingPayment => 'Đang xác minh thanh toán...';
+  @override
+  String get returnToCart => 'Quay lại giỏ hàng';
 }

@@ -61,6 +61,9 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
   Future<void> _refreshDataAfterSignIn() async {
     if (isClosed) return;
 
+    // Reload favorites in FavoritesCubit so heart icons update immediately
+    await favoritesCubit.loadFavorites();
+
     // Reload cart items from Firebase
     await loadCartItems();
 

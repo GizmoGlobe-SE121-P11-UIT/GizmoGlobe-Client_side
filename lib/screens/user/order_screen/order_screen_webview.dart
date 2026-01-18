@@ -14,6 +14,7 @@ import 'package:gizmoglobe_client/screens/user/order_screen/rating_order/rate_or
 import 'package:gizmoglobe_client/objects/invoice_related/rating.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
 import '../../../enums/processing/process_state_enum.dart';
+import '../../../widgets/dialog/information_dialog.dart';
 import 'package:gizmoglobe_client/services/platform_actions.dart'
     as platform_actions;
 
@@ -280,35 +281,18 @@ class _OrderScreenWebViewState extends State<OrderScreenWebView>
     return BlocConsumer<OrderScreenCubit, OrderScreenState>(
       listener: (context, state) {
         if (state.processState == ProcessState.success) {
+          cubit.resetProcessState();
           showDialog(
             context: context,
-            builder: (context) => AlertDialog(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              title: Text(
-                S.of(context).orderConfirmed,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              content: Text(
-                S.of(context).deliveryConfirmed,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _tabController.animateTo(OrderOption.completed.index);
-                    cubit.initialize(OrderOption.completed);
-                    _updateUrlForTab(OrderOption.completed.index);
-                    cubit.resetProcessState();
-                  },
-                  child: Text(S.of(context).ok),
-                ),
-              ],
+            builder: (context) => InformationDialog(
+              title: S.of(context).orderConfirmed,
+              content: S.of(context).deliveryConfirmed,
+              onPressed: () {
+                Navigator.of(context).pop();
+                _tabController.animateTo(OrderOption.completed.index);
+                cubit.initialize(OrderOption.completed);
+                _updateUrlForTab(OrderOption.completed.index);
+              },
             ),
           );
         }

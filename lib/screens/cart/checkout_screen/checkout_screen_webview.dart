@@ -739,7 +739,7 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                       ),
                     );
 
-              if (address != Address.nullAddress) {
+              if (address.isValid) {
                 await cubit.updateAddress(address);
               }
             },
@@ -767,7 +767,7 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: (state.salesInvoice?.address == null ||
-                            state.salesInvoice?.address == Address.nullAddress)
+                            !(state.salesInvoice?.address?.isValid ?? false))
                         ? Text(
                             S.of(context).chooseAddress,
                             style: TextStyle(
@@ -958,8 +958,8 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
             height: 56,
             child: ElevatedButton(
               onPressed: () async {
-                if (state.salesInvoice?.address == null ||
-                    state.salesInvoice?.address == Address.nullAddress) {
+                final address = state.salesInvoice?.address;
+                if (address == null || !address.isValid) {
                   SnackbarService.showWarning(
                     context,
                     title: S.of(context).chooseAddress,

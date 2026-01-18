@@ -118,6 +118,7 @@ class _OrderScreenState extends State<OrderScreen>
           child: BlocConsumer<OrderScreenCubit, OrderScreenState>(
             listener: (context, state) {
               if (state.processState == ProcessState.success) {
+                cubit.resetProcessState();
                 showDialog(
                   context: context,
                   builder: (context) => InformationDialog(
@@ -127,7 +128,6 @@ class _OrderScreenState extends State<OrderScreen>
                       Navigator.of(context).pop();
                       tabController.animateTo(OrderOption.completed.index);
                       cubit.initialize(OrderOption.completed);
-                      cubit.resetProcessState();
                     },
                   ),
                 );

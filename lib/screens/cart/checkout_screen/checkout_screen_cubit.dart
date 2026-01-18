@@ -229,31 +229,20 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         throw Exception('No invoice to checkout');
       }
 
-      // Ensure customerName is set
-      if (state.salesInvoice!.customerName == null ||
-          state.salesInvoice!.customerName!.isEmpty) {
-        final customerName = await _getCustomerName();
-        final updatedInvoice = state.salesInvoice!.copyWith(
-          customerName: customerName,
-        );
-        emit(state.copyWith(salesInvoice: updatedInvoice));
-      }
-
       final paymentMethod = state.selectedPaymentMethod;
+      final currentAddress = state.salesInvoice!.address;
 
-      // Ensure customerName is set before creating invoice
-      SalesInvoice invoiceToProcess = state.salesInvoice!;
-      if (invoiceToProcess.customerName == null ||
-          invoiceToProcess.customerName!.isEmpty) {
-        final customerName = await _getCustomerName();
-        invoiceToProcess = invoiceToProcess.copyWith(
-          customerName: customerName,
-        );
+      // Get customer name if needed
+      String? customerName = state.salesInvoice!.customerName;
+      if (customerName == null || customerName.isEmpty) {
+        customerName = await _getCustomerName();
       }
 
-      // Ensure payment method is set on the invoice
-      invoiceToProcess = invoiceToProcess.copyWith(
+      // Create invoice with all fields explicitly set to avoid any state timing issues
+      SalesInvoice invoiceToProcess = state.salesInvoice!.copyWith(
+        customerName: customerName,
         paymentMethod: paymentMethod,
+        address: currentAddress,
       );
 
       // Calculate final total: sum all items, apply voucher discount, then round once
@@ -285,6 +274,8 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       } else {
         // Invoice already exists in Firebase (e.g., from page refresh recovery), update it
         await _firebase.updateSalesInvoice(invoiceWithRoundedTotal);
+        // Update state with the updated invoice
+        emit(state.copyWith(salesInvoice: invoiceWithRoundedTotal));
       }
 
       // Handle different payment methods
@@ -445,6 +436,7 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         'details': detailsData,
         'salesInvoiceID': state
             .salesInvoice!.salesInvoiceID, // Store invoice ID for completion
+        'paymentMethod': state.selectedPaymentMethod.getName(), // Store payment method explicitly
       };
 
       final checkoutDataJson = jsonEncode(checkoutData);
@@ -481,9 +473,20 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         throw Exception('Invoice not found: $salesInvoiceID');
       }
 
-      // Update invoice with paid status
+      // Restore payment method from stored data (in case it wasn't saved correctly)
+      final storedPaymentMethod = checkoutData['paymentMethod'] as String?;
+      PaymentMethod paymentMethod = PaymentMethod.stripe; // Default for Stripe checkout
+      if (storedPaymentMethod != null) {
+        paymentMethod = PaymentMethod.values.firstWhere(
+          (e) => e.getName() == storedPaymentMethod,
+          orElse: () => PaymentMethod.stripe,
+        );
+      }
+
+      // Update invoice with paid status and correct payment method
       final updatedInvoice = salesInvoice.copyWith(
         paymentStatus: PaymentStatus.paid,
+        paymentMethod: paymentMethod,
       );
 
       // Update invoice in Firebase

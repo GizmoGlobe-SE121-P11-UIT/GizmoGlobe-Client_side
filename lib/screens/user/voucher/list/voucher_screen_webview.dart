@@ -499,7 +499,7 @@ class _VoucherScreenWebViewState extends State<VoucherScreenWebView>
                   Text(
                     S.of(context).loyalPoints,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
@@ -508,7 +508,7 @@ class _VoucherScreenWebViewState extends State<VoucherScreenWebView>
                   Text(
                     '${state.points}',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
@@ -516,7 +516,7 @@ class _VoucherScreenWebViewState extends State<VoucherScreenWebView>
                   const SizedBox(width: 4),
                   Icon(
                     Icons.auto_awesome,
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: Theme.of(context).colorScheme.primary,
                     size: 18,
                   ),
                 ],

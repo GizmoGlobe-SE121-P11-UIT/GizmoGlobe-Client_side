@@ -40,14 +40,23 @@ class CompatibilityHandler {
       compatibleDocs = result['products'];
       compatibilityContext = result['context'];
     }
-    // Case 2: Product-based compatibility (e.g., "i7 12700 thuộc socket nào?")
+    // Case 2: Product-based compatibility (e.g., "i7 12700 thuộc socket nào?" or "i5 12400 có phù hợp b850?")
     else if (productNames != null && productNames.isNotEmpty) {
-      // This is asking about a product's socket/compatibility
-      // We should find the product, get its socket, then find compatible products
-      final result = await _handleProductCompatibility(
-          productNames.first.toString(), category, isVietnamese);
-      compatibleDocs = result['products'];
-      compatibilityContext = result['context'];
+      // Check if user is asking about compatibility between TWO products
+      if (productNames.length >= 2) {
+        final result = await _handleTwoProductCompatibility(
+            productNames[0].toString(),
+            productNames[1].toString(),
+            isVietnamese);
+        compatibleDocs = result['products'];
+        compatibilityContext = result['context'];
+      } else {
+        // Single product - find its socket and compatible products
+        final result = await _handleProductCompatibility(
+            productNames.first.toString(), category, isVietnamese);
+        compatibleDocs = result['products'];
+        compatibilityContext = result['context'];
+      }
     }
     // Case 3: General compatibility question
     else {
@@ -183,6 +192,139 @@ class CompatibilityHandler {
       return {
         'products': <QueryDocumentSnapshot>[],
         'context': context,
+      };
+    }
+  }
+
+  /// Handle compatibility check between TWO products
+  /// When user asks "i5 12400 có phù hợp b850?", check if both products are compatible
+  Future<Map<String, dynamic>> _handleTwoProductCompatibility(
+    String productName1,
+    String productName2,
+    bool isVietnamese,
+  ) async {
+    try {
+      // Search for both products in Firestore
+      final searchQuery = await FirebaseFirestore.instance
+          .collection('products')
+          .where('status', isEqualTo: 'active')
+          .get();
+
+      QueryDocumentSnapshot? product1Doc;
+      QueryDocumentSnapshot? product2Doc;
+
+      // Normalize search terms
+      final search1 = productName1.toLowerCase().replaceAll(RegExp(r'[\s\-]+'), '');
+      final search2 = productName2.toLowerCase().replaceAll(RegExp(r'[\s\-]+'), '');
+
+      for (var doc in searchQuery.docs) {
+        final data = doc.data();
+        final name = data['productName']?.toString().toLowerCase() ?? '';
+        final normalizedName = name.replaceAll(RegExp(r'[\s\-]+'), '');
+
+        if (product1Doc == null &&
+            (normalizedName.contains(search1) || name.contains(productName1.toLowerCase()))) {
+          product1Doc = doc;
+        }
+        if (product2Doc == null &&
+            (normalizedName.contains(search2) || name.contains(productName2.toLowerCase()))) {
+          product2Doc = doc;
+        }
+        if (product1Doc != null && product2Doc != null) break;
+      }
+
+      // If either product not found
+      if (product1Doc == null && product2Doc == null) {
+        return {
+          'products': <QueryDocumentSnapshot>[],
+          'context': isVietnamese
+              ? 'Không tìm thấy sản phẩm "$productName1" và "$productName2"'
+              : 'Products "$productName1" and "$productName2" not found',
+        };
+      }
+
+      if (product1Doc == null) {
+        return {
+          'products': product2Doc != null ? [product2Doc] : <QueryDocumentSnapshot>[],
+          'context': isVietnamese
+              ? 'Không tìm thấy sản phẩm "$productName1"'
+              : 'Product "$productName1" not found',
+        };
+      }
+
+      if (product2Doc == null) {
+        return {
+          'products': [product1Doc],
+          'context': isVietnamese
+              ? 'Không tìm thấy sản phẩm "$productName2"'
+              : 'Product "$productName2" not found',
+        };
+      }
+
+      // Get product data
+      final data1 = product1Doc.data() as Map<String, dynamic>;
+      final data2 = product2Doc.data() as Map<String, dynamic>;
+
+      final name1 = data1['productName'] ?? productName1;
+      final name2 = data2['productName'] ?? productName2;
+
+      final category1 = data1['category']?.toString().toLowerCase();
+      final category2 = data2['category']?.toString().toLowerCase();
+
+      final attrs1 = data1['attributes'] as Map<String, dynamic>?;
+      final attrs2 = data2['attributes'] as Map<String, dynamic>?;
+
+      final socket1 = attrs1?['socket']?.toString().toLowerCase();
+      final socket2 = attrs2?['socket']?.toString().toLowerCase();
+
+      // Check compatibility based on socket (for CPU + Mainboard)
+      bool isCompatible = false;
+      String compatibilityReason = '';
+
+      if ((category1 == 'cpu' && category2 == 'mainboard') ||
+          (category1 == 'mainboard' && category2 == 'cpu')) {
+        // CPU + Mainboard: Check socket compatibility
+        if (socket1 != null && socket2 != null) {
+          isCompatible = socket1 == socket2;
+          if (isCompatible) {
+            compatibilityReason = isVietnamese
+                ? 'Cả hai đều sử dụng socket ${socket1.toUpperCase()}'
+                : 'Both use socket ${socket1.toUpperCase()}';
+          } else {
+            compatibilityReason = isVietnamese
+                ? 'Socket không tương thích: $name1 (${socket1.toUpperCase()}) vs $name2 (${socket2.toUpperCase()})'
+                : 'Socket incompatible: $name1 (${socket1.toUpperCase()}) vs $name2 (${socket2.toUpperCase()})';
+          }
+        } else {
+          compatibilityReason = isVietnamese
+              ? 'Không thể xác định socket của sản phẩm'
+              : 'Cannot determine product socket';
+        }
+      } else {
+        // Other combinations - just show both products
+        compatibilityReason = isVietnamese
+            ? 'Đây là thông tin về 2 sản phẩm bạn hỏi'
+            : 'Here is information about the 2 products you asked';
+      }
+
+      final context = isVietnamese
+          ? (isCompatible
+              ? '✅ $name1 và $name2 TƯƠNG THÍCH. $compatibilityReason'
+              : '❌ $name1 và $name2 KHÔNG tương thích. $compatibilityReason')
+          : (isCompatible
+              ? '✅ $name1 and $name2 are COMPATIBLE. $compatibilityReason'
+              : '❌ $name1 and $name2 are NOT compatible. $compatibilityReason');
+
+      return {
+        'products': [product1Doc, product2Doc],
+        'context': context,
+      };
+    } catch (e) {
+      return {
+        'products': <QueryDocumentSnapshot>[],
+        'context': isVietnamese
+            ? 'Có lỗi xảy ra khi kiểm tra tương thích'
+            : 'Error occurred while checking compatibility',
       };
     }
   }

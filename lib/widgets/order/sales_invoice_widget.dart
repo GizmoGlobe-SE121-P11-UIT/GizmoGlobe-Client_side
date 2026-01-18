@@ -72,7 +72,7 @@ class SalesInvoiceWidget extends StatelessWidget {
                                       width: 140,
                                       child: FilledButton(
                                         onPressed: () => onRate!(productId),
-                                        child: const Text('Rate product'),
+                                        child: Text(S.of(context).rateProduct),
                                       ),
                                     ),
                                     Text(
