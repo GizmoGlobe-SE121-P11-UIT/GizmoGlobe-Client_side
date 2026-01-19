@@ -1506,6 +1506,107 @@ ANSWER (1 SENTENCE):
 
     final products = result['products'] as List<QueryDocumentSnapshot>;
 
+    // IMPORTANT: Build suggestions must NEVER hallucinate product names.
+    // EnhancedQueryHandlers already returns a concrete 6-part build from Firestore.
+    // So for build queries, format the response directly from those docs
+    // (no Gemini free-text generation).
+    if (queryType == 'build') {
+      // Prefer category-based ordering in case handler output order changes.
+      final Map<String, QueryDocumentSnapshot> byCategory = {};
+      for (final doc in products) {
+        final data = doc.data() as Map<String, dynamic>;
+        final category = (data['category'] ?? '').toString().toLowerCase();
+        if (category.isNotEmpty && !byCategory.containsKey(category)) {
+          byCategory[category] = doc;
+        }
+      }
+
+      final ordered = <MapEntry<String, QueryDocumentSnapshot>>[
+        MapEntry('cpu', byCategory['cpu'] ?? products.first),
+        MapEntry('mainboard', byCategory['mainboard'] ?? products[1]),
+        MapEntry('ram', byCategory['ram'] ?? products[2]),
+        MapEntry('gpu', byCategory['gpu'] ?? products[3]),
+        MapEntry('drive', byCategory['drive'] ?? products[4]),
+        MapEntry('psu', byCategory['psu'] ?? products[5]),
+      ];
+
+      final labelMapVi = <String, String>{
+        'cpu': 'CPU',
+        'mainboard': 'Mainboard',
+        'ram': 'RAM',
+        'gpu': 'GPU',
+        'drive': 'Ổ cứng',
+        'psu': 'PSU',
+      };
+
+      final labelMapEn = <String, String>{
+        'cpu': 'CPU',
+        'mainboard': 'Mainboard',
+        'ram': 'RAM',
+        'gpu': 'GPU',
+        'drive': 'Drive',
+        'psu': 'PSU',
+      };
+
+      final productCards = <Map<String, dynamic>>[];
+      final lines = <String>[];
+      double totalInThousands = 0;
+
+      for (final entry in ordered) {
+        final data = entry.value.data() as Map<String, dynamic>;
+        final sellingPrice = (data['sellingPrice'] as num?)?.toDouble() ?? 0;
+        final discount = (data['discount'] as num?)?.toDouble() ?? 0;
+        final discountedPrice = (data['discountedPrice'] as num?)?.toDouble() ??
+            sellingPrice * (1 - discount / 100);
+        final category = data['category']?.toString() ?? '';
+        final name = (data['productName'] ?? '').toString();
+        totalInThousands += discountedPrice;
+
+        final label = isVietnamese
+            ? (labelMapVi[entry.key] ?? entry.key.toUpperCase())
+            : (labelMapEn[entry.key] ?? entry.key.toUpperCase());
+
+        lines.add(
+            '- $label: $name — ${Helper.toCurrencyFormat(discountedPrice * 1000)}');
+
+        productCards.add({
+          'id': entry.value.id,
+          'name': name,
+          'price': discountedPrice,
+          'originalPrice': sellingPrice,
+          'discount': discount,
+          'stock': data['stock'] ?? 0,
+          'imageUrl': data['imageUrl'],
+          'category': category,
+        });
+      }
+
+      final totalFormatted = Helper.toCurrencyFormat(totalInThousands * 1000);
+
+      final header = (result['context'] as String?)?.trim();
+      final intro = isVietnamese
+          ? 'Mình chỉ gợi ý linh kiện có trong shop (không tự tạo tên sản phẩm).'
+          : 'I only suggest parts that exist in your store (no invented products).';
+
+      final response = [
+        if (header != null && header.isNotEmpty) header,
+        intro,
+        '',
+        ...lines,
+        '',
+        isVietnamese
+            ? '**Tổng:** $totalFormatted'
+            : '**Total:** $totalFormatted',
+      ].join('\n');
+
+      return await _attachProductCardsToResponse(
+        response,
+        userMessage,
+        isVietnamese,
+        existingCards: productCards,
+      );
+    }
+
     // Extract the requested number from user message (e.g., "top 3" → 3)
     // For build suggestions, allow more cards to show all components
     int requestedCount =

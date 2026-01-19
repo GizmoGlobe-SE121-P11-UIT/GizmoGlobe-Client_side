@@ -19,6 +19,7 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
     emit(state.copyWith(cartItems: Database().cartItems));
     _favoritesSubscription = favoritesCubit.stream.listen((favoriteIds) async {
       await _updateFavoriteProducts();
+      _updateBestSellerProducts();
     });
 
     _updateRecommendedProducts();
@@ -70,6 +71,9 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
     // Update favorite products
     await _updateFavoriteProducts();
 
+    // Update best sellers to reflect current favorites (avoid stale/duplicate cards)
+    _updateBestSellerProducts();
+
     // Update recommended products based on new cart items
     _updateRecommendedProducts();
   }
@@ -82,11 +86,16 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
 
     await _updateFavoriteProducts();
 
+    _updateBestSellerProducts();
+  }
+
+  void _updateBestSellerProducts() {
+    if (isClosed) return;
+    // Keep favorites in Best Sellers, but don't show out-of-stock items.
+    final bestSellers =
+        Database().bestSellerProducts.where((p) => p.stock > 0).toList();
     if (!isClosed) {
-      // Check again before emitting
-      emit(state.copyWith(
-        bestSellerProducts: Database().bestSellerProducts,
-      ));
+      emit(state.copyWith(bestSellerProducts: bestSellers));
     }
   }
 

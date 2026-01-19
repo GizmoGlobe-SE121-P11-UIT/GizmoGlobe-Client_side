@@ -164,7 +164,12 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
   }
 
   void updateQuantity(int newQuantity) {
-    emit(state.copyWith(quantity: newQuantity));
+    final maxStock = state.product.stock;
+    // Clamp manual input to stock. If stock is unknown/zero, keep at least 1.
+    final clamped = maxStock > 0
+        ? newQuantity.clamp(1, maxStock)
+        : (newQuantity < 1 ? 1 : newQuantity);
+    emit(state.copyWith(quantity: clamped));
   }
 
   void incrementQuantity() {

@@ -153,6 +153,27 @@ class _ProductDetailScreenWebViewState
   final TextEditingController _quantityController = TextEditingController();
   bool _isQuantityEditing = false;
 
+  void _commitQuantityInput(String rawValue, ProductDetailState state) {
+    setState(() {
+      _isQuantityEditing = false;
+    });
+
+    final parsed = int.tryParse(rawValue);
+    if (parsed == null || parsed < 1) {
+      _quantityController.text = state.quantity.toString();
+      return;
+    }
+
+    final maxStock = state.product.stock;
+    final int clamped =
+        maxStock > 0 ? parsed.clamp(1, maxStock) : parsed;
+
+    if (clamped != parsed) {
+      _quantityController.text = clamped.toString();
+    }
+    cubit.updateQuantity(clamped);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -828,32 +849,17 @@ class _ProductDetailScreenWebViewState
                                                                       },
                                                                       onSubmitted:
                                                                           (value) {
-                                                                        setState(
-                                                                            () {
-                                                                          _isQuantityEditing =
-                                                                              false;
-                                                                        });
-                                                                        final intValue =
-                                                                            int.tryParse(value);
-                                                                        if (intValue !=
-                                                                                null &&
-                                                                            intValue >=
-                                                                                1) {
-                                                                          cubit.updateQuantity(
-                                                                              intValue);
-                                                                        } else {
-                                                                          _quantityController.text = state
-                                                                              .quantity
-                                                                              .toString();
-                                                                        }
+                                                                        _commitQuantityInput(
+                                                                            value,
+                                                                            state);
                                                                       },
                                                                       onEditingComplete:
                                                                           () {
-                                                                        setState(
-                                                                            () {
-                                                                          _isQuantityEditing =
-                                                                              false;
-                                                                        });
+                                                                        _commitQuantityInput(
+                                                                          _quantityController
+                                                                              .text,
+                                                                          state,
+                                                                        );
                                                                       },
                                                                     ),
                                                                   ),
@@ -1334,33 +1340,17 @@ class _ProductDetailScreenWebViewState
                                                                 },
                                                                 onSubmitted:
                                                                     (value) {
-                                                                  setState(() {
-                                                                    _isQuantityEditing =
-                                                                        false;
-                                                                  });
-                                                                  final intValue =
-                                                                      int.tryParse(
-                                                                          value);
-                                                                  if (intValue !=
-                                                                          null &&
-                                                                      intValue >=
-                                                                          1) {
-                                                                    cubit.updateQuantity(
-                                                                        intValue);
-                                                                  } else {
-                                                                    _quantityController
-                                                                            .text =
-                                                                        state
-                                                                            .quantity
-                                                                            .toString();
-                                                                  }
+                                                                  _commitQuantityInput(
+                                                                      value,
+                                                                      state);
                                                                 },
                                                                 onEditingComplete:
                                                                     () {
-                                                                  setState(() {
-                                                                    _isQuantityEditing =
-                                                                        false;
-                                                                  });
+                                                                  _commitQuantityInput(
+                                                                    _quantityController
+                                                                        .text,
+                                                                    state,
+                                                                  );
                                                                 },
                                                               ),
                                                             ),
