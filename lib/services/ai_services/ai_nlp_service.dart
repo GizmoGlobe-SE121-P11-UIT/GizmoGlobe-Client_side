@@ -256,11 +256,12 @@ Respond in JSON format:
       throw Exception('GEMINI_API_KEY not found in .env file');
     }
 
-    // Try 2.5-flash max 3 times, then fallback to 2.5-flash-lite
-    const maxRetries25Flash = 3;
+    // Try Gemini 3.0 models in cascade: Pro → Flash → Flash Lite
+    const maxRetriesPerModel = 3;
     final models = [
-      {'name': 'gemini-2.5-flash', 'maxRetries': maxRetries25Flash},
-      {'name': 'gemini-2.5-flash-lite', 'maxRetries': maxRetries25Flash},
+      {'name': 'gemini-3.0-pro', 'maxRetries': maxRetriesPerModel},
+      {'name': 'gemini-3.0-flash', 'maxRetries': maxRetriesPerModel},
+      {'name': 'gemini-3.0-flash-lite', 'maxRetries': maxRetriesPerModel},
     ];
     bool useFallback = false;
 
@@ -302,8 +303,9 @@ Respond in JSON format:
             }
             throw Exception('No valid response from Gemini API');
           } else if (response.statusCode == 503) {
-            // If 2.5-flash is overloaded, switch to fallback immediately
-            if (model == 'gemini-2.5-flash' && !useFallback) {
+            // If current model is overloaded, switch to next model immediately
+            if ((model == 'gemini-3.0-pro' || model == 'gemini-3.0-flash') &&
+                !useFallback) {
               useFallback = true;
               break; // Break retry loop and try next model
             }
@@ -316,7 +318,8 @@ Respond in JSON format:
             }
           } else {
             // For other errors, try next model if available
-            if (model == 'gemini-2.5-flash' && !useFallback) {
+            if ((model == 'gemini-3.0-pro' || model == 'gemini-3.0-flash') &&
+                !useFallback) {
               useFallback = true;
               break; // Break retry loop and try next model
             }
@@ -324,8 +327,9 @@ Respond in JSON format:
                 'API call failed with status code: ${response.statusCode}, body: ${response.body}');
           }
         } catch (e) {
-          // If 2.5-flash fails, try fallback
-          if (model == 'gemini-2.5-flash' && !useFallback) {
+          // If current model fails, try next model
+          if ((model == 'gemini-3.0-pro' || model == 'gemini-3.0-flash') &&
+              !useFallback) {
             useFallback = true;
             break; // Break retry loop and try next model
           }

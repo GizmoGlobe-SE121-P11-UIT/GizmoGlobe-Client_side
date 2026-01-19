@@ -85,7 +85,7 @@ class CommentModerationService {
               if (key != null && key.isNotEmpty) {
                 try {
                   return GenerativeModel(
-                      model: 'gemini-2.5-flash', apiKey: key);
+                      model: 'gemini-3.0-flash', apiKey: key);
                 } catch (e) {
                   return null;
                 }
