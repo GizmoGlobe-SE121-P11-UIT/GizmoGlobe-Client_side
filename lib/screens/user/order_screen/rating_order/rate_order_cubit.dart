@@ -319,7 +319,10 @@ class RateOrderCubit extends Cubit<RateOrderState> {
       final ext = picked.path.split('.').last.toLowerCase();
       final videoExtension = ext.isNotEmpty ? ext : 'mp4';
 
-      final videoFile = File(picked.path);
+      // On web, don't create File object from blob URL path
+      // On mobile, create File object for compatibility
+      final videoFile = kIsWeb ? null : File(picked.path);
+
       emit(state.copyWith(
         video: videoFile,
         videoBytes: videoBytes,
