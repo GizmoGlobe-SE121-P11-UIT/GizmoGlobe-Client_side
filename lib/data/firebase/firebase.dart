@@ -349,6 +349,9 @@ class Firebase {
 
       // Stock will be decremented after successful payment confirmation
       // This ensures stock is only reduced when payment is actually received
+      //
+      // NOTE: Stock reservation/decrement is handled by Checkout flow via
+      // reserveProductStockForInvoice(...) to avoid overselling under concurrency.
 
       // Update voucher usage if a voucher was applied
       if (salesInvoice.voucher != null) {
@@ -360,6 +363,67 @@ class Firebase {
     } catch (e) {
       rethrow;
     }
+  }
+
+  /// Reserve (decrement) product stock for an invoice atomically.
+  ///
+  /// This prevents overselling when multiple users checkout concurrently,
+  /// especially when stock is low.
+  ///
+  /// Idempotent per invoice via `sales_invoices/{id}.stockReserved == true`.
+  Future<void> reserveProductStockForInvoice(
+    String salesInvoiceID,
+    List<SalesInvoiceDetail> invoiceDetails,
+  ) async {
+    if (salesInvoiceID.isEmpty) {
+      throw Exception('Cannot reserve stock: missing invoice ID');
+    }
+
+    await _firestore.runTransaction((tx) async {
+      final invoiceRef = _firestore.collection('sales_invoices').doc(
+            salesInvoiceID,
+          );
+      final invoiceSnap = await tx.get(invoiceRef);
+      if (!invoiceSnap.exists) {
+        throw Exception('Invoice not found: $salesInvoiceID');
+      }
+
+      final invoiceData = invoiceSnap.data();
+      final alreadyReserved = invoiceData?['stockReserved'] == true;
+      if (alreadyReserved) {
+        return;
+      }
+
+      // Decrement stock for all items in one transaction (all-or-nothing).
+      for (final detail in invoiceDetails) {
+        final productID = detail.product.productID;
+        final quantity = detail.quantity;
+
+        if (productID == null || productID.isEmpty || quantity <= 0) continue;
+
+        final productRef = _firestore.collection('products').doc(productID);
+        final productSnap = await tx.get(productRef);
+        if (!productSnap.exists) {
+          throw Exception('Product not found: $productID');
+        }
+
+        final productData = productSnap.data();
+        final currentStock = (productData?['stock'] as num?)?.toInt() ?? 0;
+        if (currentStock < quantity) {
+          throw Exception('Insufficient stock for product $productID');
+        }
+
+        tx.update(productRef, {'stock': currentStock - quantity});
+      }
+
+      tx.update(invoiceRef, {
+        'stockReserved': true,
+        'stockReservedAt': FieldValue.serverTimestamp(),
+      });
+    });
+
+    // Refresh products locally to reflect stock changes
+    await Database().getProducts();
   }
 
   /// Update an existing sales invoice in Firebase
@@ -635,15 +699,17 @@ class Firebase {
             uploadedImageUrls = [];
             for (var i = 0; i < imageBytes.length; i++) {
               final bytes = imageBytes[i];
-              final ext = (imageExtensions != null && i < imageExtensions.length)
-                  ? imageExtensions[i]
-                  : 'jpg';
+              final ext =
+                  (imageExtensions != null && i < imageExtensions.length)
+                      ? imageExtensions[i]
+                      : 'jpg';
               final storageRef = FirebaseStorage.instance
                   .ref()
                   .child('ratings')
                   .child(docId)
                   .child('images')
-                  .child('img_${i}_${DateTime.now().millisecondsSinceEpoch}.$ext');
+                  .child(
+                      'img_${i}_${DateTime.now().millisecondsSinceEpoch}.$ext');
 
               final uploadTask = storageRef.putData(
                 bytes,
@@ -797,6 +863,7 @@ class Firebase {
 
       final invoiceData = invoiceDoc.data() as Map<String, dynamic>;
       final voucherID = invoiceData['voucherID'] as String?;
+      final bool stockReserved = invoiceData['stockReserved'] == true;
 
       // Get invoice details to restore stock
       final detailsSnapshot = await _firestore
@@ -805,7 +872,7 @@ class Firebase {
           .get();
 
       // Restore product stock when invoice is cancelled
-      if (detailsSnapshot.docs.isNotEmpty) {
+      if (stockReserved && detailsSnapshot.docs.isNotEmpty) {
         try {
           final details = detailsSnapshot.docs.map((doc) {
             final data = doc.data();
@@ -817,7 +884,39 @@ class Firebase {
             return productID != null && productID.isNotEmpty;
           }).toList();
 
-          await _restoreProductStock(details);
+          // Restore stock atomically (and clear reservation flag) to prevent double restores.
+          await _firestore.runTransaction((tx) async {
+            final invoiceRef = _firestore.collection('sales_invoices').doc(
+                  salesInvoiceID,
+                );
+            final freshInvoiceSnap = await tx.get(invoiceRef);
+            if (!freshInvoiceSnap.exists) return;
+            final freshData = freshInvoiceSnap.data();
+            final stillReserved = freshData?['stockReserved'] == true;
+            if (!stillReserved) return;
+
+            for (final d in details) {
+              final pid = d['productID'] as String?;
+              final qty = (d['quantity'] as num?)?.toInt() ?? 0;
+              if (pid == null || pid.isEmpty || qty <= 0) continue;
+
+              final productRef = _firestore.collection('products').doc(pid);
+              final productSnap = await tx.get(productRef);
+              if (!productSnap.exists) continue;
+
+              final productData = productSnap.data();
+              final currentStock =
+                  (productData?['stock'] as num?)?.toInt() ?? 0;
+              tx.update(productRef, {'stock': currentStock + qty});
+            }
+
+            tx.update(invoiceRef, {
+              'stockReserved': false,
+              'stockReservedAt': FieldValue.delete(),
+            });
+          });
+
+          await Database().getProducts();
         } catch (e) {
           // Continue with cancellation even if stock restore fails
         }
@@ -1315,73 +1414,33 @@ class Firebase {
   Future<void> decrementProductStock(
       List<SalesInvoiceDetail> invoiceDetails) async {
     try {
-      for (final detail in invoiceDetails) {
-        final productID = detail.product.productID;
-        if (productID == null || productID.isEmpty) {
-          continue;
+      // Prefer using reserveProductStockForInvoice(...) at checkout time.
+      // This method is kept for backward compatibility but is now transactional.
+      await _firestore.runTransaction((tx) async {
+        for (final detail in invoiceDetails) {
+          final productID = detail.product.productID;
+          if (productID == null || productID.isEmpty) continue;
+          final quantity = detail.quantity;
+          if (quantity <= 0) continue;
+
+          final productRef = _firestore.collection('products').doc(productID);
+          final productSnap = await tx.get(productRef);
+          if (!productSnap.exists) continue;
+
+          final productData = productSnap.data();
+          final currentStock = (productData?['stock'] as num?)?.toInt() ?? 0;
+          if (currentStock < quantity) {
+            throw Exception('Insufficient stock for product $productID');
+          }
+          tx.update(productRef, {'stock': currentStock - quantity});
         }
-
-        final quantity = detail.quantity;
-        if (quantity <= 0) {
-          continue;
-        }
-
-        final productRef = _firestore.collection('products').doc(productID);
-        final productDoc = await productRef.get();
-
-        if (!productDoc.exists) {
-          continue;
-        }
-
-        final productData = productDoc.data()!;
-        final currentStock = (productData['stock'] as num?)?.toInt() ?? 0;
-        final newStock =
-            (currentStock - quantity).clamp(0, double.infinity).toInt();
-
-        await productRef.update({'stock': newStock});
-      }
+      });
 
       // Refresh products in database to reflect stock changes
       await Database().getProducts();
     } catch (e) {
       // Continue with invoice creation even if stock update fails
       // In production, you might want to rethrow this error
-    }
-  }
-
-  /// Restore product stock when invoice is cancelled
-  Future<void> _restoreProductStock(
-      List<Map<String, dynamic>> invoiceDetails) async {
-    try {
-      for (final detail in invoiceDetails) {
-        final productID = detail['productID'] as String?;
-        if (productID == null || productID.isEmpty) {
-          continue;
-        }
-
-        final quantity = (detail['quantity'] as num?)?.toInt() ?? 0;
-        if (quantity <= 0) {
-          continue;
-        }
-
-        final productRef = _firestore.collection('products').doc(productID);
-        final productDoc = await productRef.get();
-
-        if (!productDoc.exists) {
-          continue;
-        }
-
-        final productData = productDoc.data()!;
-        final currentStock = (productData['stock'] as num?)?.toInt() ?? 0;
-        final newStock = currentStock + quantity;
-
-        await productRef.update({'stock': newStock});
-      }
-
-      // Refresh products in database to reflect stock changes
-      await Database().getProducts();
-    } catch (e) {
-      // Error restoring product stock
     }
   }
 

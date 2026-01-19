@@ -289,6 +289,12 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         emit(state.copyWith(salesInvoice: invoiceWithRoundedTotal));
       }
 
+      // Reserve stock atomically for this invoice (prevents overselling under concurrency).
+      await _firebase.reserveProductStockForInvoice(
+        invoiceWithRoundedTotal.salesInvoiceID!,
+        invoiceWithRoundedTotal.details,
+      );
+
       // Handle different payment methods
       if (paymentMethod == PaymentMethod.cod) {
         // COD: Invoice already exists with unpaid status, just update to pending
@@ -299,9 +305,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
         // Update invoice in Firebase
         await _firebase.updateSalesInvoice(invoiceToSave);
-
-        // Decrement product stock after COD order is confirmed
-        await _firebase.decrementProductStock(invoiceToSave.details);
 
         // Clear cart items
         for (var detail in invoiceToSave.details) {
@@ -388,9 +391,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         );
 
         await _firebase.updateSalesInvoice(invoiceToSave);
-
-        // Decrement product stock after successful payment confirmation
-        await _firebase.decrementProductStock(invoiceToSave.details);
 
         // Clear cart items after successful payment
         for (var detail in invoiceToSave.details) {
@@ -505,9 +505,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
       // Update invoice in Firebase
       await _firebase.updateSalesInvoice(updatedInvoice);
 
-      // Decrement product stock after successful payment confirmation
-      await _firebase.decrementProductStock(updatedInvoice.details);
-
       // Clear cart items
       for (var detail in updatedInvoice.details) {
         await _firebase.removeFromCart(
@@ -539,9 +536,6 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
 
       // Update invoice in Firebase
       await _firebase.updateSalesInvoice(updatedInvoice);
-
-      // Decrement product stock after successful payment confirmation
-      await _firebase.decrementProductStock(updatedInvoice.details);
 
       // Emit success state
       emit(state.copyWith(
