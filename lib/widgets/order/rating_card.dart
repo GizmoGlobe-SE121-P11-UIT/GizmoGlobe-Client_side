@@ -77,23 +77,90 @@ class RatingCard extends StatelessWidget {
                                 FullscreenMediaViewer(videoUrl: r.videoUrl),
                           ));
                         },
-                        child: Container(
-                          height: 160,
-                          color: Theme.of(context).colorScheme.surface,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.network(r.videoUrl!,
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                // Fallback background (since video URLs usually aren't image URLs)
+                                Container(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.videocam,
+                                      size: 44,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.35),
+                                    ),
+                                  ),
+                                ),
+                                // Attempt to load thumbnail if the URL supports it (safe fallback if it doesn't)
+                                Image.network(
+                                  r.videoUrl!,
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) =>
-                                      const SizedBox()),
-                              Center(
-                                child: Icon(Icons.play_circle,
-                                    color: const Color.fromRGBO(
-                                        255, 255, 255, 0.9),
-                                    size: 56),
-                              ),
-                            ],
+                                      const SizedBox.shrink(),
+                                ),
+                                // Dark overlay to make play button readable
+                                Container(
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Color.fromRGBO(0, 0, 0, 0.05),
+                                        Color.fromRGBO(0, 0, 0, 0.35),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color.fromRGBO(0, 0, 0, 0.55),
+                                    ),
+                                    child: const Icon(
+                                      Icons.play_arrow,
+                                      color: Colors.white,
+                                      size: 42,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 10,
+                                  bottom: 10,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          const Color.fromRGBO(0, 0, 0, 0.55),
+                                      borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.18),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Video',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -115,11 +182,30 @@ class RatingCard extends StatelessWidget {
                                           FullscreenMediaViewer(imageUrl: img),
                                     ));
                                   },
-                                  child: Image.network(img,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      img,
                                       height: 80,
+                                      width: 80,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
-                                          const SizedBox()),
+                                      errorBuilder: (_, __, ___) => Container(
+                                        height: 80,
+                                        width: 80,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surfaceContainerHighest,
+                                        child: Icon(
+                                          Icons.image_not_supported_outlined,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.35),
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               );
                             }).toList(),
