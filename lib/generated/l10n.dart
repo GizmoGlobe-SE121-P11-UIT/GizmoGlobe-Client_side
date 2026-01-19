@@ -864,11 +864,11 @@ class S {
       );
   String get accessDenied =>
       Intl.message('Access Denied', name: 'accessDenied');
-  String accessDeniedMessage(String feature) => Intl.message(
-      'You need to grant {feature} access to use this feature.',
-      name: 'accessDeniedMessage',
-      args: [feature],
-      meaning: 'Permission denied message');
+  String accessDeniedMessage(String feature) =>
+      Intl.message('You need to grant {feature} access to use this feature.',
+          name: 'accessDeniedMessage',
+          args: [feature],
+          meaning: 'Permission denied message');
   String get openSettings =>
       Intl.message('Open Settings', name: 'openSettings');
   String get close => Intl.message('Close', name: 'close');
@@ -1220,6 +1220,13 @@ class S {
       Intl.message('Verifying payment...', name: 'verifyingPayment');
   String get returnToCart =>
       Intl.message('Return to Cart', name: 'returnToCart');
+
+  // Stock error handling
+  String get stockErrorTitle =>
+      Intl.message('Out of Stock', name: 'stockErrorTitle');
+  String get stockErrorMessage => Intl.message(
+      'Some products in your cart are currently out of stock. Please try again later.',
+      name: 'stockErrorMessage');
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

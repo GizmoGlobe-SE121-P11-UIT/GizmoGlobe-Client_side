@@ -53,9 +53,11 @@ class SalesInvoiceWidget extends StatelessWidget {
                         r.invoiceId!.isNotEmpty &&
                         r.invoiceId == invoiceId;
                   });
+                  // Only show rate button when order is received or completed
+                  // Don't show when still waiting for delivery (shipped)
                   final canRate = (salesInvoice.salesStatus ==
                               SalesStatus.received ||
-                          salesInvoice.salesStatus == SalesStatus.shipped) &&
+                          salesInvoice.salesStatus == SalesStatus.completed) &&
                       onRate != null &&
                       productId.isNotEmpty &&
                       !alreadyRated;

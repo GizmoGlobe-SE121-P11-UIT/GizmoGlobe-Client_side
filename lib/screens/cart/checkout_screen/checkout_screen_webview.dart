@@ -303,28 +303,54 @@ class _CheckoutScreenWebViewState extends State<CheckoutScreenWebView> {
                   } else if (state.processState == ProcessState.failure &&
                       !_hasShownErrorDialog) {
                     _hasShownErrorDialog = true;
+                    String errorTitle = S.of(context).paymentStatus;
                     String errorMessage = S.of(context).errorCheckout;
+                    String buttonText = S.of(context).tryAgain;
+                    VoidCallback? onButtonPressed;
 
-                    if ((state.message
+                    // Check for stock/inventory error
+                    if (state.message
+                            .toLowerCase()
+                            .contains('insufficient stock') ||
+                        state.message.toLowerCase().contains('out of stock')) {
+                      errorTitle = S.of(context).stockErrorTitle;
+                      errorMessage = S.of(context).stockErrorMessage;
+                      buttonText = S.of(context).ok;
+                      onButtonPressed = () {
+                        Navigator.pop(context);
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/home',
+                          (route) => false,
+                        );
+                      };
+                    } else if ((state.message
                             .toLowerCase()
                             .contains('payment failed') ||
                         state.message.toLowerCase().contains('stripe'))) {
                       errorMessage = S.of(context).paymentCancelled;
+                      onButtonPressed = () {
+                        Navigator.pop(context);
+                        _hasShownErrorDialog = false;
+                        cubit.clearError();
+                      };
+                    } else {
+                      onButtonPressed = () {
+                        Navigator.pop(context);
+                        _hasShownErrorDialog = false;
+                        cubit.clearError();
+                      };
                     }
 
                     showDialog(
                       context: context,
+                      barrierDismissible: false,
                       builder: (context) => InformationDialog(
-                        title: S.of(context).paymentStatus,
+                        title: errorTitle,
                         content: errorMessage,
                         dialogName: DialogName.failure,
-                        buttonText: S.of(context).tryAgain,
-                        onPressed: () {
-                          Navigator.pop(context);
-                          // Reset error state and flag after dialog is dismissed
-                          _hasShownErrorDialog = false;
-                          cubit.clearError();
-                        },
+                        buttonText: buttonText,
+                        onPressed: onButtonPressed,
                       ),
                     );
                   }

@@ -1713,9 +1713,15 @@ class SVI extends S {
   @override
   String get copyrightText => '© 2025 GizmoGlobe. Bảo lưu mọi quyền.';
 
-  // Stripe Checkout
   @override
   String get verifyingPayment => 'Đang xác minh thanh toán...';
   @override
   String get returnToCart => 'Quay lại giỏ hàng';
+
+  // Stock error handling
+  @override
+  String get stockErrorTitle => 'Hết hàng';
+  @override
+  String get stockErrorMessage =>
+      'Một số sản phẩm trong giỏ hàng hiện đã hết hàng. Vui lòng thử lại sau.';
 }

@@ -201,13 +201,36 @@ class _CheckoutScreen extends State<CheckoutScreen> {
           } else if (state.processState == ProcessState.failure &&
               !_hasShownErrorDialog) {
             _hasShownErrorDialog = true;
+            String errorTitle = S.of(context).paymentStatus;
             String errorMessage = S.of(context).errorCheckout;
+            String buttonText = S.of(context).tryAgain;
+            VoidCallback? onButtonPressed;
 
             // Handle specific error types with user-friendly messages
             final messageLower = state.message.toLowerCase();
-            if (messageLower.contains('payment failed') ||
+
+            // Check for stock/inventory error - navigate to home on OK
+            if (messageLower.contains('insufficient stock') ||
+                messageLower.contains('out of stock')) {
+              errorTitle = S.of(context).stockErrorTitle;
+              errorMessage = S.of(context).stockErrorMessage;
+              buttonText = S.of(context).ok;
+              onButtonPressed = () {
+                Navigator.pop(context);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/home',
+                  (route) => false,
+                );
+              };
+            } else if (messageLower.contains('payment failed') ||
                 messageLower.contains('stripe')) {
               errorMessage = S.of(context).paymentCancelled;
+              onButtonPressed = () {
+                Navigator.pop(context);
+                _hasShownErrorDialog = false;
+                cubit.clearError();
+              };
             } else if (messageLower.contains('sepay') ||
                 messageLower.contains('virtual account') ||
                 messageLower.contains('bank account')) {
@@ -220,27 +243,39 @@ class _CheckoutScreen extends State<CheckoutScreen> {
                 errorMessage =
                     'SePay payment failed. Please try again or use a different payment method.';
               }
+              onButtonPressed = () {
+                Navigator.pop(context);
+                _hasShownErrorDialog = false;
+                cubit.clearError();
+              };
             } else if (messageLower.contains('bad state') ||
                 messageLower.contains('no element')) {
               // Technical errors - show generic message
               errorMessage =
                   'Payment processing error. Please try again or contact support.';
+              onButtonPressed = () {
+                Navigator.pop(context);
+                _hasShownErrorDialog = false;
+                cubit.clearError();
+              };
+            } else {
+              onButtonPressed = () {
+                Navigator.pop(context);
+                _hasShownErrorDialog = false;
+                cubit.clearError();
+              };
             }
 
             if (context.mounted) {
               showDialog(
                 context: context,
+                barrierDismissible: false,
                 builder: (context) => InformationDialog(
-                  title: S.of(context).paymentStatus,
+                  title: errorTitle,
                   content: errorMessage,
                   dialogName: DialogName.failure,
-                  buttonText: S.of(context).tryAgain,
-                  onPressed: () {
-                    Navigator.pop(context);
-                    // Reset error state and flag after dialog is dismissed
-                    _hasShownErrorDialog = false;
-                    cubit.clearError();
-                  },
+                  buttonText: buttonText,
+                  onPressed: onButtonPressed,
                 ),
               );
             }
