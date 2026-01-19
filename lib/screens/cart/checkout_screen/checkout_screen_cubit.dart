@@ -528,9 +528,10 @@ class CheckoutScreenCubit extends Cubit<CheckoutScreenState> {
         throw Exception('Invoice not found: $salesInvoiceID');
       }
 
-      // Update invoice with paid status
+      // Update invoice with paid status and ensure payment method is SePay
       final updatedInvoice = salesInvoice.copyWith(
         paymentStatus: PaymentStatus.paid,
+        paymentMethod: PaymentMethod.sepay, // Explicitly set to SePay
         salesStatus: SalesStatus.pending, // Keep as pending until shipped
       );
 
