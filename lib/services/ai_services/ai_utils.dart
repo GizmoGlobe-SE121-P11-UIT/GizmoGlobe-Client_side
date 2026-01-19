@@ -596,18 +596,136 @@ class AIUtils {
       'tôi',
       'muốn',
       'tìm',
+      'kiếm',
       'giá',
       'của',
       'cho',
       'biết',
-      'về'
+      'về',
+      'có',
+      'không',
+      'nào',
+      'shop',
+      'cửa',
+      'hàng',
+      'bán',
+      'sản',
+      'phẩm',
+      'find',
+      'search',
+      'looking',
+      'for',
+      'want',
+      'need',
+      'please',
+      'any',
+      'some'
     };
 
-    return message
+    final words = message
         .toLowerCase()
-        .split(' ')
-        .where((word) => !stopWords.contains(word) && word.length > 2)
+        .split(RegExp(r'\s+'))
+        .where((word) => !stopWords.contains(word) && word.isNotEmpty)
         .toList();
+
+    // Try to combine CPU/GPU model patterns (e.g., "i5 12400" -> "i5 12400")
+    final combined = <String>[];
+    int i = 0;
+    while (i < words.length) {
+      final word = words[i];
+
+      // Check for Intel CPU pattern (i3, i5, i7, i9)
+      if (RegExp(r'^i[3579]$').hasMatch(word) && i + 1 < words.length) {
+        final nextWord = words[i + 1];
+        // If next word is a model number, combine them
+        if (RegExp(r'^\d{4,5}[a-z]*$').hasMatch(nextWord)) {
+          combined.add('$word $nextWord');
+          i += 2;
+          continue;
+        }
+      }
+
+      // Check for AMD Ryzen pattern (ryzen, r3, r5, r7, r9)
+      if (RegExp(r'^(ryzen|r[3579])$').hasMatch(word)) {
+        if (i + 1 < words.length) {
+          final nextWord = words[i + 1];
+          // If word is ryzen and next is series number
+          if (word == 'ryzen' && RegExp(r'^[3579]$').hasMatch(nextWord)) {
+            if (i + 2 < words.length &&
+                RegExp(r'^\d{4}[a-z]*$').hasMatch(words[i + 2])) {
+              combined.add('$word $nextWord ${words[i + 2]}');
+              i += 3;
+              continue;
+            }
+            combined.add('$word $nextWord');
+            i += 2;
+            continue;
+          }
+          // If word is r5, r7, etc and next is model number
+          if (RegExp(r'^r[3579]$').hasMatch(word) &&
+              RegExp(r'^\d{4}[a-z]*$').hasMatch(nextWord)) {
+            combined.add('ryzen ${word.substring(1)} $nextWord');
+            i += 2;
+            continue;
+          }
+        }
+      }
+
+      // Check for RTX/GTX pattern
+      if (RegExp(r'^(rtx|gtx)$').hasMatch(word) && i + 1 < words.length) {
+        final nextWord = words[i + 1];
+        if (RegExp(r'^\d{3,4}$').hasMatch(nextWord)) {
+          if (i + 2 < words.length &&
+              RegExp(r'^(ti|super)$').hasMatch(words[i + 2])) {
+            combined.add('$word $nextWord ${words[i + 2]}');
+            i += 3;
+            continue;
+          }
+          combined.add('$word $nextWord');
+          i += 2;
+          continue;
+        }
+      }
+
+      // Check for RX pattern (AMD)
+      if (word == 'rx' && i + 1 < words.length) {
+        final nextWord = words[i + 1];
+        if (RegExp(r'^\d{3,4}$').hasMatch(nextWord)) {
+          if (i + 2 < words.length && words[i + 2] == 'xt') {
+            combined.add('$word $nextWord ${words[i + 2]}');
+            i += 3;
+            continue;
+          }
+          combined.add('$word $nextWord');
+          i += 2;
+          continue;
+        }
+      }
+
+      // Check for Core Ultra pattern
+      if (word == 'core' && i + 1 < words.length && words[i + 1] == 'ultra') {
+        if (i + 2 < words.length &&
+            RegExp(r'^[579]$').hasMatch(words[i + 2])) {
+          if (i + 3 < words.length &&
+              RegExp(r'^\d{3}[a-z]*$').hasMatch(words[i + 3])) {
+            combined.add('$word ${words[i + 1]} ${words[i + 2]} ${words[i + 3]}');
+            i += 4;
+            continue;
+          }
+          combined.add('$word ${words[i + 1]} ${words[i + 2]}');
+          i += 3;
+          continue;
+        }
+      }
+
+      // Keep words with minimum length
+      if (word.length >= 2) {
+        combined.add(word);
+      }
+      i++;
+    }
+
+    return combined;
   }
 
   /// Extract product name from text

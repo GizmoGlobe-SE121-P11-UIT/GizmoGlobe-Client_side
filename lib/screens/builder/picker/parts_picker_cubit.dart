@@ -20,44 +20,32 @@ class PartsPickerCubit extends Cubit<PartsPickerState> {
       switch (category) {
         case CategoryEnum.cpu:
           products = _database.cpuList
-              .where((p) =>
-                  p.status.getName() == 'active' ||
-                  p.status.getName() == 'outOfStock')
+              .where((p) => p.status.getName() == 'active' && p.stock > 0)
               .toList();
           break;
         case CategoryEnum.mainboard:
           products = _database.mainboardList
-              .where((p) =>
-                  p.status.getName() == 'active' ||
-                  p.status.getName() == 'outOfStock')
+              .where((p) => p.status.getName() == 'active' && p.stock > 0)
               .toList();
           break;
         case CategoryEnum.ram:
           products = _database.ramList
-              .where((p) =>
-                  p.status.getName() == 'active' ||
-                  p.status.getName() == 'outOfStock')
+              .where((p) => p.status.getName() == 'active' && p.stock > 0)
               .toList();
           break;
         case CategoryEnum.gpu:
           products = _database.gpuList
-              .where((p) =>
-                  p.status.getName() == 'active' ||
-                  p.status.getName() == 'outOfStock')
+              .where((p) => p.status.getName() == 'active' && p.stock > 0)
               .toList();
           break;
         case CategoryEnum.psu:
           products = _database.psuList
-              .where((p) =>
-                  p.status.getName() == 'active' ||
-                  p.status.getName() == 'outOfStock')
+              .where((p) => p.status.getName() == 'active' && p.stock > 0)
               .toList();
           break;
         case CategoryEnum.drive:
           products = _database.driveList
-              .where((p) =>
-                  p.status.getName() == 'active' ||
-                  p.status.getName() == 'outOfStock')
+              .where((p) => p.status.getName() == 'active' && p.stock > 0)
               .toList();
           break;
         default:
@@ -66,7 +54,10 @@ class PartsPickerCubit extends Cubit<PartsPickerState> {
 
       List<Product> displayProducts = [];
       for (final product in products) {
-        if (state.searchText.isEmpty || product.productName.toLowerCase().contains(state.searchText.toLowerCase())) {
+        if (state.searchText.isEmpty ||
+            product.productName
+                .toLowerCase()
+                .contains(state.searchText.toLowerCase())) {
           displayProducts.add(product);
         }
       }
@@ -101,10 +92,15 @@ class PartsPickerCubit extends Cubit<PartsPickerState> {
   void updateSearchText(String? searchText) {
     List<Product> displayProducts = [];
     for (final product in state.products) {
-      if (searchText == null || searchText.isEmpty || product.productName.toLowerCase().contains(searchText.toLowerCase())) {
+      if (searchText == null ||
+          searchText.isEmpty ||
+          product.productName
+              .toLowerCase()
+              .contains(searchText.toLowerCase())) {
         displayProducts.add(product);
       }
     }
-    emit(state.copyWith(searchText: searchText, displayProducts: displayProducts));
+    emit(state.copyWith(
+        searchText: searchText, displayProducts: displayProducts));
   }
 }

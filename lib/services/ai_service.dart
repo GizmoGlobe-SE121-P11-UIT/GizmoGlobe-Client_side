@@ -374,8 +374,15 @@ class AIService {
     List<Map<String, dynamic>> favorites = [];
     List<Map<String, dynamic>> cartItems = [];
 
+    bool isInStock(Map<String, dynamic> product) {
+      final stock = (product['stock'] as num?)?.toInt() ?? 0;
+      return stock > 0;
+    }
+
     if (isFavoriteQuestion) {
       favorites = await _userDataService.getUserFavorites(userId);
+      // Chat view: exclude out-of-stock products
+      favorites = favorites.where(isInStock).toList();
       content = _userDataService.formatFavoritesList(favorites, isVietnamese);
       sectionTitle =
           isVietnamese ? 'DANH SÁCH SẢN PHẨM YÊU THÍCH' : 'FAVORITE PRODUCTS';
@@ -383,6 +390,8 @@ class AIService {
 
     if (isCartQuestion) {
       cartItems = await _userDataService.getUserCart(userId);
+      // Chat view: exclude out-of-stock products
+      cartItems = cartItems.where(isInStock).toList();
 
       // If asking about quantity specifically, provide a focused response
       if (isCartQuantityQuestion) {
@@ -504,13 +513,20 @@ class AIService {
     // Search products using NLP-enhanced approach
     QuerySnapshot? productsSnapshot;
 
-    // Try searching with the exact product name first
-    if (productName.isNotEmpty && confidence > 0.7) {
+    // Try searching with the exact product name first (lowered confidence threshold)
+    if (productName.isNotEmpty && confidence > 0.4) {
       productsSnapshot = await _productService.searchProductsWithNLP(
           productName: productName,
           category: category,
           synonyms: synonyms,
           isVietnamese: isVietnamese);
+    }
+
+    // Also try direct keyword search if NLP didn't find results
+    if ((productsSnapshot == null || productsSnapshot.docs.isEmpty) &&
+        productName.isNotEmpty) {
+      productsSnapshot =
+          await _productService.searchProducts(keyword: productName);
     }
 
     // Fallback to traditional search if NLP search fails
@@ -522,9 +538,24 @@ class AIService {
         productsSnapshot =
             await _productService.searchProducts(category: fallbackCategory);
       } else if (fallbackKeywords.isNotEmpty) {
-        productsSnapshot = await _productService.searchProducts(
-            keyword: fallbackKeywords.first);
-      } else {
+        // Try searching with each keyword until we find results
+        for (final keyword in fallbackKeywords) {
+          productsSnapshot =
+              await _productService.searchProducts(keyword: keyword);
+          if (productsSnapshot.docs.isNotEmpty) {
+            break;
+          }
+        }
+        // If still no results and we have multiple keywords, try combining them
+        if ((productsSnapshot == null || productsSnapshot.docs.isEmpty) &&
+            fallbackKeywords.length > 1) {
+          final combinedKeyword = fallbackKeywords.take(3).join(' ');
+          productsSnapshot =
+              await _productService.searchProducts(keyword: combinedKeyword);
+        }
+      }
+      // If still no results, get all products
+      if (productsSnapshot == null || productsSnapshot.docs.isEmpty) {
         productsSnapshot = await _productService.searchProducts();
       }
     }

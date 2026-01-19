@@ -29,6 +29,7 @@ class CompatibilityHandler {
             : null);
 
     final productNames = entities['product_names'] as List?;
+    final inferredChipsetToken = _extractChipsetLikeToken(userMessage);
 
     List<QueryDocumentSnapshot> compatibleDocs = [];
     String compatibilityContext = '';
@@ -51,11 +52,21 @@ class CompatibilityHandler {
         compatibleDocs = result['products'];
         compatibilityContext = result['context'];
       } else {
+        // If user asked "CPU X có hợp H610/B850/... không?" the classifier may only
+        // return one product name. In that case infer chipset token from message
+        // and treat it as a 2-product compatibility check.
+        if (inferredChipsetToken != null && inferredChipsetToken.isNotEmpty) {
+          final result = await _handleTwoProductCompatibility(
+              productNames.first.toString(), inferredChipsetToken, isVietnamese);
+          compatibleDocs = result['products'];
+          compatibilityContext = result['context'];
+        } else {
         // Single product - find its socket and compatible products
         final result = await _handleProductCompatibility(
             productNames.first.toString(), category, isVietnamese);
         compatibleDocs = result['products'];
         compatibilityContext = result['context'];
+        }
       }
     }
     // Case 3: General compatibility question
@@ -214,21 +225,33 @@ class CompatibilityHandler {
       QueryDocumentSnapshot? product2Doc;
 
       // Normalize search terms
-      final search1 = productName1.toLowerCase().replaceAll(RegExp(r'[\s\-]+'), '');
-      final search2 = productName2.toLowerCase().replaceAll(RegExp(r'[\s\-]+'), '');
+      final search1 =
+          productName1.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final search2 =
+          productName2.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+      final expectedCategory1 = _inferExpectedCategory(productName1);
+      final expectedCategory2 = _inferExpectedCategory(productName2);
 
       for (var doc in searchQuery.docs) {
         final data = doc.data();
         final name = data['productName']?.toString().toLowerCase() ?? '';
-        final normalizedName = name.replaceAll(RegExp(r'[\s\-]+'), '');
+        final normalizedName = name.replaceAll(RegExp(r'[^a-z0-9]'), '');
+        final docCategory = data['category']?.toString().toLowerCase();
 
         if (product1Doc == null &&
-            (normalizedName.contains(search1) || name.contains(productName1.toLowerCase()))) {
-          product1Doc = doc;
+            (normalizedName.contains(search1) ||
+                name.contains(productName1.toLowerCase()))) {
+          if (expectedCategory1 == null || docCategory == expectedCategory1) {
+            product1Doc = doc;
+          }
         }
         if (product2Doc == null &&
-            (normalizedName.contains(search2) || name.contains(productName2.toLowerCase()))) {
-          product2Doc = doc;
+            (normalizedName.contains(search2) ||
+                name.contains(productName2.toLowerCase()))) {
+          if (expectedCategory2 == null || docCategory == expectedCategory2) {
+            product2Doc = doc;
+          }
         }
         if (product1Doc != null && product2Doc != null) break;
       }
@@ -327,6 +350,46 @@ class CompatibilityHandler {
             : 'Error occurred while checking compatibility',
       };
     }
+  }
+
+  /// Try to extract a chipset-like token from the user message.
+  /// Examples: "h610", "h610m", "b850", "b760", "z790", "x670", "a620".
+  String? _extractChipsetLikeToken(String message) {
+    final lower = message.toLowerCase();
+
+    // Most common chipset pattern families in DIY PC context
+    // - Intel: h610 / b660 / b760 / z690 / z790 ...
+    // - AMD: a620 / b550 / b650 / x570 / x670 / b850 ...
+    final match = RegExp(r'\b([habxz]\s*\d{3,4}[a-z]?)\b', caseSensitive: false)
+        .firstMatch(lower);
+    if (match == null) return null;
+
+    return match.group(1)?.replaceAll(' ', '').toLowerCase();
+  }
+
+  /// Infer which category a short token likely refers to, to reduce false matches.
+  /// Returns 'cpu', 'mainboard', or null.
+  String? _inferExpectedCategory(String token) {
+    final lower = token.toLowerCase();
+    final normalized = lower.replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+    // Strong CPU signals
+    final intelCpu =
+        RegExp(r'(i[3579])\s*-?\s*(\d{4,5}[a-z]*)', caseSensitive: false);
+    final ryzenCpu =
+        RegExp(r'(?:ryzen|r)\s*[3579]\s*\d{4}[a-z]*', caseSensitive: false);
+    if (intelCpu.hasMatch(lower) || ryzenCpu.hasMatch(lower)) return 'cpu';
+
+    // Strong mainboard/chipset signals
+    if (lower.contains('mainboard') ||
+        lower.contains('motherboard') ||
+        lower.contains('bo mạch') ||
+        lower.contains('bo mach') ||
+        RegExp(r'^(habxz)\d{3,4}[a-z]?$').hasMatch(normalized)) {
+      return 'mainboard';
+    }
+
+    return null;
   }
 
   /// Handle product-based compatibility queries

@@ -69,28 +69,8 @@ class AIProductService {
   Future<QuerySnapshot> searchProducts(
       {String? category, String? keyword}) async {
     try {
-      // Normalize keyword if provided
-      if (keyword != null) {
-        keyword = normalizeProductName(keyword);
-      }
-
       final CollectionReference<Map<String, dynamic>> productsRef =
           _firestore.collection('products');
-
-      // Get list of inactive manufacturers first
-      // final manufacturerSnapshot = await _firestore
-      //     .collection('manufacturers')
-      //     .where('status', isEqualTo: 'inactive')
-      //     .get();
-
-      // final List<Map<String, dynamic>> inactiveManufacturers =
-      //     manufacturerSnapshot.docs
-      //         .map((doc) =>
-      //             {'id': doc.id, 'status': doc['status'] ?? 'inactive'})
-      //         .toList();
-
-      // final List<String> inactiveManufacturerIDs =
-      //     inactiveManufacturers.map((m) => m['id'] as String).toList();
 
       // First query: Filter by active status
       var query = productsRef.where('status', isEqualTo: 'active');
@@ -102,37 +82,112 @@ class AIProductService {
         query = query.where('category', isEqualTo: standardCategory);
       }
 
-      // Add keyword filters if specified
-      if (keyword != null) {
-        // Split keyword into parts
-        final parts = extractProductParts(keyword);
-
-        if (parts.isNotEmpty) {
-          // Check if this is a CPU/GPU series-only search (e.g., "i5", "i7", "ryzen 5")
-          // These need partial matching, not exact match
-          final isCPUSeries = _isCPUSeries(parts);
-
-          if (isCPUSeries) {
-            // For CPU series searches, we'll fetch by category and filter in memory
-            // Don't add keyword filter here - will be filtered after query
-            // This is stored for post-query filtering
-          } else {
-            // For specific product searches, use exact match on normalized name
-            query = query.where('normalizedName', isEqualTo: parts.join(' '));
-          }
-        } else {
-          // Fallback to basic search if splitting fails
-          final lowerKeyword = keyword.toLowerCase();
-          query = query
-              .where('productName', isGreaterThanOrEqualTo: lowerKeyword)
-              .where('productName', isLessThan: '${lowerKeyword}z');
-        }
-      }
-
-      // Execute the query
+      // Execute the query first, then filter by keyword in memory
+      // This is more reliable than trying to match normalized names in Firestore
       final result = await query.get();
 
-      return result;
+      // If no keyword, return all results
+      if (keyword == null || keyword.trim().isEmpty) {
+        return result;
+      }
+
+      // Filter docs in memory using partial matching
+      final matchingDocs = result.docs.where((doc) {
+        final data = doc.data();
+        final productName = (data['productName'] as String?) ?? '';
+        final productNameLower = productName.toLowerCase();
+        final keywordLower = keyword.toLowerCase().trim();
+
+        // Check 1: Direct substring match (case insensitive)
+        if (productNameLower.contains(keywordLower)) return true;
+
+        // Check 2: Handle CPU model patterns specifically (e.g., "i5 12400" -> "i5-12400" or "i5 12400")
+        // Also handle variations like "i512400", "i5-12400", "core i5 12400"
+        final cpuPattern =
+            RegExp(r'(i[3579])\s*-?\s*(\d{4,5}[a-z]*)', caseSensitive: false);
+        final keywordCpuMatch = cpuPattern.firstMatch(keywordLower);
+        if (keywordCpuMatch != null) {
+          final series = keywordCpuMatch.group(1)!.toLowerCase(); // e.g., "i5"
+          final model = keywordCpuMatch.group(2)!; // e.g., "12400" or "12400f"
+          // Check if product name contains both the series and model number
+          if (productNameLower.contains(series) &&
+              productNameLower.contains(model)) {
+            return true;
+          }
+        }
+
+        // Check 3: Handle Ryzen patterns (e.g., "ryzen 5 5600", "r5 5600", "5600x")
+        final ryzenPattern =
+            RegExp(r'(?:ryzen|r)\s*([3579])\s*(\d{4}[a-z]*)', caseSensitive: false);
+        final keywordRyzenMatch = ryzenPattern.firstMatch(keywordLower);
+        if (keywordRyzenMatch != null) {
+          final series = keywordRyzenMatch.group(1)!; // e.g., "5"
+          final model = keywordRyzenMatch.group(2)!; // e.g., "5600" or "5600x"
+          if (productNameLower.contains('ryzen') &&
+              productNameLower.contains(series) &&
+              productNameLower.contains(model)) {
+            return true;
+          }
+        }
+
+        // Check 4: Split keyword into individual words and check all are present
+        final keywordWords = keywordLower
+            .split(RegExp(r'\s+'))
+            .where((w) => w.isNotEmpty && w.length >= 2)
+            .toList();
+        if (keywordWords.isNotEmpty) {
+          final allWordsMatch = keywordWords.every((word) {
+            // Remove non-alphanumeric chars for better matching
+            final cleanWord = word.replaceAll(RegExp(r'[^a-z0-9]'), '');
+            final cleanProductName =
+                productNameLower.replaceAll(RegExp(r'[^a-z0-9\s]'), ' ');
+            // Check for word boundary or substring match
+            return cleanProductName.contains(cleanWord);
+          });
+          if (allWordsMatch) return true;
+        }
+
+        // Check 5: Use normalized matching as fallback
+        final normalizedKeyword = normalizeProductName(keyword);
+        final normalizedProductName = normalizeProductName(productName);
+        if (normalizedProductName.contains(normalizedKeyword)) return true;
+
+        // Check 6: Similarity score for fuzzy matching (lowered threshold)
+        final similarity =
+            calculateSimilarity(normalizedKeyword, normalizedProductName);
+        if (similarity > 0.4) return true;
+
+        return false;
+      }).toList();
+
+      // Return a filtered "snapshot" by creating a mock query result
+      // Since we can't create a new QuerySnapshot, we'll use a workaround
+      // by re-querying with document IDs if we have matches
+      if (matchingDocs.isEmpty) {
+        // Return empty result - just return the original with no matches
+        return await productsRef
+            .where('status', isEqualTo: '__NO_MATCH__')
+            .get();
+      }
+
+      // If all docs match, return original result
+      if (matchingDocs.length == result.docs.length) {
+        return result;
+      }
+
+      // Get matching document IDs and re-query
+      final matchingIds = matchingDocs.map((doc) => doc.id).toList();
+
+      // Firestore 'whereIn' has a limit of 30 items, so we may need to batch
+      if (matchingIds.length <= 30) {
+        return await productsRef
+            .where(FieldPath.documentId, whereIn: matchingIds)
+            .get();
+      } else {
+        // For more than 30 matches, just return the original result
+        // The caller should handle filtering if needed
+        return result;
+      }
     } catch (e) {
       rethrow;
     }
@@ -143,6 +198,7 @@ class AIProductService {
     try {
       // Normalize product name for search
       final normalizedName = normalizeProductName(productName);
+      final lowerProductName = productName.toLowerCase().trim();
 
       // Search in products collection
       final querySnapshot = await _firestore
@@ -166,19 +222,37 @@ class AIProductService {
 
       for (final product in products) {
         final productNormalizedName = product['normalizedName'] as String;
-        final originalName = product['productName'] as String;
+        final originalName = (product['productName'] as String?) ?? '';
+        final originalNameLower = originalName.toLowerCase();
 
-        // Calculate similarity scores
-        final normalizedScore =
-            calculateSimilarity(normalizedName, productNormalizedName);
-        final originalScore = calculateSimilarity(
-            productName.toLowerCase(), originalName.toLowerCase());
+        double score = 0.0;
 
-        // Use the better score
-        final score =
-            normalizedScore > originalScore ? normalizedScore : originalScore;
+        // Priority 1: Direct substring match (highest priority)
+        if (originalNameLower.contains(lowerProductName)) {
+          score = 0.95;
+        }
+        // Priority 2: Check for CPU model pattern match (e.g., "i5 12400" in "CPU Intel Core i5 12400 ...")
+        else if (_matchesCpuPattern(lowerProductName, originalNameLower)) {
+          score = 0.9;
+        }
+        // Priority 3: Check for GPU model pattern match (e.g., "rtx 4060" in "GeForce RTX 4060 ...")
+        else if (_matchesGpuPattern(lowerProductName, originalNameLower)) {
+          score = 0.9;
+        }
+        // Priority 4: All search words present in product name
+        else if (_allWordsPresent(lowerProductName, originalNameLower)) {
+          score = 0.85;
+        }
+        // Priority 5: Calculate similarity scores
+        else {
+          final normalizedScore =
+              calculateSimilarity(normalizedName, productNormalizedName);
+          final originalScore =
+              calculateSimilarity(lowerProductName, originalNameLower);
+          score = normalizedScore > originalScore ? normalizedScore : originalScore;
+        }
 
-        if (score > bestScore && score > 0.2) {
+        if (score > bestScore && score > 0.15) {
           // Lowered threshold for better matching
           bestScore = score;
           bestMatch = product;
@@ -189,6 +263,96 @@ class AIProductService {
     } catch (e) {
       return null;
     }
+  }
+
+  /// Check if search query matches CPU pattern in product name
+  bool _matchesCpuPattern(String query, String productName) {
+    // Intel patterns: i3, i5, i7, i9 with model numbers
+    final intelPattern =
+        RegExp(r'(i[3579])\s*-?\s*(\d{4,5}[a-z]*)', caseSensitive: false);
+    final queryMatch = intelPattern.firstMatch(query);
+    if (queryMatch != null) {
+      final series = queryMatch.group(1)!.toLowerCase();
+      final model = queryMatch.group(2)!.toLowerCase();
+      return productName.contains(series) && productName.contains(model);
+    }
+
+    // AMD Ryzen patterns
+    final ryzenPattern =
+        RegExp(r'(?:ryzen|r)\s*([3579])\s*(\d{4}[a-z]*)', caseSensitive: false);
+    final ryzenMatch = ryzenPattern.firstMatch(query);
+    if (ryzenMatch != null) {
+      final series = ryzenMatch.group(1)!;
+      final model = ryzenMatch.group(2)!.toLowerCase();
+      return productName.contains('ryzen') &&
+          productName.contains(series) &&
+          productName.contains(model);
+    }
+
+    // Intel Core Ultra patterns
+    final ultraPattern =
+        RegExp(r'(?:core\s+)?ultra\s*([579])\s*(\d{3}[a-z]*)', caseSensitive: false);
+    final ultraMatch = ultraPattern.firstMatch(query);
+    if (ultraMatch != null) {
+      final series = ultraMatch.group(1)!;
+      final model = ultraMatch.group(2)!.toLowerCase();
+      return productName.contains('ultra') &&
+          productName.contains(series) &&
+          productName.contains(model);
+    }
+
+    return false;
+  }
+
+  /// Check if search query matches GPU pattern in product name
+  bool _matchesGpuPattern(String query, String productName) {
+    // NVIDIA RTX/GTX patterns
+    final nvidiaPattern =
+        RegExp(r'(rtx|gtx)\s*(\d{3,4})\s*(ti|super)?', caseSensitive: false);
+    final nvidiaMatch = nvidiaPattern.firstMatch(query);
+    if (nvidiaMatch != null) {
+      final series = nvidiaMatch.group(1)!.toLowerCase();
+      final model = nvidiaMatch.group(2)!;
+      final suffix = nvidiaMatch.group(3)?.toLowerCase() ?? '';
+      final hasMatch = productName.contains(series) && productName.contains(model);
+      if (suffix.isNotEmpty) {
+        return hasMatch && productName.contains(suffix);
+      }
+      return hasMatch;
+    }
+
+    // AMD RX patterns
+    final amdPattern =
+        RegExp(r'rx\s*(\d{3,4})\s*(xt)?', caseSensitive: false);
+    final amdMatch = amdPattern.firstMatch(query);
+    if (amdMatch != null) {
+      final model = amdMatch.group(1)!;
+      final suffix = amdMatch.group(2)?.toLowerCase() ?? '';
+      final hasMatch = productName.contains('rx') && productName.contains(model);
+      if (suffix.isNotEmpty) {
+        return hasMatch && productName.contains(suffix);
+      }
+      return hasMatch;
+    }
+
+    return false;
+  }
+
+  /// Check if all words from query are present in product name
+  bool _allWordsPresent(String query, String productName) {
+    final queryWords = query
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty && w.length >= 2)
+        .toList();
+
+    if (queryWords.isEmpty) return false;
+
+    final cleanProductName = productName.replaceAll(RegExp(r'[^a-z0-9\s]'), ' ');
+
+    return queryWords.every((word) {
+      final cleanWord = word.replaceAll(RegExp(r'[^a-z0-9]'), '');
+      return cleanProductName.contains(cleanWord);
+    });
   }
 
   /// Get product suggestions for similar products
@@ -646,30 +810,5 @@ class AIProductService {
     final finalPrice = price * (1 - discountPercent / 100);
 
     return '${formatValue(finalPrice, 'price')} (Original: ${formatValue(price, 'price')})';
-  }
-
-  /// Check if the search parts represent a CPU/GPU series search
-  /// Returns true for searches like "i5", "i7", "ryzen 5", etc.
-  bool _isCPUSeries(List<String> parts) {
-    if (parts.isEmpty) return false;
-
-    // Check for Intel Core series (i3, i5, i7, i9)
-    final intelSeriesPattern = RegExp(r'^i[3579]$', caseSensitive: false);
-    if (parts.any((part) => intelSeriesPattern.hasMatch(part))) {
-      // If it's just "i5" or "i7" without model number, it's a series search
-      final hasModelNumber =
-          parts.any((part) => RegExp(r'^\d{4,5}$').hasMatch(part));
-      return !hasModelNumber;
-    }
-
-    // Check for AMD Ryzen series (ryzen 3, ryzen 5, ryzen 7, ryzen 9)
-    if (parts.contains('ryzen')) {
-      // If it's just "ryzen" or "ryzen 5" without model number, it's a series search
-      final hasModelNumber =
-          parts.any((part) => RegExp(r'^\d{4}$').hasMatch(part));
-      return !hasModelNumber;
-    }
-
-    return false;
   }
 }
