@@ -98,9 +98,14 @@ class HomeScreenCubit extends Cubit<HomeScreenState> {
       if (user != null) {
         final favoriteProducts =
             await Database().fetchFavoriteProducts(user.uid);
+
+        // Filter out products with stock == 0
+        final inStockFavorites =
+            favoriteProducts.where((product) => product.stock > 0).toList();
+
         if (!isClosed) {
           // Check again before emitting
-          emit(state.copyWith(favoriteProducts: favoriteProducts));
+          emit(state.copyWith(favoriteProducts: inStockFavorites));
         }
       }
     } catch (e) {

@@ -358,9 +358,9 @@ class _CartScreen extends State<CartScreen> {
                                     confirmText: S.of(context).remove,
                                     onCancel: () => Navigator.pop(context),
                                     onConfirm: () {
-                                      Navigator.pop(context);
-                                      cubit.removeFromCart(item);
-                                    },
+                                          Navigator.pop(context);
+                                          cubit.removeFromCart(item);
+                                        },
                                     confirmFontColor: Colors.red,
                                   ),
                                 );

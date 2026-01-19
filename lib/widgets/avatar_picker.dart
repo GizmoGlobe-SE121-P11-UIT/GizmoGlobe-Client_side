@@ -146,9 +146,9 @@ class AvatarPickerState extends State<AvatarPicker> {
         confirmText: S.of(context).openSettings,
         onCancel: () => Navigator.pop(context),
         onConfirm: () {
-          Navigator.pop(context);
-          openAppSettings();
-        },
+              Navigator.pop(context);
+              openAppSettings();
+            },
       ),
     );
   }

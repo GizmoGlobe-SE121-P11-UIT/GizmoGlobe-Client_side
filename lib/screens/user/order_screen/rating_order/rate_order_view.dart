@@ -49,8 +49,8 @@ class RateOrderView extends StatelessWidget {
         builder: (context, state) {
           final cubit = context.read<RateOrderCubit>();
           final totalMb = (state.totalBytes / (1024 * 1024));
-          final bool eligibleForPoints = ((state.images.length >= 2) ||
-                  (state.video != null && state.images.isNotEmpty)) &&
+          final bool eligibleForPoints = ((state.imageBytes.length >= 2) ||
+                  (state.videoBytes != null && state.imageBytes.isNotEmpty)) &&
               state.comment.trim().isNotEmpty;
           return Padding(
             padding: const EdgeInsets.all(16),
@@ -89,15 +89,17 @@ class RateOrderView extends StatelessWidget {
                 Row(
                   children: [
                     ElevatedButton.icon(
-                      onPressed: state.images.length >= RateOrderCubit.maxImages
-                          ? null
-                          : cubit.pickImages,
+                      onPressed:
+                          state.imageBytes.length >= RateOrderCubit.maxImages
+                              ? null
+                              : cubit.pickImages,
                       icon: const Icon(Icons.photo_library),
                       label: Text(S.of(context).addImages),
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
-                      onPressed: state.video != null ? null : cubit.pickVideo,
+                      onPressed:
+                          state.videoBytes != null ? null : cubit.pickVideo,
                       icon: const Icon(Icons.videocam),
                       label: Text(S.of(context).addVideo),
                     ),
@@ -138,7 +140,11 @@ class RateOrderView extends StatelessWidget {
                             ? null
                             : () {
                                 if (state.isContentVerified) {
-                                  cubit.submitRating(productId, context);
+                                  cubit.submitRating(
+                                    productId,
+                                    context,
+                                    invoiceId: invoiceId,
+                                  );
                                 } else {
                                   cubit.checkContent(context);
                                 }
@@ -172,8 +178,8 @@ class RateOrderView extends StatelessWidget {
 
   Widget _buildPreview(RateOrderState state, RateOrderCubit cubit) {
     final children = <Widget>[];
-    for (var i = 0; i < state.images.length; i++) {
-      final f = state.images[i];
+    for (var i = 0; i < state.imageBytes.length; i++) {
+      final bytes = state.imageBytes[i];
       children.add(Stack(
         alignment: Alignment.topRight,
         children: [
@@ -184,7 +190,7 @@ class RateOrderView extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
             ),
-            child: Image.file(f, fit: BoxFit.cover),
+            child: Image.memory(bytes, fit: BoxFit.cover),
           ),
           Positioned(
             right: 0,
@@ -204,7 +210,7 @@ class RateOrderView extends StatelessWidget {
       ));
     }
 
-    if (state.video != null) {
+    if (state.videoBytes != null) {
       children.add(Stack(
         alignment: Alignment.topRight,
         children: [
@@ -213,7 +219,7 @@ class RateOrderView extends StatelessWidget {
             width: 120,
             height: 80,
             color: Colors.black12,
-            child: Center(child: Icon(Icons.videocam, size: 36)),
+            child: const Center(child: Icon(Icons.videocam, size: 36)),
           ),
           Positioned(
             right: 0,

@@ -1592,34 +1592,66 @@ Giới thiệu ngắn gọn (1-2 câu) về top $requestedCount sản phẩm bá
 ''';
     } else {
       // Build suggestion - MUST list all 6 components
+      // Use English to avoid Vietnamese unicode corruption
       promptInstructions = '''
 ${result['context']}
 
-YÊU CẦU: $userMessage
+REQUEST: $userMessage
 
-⚠️ QUY TẮC QUAN TRỌNG:
-- PHẢI liệt kê ĐẦY ĐỦ 6 linh kiện:
-  1. CPU
-  2. GPU
-  3. RAM
-  4. Mainboard
-  5. Drive (SSD/HDD)
-  6. PSU (Nguồn)
-- Format NGẮN GỌN (CHỈ tên và giá):
-  - CPU: [Tên] - [Giá]
-  - Mainboard: [Tên] - [Giá]
-  - RAM: [Tên] - [Giá]
-  - GPU: [Tên] - [Giá]
-  - Drive: [Tên] - [Giá]
-  - PSU: [Tên] - [Giá]
-  
-  Tổng: [Tổng giá]
-- CHỈ recommend sản phẩm TỪ DANH SÁCH bên dưới
-- KHÔNG bỏ qua bất kỳ linh kiện nào
-- TẤT CẢ 6 linh kiện đều tương thích với nhau
+================================================================
+CRITICAL RULES - MUST FOLLOW:
+================================================================
 
-NHIỆM VỤ:
-List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
+1. DATA SOURCE:
+   - ONLY use products from the list below
+   - DO NOT use general knowledge about products
+   - DO NOT create product names
+   - DO NOT "recall" products from your knowledge
+
+2. PRODUCT NAMES:
+   - FIND [PRODUCT_NAME:...] tag in list
+   - COPY EXACTLY 100% from that tag
+   - EXAMPLES:
+     ✓ CORRECT: "AMD Ryzen 5 5600" (from [PRODUCT_NAME:AMD Ryzen 5 5600])
+     ✗ WRONG: "Ryzen 5 5600" (missing "AMD")
+     ✗ WRONG: "AMD Ryzen 5" (missing "5600")
+     ✗ WRONG: "Kingston NV2" (NOT in database)
+
+3. STRICTLY FORBIDDEN:
+   ✗ DO NOT mention "Kingston NV2" - does NOT exist in system
+   ✗ DO NOT mention any product NOT in list
+   ✗ DO NOT suggest from general knowledge
+   ✗ DO NOT create product names
+
+4. REQUIRED FORMAT:
+   List ALL 6 components with clear spacing:
+   
+   CPU: [EXACT NAME FROM TAG] - [Price]
+   
+   Mainboard: [EXACT NAME FROM TAG] - [Price]
+   
+   RAM: [EXACT NAME FROM TAG] - [Price]
+   
+   GPU: [EXACT NAME FROM TAG] - [Price]
+   
+   Drive: [EXACT NAME FROM TAG] - [Price]
+   
+   PSU: [EXACT NAME FROM TAG] - [Price]
+   
+   Total: [Total Price]
+
+5. IF NOT FOUND:
+   - Say clearly: "Cannot find complete compatible build"
+   - DO NOT create fake products to "fill in"
+   - DO NOT suggest products outside list
+
+================================================================
+
+TASK:
+Find and list ALL 6 components. COPY EXACT names from [PRODUCT_NAME:...] tags.
+DO NOT use general knowledge. ONLY use this list.
+
+RESPOND IN VIETNAMESE but follow all rules above.
 ''';
     }
 
@@ -1629,6 +1661,26 @@ List ĐẦY ĐỦ 6 linh kiện từ danh sách dưới đây:
         : promptInstructions; // For bestseller/promotion, use simple format without detailed specs
 
     final aiResponse = _utils.sanitizeMarkdown(await _callGeminiAPI(prompt));
+
+    // VALIDATE: Check for hallucinations (only for build suggestions)
+    if (queryType == 'build' && !_validateBuildResponse(aiResponse, products)) {
+      // Hallucination detected - return error message
+      return isVietnamese
+          ? '''
+⚠️ **Lỗi: Phát hiện thông tin không chính xác**
+
+Hệ thống phát hiện gợi ý chứa sản phẩm không tồn tại trong kho.
+
+Vui lòng thử lại hoặc điều chỉnh ngân sách/yêu cầu của bạn.
+'''
+          : '''
+⚠️ **Error: Inaccurate information detected**
+
+The system detected suggestions containing products that don't exist in stock.
+
+Please try again or adjust your budget/requirements.
+''';
+    }
 
     // Prepend warning if user requested more than limit
     final finalResponse = warningMessage + aiResponse;
@@ -2249,4 +2301,27 @@ String _extractManufacturerName(Map<String, dynamic> data) {
     return manufacturer['name']?.toString() ?? '';
   }
   return manufacturer?.toString() ?? '';
+}
+
+/// Validate that AI response only contains products from database
+/// Returns false if hallucination detected
+bool _validateBuildResponse(
+    String aiResponse, List<QueryDocumentSnapshot> products) {
+  final responseLower = aiResponse.toLowerCase();
+
+  // Check for known hallucinated products that don't exist in database
+  final knownHallucinations = [
+    'kingston nv2',
+    'nv2 500gb',
+    'nv2 1tb',
+    // Add more as discovered
+  ];
+
+  for (final hallucination in knownHallucinations) {
+    if (responseLower.contains(hallucination)) {
+      return false; // Hallucination detected!
+    }
+  }
+
+  return true; // No hallucinations detected
 }

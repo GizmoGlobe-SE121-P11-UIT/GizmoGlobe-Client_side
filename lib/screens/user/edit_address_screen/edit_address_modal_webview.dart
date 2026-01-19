@@ -163,11 +163,7 @@ class _EditAddressWebModalState extends State<EditAddressWebModal> {
                         hintText: S.of(context).receiverName,
                         onChanged: (value) =>
                             cubit.updateAddress(receiverName: value),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[a-zA-Z\s]'),
-                          ),
-                        ],
+                        // Removed input formatter to allow Vietnamese characters
                       ),
                       const SizedBox(height: 16),
                       _buildLabel(context, S.of(context).receiverPhone),
@@ -208,11 +204,7 @@ class _EditAddressWebModalState extends State<EditAddressWebModal> {
                         hintText: S.of(context).streetAddress,
                         onChanged: (value) =>
                             cubit.updateAddress(street: value),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[a-zA-Z0-9\s,\-\./]'),
-                          ),
-                        ],
+                        // Removed input formatter to allow Vietnamese characters
                       ),
                       const SizedBox(height: 24),
                       SizedBox(

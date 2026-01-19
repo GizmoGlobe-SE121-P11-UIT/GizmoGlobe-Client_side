@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
+import 'dart:typed_data';
 import '../../../../enums/processing/process_state_enum.dart';
 import '../../../../services/comment_moderation/comment_moderation_service.dart';
 
@@ -6,7 +7,11 @@ class RateOrderState {
   final int rating;
   final String comment;
   final List<File> images;
+  final List<Uint8List> imageBytes; // For web compatibility
+  final List<String> imageExtensions; // Store file extensions for web
   final File? video;
+  final Uint8List? videoBytes; // For web compatibility
+  final String? videoExtension; // Store video extension for web
   final ProcessState processState;
   final String? error;
 
@@ -23,7 +28,11 @@ class RateOrderState {
     required this.rating,
     required this.comment,
     required this.images,
+    required this.imageBytes,
+    required this.imageExtensions,
     required this.video,
+    this.videoBytes,
+    this.videoExtension,
     required this.processState,
     this.error,
     this.sentiment,
@@ -37,7 +46,11 @@ class RateOrderState {
         rating: 0,
         comment: '',
         images: const [],
+        imageBytes: const [],
+        imageExtensions: const [],
         video: null,
+        videoBytes: null,
+        videoExtension: null,
         processState: ProcessState.idle,
         error: null,
         sentiment: null,
@@ -51,7 +64,11 @@ class RateOrderState {
     int? rating,
     String? comment,
     List<File>? images,
+    List<Uint8List>? imageBytes,
+    List<String>? imageExtensions,
     File? video,
+    Uint8List? videoBytes,
+    String? videoExtension,
     ProcessState? processState,
     String? error,
     CommentSentiment? sentiment,
@@ -59,12 +76,17 @@ class RateOrderState {
     bool? isAnalyzing,
     bool? isContentVerified,
     String? verificationMessage,
+    bool clearVideo = false,
   }) {
     return RateOrderState(
       rating: rating ?? this.rating,
       comment: comment ?? this.comment,
       images: images ?? this.images,
-      video: video ?? this.video,
+      imageBytes: imageBytes ?? this.imageBytes,
+      imageExtensions: imageExtensions ?? this.imageExtensions,
+      video: clearVideo ? null : (video ?? this.video),
+      videoBytes: clearVideo ? null : (videoBytes ?? this.videoBytes),
+      videoExtension: clearVideo ? null : (videoExtension ?? this.videoExtension),
       processState: processState ?? this.processState,
       error: error,
       sentiment: sentiment ?? this.sentiment,
@@ -77,15 +99,12 @@ class RateOrderState {
 
   int get totalBytes {
     var sum = 0;
-    for (final f in images) {
-      try {
-        sum += f.lengthSync();
-      } catch (_) {}
+    // Use bytes for accurate cross-platform calculation
+    for (final bytes in imageBytes) {
+      sum += bytes.length;
     }
-    if (video != null) {
-      try {
-        sum += video!.lengthSync();
-      } catch (_) {}
+    if (videoBytes != null) {
+      sum += videoBytes!.length;
     }
     return sum;
   }

@@ -1153,6 +1153,10 @@ class S {
       Intl.message('Check Content', name: 'checkContent');
   String get submitRatingButton =>
       Intl.message('Submit Rating', name: 'submitRatingButton');
+
+  String get ratingSubmitSuccess =>
+      Intl.message('Your rating has been submitted successfully!',
+          name: 'ratingSubmitSuccess');
   String get analyzingSentiment =>
       Intl.message('Analyzing sentiment...', name: 'analyzingSentiment');
   String get sentimentPositive =>

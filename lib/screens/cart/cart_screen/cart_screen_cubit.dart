@@ -33,11 +33,15 @@ class CartScreenCubit extends Cubit<CartScreenState> {
 
       final items = Database().cartItems;
 
+      // Filter out products with stock == 0 to hide out-of-stock items
+      final inStockItems =
+          items.where((item) => item.product.stock > 0).toList();
+
       if (isClosed) return;
 
       if (isClosed) return;
       emit(state.copyWith(
-        items: items,
+        items: inStockItems,
         processState: ProcessState.success,
       ));
     } catch (e) {

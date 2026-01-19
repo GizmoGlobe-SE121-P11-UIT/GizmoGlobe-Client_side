@@ -108,8 +108,18 @@ class AIProductService {
         final parts = extractProductParts(keyword);
 
         if (parts.isNotEmpty) {
-          // Search by normalized product name
-          query = query.where('normalizedName', isEqualTo: parts.join(' '));
+          // Check if this is a CPU/GPU series-only search (e.g., "i5", "i7", "ryzen 5")
+          // These need partial matching, not exact match
+          final isCPUSeries = _isCPUSeries(parts);
+
+          if (isCPUSeries) {
+            // For CPU series searches, we'll fetch by category and filter in memory
+            // Don't add keyword filter here - will be filtered after query
+            // This is stored for post-query filtering
+          } else {
+            // For specific product searches, use exact match on normalized name
+            query = query.where('normalizedName', isEqualTo: parts.join(' '));
+          }
         } else {
           // Fallback to basic search if splitting fails
           final lowerKeyword = keyword.toLowerCase();
@@ -121,13 +131,6 @@ class AIProductService {
 
       // Execute the query
       final result = await query.get();
-
-      // Filter out products from inactive manufacturers in memory
-      // since Firestore doesn't support NOT IN queries directly in this context
-      // final filteredDocs = result.docs
-      //     .where((doc) =>
-      //         !inactiveManufacturerIDs.contains(doc.data()['manufacturerID']))
-      //     .toList();
 
       return result;
     } catch (e) {
@@ -643,5 +646,30 @@ class AIProductService {
     final finalPrice = price * (1 - discountPercent / 100);
 
     return '${formatValue(finalPrice, 'price')} (Original: ${formatValue(price, 'price')})';
+  }
+
+  /// Check if the search parts represent a CPU/GPU series search
+  /// Returns true for searches like "i5", "i7", "ryzen 5", etc.
+  bool _isCPUSeries(List<String> parts) {
+    if (parts.isEmpty) return false;
+
+    // Check for Intel Core series (i3, i5, i7, i9)
+    final intelSeriesPattern = RegExp(r'^i[3579]$', caseSensitive: false);
+    if (parts.any((part) => intelSeriesPattern.hasMatch(part))) {
+      // If it's just "i5" or "i7" without model number, it's a series search
+      final hasModelNumber =
+          parts.any((part) => RegExp(r'^\d{4,5}$').hasMatch(part));
+      return !hasModelNumber;
+    }
+
+    // Check for AMD Ryzen series (ryzen 3, ryzen 5, ryzen 7, ryzen 9)
+    if (parts.contains('ryzen')) {
+      // If it's just "ryzen" or "ryzen 5" without model number, it's a series search
+      final hasModelNumber =
+          parts.any((part) => RegExp(r'^\d{4}$').hasMatch(part));
+      return !hasModelNumber;
+    }
+
+    return false;
   }
 }

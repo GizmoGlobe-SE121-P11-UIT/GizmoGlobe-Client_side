@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../data/database/database.dart';
 
 import '../../enums/invoice_related/sales_status.dart';
@@ -597,6 +599,10 @@ class Firebase {
     String? comment,
     List<File>? images,
     File? video,
+    List<Uint8List>? imageBytes,
+    List<String>? imageExtensions,
+    Uint8List? videoBytes,
+    String? videoExtension,
     String? sentiment,
     String? invoiceId,
   }) async {
@@ -609,6 +615,7 @@ class Firebase {
         final docRef = await _firestore.collection('order_ratings').add({
           'userID': userID,
           'productID': productId,
+          'invoiceId': invoiceId,
           'timeSent': FieldValue.serverTimestamp(),
           'rating': rating,
           'comment': comment,
@@ -621,38 +628,85 @@ class Firebase {
         List<String>? uploadedImageUrls;
         String? uploadedVideoUrl;
 
-        if (images != null && images.isNotEmpty) {
-          uploadedImageUrls = [];
-          for (var i = 0; i < images.length; i++) {
-            final file = images[i];
-            final ext = file.path.split('.').last;
+        // Upload images - use bytes on web, files on mobile
+        if (kIsWeb) {
+          // Web: use putData with bytes
+          if (imageBytes != null && imageBytes.isNotEmpty) {
+            uploadedImageUrls = [];
+            for (var i = 0; i < imageBytes.length; i++) {
+              final bytes = imageBytes[i];
+              final ext = (imageExtensions != null && i < imageExtensions.length)
+                  ? imageExtensions[i]
+                  : 'jpg';
+              final storageRef = FirebaseStorage.instance
+                  .ref()
+                  .child('ratings')
+                  .child(docId)
+                  .child('images')
+                  .child('img_${i}_${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+              final uploadTask = storageRef.putData(
+                bytes,
+                SettableMetadata(contentType: 'image/$ext'),
+              );
+              await uploadTask.whenComplete(() => null);
+              final url = await storageRef.getDownloadURL();
+              uploadedImageUrls.add(url);
+            }
+          }
+
+          // Web: upload video using bytes
+          if (videoBytes != null) {
+            final ext = videoExtension ?? 'mp4';
             final storageRef = FirebaseStorage.instance
                 .ref()
                 .child('ratings')
                 .child(docId)
-                .child('images')
-                .child(
-                    'img_${i}_${DateTime.now().millisecondsSinceEpoch}.$ext');
+                .child('video')
+                .child('video_${DateTime.now().millisecondsSinceEpoch}.$ext');
 
-            final uploadTask = storageRef.putFile(file);
+            final uploadTask = storageRef.putData(
+              videoBytes,
+              SettableMetadata(contentType: 'video/$ext'),
+            );
             await uploadTask.whenComplete(() => null);
-            final url = await storageRef.getDownloadURL();
-            uploadedImageUrls.add(url);
+            uploadedVideoUrl = await storageRef.getDownloadURL();
           }
-        }
+        } else {
+          // Mobile: use putFile
+          if (images != null && images.isNotEmpty) {
+            uploadedImageUrls = [];
+            for (var i = 0; i < images.length; i++) {
+              final file = images[i];
+              final ext = file.path.split('.').last;
+              final storageRef = FirebaseStorage.instance
+                  .ref()
+                  .child('ratings')
+                  .child(docId)
+                  .child('images')
+                  .child(
+                      'img_${i}_${DateTime.now().millisecondsSinceEpoch}.$ext');
 
-        if (video != null) {
-          final ext = video.path.split('.').last;
-          final storageRef = FirebaseStorage.instance
-              .ref()
-              .child('ratings')
-              .child(docId)
-              .child('video')
-              .child('video_${DateTime.now().millisecondsSinceEpoch}.$ext');
+              final uploadTask = storageRef.putFile(file);
+              await uploadTask.whenComplete(() => null);
+              final url = await storageRef.getDownloadURL();
+              uploadedImageUrls.add(url);
+            }
+          }
 
-          final uploadTask = storageRef.putFile(video);
-          await uploadTask.whenComplete(() => null);
-          uploadedVideoUrl = await storageRef.getDownloadURL();
+          if (video != null) {
+            final ext = video.path.split('.').last;
+            final storageRef = FirebaseStorage.instance
+                .ref()
+                .child('ratings')
+                .child(docId)
+                .child('video')
+                .child('video_${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+            final uploadTask = storageRef.putFile(video);
+            await uploadTask.whenComplete(() => null);
+            uploadedVideoUrl = await storageRef.getDownloadURL();
+          }
         }
 
         await docRef.update({

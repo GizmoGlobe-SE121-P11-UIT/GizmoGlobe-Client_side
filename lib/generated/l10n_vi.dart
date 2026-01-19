@@ -1604,6 +1604,9 @@ class SVI extends S {
   String get submitRatingButton => 'Gửi đánh giá';
 
   @override
+  String get ratingSubmitSuccess => 'Đánh giá của bạn đã được gửi thành công!';
+
+  @override
   String get analyzingSentiment => 'Đang phân tích cảm xúc...';
 
   @override

@@ -5,6 +5,7 @@ class Rating {
   String? ratingID;
   String userID;
   String? username;
+  String? invoiceId;
   String productID;
   DateTime timeSent;
   int rating;
@@ -18,6 +19,7 @@ class Rating {
   Rating({
     this.ratingID = '',
     required this.userID,
+    this.invoiceId,
     required this.productID,
     required this.timeSent,
     required this.rating,
@@ -32,6 +34,7 @@ class Rating {
   List<Object?> get props => [
         ratingID,
         userID,
+        invoiceId,
         productID,
         timeSent,
         rating,
@@ -46,6 +49,7 @@ class Rating {
   Rating copyWith({
     String? ratingID,
     String? userID,
+    String? invoiceId,
     String? productID,
     DateTime? timeSent,
     int? rating,
@@ -59,6 +63,7 @@ class Rating {
     return Rating(
       ratingID: ratingID ?? this.ratingID,
       userID: userID ?? this.userID,
+      invoiceId: invoiceId ?? this.invoiceId,
       productID: productID ?? this.productID,
       timeSent: timeSent ?? this.timeSent,
       rating: rating ?? this.rating,
@@ -75,6 +80,7 @@ class Rating {
     return {
       'ratingID': ratingID,
       'userID': userID,
+      'invoiceId': invoiceId,
       'productID': productID,
       'timeSent': timeSent,
       'rating': rating,
@@ -139,6 +145,9 @@ class Rating {
     return Rating(
       ratingID: id,
       userID: (map['userID'] as String?) ?? '',
+      invoiceId: (map['invoiceId'] as String?) ??
+          (map['salesInvoiceID'] as String?) ??
+          (map['salesInvoiceId'] as String?),
       productID:
           (map['productID'] as String?) ?? (map['productId'] as String?) ?? '',
       timeSent: parsedTime,

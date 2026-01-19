@@ -140,7 +140,7 @@ class RateOrderWebView extends StatelessWidget {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: state.images.length >=
+                                onPressed: state.imageBytes.length >=
                                         RateOrderCubit.maxImages
                                     ? null
                                     : cubit.pickImages,
@@ -155,7 +155,7 @@ class RateOrderWebView extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: state.video != null
+                                onPressed: state.videoBytes != null
                                     ? null
                                     : cubit.pickVideo,
                                 icon: const Icon(Icons.videocam),
@@ -190,7 +190,7 @@ class RateOrderWebView extends StatelessWidget {
                           ),
 
                         // Preview
-                        if (state.images.isNotEmpty || state.video != null)
+                        if (state.imageBytes.isNotEmpty || state.videoBytes != null)
                           _buildPreview(state, cubit),
                       ],
                     ),
@@ -218,7 +218,11 @@ class RateOrderWebView extends StatelessWidget {
                           ? null
                           : () {
                               if (state.isContentVerified) {
-                                cubit.submitRating(productId, context);
+                                cubit.submitRating(
+                                  productId,
+                                  context,
+                                  invoiceId: invoiceId,
+                                );
                               } else {
                                 cubit.checkContent(context);
                               }
@@ -255,8 +259,8 @@ class RateOrderWebView extends StatelessWidget {
   Widget _buildPreview(RateOrderState state, RateOrderCubit cubit) {
     final children = <Widget>[];
 
-    for (var i = 0; i < state.images.length; i++) {
-      final f = state.images[i];
+    for (var i = 0; i < state.imageBytes.length; i++) {
+      final bytes = state.imageBytes[i];
       children.add(Stack(
         alignment: Alignment.topRight,
         children: [
@@ -270,7 +274,7 @@ class RateOrderWebView extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.file(f, fit: BoxFit.cover),
+              child: Image.memory(bytes, fit: BoxFit.cover),
             ),
           ),
           Positioned(
@@ -292,7 +296,7 @@ class RateOrderWebView extends StatelessWidget {
       ));
     }
 
-    if (state.video != null) {
+    if (state.videoBytes != null) {
       children.add(Stack(
         alignment: Alignment.topRight,
         children: [

@@ -107,6 +107,7 @@ class OrderScreenCubit extends Cubit<OrderScreenState> {
           .firestore
           .collection('order_ratings')
           .where('userID', isEqualTo: uid)
+          .where('invoiceId', isEqualTo: invoiceId)
           .get();
 
       final ratedProductIds = ratingSnapshot.docs

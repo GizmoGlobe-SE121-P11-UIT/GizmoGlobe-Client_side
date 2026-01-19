@@ -408,9 +408,9 @@ class _AddressScreenWebViewState extends State<AddressScreenWebView> {
         confirmText: S.of(context).delete,
         onCancel: () => Navigator.pop(context),
         onConfirm: () {
-          Navigator.pop(context);
-          cubit.deleteAddress(address);
-        },
+              Navigator.pop(context);
+              cubit.deleteAddress(address);
+            },
         confirmFontColor: Colors.red,
       ),
     );

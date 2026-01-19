@@ -44,13 +44,21 @@ class SalesInvoiceWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: salesInvoice.details.map((detail) {
                   final productId = detail.product.productID ?? '';
-                  final alreadyRated =
-                      (userRatings ?? []).any((r) => r.productID == productId);
-                  final canRate =
-                      salesInvoice.salesStatus == SalesStatus.received &&
-                          onRate != null &&
-                          productId.isNotEmpty &&
-                          !alreadyRated;
+                  final invoiceId = salesInvoice.salesInvoiceID ?? '';
+                  final alreadyRated = (userRatings ?? []).any((r) {
+                    if (r.productID != productId) return false;
+                    // Only block rating for the same invoice.
+                    // Backward-compat: old ratings without invoiceId should NOT block re-rating in a new invoice.
+                    return r.invoiceId != null &&
+                        r.invoiceId!.isNotEmpty &&
+                        r.invoiceId == invoiceId;
+                  });
+                  final canRate = (salesInvoice.salesStatus ==
+                              SalesStatus.received ||
+                          salesInvoice.salesStatus == SalesStatus.shipped) &&
+                      onRate != null &&
+                      productId.isNotEmpty &&
+                      !alreadyRated;
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),

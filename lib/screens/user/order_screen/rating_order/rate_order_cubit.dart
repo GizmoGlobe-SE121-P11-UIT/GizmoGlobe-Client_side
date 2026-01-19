@@ -1,6 +1,8 @@
-// dart
-import 'dart:io';
+// Use universal_io for cross-platform File support (web + mobile)
+import 'package:universal_io/io.dart';
+import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:gizmoglobe_client/components/general/snackbar_service.dart';
 import 'package:gizmoglobe_client/data/database/database.dart';
@@ -47,8 +49,7 @@ class RateOrderCubit extends Cubit<RateOrderState> {
       return;
     }
 
-    final total = _computeBytes(state.images, state.video);
-    if (total > maxTotalBytes) {
+    if (state.totalBytes > maxTotalBytes) {
       SnackbarService.showErrorAboveOverlay(
         overlay,
         title: S.of(context).fileSizeLimit,
@@ -85,10 +86,22 @@ class RateOrderCubit extends Cubit<RateOrderState> {
           isAnalyzing: false,
         ));
 
-        // Check sentiment-rating mismatch
-        if (moderationResult.hasSentimentAnalysis &&
-            moderationResult.isSentimentMismatch(state.rating)) {
-          // Get localized sentiment label
+        final hasSentiment = moderationResult.sentiment != null;
+        final bool allowNeutralThreeToFive =
+            moderationResult.sentiment == CommentSentiment.neutral &&
+                state.rating >= 3;
+        final bool mismatchFromService =
+            moderationResult.hasSentimentAnalysis &&
+                moderationResult.isSentimentMismatch(state.rating) &&
+                !allowNeutralThreeToFive;
+        final bool mismatchHeuristic = hasSentiment &&
+            _isHeuristicSentimentMismatch(
+                moderationResult.sentiment!, state.rating) &&
+            !allowNeutralThreeToFive;
+        final bool mismatchTextOnly =
+            !hasSentiment && state.rating >= 4 && _looksNegative(state.comment);
+
+        if (mismatchFromService || mismatchHeuristic || mismatchTextOnly) {
           final sentimentLabel =
               _getSentimentLabel(context, moderationResult.sentiment);
 
@@ -131,8 +144,49 @@ class RateOrderCubit extends Cubit<RateOrderState> {
     }
   }
 
+  bool _isHeuristicSentimentMismatch(CommentSentiment sentiment, int rating) {
+    // Simple guardrail if service did not flag mismatch.
+    if (rating >= 4) {
+      // Neutral is acceptable for 3–5 stars (per product feedback UX),
+      // so only block clearly negative/mixed sentiments for high ratings.
+      return sentiment == CommentSentiment.negative ||
+          sentiment == CommentSentiment.mixed;
+    }
+    if (rating <= 2) {
+      return sentiment == CommentSentiment.positive ||
+          sentiment == CommentSentiment.mixed;
+    }
+    return false;
+  }
+
+  bool _looksNegative(String text) {
+    final lower = text.toLowerCase();
+    const negatives = [
+      'bad',
+      'terrible',
+      'awful',
+      'poor',
+      'hate',
+      'broken',
+      'scam',
+      'fraud',
+      'trash',
+      'worst',
+      'không tốt',
+      'tệ',
+      'rác',
+      'dở',
+      'kém',
+    ];
+    return negatives.any(lower.contains);
+  }
+
   /// Step 2: Submit rating to Firebase
-  Future<void> submitRating(String productId, BuildContext context) async {
+  Future<void> submitRating(
+    String productId,
+    BuildContext context, {
+    String? invoiceId,
+  }) async {
     final overlay = Overlay.of(context);
 
     // Must be verified first
@@ -146,10 +200,16 @@ class RateOrderCubit extends Cubit<RateOrderState> {
       await Firebase().submitOrderRating(
         userID: Database().userID,
         productId: productId,
+        invoiceId: invoiceId,
         rating: state.rating,
         comment: (state.comment.trim().isEmpty) ? null : state.comment,
-        images: state.images.isEmpty ? null : state.images,
-        video: state.video,
+        images: kIsWeb ? null : (state.images.isEmpty ? null : state.images),
+        video: kIsWeb ? null : state.video,
+        imageBytes: state.imageBytes.isEmpty ? null : state.imageBytes,
+        imageExtensions:
+            state.imageExtensions.isEmpty ? null : state.imageExtensions,
+        videoBytes: state.videoBytes,
+        videoExtension: state.videoExtension,
         sentiment: state.sentiment?.name, // Only save sentiment name, not score
       );
 
@@ -158,8 +218,8 @@ class RateOrderCubit extends Cubit<RateOrderState> {
       if (context.mounted) {
         SnackbarService.showSuccessAboveOverlay(
           overlay,
-          title: 'Success',
-          message: 'Your rating has been submitted successfully!',
+          title: S.of(context).success,
+          message: S.of(context).ratingSubmitSuccess,
         );
       }
     } catch (e) {
@@ -182,21 +242,51 @@ class RateOrderCubit extends Cubit<RateOrderState> {
     try {
       final picked = await _picker.pickMultiImage();
       if (picked.isEmpty) return;
-      final newFiles = picked.map((x) => File(x.path)).toList();
-      final combined = List<File>.from(state.images)..addAll(newFiles);
 
-      if (combined.length > maxImages) {
+      // Read bytes first to check size before adding
+      final newBytes = await Future.wait(
+        picked.map((xFile) => xFile.readAsBytes()),
+      );
+
+      final combinedBytes = List<Uint8List>.from(state.imageBytes)
+        ..addAll(newBytes);
+
+      if (combinedBytes.length > maxImages) {
         emit(state.copyWith(error: 'Maximum $maxImages images allowed.'));
         return;
       }
 
-      final total = _computeBytes(combined, state.video);
-      if (total > maxTotalBytes) {
+      // Calculate total size using bytes
+      var totalSize = 0;
+      for (final b in combinedBytes) {
+        totalSize += b.length;
+      }
+      if (state.videoBytes != null) {
+        totalSize += state.videoBytes!.length;
+      }
+
+      if (totalSize > maxTotalBytes) {
         emit(state.copyWith(error: 'Total size must be <= 10 MB.'));
         return;
       }
 
-      emit(state.copyWith(images: combined, error: null));
+      // Store file extensions for web upload
+      final newExtensions = picked.map((x) {
+        final ext = x.path.split('.').last.toLowerCase();
+        return ext.isNotEmpty ? ext : 'jpg';
+      }).toList();
+      final combinedExtensions = List<String>.from(state.imageExtensions)
+        ..addAll(newExtensions);
+
+      final newFiles = picked.map((x) => File(x.path)).toList();
+      final combinedFiles = List<File>.from(state.images)..addAll(newFiles);
+
+      emit(state.copyWith(
+        images: combinedFiles,
+        imageBytes: combinedBytes,
+        imageExtensions: combinedExtensions,
+        error: null,
+      ));
     } catch (e) {
       emit(state.copyWith(error: 'Failed to pick images.'));
     }
@@ -210,13 +300,32 @@ class RateOrderCubit extends Cubit<RateOrderState> {
       }
       final picked = await _picker.pickVideo(source: ImageSource.gallery);
       if (picked == null) return;
-      final videoFile = File(picked.path);
-      final total = _computeBytes(state.images, videoFile);
-      if (total > maxTotalBytes) {
+
+      // Read bytes for web compatibility
+      final videoBytes = await picked.readAsBytes();
+
+      // Calculate total size using bytes
+      var totalSize = videoBytes.length;
+      for (final b in state.imageBytes) {
+        totalSize += b.length;
+      }
+
+      if (totalSize > maxTotalBytes) {
         emit(state.copyWith(error: 'Total size must be <= 10 MB.'));
         return;
       }
-      emit(state.copyWith(video: videoFile, error: null));
+
+      // Get extension
+      final ext = picked.path.split('.').last.toLowerCase();
+      final videoExtension = ext.isNotEmpty ? ext : 'mp4';
+
+      final videoFile = File(picked.path);
+      emit(state.copyWith(
+        video: videoFile,
+        videoBytes: videoBytes,
+        videoExtension: videoExtension,
+        error: null,
+      ));
     } catch (e) {
       emit(state.copyWith(error: 'Failed to pick video.'));
     }
@@ -224,11 +333,19 @@ class RateOrderCubit extends Cubit<RateOrderState> {
 
   void removeImageAt(int index) {
     final newImages = List<File>.from(state.images)..removeAt(index);
-    emit(state.copyWith(images: newImages, error: null));
+    final newBytes = List<Uint8List>.from(state.imageBytes)..removeAt(index);
+    final newExtensions = List<String>.from(state.imageExtensions)
+      ..removeAt(index);
+    emit(state.copyWith(
+      images: newImages,
+      imageBytes: newBytes,
+      imageExtensions: newExtensions,
+      error: null,
+    ));
   }
 
   void removeVideo() {
-    emit(state.copyWith(video: null, error: null));
+    emit(state.copyWith(clearVideo: true, error: null));
   }
 
   Future<void> submit(String productId) async {
@@ -237,8 +354,7 @@ class RateOrderCubit extends Cubit<RateOrderState> {
       return;
     }
 
-    final total = _computeBytes(state.images, state.video);
-    if (total > maxTotalBytes) {
+    if (state.totalBytes > maxTotalBytes) {
       emit(state.copyWith(error: 'Total size must be <= 10 MB.'));
       return;
     }
@@ -250,13 +366,18 @@ class RateOrderCubit extends Cubit<RateOrderState> {
         productId: productId,
         rating: state.rating,
         comment: (state.comment.trim().isEmpty) ? null : state.comment,
-        images: state.images.isEmpty ? null : state.images,
-        video: state.video,
+        images: kIsWeb ? null : (state.images.isEmpty ? null : state.images),
+        video: kIsWeb ? null : state.video,
+        imageBytes: state.imageBytes.isEmpty ? null : state.imageBytes,
+        imageExtensions:
+            state.imageExtensions.isEmpty ? null : state.imageExtensions,
+        videoBytes: state.videoBytes,
+        videoExtension: state.videoExtension,
         sentiment: state.sentiment?.name, // Save sentiment if available
       );
 
-      final bool eligibleForPoints = ((state.images.length >= 2) ||
-              (state.video != null && state.images.isNotEmpty)) &&
+      final bool eligibleForPoints = ((state.imageBytes.length >= 2) ||
+              (state.videoBytes != null && state.imageBytes.isNotEmpty)) &&
           state.comment.trim().isNotEmpty;
 
       if (eligibleForPoints) {
@@ -273,21 +394,6 @@ class RateOrderCubit extends Cubit<RateOrderState> {
           processState: ProcessState.failure,
           error: 'Submit failed: ${e.toString()}'));
     }
-  }
-
-  int _computeBytes(List<File> images, File? video) {
-    var sum = 0;
-    for (final f in images) {
-      try {
-        sum += f.lengthSync();
-      } catch (_) {}
-    }
-    if (video != null) {
-      try {
-        sum += video.lengthSync();
-      } catch (_) {}
-    }
-    return sum;
   }
 
   String _getSentimentLabel(BuildContext context, CommentSentiment? sentiment) {

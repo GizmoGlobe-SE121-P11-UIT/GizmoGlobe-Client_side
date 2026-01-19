@@ -28,6 +28,7 @@ class _WebHeaderState extends State<WebHeader> {
   OverlayEntry? _sidebarOverlay;
   final GlobalKey _userIconKey = GlobalKey();
   final GlobalKey _headerKey = GlobalKey();
+  final Map<String, int> _productStockCache = {};
 
   // Cache for user info to prevent redundant Firestore queries
   Map<String, dynamic>? _cachedUserInfo;
@@ -825,22 +826,14 @@ class _WebHeaderState extends State<WebHeader> {
     final size = isMobile ? 32.0 : 40.0;
     final iconSize = isMobile ? 16.0 : 20.0;
 
-    final cartStream = _getCartStream();
+    final cartStream = _getCartCountStream();
 
     if (cartStream != null) {
       // Authenticated user - use stream for real-time updates
-      return StreamBuilder<QuerySnapshot>(
+      return StreamBuilder<int>(
         stream: cartStream,
         builder: (context, snapshot) {
-          int cartCount = 0;
-
-          if (snapshot.hasData && snapshot.data != null) {
-            // Calculate total quantity of items in cart
-            for (var doc in snapshot.data!.docs) {
-              final data = doc.data() as Map<String, dynamic>;
-              cartCount += (data['quantity'] as num?)?.toInt() ?? 0;
-            }
-          }
+          final cartCount = snapshot.data ?? 0;
 
           return _buildCartIconWithBadge(
             context,
@@ -915,20 +908,34 @@ class _WebHeaderState extends State<WebHeader> {
     );
   }
 
-  Stream<QuerySnapshot>? _getCartStream() {
+  Stream<int>? _getCartCountStream() {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        // Return stream for authenticated users
-        return FirebaseFirestore.instance
-            .collection('customers')
-            .doc(currentUser.uid)
-            .collection('carts')
-            .snapshots();
-      }
-    } catch (e) {}
-    // Return null stream for guests or errors
-    return null;
+      if (currentUser == null) return null;
+
+      return FirebaseFirestore.instance
+          .collection('customers')
+          .doc(currentUser.uid)
+          .collection('carts')
+          .snapshots()
+          .asyncMap((snapshot) async {
+        int cartCount = 0;
+        for (var doc in snapshot.docs) {
+          final data = doc.data();
+          final productId = (data['productID'] as String?) ?? doc.id;
+          final quantity = (data['quantity'] as num?)?.toInt() ?? 0;
+          if (productId.isEmpty || quantity <= 0) continue;
+
+          final stock = await _getProductStock(productId);
+          if (stock > 0) {
+            cartCount += quantity;
+          }
+        }
+        return cartCount;
+      });
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<int> _getGuestCartCount() async {
@@ -936,15 +943,40 @@ class _WebHeaderState extends State<WebHeader> {
       final isGuest = await _webGuestService.isCurrentUserGuest();
       if (isGuest) {
         final cartItems = await _webGuestService.getGuestCart();
-        // Calculate total quantity
+        // Calculate total quantity with stock > 0
         int totalCount = 0;
         for (var item in cartItems) {
-          totalCount += (item['quantity'] as num?)?.toInt() ?? 0;
+          final productId = (item['productID'] as String?) ?? '';
+          final quantity = (item['quantity'] as num?)?.toInt() ?? 0;
+          if (productId.isEmpty || quantity <= 0) continue;
+
+          final stock = await _getProductStock(productId);
+          if (stock > 0) {
+            totalCount += quantity;
+          }
         }
         return totalCount;
       }
     } catch (e) {}
     return 0;
+  }
+
+  Future<int> _getProductStock(String productId) async {
+    if (_productStockCache.containsKey(productId)) {
+      return _productStockCache[productId]!;
+    }
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .get();
+      final stock = (doc.data()?['stock'] as num?)?.toInt() ?? 0;
+      _productStockCache[productId] = stock;
+      return stock;
+    } catch (e) {
+      return 0;
+    }
   }
 
   void _showOverlay(BuildContext context, bool isMobile) {
